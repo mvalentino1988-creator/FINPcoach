@@ -1,0 +1,69 @@
+package com.mattia.nuotoparalimpico
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import com.mattia.nuotoparalimpico.ui.AtletiScreen
+import com.mattia.nuotoparalimpico.ui.MainViewModel
+import com.mattia.nuotoparalimpico.ui.PianoScreen
+import com.mattia.nuotoparalimpico.ui.theme.NuotoParalimpicoTheme
+
+class MainActivity : ComponentActivity() {
+
+    private val viewModel: MainViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            NuotoParalimpicoTheme {
+                AppRoot(viewModel)
+            }
+        }
+    }
+}
+
+@Composable
+private fun AppRoot(vm: MainViewModel) {
+    var tab by rememberSaveable { mutableIntStateOf(0) }
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    selected = tab == 0,
+                    onClick = { tab = 0 },
+                    icon = { Icon(Icons.Filled.Person, contentDescription = "Atleti") },
+                    label = { Text("Atleti") }
+                )
+                NavigationBarItem(
+                    selected = tab == 1,
+                    onClick = { tab = 1 },
+                    icon = { Icon(Icons.Filled.DateRange, contentDescription = "Piano") },
+                    label = { Text("Piano") }
+                )
+            }
+        }
+    ) { padding ->
+        Box(Modifier.padding(padding)) {
+            if (tab == 0) AtletiScreen(vm) else PianoScreen(vm)
+        }
+    }
+}

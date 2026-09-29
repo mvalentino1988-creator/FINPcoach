@@ -1,0 +1,253 @@
+package com.mattia.nuotoparalimpico.ui
+
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.mattia.nuotoparalimpico.data.Stagione
+import com.mattia.nuotoparalimpico.domain.ParametriPiano
+import java.time.DayOfWeek
+
+private val NOMI_GIORNI = mapOf(
+    DayOfWeek.MONDAY to "Lun",
+    DayOfWeek.TUESDAY to "Mar",
+    DayOfWeek.WEDNESDAY to "Mer",
+    DayOfWeek.THURSDAY to "Gio",
+    DayOfWeek.FRIDAY to "Ven",
+    DayOfWeek.SATURDAY to "Sab",
+    DayOfWeek.SUNDAY to "Dom"
+)
+
+@Composable
+fun PianoScreen(vm: MainViewModel) {
+    val stagione by vm.stagione.collectAsState()
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        val s = stagione
+        if (s == null) FormStagione(vm) else ContenutoStagione(vm, s)
+    }
+}
+
+@Composable
+private fun FormStagione(vm: MainViewModel) {
+    var nome by remember { mutableStateOf("") }
+    var inizio by remember { mutableStateOf("") }
+    var fine by remember { mutableStateOf("") }
+    val i = parseData(inizio)
+    val f = parseData(fine)
+
+    Titolo("Nuova stagione")
+    OutlinedTextField(nome, { nome = it }, label = { Text("Nome (es. 2026/27)") }, singleLine = true)
+    CampoData(inizio, { inizio = it }, "Inizio stagione")
+    CampoData(fine, { fine = it }, "Fine stagione")
+    if (i != null && f != null && !f.isAfter(i)) {
+        Text("La fine deve essere dopo l'inizio", color = MaterialTheme.colorScheme.error)
+    }
+    Button(
+        enabled = nome.isNotBlank() && i != null && f != null && f.isAfter(i),
+        onClick = { if (i != null && f != null) vm.creaStagione(nome.trim(), i, f) }
+    ) { Text("Crea stagione") }
+}
+
+@Composable
+private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
+    val chiusure by vm.chiusure.collectAsState()
+    val gare by vm.gare.collectAsState()
+    val macro by vm.macro.collectAsState()
+    val meso by vm.meso.collectAsState()
+    val micro by vm.micro.collectAsState()
+    val avvisi by vm.avvisiPiano.collectAsState()
+    var confermaElimina by remember { mutableStateOf(false) }
+
+    // ----- Intestazione -----
+    Titolo("Stagione ${s.nome}")
+    Text("${s.inizio.formatta()} – ${s.fine.formatta()} · vasca da ${s.vascaMetri} m")
+    OutlinedButton(onClick = { confermaElimina = true }) { Text("Elimina stagione") }
+
+    HorizontalDivider()
+
+    // ----- Chiusure -----
+    Titolo("Chiusure e festività")
+    chiusure.forEach { c ->
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                if (c.dal == c.al) "${c.dal.formatta()} · ${c.motivo}"
+                else "${c.dal.formatta()} – ${c.al.formatta()} · ${c.motivo}",
+                Modifier.weight(1f)
+            )
+            TextButton(onClick = { vm.eliminaChiusura(c) }) { Text("Elimina") }
+        }
+    }
+    var cDal by remember { mutableStateOf("") }
+    var cAl by remember { mutableStateOf("") }
+    var cMotivo by remember { mutableStateOf("") }
+    val cDalData = parseData(cDal)
+    val cAlData = parseData(cAl)
+    CampoData(cDal, { cDal = it }, "Dal")
+    CampoData(cAl, { cAl = it }, "Al")
+    OutlinedTextField(cMotivo, { cMotivo = it }, label = { Text("Motivo (es. pausa natalizia)") }, singleLine = true)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Button(
+            enabled = cDalData != null && cAlData != null && !cAlData.isBefore(cDalData) && cMotivo.isNotBlank(),
+            onClick = {
+                if (cDalData != null && cAlData != null) {
+                    vm.aggiungiChiusura(cDalData, cAlData, cMotivo.trim())
+                    cDal = ""; cAl = ""; cMotivo = ""
+                }
+            }
+        ) { Text("Aggiungi") }
+        OutlinedButton(onClick = { vm.aggiungiFestivitaNazionali() }) { Text("Festività nazionali") }
+    }
+
+    HorizontalDivider()
+
+    // ----- Gare -----
+    Titolo("Gare")
+    gare.forEach { g ->
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "${g.dal.formatta()} · ${g.nome}" + if (g.prioritaria) " (prioritaria)" else "",
+                Modifier.weight(1f)
+            )
+            TextButton(onClick = { vm.eliminaGara(g) }) { Text("Elimina") }
+        }
+    }
+    var gNome by remember { mutableStateOf("") }
+    var gDal by remember { mutableStateOf("") }
+    var gAl by remember { mutableStateOf("") }
+    var gPrioritaria by remember { mutableStateOf(false) }
+    val gDalData = parseData(gDal)
+    val gAlData = if (gAl.isBlank()) gDalData else parseData(gAl)
+    OutlinedTextField(gNome, { gNome = it }, label = { Text("Nome gara") }, singleLine = true)
+    CampoData(gDal, { gDal = it }, "Data (o primo giorno)")
+    CampoData(gAl, { gAl = it }, "Ultimo giorno (vuoto se un solo giorno)")
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(checked = gPrioritaria, onCheckedChange = { gPrioritaria = it })
+        Text("Gara prioritaria (attiva il tapering)")
+    }
+    Button(
+        enabled = gNome.isNotBlank() && gDalData != null && gAlData != null && !gAlData.isBefore(gDalData),
+        onClick = {
+            if (gDalData != null && gAlData != null) {
+                vm.aggiungiGara(gNome.trim(), gDalData, gAlData, gPrioritaria)
+                gNome = ""; gDal = ""; gAl = ""; gPrioritaria = false
+            }
+        }
+    ) { Text("Aggiungi gara") }
+
+    HorizontalDivider()
+
+    // ----- Parametri e generazione -----
+    Titolo("Genera piano")
+    var giorni by remember { mutableStateOf(setOf(DayOfWeek.WEDNESDAY, DayOfWeek.SATURDAY)) }
+    var nMacro by remember { mutableStateOf("1") }
+    var metri by remember { mutableStateOf("1800") }
+    var ciclo by remember { mutableStateOf("4") }
+
+    Text("Giorni di allenamento")
+    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        DayOfWeek.values().forEach { g ->
+            FilterChip(
+                selected = g in giorni,
+                onClick = { giorni = if (g in giorni) giorni - g else giorni + g },
+                label = { Text(NOMI_GIORNI.getValue(g)) }
+            )
+        }
+    }
+    OutlinedTextField(nMacro, { nMacro = it }, label = { Text("Numero di macrocicli") }, singleLine = true)
+    OutlinedTextField(metri, { metri = it }, label = { Text("Metri di una seduta piena") }, singleLine = true)
+    OutlinedTextField(ciclo, { ciclo = it }, label = { Text("Uno scarico ogni N settimane") }, singleLine = true)
+
+    val nMacroInt = nMacro.toIntOrNull()
+    val metriInt = metri.toIntOrNull()
+    val cicloInt = ciclo.toIntOrNull()
+    val parametriOk = giorni.isNotEmpty() &&
+        nMacroInt != null && nMacroInt in 1..3 &&
+        metriInt != null && metriInt in 200..10_000 &&
+        cicloInt != null && cicloInt in 2..8
+
+    Button(
+        enabled = parametriOk,
+        onClick = {
+            if (nMacroInt != null && metriInt != null && cicloInt != null) {
+                vm.generaPiano(ParametriPiano(giorni, nMacroInt, metriInt, cicloInt))
+            }
+        }
+    ) { Text(if (micro.isEmpty()) "Genera piano" else "Rigenera piano (sostituisce l'attuale)") }
+
+    // ----- Avvisi -----
+    if (avvisi.isNotEmpty()) {
+        HorizontalDivider()
+        Titolo("Controlli sul piano")
+        ElencoAvvisi(avvisi)
+    }
+
+    // ----- Piano -----
+    if (micro.isNotEmpty()) {
+        HorizontalDivider()
+        Titolo("Piano")
+        macro.forEach { ma ->
+            Text(
+                "${ma.nome} · ${ma.inizio.formatta()} – ${ma.fine.formatta()}",
+                style = MaterialTheme.typography.titleSmall
+            )
+            meso.filter { it.macrocicloId == ma.id }.forEach { me ->
+                Text(
+                    "${me.fase.etichetta} · ${me.inizio.formatta()} – ${me.fine.formatta()}",
+                    style = MaterialTheme.typography.labelLarge
+                )
+                micro.filter { it.mesocicloId == me.id }.forEach { mi ->
+                    Column(Modifier.padding(start = 12.dp)) {
+                        Text(
+                            "${mi.inizio.formatta()} · ${mi.tipo.etichetta} · ${mi.sedutePreviste} sedute · ${mi.volumeTargetMetri} m",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        if (mi.note.isNotBlank()) {
+                            Text(mi.note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (confermaElimina) {
+        AlertDialog(
+            onDismissRequest = { confermaElimina = false },
+            title = { Text("Eliminare la stagione?") },
+            text = { Text("Verranno eliminati chiusure, gare e piano. Gli atleti restano.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    vm.eliminaStagione()
+                    confermaElimina = false
+                }) { Text("Elimina") }
+            },
+            dismissButton = { TextButton(onClick = { confermaElimina = false }) { Text("Annulla") } }
+        )
+    }
+}
