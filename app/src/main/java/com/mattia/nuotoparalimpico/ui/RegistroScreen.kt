@@ -5,15 +5,24 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -28,16 +37,21 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mattia.nuotoparalimpico.data.Assenza
 import com.mattia.nuotoparalimpico.data.Atleta
 import com.mattia.nuotoparalimpico.data.ContestoTempo
+import com.mattia.nuotoparalimpico.data.FaseMesociclo
 import com.mattia.nuotoparalimpico.data.LogSeduta
 import com.mattia.nuotoparalimpico.data.Microciclo
 import com.mattia.nuotoparalimpico.data.Stile
 import com.mattia.nuotoparalimpico.data.Tempo
+import com.mattia.nuotoparalimpico.data.TipoMicrociclo
+import com.mattia.nuotoparalimpico.domain.GeneratoreSmartSeduta
 import com.mattia.nuotoparalimpico.domain.Riepilogo
+import com.mattia.nuotoparalimpico.domain.SchedaSeduta
 import com.mattia.nuotoparalimpico.domain.VolumeIndividuale
 import com.mattia.nuotoparalimpico.domain.formattaTempo
 import com.mattia.nuotoparalimpico.domain.parseTempo
@@ -69,7 +83,7 @@ fun RegistroScreen(vm: MainViewModel, rvm: RegistroViewModel) {
     Column(Modifier.fillMaxSize()) {
         TabRow(selectedTabIndex = sezione) {
             listOf("Seduta", "Tempi", "Storico").forEachIndexed { i, titolo ->
-                Tab(selected = sezione == i, onClick = { sezione = i }, text = { Text(titolo) })
+                Tab(selected = sezione == i, onClick = { sezione = i }, text = { Text(titolo, fontWeight = FontWeight.SemiBold) })
             }
         }
         Column(
@@ -117,7 +131,6 @@ private fun RigaSeduta.valida(): Boolean {
     return metriOk && rpeOk
 }
 
-/** Valori iniziali della riga: seduta già registrata, altrimenti assenza e metri previsti dal piano. */
 private fun creaRiga(
     a: Atleta,
     data: LocalDate?,
@@ -146,11 +159,14 @@ private fun creaRiga(
 private fun SezioneSeduta(vm: MainViewModel, rvm: RegistroViewModel) {
     val atleti by vm.atleti.collectAsStateWithLifecycle()
     val assenze by vm.assenze.collectAsStateWithLifecycle()
+    val meso by vm.meso.collectAsStateWithLifecycle()
     val micro by vm.micro.collectAsStateWithLifecycle()
     val log by rvm.log.collectAsStateWithLifecycle()
 
     var dataTesto by remember { mutableStateOf(LocalDate.now().formatta()) }
     var durata by remember { mutableStateOf("60") }
+    var schedaGiorno by remember { mutableStateOf<SchedaSeduta?>(null) }
+
     val data = parseData(dataTesto)
     val durataInt = durata.toIntOrNull()
 
@@ -159,17 +175,38 @@ private fun SezioneSeduta(vm: MainViewModel, rvm: RegistroViewModel) {
     }
     val giaRegistrata = data != null && log.any { it.data == data }
 
-    Titolo("Registra seduta")
-    CampoData(dataTesto, { dataTesto = it }, "Data")
-    CampoNumero(durata, { durata = it }, "Durata (minuti)", isError = durataInt == null || durataInt !in 1..300)
+    Titolo("Registra Seduta di Vasca", Icons.Filled.DateRange)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        CampoData(dataTesto, { dataTesto = it }, "Data", Modifier.weight(1f))
+        CampoNumero(durata, { durata = it }, "Durata (minuti)", Modifier.weight(1f), isError = durataInt == null || durataInt !in 1..300)
+    }
+
+    // Pulsante per vedere la scheda d'allenamento generata per il giorno
+    OutlinedButton(
+        onClick = {
+            val d = data ?: LocalDate.now()
+            val mic = micro.firstOrNull { !d.isBefore(it.inizio) && !d.isAfter(it.fine) }
+            val mes = mic?.let { m -> meso.firstOrNull { it.id == m.mesocicloId } }
+            val volumeMedia = if (mic != null && mic.sedutePreviste > 0) mic.volumeTargetMetri / mic.sedutePreviste else 1800
+            schedaGiorno = GeneratoreSmartSeduta.genera(
+                data = d,
+                metriTarget = volumeMedia,
+                fase = mes?.fase ?: FaseMesociclo.PREPARAZIONE_SPECIFICA,
+                tipoMicro = mic?.tipo ?: TipoMicrociclo.CARICO
+            )
+        },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text("Scheda Bordo Vasca del Giorno 🏊‍♂️")
+    }
+
     Text(
-        "Spunta i presenti e indica metri effettivi e RPE (1-10). I metri sono precompilati dal piano; " +
-            "chi ha un'assenza in quella data risulta già assente.",
+        "Spunta i presenti e indica metri effettivi e RPE (1-10). I metri sono precompilati dal piano.",
         style = MaterialTheme.typography.bodySmall
     )
     if (giaRegistrata) {
         Text(
-            "Per questa data c'è già una seduta: salvando la sostituisci.",
+            "Per questa data c'è già una seduta registrata: salvando verrà sostituita.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.tertiary
         )
@@ -177,12 +214,22 @@ private fun SezioneSeduta(vm: MainViewModel, rvm: RegistroViewModel) {
 
     atleti.forEach { a ->
         val r = righe[a.id] ?: return@forEach
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Checkbox(checked = r.presente, onCheckedChange = { r.presente = it })
-            Text("${a.cognome} ${a.nome}", Modifier.weight(1f))
-            if (r.presente) {
-                CampoNumero(r.metri, { r.metri = it }, "Metri", Modifier.width(100.dp))
-                CampoNumero(r.rpe, { r.rpe = it }, "RPE", Modifier.width(76.dp), isError = !r.valida())
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            shape = RoundedCornerShape(10.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Checkbox(checked = r.presente, onCheckedChange = { r.presente = it })
+                Text("${a.cognome} ${a.nome}", Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                if (r.presente) {
+                    CampoNumero(r.metri, { r.metri = it }, "Metri", Modifier.width(100.dp))
+                    CampoNumero(r.rpe, { r.rpe = it }, "RPE (1-10)", Modifier.width(90.dp), isError = !r.valida())
+                }
             }
         }
     }
@@ -210,8 +257,16 @@ private fun SezioneSeduta(vm: MainViewModel, rvm: RegistroViewModel) {
                     }
                 )
             }
-        }
-    ) { Text(if (giaRegistrata) "Aggiorna seduta" else "Salva seduta") }
+        },
+        modifier = Modifier.fillMaxWidth()
+    ) { Text(if (giaRegistrata) "Aggiorna Seduta" else "Salva Seduta") }
+
+    schedaGiorno?.let { scheda ->
+        DialogSchedaSedutaSmart(
+            scheda = scheda,
+            onChiudi = { schedaGiorno = null }
+        )
+    }
 }
 
 // ---------------------------------------------------------------- TEMPI
@@ -233,20 +288,23 @@ private fun SezioneTempi(atleta: Atleta, rvm: RegistroViewModel) {
     val distanzaInt = distanza.toIntOrNull()
     val centesimi = parseTempo(tempoTesto)
 
-    Titolo("Nuovo tempo · ${atleta.nome}")
-    CampoData(dataTesto, { dataTesto = it }, "Data")
+    Titolo("Nuovo Tempo · ${atleta.nome}", Icons.Filled.DateRange)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        CampoData(dataTesto, { dataTesto = it }, "Data", Modifier.weight(1f))
+        CampoNumero(distanza, { distanza = it }, "Distanza (m)", Modifier.weight(1f), isError = distanzaInt == null || distanzaInt !in 25..1500)
+    }
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Stile.entries.forEach { s ->
             FilterChip(selected = s == stile, onClick = { stile = s }, label = { Text(NOMI_STILI.getValue(s)) })
         }
     }
-    CampoNumero(distanza, { distanza = it }, "Distanza (m)", isError = distanzaInt == null || distanzaInt !in 25..1500)
     OutlinedTextField(
         value = tempoTesto,
         onValueChange = { tempoTesto = it },
-        label = { Text("Tempo (es. 1:02.35 oppure 28.40)") },
+        label = { Text("Tempo (es. 1:02.35 o 28.40)") },
         singleLine = true,
-        isError = tempoTesto.isNotBlank() && centesimi == null
+        isError = tempoTesto.isNotBlank() && centesimi == null,
+        modifier = Modifier.fillMaxWidth()
     )
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         ContestoTempo.entries.forEach { c ->
@@ -256,7 +314,7 @@ private fun SezioneTempi(atleta: Atleta, rvm: RegistroViewModel) {
             FilterChip(selected = v == vasca, onClick = { vasca = v }, label = { Text("Vasca $v m") })
         }
     }
-    OutlinedTextField(note, { note = it }, label = { Text("Note") })
+    OutlinedTextField(note, { note = it }, label = { Text("Note") }, modifier = Modifier.fillMaxWidth())
     Button(
         enabled = data != null && distanzaInt != null && distanzaInt in 25..1500 && centesimi != null,
         onClick = {
@@ -276,27 +334,46 @@ private fun SezioneTempi(atleta: Atleta, rvm: RegistroViewModel) {
                 tempoTesto = ""
                 note = ""
             }
-        }
-    ) { Text("Aggiungi tempo") }
+        },
+        modifier = Modifier.fillMaxWidth()
+    ) { Text("Aggiungi Tempo") }
 
     HorizontalDivider()
 
-    Titolo("Primati personali (solo gara)")
+    Titolo("Primati Personali Ufficiali (Gara)", Icons.Filled.List)
     val primati = primatiPersonali(mieiTempi)
     if (primati.isEmpty()) {
         Text("Nessun tempo di gara registrato.", style = MaterialTheme.typography.bodySmall)
     } else {
         primati.forEach { p ->
-            Text(
-                "${NOMI_STILI.getValue(p.stile)} ${p.distanzaMetri} m (vasca ${p.vascaMetri}) · " +
-                    "${formattaTempo(p.centesimi)} · ${p.data.formatta()}"
-            )
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "${NOMI_STILI.getValue(p.stile)} ${p.distanzaMetri} m (vasca ${p.vascaMetri}m)",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Text(
+                        "${formattaTempo(p.centesimi)} · ${p.data.formatta()}",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
     }
 
     HorizontalDivider()
 
-    Titolo("Tutti i tempi")
+    Titolo("Storico Tempi Registrati", Icons.Filled.List)
     if (mieiTempi.isEmpty()) {
         Text("Nessun tempo registrato.", style = MaterialTheme.typography.bodySmall)
     }
@@ -305,10 +382,11 @@ private fun SezioneTempi(atleta: Atleta, rvm: RegistroViewModel) {
             Column(Modifier.weight(1f)) {
                 Text(
                     "${NOMI_STILI.getValue(t.stile)} ${t.distanzaMetri} m · ${formattaTempo(t.centesimi)}",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
-                    "${t.data.formatta()} · ${NOMI_CONTESTI.getValue(t.contesto)} · vasca ${t.vascaMetri} m" +
+                    "${t.data.formatta()} · ${NOMI_CONTESTI.getValue(t.contesto)} · Vasca ${t.vascaMetri} m" +
                         if (t.note.isNotBlank()) " · ${t.note}" else "",
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -330,24 +408,30 @@ private fun SezioneStorico(atleta: Atleta, vm: MainViewModel, rvm: RegistroViewM
     val presenti = mioLog.count { it.presente }
     val settimane = Riepilogo.perAtleta(atleta, mioLog, micro, assenze.filter { it.atletaId == atleta.id })
 
-    Titolo("Storico · ${atleta.nome}")
+    Titolo("Storico Presenze e Carico · ${atleta.nome}", Icons.Filled.Info)
     if (mioLog.isEmpty()) {
         Text("Nessuna seduta registrata.", style = MaterialTheme.typography.bodySmall)
         return
     }
-    Text("Presenze: $presenti su ${mioLog.size} sedute registrate")
+    Text("Presenze: $presenti su ${mioLog.size} sedute registrate", fontWeight = FontWeight.SemiBold)
     Text(
-        "Carico = RPE x minuti, sommato sulle sedute della settimana.",
+        "Carico sRPE = RPE x durata (minuti) della seduta.",
         style = MaterialTheme.typography.bodySmall
     )
     settimane.forEach { s ->
-        Column {
-            Text("Settimana del ${s.lunedi.formatta()}", style = MaterialTheme.typography.labelLarge)
-            val previsti = s.metriPrevisti?.let { " (previsti $it m)" } ?: ""
-            Text("${s.sedute} sedute · ${s.metri} m$previsti", style = MaterialTheme.typography.bodySmall)
-            val rpe = s.rpeMedio?.let { "RPE medio ${String.format(Locale.ITALY, "%.1f", it)} · " } ?: ""
-            val assenzeTesto = if (s.assenze > 0) " · ${s.assenze} assenze" else ""
-            Text("${rpe}carico ${s.caricoSrpe}$assenzeTesto", style = MaterialTheme.typography.bodySmall)
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            shape = RoundedCornerShape(10.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
+        ) {
+            Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("Settimana del ${s.lunedi.formatta()}", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                val previsti = s.metriPrevisti?.let { " (previsti $it m)" } ?: ""
+                Text("${s.sedute} sedute effettuate · ${s.metri} m$previsti", style = MaterialTheme.typography.bodySmall)
+                val rpe = s.rpeMedio?.let { "RPE medio ${String.format(Locale.ITALY, "%.1f", it)} · " } ?: ""
+                val assenzeTesto = if (s.assenze > 0) " · ${s.assenze} assenze" else ""
+                Text("${rpe}Carico sRPE: ${s.caricoSrpe}$assenzeTesto", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+            }
         }
     }
 }

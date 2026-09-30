@@ -2,10 +2,27 @@ package com.mattia.nuotoparalimpico.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Palette FINPcoach: Deep Oceanic Teal & Cyan
+val PrimaryTeal = Color(0xFF006874)
+val OnPrimaryTeal = Color(0xFFFFFFFF)
+val PrimaryContainerTeal = Color(0xFF97F0FF)
+val OnPrimaryContainerTeal = Color(0xFF001F24)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val SecondaryBlue = Color(0xFF006399)
+val SecondaryContainerBlue = Color(0xFFCFE5FF)
+val OnSecondaryContainerBlue = Color(0xFF001D34)
+
+val TertiaryCoral = Color(0xFF9B4000)
+val TertiaryContainerCoral = Color(0xFFFFDBCF)
+val OnTertiaryContainerCoral = Color(0xFF381000)
+
+val SurfaceLight = Color(0xFFF4FAFC)
+val SurfaceVariantLight = Color(0xFFDBE4E6)
+
+// Dark Theme Colors
+val PrimaryTealDark = Color(0xFF4FD8EB)
+val PrimaryContainerTealDark = Color(0xFF004F58)
+val SecondaryBlueDark = Color(0xFF99CBFF)
+val SecondaryContainerBlueDark = Color(0xFF004B76)
+val SurfaceDark = Color(0xFF0E1415)
+val SurfaceVariantDark = Color(0xFF3F484A)

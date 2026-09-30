@@ -9,7 +9,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -17,10 +22,12 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -30,13 +37,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mattia.nuotoparalimpico.data.FaseMesociclo
 import com.mattia.nuotoparalimpico.data.Gara
+import com.mattia.nuotoparalimpico.data.Mesociclo
 import com.mattia.nuotoparalimpico.data.Microciclo
 import com.mattia.nuotoparalimpico.data.Stagione
 import com.mattia.nuotoparalimpico.data.TipoMicrociclo
+import com.mattia.nuotoparalimpico.domain.GeneratoreSmartSeduta
 import com.mattia.nuotoparalimpico.domain.ParametriPiano
+import com.mattia.nuotoparalimpico.domain.SchedaSeduta
 import java.time.DayOfWeek
 
 private val NOMI_GIORNI = mapOf(
@@ -69,17 +81,18 @@ private fun FormStagione(vm: MainViewModel) {
     val i = parseData(inizio)
     val f = parseData(fine)
 
-    Titolo("Nuova stagione")
-    OutlinedTextField(nome, { nome = it }, label = { Text("Nome (es. 2026/27)") }, singleLine = true)
-    CampoData(inizio, { inizio = it }, "Inizio stagione")
-    CampoData(fine, { fine = it }, "Fine stagione")
+    Titolo("Nuova Stagione Agonistica", Icons.Filled.DateRange)
+    OutlinedTextField(nome, { nome = it }, label = { Text("Nome (es. 2026/27)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+    CampoData(inizio, { inizio = it }, "Inizio stagione", modifier = Modifier.fillMaxWidth())
+    CampoData(fine, { fine = it }, "Fine stagione", modifier = Modifier.fillMaxWidth())
     if (i != null && f != null && !f.isAfter(i)) {
         Text("La fine deve essere dopo l'inizio", color = MaterialTheme.colorScheme.error)
     }
     Button(
         enabled = nome.isNotBlank() && i != null && f != null && f.isAfter(i),
-        onClick = { if (i != null && f != null) vm.creaStagione(nome.trim(), i, f) }
-    ) { Text("Crea stagione") }
+        onClick = { if (i != null && f != null) vm.creaStagione(nome.trim(), i, f) },
+        modifier = Modifier.fillMaxWidth()
+    ) { Text("Crea Stagione") }
 }
 
 @Composable
@@ -92,22 +105,32 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
     val avvisi by vm.avvisiPiano.collectAsStateWithLifecycle()
     var confermaElimina by remember { mutableStateOf(false) }
     var microSelezionato by remember { mutableStateOf<Microciclo?>(null) }
+    var schedaSmartVisualizzata by remember { mutableStateOf<SchedaSeduta?>(null) }
 
     // ----- Intestazione -----
-    Titolo("Stagione ${s.nome}")
-    Text("${s.inizio.formatta()} – ${s.fine.formatta()} · vasca da ${s.vascaMetri} m")
-    OutlinedButton(onClick = { confermaElimina = true }) { Text("Elimina stagione") }
+    Surface(
+        color = MaterialTheme.colorScheme.primaryContainer,
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Stagione ${s.nome}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            Text("${s.inizio.formatta()} – ${s.fine.formatta()} · Vasca da ${s.vascaMetri} m", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            OutlinedButton(onClick = { confermaElimina = true }) { Text("Elimina stagione") }
+        }
+    }
 
     HorizontalDivider()
 
     // ----- Chiusure -----
-    Titolo("Chiusure e festività")
+    Titolo("Chiusure e Festività", Icons.Filled.Info)
     chiusure.forEach { c ->
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 if (c.dal == c.al) "${c.dal.formatta()} · ${c.motivo}"
                 else "${c.dal.formatta()} – ${c.al.formatta()} · ${c.motivo}",
-                Modifier.weight(1f)
+                Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyMedium
             )
             TextButton(onClick = { vm.eliminaChiusura(c) }) { Text("Elimina") }
         }
@@ -117,9 +140,11 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
     var cMotivo by remember { mutableStateOf("") }
     val cDalData = parseData(cDal)
     val cAlData = parseData(cAl)
-    CampoData(cDal, { cDal = it }, "Dal")
-    CampoData(cAl, { cAl = it }, "Al")
-    OutlinedTextField(cMotivo, { cMotivo = it }, label = { Text("Motivo (es. pausa natalizia)") }, singleLine = true)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        CampoData(cDal, { cDal = it }, "Dal", Modifier.weight(1f))
+        CampoData(cAl, { cAl = it }, "Al", Modifier.weight(1f))
+    }
+    OutlinedTextField(cMotivo, { cMotivo = it }, label = { Text("Motivo (es. Festività natalizie)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Button(
             enabled = cDalData != null && cAlData != null && !cAlData.isBefore(cDalData) && cMotivo.isNotBlank(),
@@ -136,12 +161,13 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
     HorizontalDivider()
 
     // ----- Gare -----
-    Titolo("Gare")
+    Titolo("Gare Agonistiche", Icons.Filled.DateRange)
     gare.forEach { g ->
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "${g.dal.formatta()} · ${g.nome}" + if (g.prioritaria) " (prioritaria)" else "",
-                Modifier.weight(1f)
+                "${g.dal.formatta()} · ${g.nome}" + if (g.prioritaria) " (prioritaria ⭐)" else "",
+                Modifier.weight(1f),
+                fontWeight = if (g.prioritaria) FontWeight.Bold else FontWeight.Normal
             )
             TextButton(onClick = { vm.eliminaGara(g) }) { Text("Elimina") }
         }
@@ -152,12 +178,14 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
     var gPrioritaria by remember { mutableStateOf(false) }
     val gDalData = parseData(gDal)
     val gAlData = if (gAl.isBlank()) gDalData else parseData(gAl)
-    OutlinedTextField(gNome, { gNome = it }, label = { Text("Nome gara") }, singleLine = true)
-    CampoData(gDal, { gDal = it }, "Data (o primo giorno)")
-    CampoData(gAl, { gAl = it }, "Ultimo giorno (vuoto se un solo giorno)")
+    OutlinedTextField(gNome, { gNome = it }, label = { Text("Nome gara") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        CampoData(gDal, { gDal = it }, "Data inizio", Modifier.weight(1f))
+        CampoData(gAl, { gAl = it }, "Data fine (opzionale)", Modifier.weight(1f))
+    }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Checkbox(checked = gPrioritaria, onCheckedChange = { gPrioritaria = it })
-        Text("Gara prioritaria (ancora le fasi e attiva il tapering)")
+        Text("Gara prioritaria (sincronizza il tapering e le fasi)")
     }
     Button(
         enabled = gNome.isNotBlank() && gDalData != null && gAlData != null && !gAlData.isBefore(gDalData),
@@ -167,18 +195,18 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
                 gNome = ""; gDal = ""; gAl = ""; gPrioritaria = false
             }
         }
-    ) { Text("Aggiungi gara") }
+    ) { Text("Aggiungi Gara") }
 
     HorizontalDivider()
 
-    // ----- Parametri e generazione -----
-    Titolo("Genera piano")
+    // ----- Parametri e Generazione -----
+    Titolo("Generazione Smart del Piano", Icons.Filled.Edit)
     var giorni by remember { mutableStateOf(setOf(DayOfWeek.WEDNESDAY, DayOfWeek.SATURDAY)) }
     var nMacro by remember { mutableStateOf("1") }
     var metri by remember { mutableStateOf("1800") }
     var ciclo by remember { mutableStateOf("4") }
 
-    Text("Giorni di allenamento")
+    Text("Giorni di Allenamento in Vasca", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         DayOfWeek.entries.forEach { g ->
             FilterChip(
@@ -192,9 +220,11 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
     val nMacroInt = nMacro.toIntOrNull()
     val metriInt = metri.toIntOrNull()
     val cicloInt = ciclo.toIntOrNull()
-    CampoNumero(nMacro, { nMacro = it }, "Macrocicli (1-3, solo senza gara prioritaria)", isError = nMacroInt == null || nMacroInt !in 1..3)
-    CampoNumero(metri, { metri = it }, "Metri di una seduta piena (200-10000)", isError = metriInt == null || metriInt !in 200..10_000)
-    CampoNumero(ciclo, { ciclo = it }, "Uno scarico ogni N settimane (2-8)", isError = cicloInt == null || cicloInt !in 2..8)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        CampoNumero(nMacro, { nMacro = it }, "Macrocicli", Modifier.weight(1f), isError = nMacroInt == null || nMacroInt !in 1..3)
+        CampoNumero(metri, { metri = it }, "Metri base seduta", Modifier.weight(1f), isError = metriInt == null || metriInt !in 200..10_000)
+    }
+    CampoNumero(ciclo, { ciclo = it }, "Un ciclo di scarico ogni N settimane", modifier = Modifier.fillMaxWidth(), isError = cicloInt == null || cicloInt !in 2..8)
 
     val parametriOk = giorni.isNotEmpty() &&
             nMacroInt != null && nMacroInt in 1..3 &&
@@ -207,41 +237,54 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
             if (nMacroInt != null && metriInt != null && cicloInt != null) {
                 vm.generaPiano(ParametriPiano(giorni, nMacroInt, metriInt, cicloInt))
             }
-        }
-    ) { Text(if (micro.isEmpty()) "Genera piano" else "Rigenera piano (le settimane modificate restano)") }
+        },
+        modifier = Modifier.fillMaxWidth()
+    ) { Text(if (micro.isEmpty()) "Genera Piano Agonistico" else "Rigenera Piano Agonistico") }
 
     // ----- Avvisi -----
     if (avvisi.isNotEmpty()) {
         HorizontalDivider()
-        Titolo("Controlli sul piano")
+        Titolo("Controlli sul Piano", Icons.Filled.Info)
         ElencoAvvisi(avvisi)
     }
 
     // ----- Piano -----
     if (micro.isNotEmpty()) {
         HorizontalDivider()
-        Titolo("Piano")
-        Text("Tocca una settimana per modificarla.", style = MaterialTheme.typography.bodySmall)
+        Titolo("Programmazione e Microcicli", Icons.Filled.DateRange)
+        Text("Tocca una settimana per modificarla o generare la Scheda d'Allenamento Smart per la Vasca.", style = MaterialTheme.typography.bodySmall)
         val volumeMax = micro.maxOfOrNull { it.volumeTargetMetri } ?: 0
         macro.forEach { ma ->
             Text(
                 "${ma.nome} · ${ma.inizio.formatta()} – ${ma.fine.formatta()}",
-                style = MaterialTheme.typography.titleSmall
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
             )
             if (ma.obiettivo.isNotBlank()) {
-                Text(ma.obiettivo, style = MaterialTheme.typography.bodySmall)
+                Text(ma.obiettivo, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
             }
             meso.filter { it.macrocicloId == ma.id }.forEach { me ->
                 Text(
                     "${me.fase.etichetta} · ${me.inizio.formatta()} – ${me.fine.formatta()}",
-                    style = MaterialTheme.typography.labelLarge
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold
                 )
                 micro.filter { it.mesocicloId == me.id }.forEach { mi ->
                     CardMicro(
                         mi = mi,
+                        faseMesociclo = me.fase,
                         gareSettimana = gare.filter { !it.dal.isAfter(mi.fine) && !it.al.isBefore(mi.inizio) },
                         volumeMax = volumeMax,
-                        onClick = { microSelezionato = mi }
+                        onClick = { microSelezionato = mi },
+                        onMostraScheda = {
+                            val metriSeduta = if (mi.sedutePreviste > 0) mi.volumeTargetMetri / mi.sedutePreviste else 1800
+                            schedaSmartVisualizzata = GeneratoreSmartSeduta.genera(
+                                data = mi.inizio,
+                                metriTarget = metriSeduta,
+                                fase = me.fase,
+                                tipoMicro = mi.tipo
+                            )
+                        }
                     )
                 }
             }
@@ -257,11 +300,18 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
         )
     }
 
+    schedaSmartVisualizzata?.let { scheda ->
+        DialogSchedaSedutaSmart(
+            scheda = scheda,
+            onChiudi = { schedaSmartVisualizzata = null }
+        )
+    }
+
     if (confermaElimina) {
         AlertDialog(
             onDismissRequest = { confermaElimina = false },
             title = { Text("Eliminare la stagione?") },
-            text = { Text("Verranno eliminati chiusure, gare e piano. Gli atleti restano.") },
+            text = { Text("Verranno eliminati chiusure, gare e piano. Gli atleti restano salvati.") },
             confirmButton = {
                 TextButton(onClick = {
                     vm.eliminaStagione()
@@ -274,7 +324,14 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
 }
 
 @Composable
-private fun CardMicro(mi: Microciclo, gareSettimana: List<Gara>, volumeMax: Int, onClick: () -> Unit) {
+private fun CardMicro(
+    mi: Microciclo,
+    faseMesociclo: FaseMesociclo,
+    gareSettimana: List<Gara>,
+    volumeMax: Int,
+    onClick: () -> Unit,
+    onMostraScheda: () -> Unit
+) {
     val colore = when (mi.tipo) {
         TipoMicrociclo.CARICO -> MaterialTheme.colorScheme.primaryContainer
         TipoMicrociclo.SCARICO, TipoMicrociclo.RECUPERO -> MaterialTheme.colorScheme.secondaryContainer
@@ -283,24 +340,44 @@ private fun CardMicro(mi: Microciclo, gareSettimana: List<Gara>, volumeMax: Int,
     }
     Card(
         colors = CardDefaults.cardColors(containerColor = colore),
+        shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
     ) {
-        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                "${mi.inizio.formatta()} · ${mi.tipo.etichetta}" + if (mi.bloccato) " · modificata" else "",
-                style = MaterialTheme.typography.labelLarge
-            )
-            Text("${mi.sedutePreviste} sedute · ${mi.volumeTargetMetri} m", style = MaterialTheme.typography.bodySmall)
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    "${mi.inizio.formatta()} · ${mi.tipo.etichetta}" + if (mi.bloccato) " 🔒" else "",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                TextButton(onClick = onMostraScheda) {
+                    Text("Scheda Smart 🏊‍♂️", style = MaterialTheme.typography.labelMedium)
+                }
+            }
+            Text("${mi.sedutePreviste} sedute · ${mi.volumeTargetMetri} m (squadra)", style = MaterialTheme.typography.bodySmall)
             if (volumeMax > 0) {
                 LinearProgressIndicator(
                     progress = { mi.volumeTargetMetri.toFloat() / volumeMax },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
+
+            // Anteprima Ripartizione Codici
+            val metriSeduta = if (mi.sedutePreviste > 0) mi.volumeTargetMetri / mi.sedutePreviste else 1800
+            val schedaAnteprima = remember(mi, faseMesociclo) {
+                GeneratoreSmartSeduta.genera(mi.inizio, metriSeduta, faseMesociclo, mi.tipo)
+            }
+            IndicatoreRipartizioneCodici(schedaAnteprima.ripartizioneCodici, schedaAnteprima.volumeTotaleMetri)
+
             gareSettimana.forEach { g ->
                 Text(
-                    "Gara: ${g.nome}" + if (g.prioritaria) " (prioritaria)" else "",
-                    style = MaterialTheme.typography.bodySmall
+                    "🏆 Gara: ${g.nome}" + if (g.prioritaria) " (prioritaria)" else "",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
             if (mi.note.isNotBlank()) {
