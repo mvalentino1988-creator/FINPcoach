@@ -6,7 +6,6 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.mattia.nuotoparalimpico.domain.MacroGen
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -58,6 +57,9 @@ abstract class PianoDao {
     @Query("SELECT * FROM chiusure WHERE stagioneId = :stagioneId ORDER BY dal")
     abstract fun osservaChiusure(stagioneId: Long): Flow<List<Chiusura>>
 
+    @Query("SELECT * FROM chiusure WHERE stagioneId = :stagioneId ORDER BY dal")
+    abstract suspend fun leggiChiusure(stagioneId: Long): List<Chiusura>
+
     @Insert
     abstract suspend fun inserisciChiusura(chiusura: Chiusura)
 
@@ -71,6 +73,9 @@ abstract class PianoDao {
     @Query("SELECT * FROM gare WHERE stagioneId = :stagioneId ORDER BY dal")
     abstract fun osservaGare(stagioneId: Long): Flow<List<Gara>>
 
+    @Query("SELECT * FROM gare WHERE stagioneId = :stagioneId ORDER BY dal")
+    abstract suspend fun leggiGare(stagioneId: Long): List<Gara>
+
     @Insert
     abstract suspend fun inserisciGara(gara: Gara)
 
@@ -83,17 +88,28 @@ abstract class PianoDao {
 
     @Query(
         "SELECT me.* FROM mesocicli me JOIN macrocicli ma ON me.macrocicloId = ma.id " +
-            "WHERE ma.stagioneId = :stagioneId ORDER BY me.inizio"
+                "WHERE ma.stagioneId = :stagioneId ORDER BY me.inizio"
     )
     abstract fun osservaMeso(stagioneId: Long): Flow<List<Mesociclo>>
 
     @Query(
         "SELECT mi.* FROM microcicli mi " +
-            "JOIN mesocicli me ON mi.mesocicloId = me.id " +
-            "JOIN macrocicli ma ON me.macrocicloId = ma.id " +
-            "WHERE ma.stagioneId = :stagioneId ORDER BY mi.inizio"
+                "JOIN mesocicli me ON mi.mesocicloId = me.id " +
+                "JOIN macrocicli ma ON me.macrocicloId = ma.id " +
+                "WHERE ma.stagioneId = :stagioneId ORDER BY mi.inizio"
     )
     abstract fun osservaMicro(stagioneId: Long): Flow<List<Microciclo>>
+
+    @Query(
+        "SELECT mi.* FROM microcicli mi " +
+                "JOIN mesocicli me ON mi.mesocicloId = me.id " +
+                "JOIN macrocicli ma ON me.macrocicloId = ma.id " +
+                "WHERE ma.stagioneId = :stagioneId ORDER BY mi.inizio"
+    )
+    abstract suspend fun leggiMicro(stagioneId: Long): List<Microciclo>
+
+    @Update
+    abstract suspend fun aggiornaMicro(micro: Microciclo)
 
     @Query("DELETE FROM macrocicli WHERE stagioneId = :stagioneId")
     abstract suspend fun eliminaPiano(stagioneId: Long)

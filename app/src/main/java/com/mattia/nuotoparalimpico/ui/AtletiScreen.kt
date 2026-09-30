@@ -21,7 +21,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,13 +28,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mattia.nuotoparalimpico.data.Assenza
 import com.mattia.nuotoparalimpico.data.Atleta
 import com.mattia.nuotoparalimpico.data.CondizioneMedica
+import com.mattia.nuotoparalimpico.data.Microciclo
 import com.mattia.nuotoparalimpico.data.StatoClassificazione
-import com.mattia.nuotoparalimpico.domain.Avviso
 import com.mattia.nuotoparalimpico.domain.AtletaValidator
+import com.mattia.nuotoparalimpico.domain.Avviso
 import com.mattia.nuotoparalimpico.domain.ClassiSportive
+import com.mattia.nuotoparalimpico.domain.VolumeIndividuale
 import java.time.LocalDate
 import kotlin.math.roundToInt
 
@@ -50,9 +52,10 @@ private fun descrizioneClasse(a: Atleta): String {
 
 @Composable
 fun AtletiScreen(vm: MainViewModel) {
-    val atleti by vm.atleti.collectAsState()
-    val condizioni by vm.condizioni.collectAsState()
-    val assenze by vm.assenze.collectAsState()
+    val atleti by vm.atleti.collectAsStateWithLifecycle()
+    val condizioni by vm.condizioni.collectAsStateWithLifecycle()
+    val assenze by vm.assenze.collectAsStateWithLifecycle()
+    val micro by vm.micro.collectAsStateWithLifecycle()
     var nuovo by remember { mutableStateOf(false) }
     var selezionatoId by remember { mutableStateOf<Long?>(null) }
     val oggi = remember { LocalDate.now() }
@@ -95,6 +98,8 @@ fun AtletiScreen(vm: MainViewModel) {
             atleta = a,
             condizioni = cond,
             assenze = ass,
+            micro = micro,
+            oggi = oggi,
             avvisi = AtletaValidator.valida(a, cond, ass, oggi),
             vm = vm,
             onChiudi = { selezionatoId = null }
@@ -117,12 +122,7 @@ fun DialogAtleta(iniziale: Atleta?, onAnnulla: () -> Unit, onSalva: (Atleta) -> 
     val cS = s.toIntOrNull()
     val cSB = sb.toIntOrNull()
     val cSM = sm.toIntOrNull()
-    val errori = buildList {
-        if (s.isNotBlank() && cS == null) add("La classe S deve essere un numero")
-        if (sb.isNotBlank() && cSB == null) add("La classe SB deve essere un numero")
-        if (sm.isNotBlank() && cSM == null) add("La classe SM deve essere un numero")
-        addAll(ClassiSportive.valida(cS, cSB, cSM))
-    }
+    val errori = ClassiSportive.valida(cS, cSB, cSM)
     val nascitaOk = nascita.isBlank() || parseData(nascita) != null
     val fatt = fattore.toIntOrNull()
     val fattoreOk = fatt != null && fatt in 10..100
@@ -137,21 +137,16 @@ fun DialogAtleta(iniziale: Atleta?, onAnnulla: () -> Unit, onSalva: (Atleta) -> 
                 OutlinedTextField(cognome, { cognome = it }, label = { Text("Cognome") }, singleLine = true)
                 CampoData(nascita, { nascita = it }, "Data di nascita (facoltativa)")
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(s, { s = it }, label = { Text("S") }, singleLine = true, modifier = Modifier.weight(1f))
-                    OutlinedTextField(sb, { sb = it }, label = { Text("SB") }, singleLine = true, modifier = Modifier.weight(1f))
-                    OutlinedTextField(sm, { sm = it }, label = { Text("SM") }, singleLine = true, modifier = Modifier.weight(1f))
+                    CampoNumero(s, { s = it }, "S", Modifier.weight(1f))
+                    CampoNumero(sb, { sb = it }, "SB", Modifier.weight(1f))
+                    CampoNumero(sm, { sm = it }, "SM", Modifier.weight(1f))
                 }
                 errori.forEach { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("Classificazione ufficiale", Modifier.weight(1f))
                     Switch(checked = ufficiale, onCheckedChange = { ufficiale = it })
                 }
-                OutlinedTextField(
-                    fattore, { fattore = it },
-                    label = { Text("Volume rispetto alla squadra (%)") },
-                    singleLine = true,
-                    isError = !fattoreOk
-                )
+                CampoNumero(fattore, { fattore = it }, "Volume rispetto alla squadra (10-100 %)", isError = !fattoreOk)
                 OutlinedTextField(note, { note = it }, label = { Text("Note") })
             }
         },
@@ -185,6 +180,8 @@ private fun DialogDettaglio(
     atleta: Atleta,
     condizioni: List<CondizioneMedica>,
     assenze: List<Assenza>,
+    micro: List<Microciclo>,
+    oggi: LocalDate,
     avvisi: List<Avviso>,
     vm: MainViewModel,
     onChiudi: () -> Unit
@@ -207,6 +204,21 @@ private fun DialogDettaglio(
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(descrizioneClasse(atleta))
                 ElencoAvvisi(avvisi)
+
+                Titolo("Volume delle prossime settimane")
+                val prossime = micro.filter { !it.fine.isBefore(oggi) }.take(4)
+                if (prossime.isEmpty()) {
+                    Text("Nessun piano generato.", style = MaterialTheme.typography.bodySmall)
+                } else {
+                    prossime.forEach { m ->
+                        val v = VolumeIndividuale.settimana(m, atleta, assenze)
+                        val dettaglio = if (v.note.isEmpty()) "" else " (${v.note.joinToString(", ")})"
+                        Text(
+                            "${m.inizio.formatta()} · ${m.tipo.etichetta} · ${v.metri} m$dettaglio",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
 
                 Titolo("Condizioni mediche")
                 condizioni.forEach { c ->

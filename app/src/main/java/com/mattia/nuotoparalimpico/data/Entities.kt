@@ -1,5 +1,6 @@
 package com.mattia.nuotoparalimpico.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -20,6 +21,7 @@ enum class TipoMicrociclo(val etichetta: String) {
     CARICO("Carico"),
     SCARICO("Scarico"),
     GARA("Gara"),
+    RECUPERO("Recupero post-gara"),
     PAUSA("Pausa")
 }
 
@@ -69,7 +71,7 @@ data class Assenza(
     val motivo: String = ""
 )
 
-/** Campi liberi chiave-valore: per nuove esigenze senza cambiare lo schema. (UI nella fase 2) */
+/** Campi liberi chiave-valore: per nuove esigenze senza cambiare lo schema. */
 @Entity(
     tableName = "atleta_attributi",
     foreignKeys = [ForeignKey(entity = Atleta::class, parentColumns = ["id"], childColumns = ["atletaId"], onDelete = ForeignKey.CASCADE)],
@@ -133,7 +135,9 @@ data class Microciclo(
     val tipo: TipoMicrociclo,
     val sedutePreviste: Int,
     val volumeTargetMetri: Int, // totale della settimana, volume di squadra al 100%
-    val note: String = ""
+    val note: String = "",
+    /** true = modificato a mano: sopravvive alla rigenerazione del piano. */
+    @ColumnInfo(defaultValue = "0") val bloccato: Boolean = false
 )
 
 @Entity(
@@ -164,7 +168,7 @@ data class Gara(
     val prioritaria: Boolean = false
 )
 
-// ---------- LOG E TEMPI (UI nella fase 2) ----------
+// ---------- LOG E TEMPI (UI in una fase successiva) ----------
 
 @Entity(
     tableName = "tempi",
@@ -198,3 +202,9 @@ data class LogSeduta(
     val rpe: Int? = null,        // 1-10
     val note: String = ""
 )
+
+// ---------- Strutture di passaggio (non sono tabelle) ----------
+// Spostate qui da domain per eliminare la dipendenza circolare data <-> domain.
+
+data class MesoGen(val meso: Mesociclo, val micro: List<Microciclo>)
+data class MacroGen(val macro: Macrociclo, val meso: List<MesoGen>)

@@ -1,25 +1,29 @@
 package com.mattia.nuotoparalimpico.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,7 +31,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mattia.nuotoparalimpico.data.Gara
+import com.mattia.nuotoparalimpico.data.Microciclo
 import com.mattia.nuotoparalimpico.data.Stagione
+import com.mattia.nuotoparalimpico.data.TipoMicrociclo
 import com.mattia.nuotoparalimpico.domain.ParametriPiano
 import java.time.DayOfWeek
 
@@ -43,7 +51,7 @@ private val NOMI_GIORNI = mapOf(
 
 @Composable
 fun PianoScreen(vm: MainViewModel) {
-    val stagione by vm.stagione.collectAsState()
+    val stagione by vm.stagione.collectAsStateWithLifecycle()
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -76,13 +84,14 @@ private fun FormStagione(vm: MainViewModel) {
 
 @Composable
 private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
-    val chiusure by vm.chiusure.collectAsState()
-    val gare by vm.gare.collectAsState()
-    val macro by vm.macro.collectAsState()
-    val meso by vm.meso.collectAsState()
-    val micro by vm.micro.collectAsState()
-    val avvisi by vm.avvisiPiano.collectAsState()
+    val chiusure by vm.chiusure.collectAsStateWithLifecycle()
+    val gare by vm.gare.collectAsStateWithLifecycle()
+    val macro by vm.macro.collectAsStateWithLifecycle()
+    val meso by vm.meso.collectAsStateWithLifecycle()
+    val micro by vm.micro.collectAsStateWithLifecycle()
+    val avvisi by vm.avvisiPiano.collectAsStateWithLifecycle()
     var confermaElimina by remember { mutableStateOf(false) }
+    var microSelezionato by remember { mutableStateOf<Microciclo?>(null) }
 
     // ----- Intestazione -----
     Titolo("Stagione ${s.nome}")
@@ -148,7 +157,7 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
     CampoData(gAl, { gAl = it }, "Ultimo giorno (vuoto se un solo giorno)")
     Row(verticalAlignment = Alignment.CenterVertically) {
         Checkbox(checked = gPrioritaria, onCheckedChange = { gPrioritaria = it })
-        Text("Gara prioritaria (attiva il tapering)")
+        Text("Gara prioritaria (ancora le fasi e attiva il tapering)")
     }
     Button(
         enabled = gNome.isNotBlank() && gDalData != null && gAlData != null && !gAlData.isBefore(gDalData),
@@ -171,7 +180,7 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
 
     Text("Giorni di allenamento")
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        DayOfWeek.values().forEach { g ->
+        DayOfWeek.entries.forEach { g ->
             FilterChip(
                 selected = g in giorni,
                 onClick = { giorni = if (g in giorni) giorni - g else giorni + g },
@@ -179,17 +188,18 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
             )
         }
     }
-    OutlinedTextField(nMacro, { nMacro = it }, label = { Text("Numero di macrocicli") }, singleLine = true)
-    OutlinedTextField(metri, { metri = it }, label = { Text("Metri di una seduta piena") }, singleLine = true)
-    OutlinedTextField(ciclo, { ciclo = it }, label = { Text("Uno scarico ogni N settimane") }, singleLine = true)
 
     val nMacroInt = nMacro.toIntOrNull()
     val metriInt = metri.toIntOrNull()
     val cicloInt = ciclo.toIntOrNull()
+    CampoNumero(nMacro, { nMacro = it }, "Macrocicli (1-3, solo senza gara prioritaria)", isError = nMacroInt == null || nMacroInt !in 1..3)
+    CampoNumero(metri, { metri = it }, "Metri di una seduta piena (200-10000)", isError = metriInt == null || metriInt !in 200..10_000)
+    CampoNumero(ciclo, { ciclo = it }, "Uno scarico ogni N settimane (2-8)", isError = cicloInt == null || cicloInt !in 2..8)
+
     val parametriOk = giorni.isNotEmpty() &&
-        nMacroInt != null && nMacroInt in 1..3 &&
-        metriInt != null && metriInt in 200..10_000 &&
-        cicloInt != null && cicloInt in 2..8
+            nMacroInt != null && nMacroInt in 1..3 &&
+            metriInt != null && metriInt in 200..10_000 &&
+            cicloInt != null && cicloInt in 2..8
 
     Button(
         enabled = parametriOk,
@@ -198,7 +208,7 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
                 vm.generaPiano(ParametriPiano(giorni, nMacroInt, metriInt, cicloInt))
             }
         }
-    ) { Text(if (micro.isEmpty()) "Genera piano" else "Rigenera piano (sostituisce l'attuale)") }
+    ) { Text(if (micro.isEmpty()) "Genera piano" else "Rigenera piano (le settimane modificate restano)") }
 
     // ----- Avvisi -----
     if (avvisi.isNotEmpty()) {
@@ -211,29 +221,40 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
     if (micro.isNotEmpty()) {
         HorizontalDivider()
         Titolo("Piano")
+        Text("Tocca una settimana per modificarla.", style = MaterialTheme.typography.bodySmall)
+        val volumeMax = micro.maxOfOrNull { it.volumeTargetMetri } ?: 0
         macro.forEach { ma ->
             Text(
                 "${ma.nome} · ${ma.inizio.formatta()} – ${ma.fine.formatta()}",
                 style = MaterialTheme.typography.titleSmall
             )
+            if (ma.obiettivo.isNotBlank()) {
+                Text(ma.obiettivo, style = MaterialTheme.typography.bodySmall)
+            }
             meso.filter { it.macrocicloId == ma.id }.forEach { me ->
                 Text(
                     "${me.fase.etichetta} · ${me.inizio.formatta()} – ${me.fine.formatta()}",
                     style = MaterialTheme.typography.labelLarge
                 )
                 micro.filter { it.mesocicloId == me.id }.forEach { mi ->
-                    Column(Modifier.padding(start = 12.dp)) {
-                        Text(
-                            "${mi.inizio.formatta()} · ${mi.tipo.etichetta} · ${mi.sedutePreviste} sedute · ${mi.volumeTargetMetri} m",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        if (mi.note.isNotBlank()) {
-                            Text(mi.note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
-                        }
-                    }
+                    CardMicro(
+                        mi = mi,
+                        gareSettimana = gare.filter { !it.dal.isAfter(mi.fine) && !it.al.isBefore(mi.inizio) },
+                        volumeMax = volumeMax,
+                        onClick = { microSelezionato = mi }
+                    )
                 }
             }
         }
+    }
+
+    microSelezionato?.let { mi ->
+        DialogMicro(
+            mi = mi,
+            onAnnulla = { microSelezionato = null },
+            onSalva = { vm.modificaMicro(it); microSelezionato = null },
+            onSblocca = { vm.sbloccaMicro(it); microSelezionato = null }
+        )
     }
 
     if (confermaElimina) {
@@ -250,4 +271,95 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
             dismissButton = { TextButton(onClick = { confermaElimina = false }) { Text("Annulla") } }
         )
     }
+}
+
+@Composable
+private fun CardMicro(mi: Microciclo, gareSettimana: List<Gara>, volumeMax: Int, onClick: () -> Unit) {
+    val colore = when (mi.tipo) {
+        TipoMicrociclo.CARICO -> MaterialTheme.colorScheme.primaryContainer
+        TipoMicrociclo.SCARICO, TipoMicrociclo.RECUPERO -> MaterialTheme.colorScheme.secondaryContainer
+        TipoMicrociclo.GARA -> MaterialTheme.colorScheme.tertiaryContainer
+        TipoMicrociclo.ADATTAMENTO, TipoMicrociclo.PAUSA -> MaterialTheme.colorScheme.surfaceVariant
+    }
+    Card(
+        colors = CardDefaults.cardColors(containerColor = colore),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
+    ) {
+        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                "${mi.inizio.formatta()} · ${mi.tipo.etichetta}" + if (mi.bloccato) " · modificata" else "",
+                style = MaterialTheme.typography.labelLarge
+            )
+            Text("${mi.sedutePreviste} sedute · ${mi.volumeTargetMetri} m", style = MaterialTheme.typography.bodySmall)
+            if (volumeMax > 0) {
+                LinearProgressIndicator(
+                    progress = { mi.volumeTargetMetri.toFloat() / volumeMax },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            gareSettimana.forEach { g ->
+                Text(
+                    "Gara: ${g.nome}" + if (g.prioritaria) " (prioritaria)" else "",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            if (mi.note.isNotBlank()) {
+                Text(mi.note, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DialogMicro(
+    mi: Microciclo,
+    onAnnulla: () -> Unit,
+    onSalva: (Microciclo) -> Unit,
+    onSblocca: (Microciclo) -> Unit
+) {
+    var tipo by remember { mutableStateOf(mi.tipo) }
+    var sedute by remember { mutableStateOf(mi.sedutePreviste.toString()) }
+    var metri by remember { mutableStateOf(mi.volumeTargetMetri.toString()) }
+    var note by remember { mutableStateOf(mi.note) }
+
+    val seduteInt = sedute.toIntOrNull()
+    val metriInt = metri.toIntOrNull()
+    val valido = seduteInt != null && seduteInt in 0..14 && metriInt != null && metriInt in 0..100_000
+
+    AlertDialog(
+        onDismissRequest = onAnnulla,
+        title = { Text("Settimana del ${mi.inizio.formatta()}") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    TipoMicrociclo.entries.forEach { t ->
+                        FilterChip(selected = t == tipo, onClick = { tipo = t }, label = { Text(t.etichetta) })
+                    }
+                }
+                CampoNumero(sedute, { sedute = it }, "Sedute (0-14)", isError = !(seduteInt != null && seduteInt in 0..14))
+                CampoNumero(metri, { metri = it }, "Volume di squadra (m)", isError = metriInt == null)
+                OutlinedTextField(note, { note = it }, label = { Text("Note") })
+                Text(
+                    "La modifica viene mantenuta quando rigeneri il piano.",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = valido,
+                onClick = {
+                    if (seduteInt != null && metriInt != null) {
+                        onSalva(mi.copy(tipo = tipo, sedutePreviste = seduteInt, volumeTargetMetri = metriInt, note = note.trim()))
+                    }
+                }
+            ) { Text("Salva") }
+        },
+        dismissButton = {
+            Row {
+                if (mi.bloccato) TextButton(onClick = { onSblocca(mi) }) { Text("Sblocca") }
+                TextButton(onClick = onAnnulla) { Text("Annulla") }
+            }
+        }
+    )
 }

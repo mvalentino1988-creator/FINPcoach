@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
@@ -44,6 +45,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             stagione.flatMapLatest { s -> if (s == null) flowOf(emptyList<T>()) else f(s.id) },
             emptyList<T>()
         )
+
+    /** Legge la stagione direttamente dal database, senza dipendere dagli osservatori della UI. */
+    private suspend fun stagioneCorrente(): Stagione? = pianoDao.osservaStagione().first()
 
     // ---------- Atleti ----------
     val atleti: StateFlow<List<Atleta>> = stato(atletaDao.osservaAtleti(), emptyList())
@@ -80,13 +84,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun eliminaStagione() {
-        val s = stagione.value ?: return
-        viewModelScope.launch { pianoDao.eliminaStagione(s) }
+        viewModelScope.launch { stagioneCorrente()?.let { pianoDao.eliminaStagione(it) } }
     }
 
     fun aggiungiChiusura(dal: LocalDate, al: LocalDate, motivo: String) {
-        val s = stagione.value ?: return
         viewModelScope.launch {
+            val s = stagioneCorrente() ?: return@launch
             pianoDao.inserisciChiusura(Chiusura(stagioneId = s.id, dal = dal, al = al, motivo = motivo))
         }
     }
@@ -94,16 +97,17 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun eliminaChiusura(c: Chiusura) { viewModelScope.launch { pianoDao.eliminaChiusura(c) } }
 
     fun aggiungiFestivitaNazionali() {
-        val s = stagione.value ?: return
-        val giaPresenti = chiusure.value.map { it.dal }.toSet()
-        val nuove = Festivita.perStagione(s).filter { it.dal !in giaPresenti }
-        if (nuove.isEmpty()) return
-        viewModelScope.launch { pianoDao.inserisciChiusure(nuove) }
+        viewModelScope.launch {
+            val s = stagioneCorrente() ?: return@launch
+            val giaPresenti = pianoDao.leggiChiusure(s.id).map { it.dal }.toSet()
+            val nuove = Festivita.perStagione(s).filter { it.dal !in giaPresenti }
+            if (nuove.isNotEmpty()) pianoDao.inserisciChiusure(nuove)
+        }
     }
 
     fun aggiungiGara(nome: String, dal: LocalDate, al: LocalDate, prioritaria: Boolean) {
-        val s = stagione.value ?: return
         viewModelScope.launch {
+            val s = stagioneCorrente() ?: return@launch
             pianoDao.inserisciGara(
                 Gara(stagioneId = s.id, nome = nome, dal = dal, al = al, prioritaria = prioritaria)
             )
@@ -112,9 +116,42 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun eliminaGara(g: Gara) { viewModelScope.launch { pianoDao.eliminaGara(g) } }
 
+    /**
+     * Rigenera il piano. Le settimane modificate a mano (bloccate) mantengono i valori scelti,
+     * agganciate alla data di inizio della settimana.
+     */
     fun generaPiano(parametri: ParametriPiano) {
-        val s = stagione.value ?: return
-        val piano = PianoGenerator.genera(s, chiusure.value, gare.value, parametri)
-        viewModelScope.launch { pianoDao.salvaPiano(s.id, piano) }
+        viewModelScope.launch {
+            val s = stagioneCorrente() ?: return@launch
+            val chiusureAttuali = pianoDao.leggiChiusure(s.id)
+            val gareAttuali = pianoDao.leggiGare(s.id)
+            val bloccati = pianoDao.leggiMicro(s.id).filter { it.bloccato }.associateBy { it.inizio }
+
+            val piano = PianoGenerator.genera(s, chiusureAttuali, gareAttuali, parametri).map { macroGen ->
+                macroGen.copy(
+                    meso = macroGen.meso.map { mesoGen ->
+                        mesoGen.copy(
+                            micro = mesoGen.micro.map { mi ->
+                                val vecchio = bloccati[mi.inizio]
+                                if (vecchio == null) mi else mi.copy(
+                                    tipo = vecchio.tipo,
+                                    sedutePreviste = vecchio.sedutePreviste,
+                                    volumeTargetMetri = vecchio.volumeTargetMetri,
+                                    note = vecchio.note,
+                                    bloccato = true
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+            pianoDao.salvaPiano(s.id, piano)
+        }
     }
+
+    /** Salva una modifica manuale: la settimana viene marcata come bloccata. */
+    fun modificaMicro(m: Microciclo) { viewModelScope.launch { pianoDao.aggiornaMicro(m.copy(bloccato = true)) } }
+
+    /** La settimana torna automatica: verrà ricalcolata alla prossima rigenerazione. */
+    fun sbloccaMicro(m: Microciclo) { viewModelScope.launch { pianoDao.aggiornaMicro(m.copy(bloccato = false)) } }
 }
