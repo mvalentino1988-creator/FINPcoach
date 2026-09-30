@@ -9,10 +9,12 @@ import com.mattia.nuotoparalimpico.data.Atleta
 import com.mattia.nuotoparalimpico.data.Chiusura
 import com.mattia.nuotoparalimpico.data.CondizioneMedica
 import com.mattia.nuotoparalimpico.data.Gara
+import com.mattia.nuotoparalimpico.data.LogSeduta
 import com.mattia.nuotoparalimpico.data.Macrociclo
 import com.mattia.nuotoparalimpico.data.Mesociclo
 import com.mattia.nuotoparalimpico.data.Microciclo
 import com.mattia.nuotoparalimpico.data.Stagione
+import com.mattia.nuotoparalimpico.data.Tempo
 import com.mattia.nuotoparalimpico.domain.Avviso
 import com.mattia.nuotoparalimpico.domain.Festivita
 import com.mattia.nuotoparalimpico.domain.ParametriPiano
@@ -61,6 +63,18 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun eliminaCondizione(c: CondizioneMedica) { viewModelScope.launch { atletaDao.eliminaCondizione(c) } }
     fun aggiungiAssenza(a: Assenza) { viewModelScope.launch { atletaDao.inserisciAssenza(a) } }
     fun eliminaAssenza(a: Assenza) { viewModelScope.launch { atletaDao.eliminaAssenza(a) } }
+
+    // ---------- Tempi e Log ----------
+    fun osservaTempi(atletaId: Long): Flow<List<Tempo>> = atletaDao.osservaTempi(atletaId)
+    fun osservaLogSedute(atletaId: Long): Flow<List<LogSeduta>> = atletaDao.osservaLogSedute(atletaId)
+
+    fun aggiungiTempo(tempo: Tempo) { viewModelScope.launch { atletaDao.inserisciTempo(tempo) } }
+    fun eliminaTempo(tempo: Tempo) { viewModelScope.launch { atletaDao.eliminaTempo(tempo) } }
+    fun inserisciLogSeduta(log: LogSeduta) { viewModelScope.launch { atletaDao.inserisciLogSeduta(log) } }
+    fun aggiornaLogSeduta(log: LogSeduta) { viewModelScope.launch { atletaDao.aggiornaLogSeduta(log) } }
+
+    suspend fun leggiTempi(atletaId: Long): List<Tempo> = atletaDao.leggiTempi(atletaId)
+    suspend fun leggiLogSedute(atletaId: Long): List<LogSeduta> = atletaDao.leggiLogSedute(atletaId)
 
     // ---------- Stagione e piano ----------
     val stagione: StateFlow<Stagione?> = stato(pianoDao.osservaStagione(), null)

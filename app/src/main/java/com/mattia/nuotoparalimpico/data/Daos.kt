@@ -39,6 +39,32 @@ interface AtletaDao {
 
     @Delete
     suspend fun eliminaAssenza(assenza: Assenza)
+
+    // ----- Tempi -----
+    @Query("SELECT * FROM tempi WHERE atletaId = :atletaId ORDER BY data DESC")
+    fun osservaTempi(atletaId: Long): Flow<List<Tempo>>
+
+    @Query("SELECT * FROM tempi WHERE atletaId = :atletaId ORDER BY data DESC")
+    suspend fun leggiTempi(atletaId: Long): List<Tempo>
+
+    @Insert
+    suspend fun inserisciTempo(tempo: Tempo)
+
+    @Delete
+    suspend fun eliminaTempo(tempo: Tempo)
+
+    // ----- Log Sedute -----
+    @Query("SELECT * FROM log_sedute WHERE atletaId = :atletaId ORDER BY data DESC")
+    fun osservaLogSedute(atletaId: Long): Flow<List<LogSeduta>>
+
+    @Query("SELECT * FROM log_sedute WHERE atletaId = :atletaId ORDER BY data DESC")
+    suspend fun leggiLogSedute(atletaId: Long): List<LogSeduta>
+
+    @Insert
+    suspend fun inserisciLogSeduta(log: LogSeduta)
+
+    @Update
+    suspend fun aggiornaLogSeduta(log: LogSeduta)
 }
 
 @Dao

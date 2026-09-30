@@ -118,6 +118,32 @@ fun DialogSchedaSedutaSmart(
                     }
                 }
 
+                // Note di Calibrazione sui Tempi
+                if (scheda.noteCalibrazione.isNotEmpty()) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Icon(Icons.Filled.DateRange, contentDescription = null, tint = MaterialTheme.colorScheme.onTertiaryContainer)
+                                Text("Calibrazione sui Tempi dell'Atleta", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                            }
+                            scheda.noteCalibrazione.forEach { nota ->
+                                Text(nota, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                            }
+                            if (scheda.tempiUtilizzati.isNotEmpty()) {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                                Text("Tempi di riferimento utilizzati:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                                scheda.tempiUtilizzati.forEach { tempo ->
+                                    Text("${tempo.stile} ${tempo.distanzaMetri}m: ${formattaTempo(tempo.centesimi)} (${tempo.contesto.name.lowercase()})", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Ripartizione Zone Energetiche (A1 - D)
                 Titolo("Distribuzione Codici energetici", Icons.Filled.List)
                 IndicatoreRipartizioneCodici(scheda.ripartizioneCodici, scheda.volumeTotaleMetri)

@@ -5,9 +5,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -15,13 +18,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -41,18 +47,25 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mattia.nuotoparalimpico.data.Assenza
 import com.mattia.nuotoparalimpico.data.Atleta
 import com.mattia.nuotoparalimpico.data.CondizioneMedica
+import com.mattia.nuotoparalimpico.data.ContestoTempo
 import com.mattia.nuotoparalimpico.data.FaseMesociclo
 import com.mattia.nuotoparalimpico.data.Mesociclo
 import com.mattia.nuotoparalimpico.data.Microciclo
+import com.mattia.nuotoparalimpico.data.Stagione
 import com.mattia.nuotoparalimpico.data.StatoClassificazione
+import com.mattia.nuotoparalimpico.data.Stile
+import com.mattia.nuotoparalimpico.data.Tempo
 import com.mattia.nuotoparalimpico.data.TipoMicrociclo
 import com.mattia.nuotoparalimpico.domain.AtletaValidator
 import com.mattia.nuotoparalimpico.domain.Avviso
+import com.mattia.nuotoparalimpico.domain.CalcoloRitmiRipartenze
 import com.mattia.nuotoparalimpico.domain.ClassiSportive
 import com.mattia.nuotoparalimpico.domain.FINPSpecialistAI
 import com.mattia.nuotoparalimpico.domain.GeneratoreSmartSeduta
 import com.mattia.nuotoparalimpico.domain.SchedaSeduta
 import com.mattia.nuotoparalimpico.domain.VolumeIndividuale
+import com.mattia.nuotoparalimpico.domain.formattaTempo
+import com.mattia.nuotoparalimpico.domain.parseTempo
 import java.time.LocalDate
 import java.time.Period
 import kotlin.math.roundToInt
@@ -104,6 +117,13 @@ fun AtletiScreen(vm: MainViewModel) {
                 oggi
             )
             val condAttive = condizioni.count { it.atletaId == a.id && it.attiva }
+            val tempiAtletaFlow = vm.osservaTempi(a.id)
+            val tempiAtleta by tempiAtletaFlow.collectAsStateWithLifecycle()
+            val mesoCorrente = micro.firstOrNull { !it.inizio.isAfter(oggi) && !it.fine.isBefore(oggi) }?.let { mi ->
+                meso.firstOrNull { it.id == mi.mesocicloId }
+            }
+            val formCheck = CalcoloRitmiRipartenze.valutaNecessitaFormCheck(a, tempiAtleta, emptyList(), mesoCorrente)
+
             Card(
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -115,24 +135,42 @@ fun AtletiScreen(vm: MainViewModel) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("${a.cognome} ${a.nome}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        if (condAttive > 0) {
-                            Surface(
-                                color = MaterialTheme.colorScheme.errorContainer,
-                                shape = RoundedCornerShape(6.dp)
-                            ) {
-                                Text(
-                                    "$condAttive cond. medica",
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
-                                )
+                        Text("${a.cognome} ${a.nome}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            if (condAttive > 0) {
+                                Surface(
+                                    color = MaterialTheme.colorScheme.errorContainer,
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Text(
+                                        "$condAttive cond.",
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                }
+                            }
+                            if (formCheck.necessario) {
+                                Surface(
+                                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Text(
+                                        "Form Check",
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                                    )
+                                }
                             }
                         }
                     }
                     Text(descrizioneClasseEAge(a, oggi), style = MaterialTheme.typography.bodyMedium)
                     if (a.fattoreVolume < 1.0) {
                         Text("Volume personalizzato: ${(a.fattoreVolume * 100).roundToInt()}% della squadra", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                    }
+                    if (formCheck.necessario) {
+                        Text("⚡ ${formCheck.titoloTest}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
                     }
                     ElencoAvvisi(avvisi)
                 }
@@ -252,6 +290,10 @@ private fun DialogDettaglio(
     var al by remember { mutableStateOf("") }
     var motivo by remember { mutableStateOf("") }
     var schedaSmartAtleta by remember { mutableStateOf<SchedaSeduta?>(null) }
+    var mostraGestioneTempi by remember { mutableStateOf(false) }
+
+    val tempi by vm.osservaTempi(atleta.id).collectAsStateWithLifecycle()
+    val logSedute by vm.osservaLogSedute(atleta.id).collectAsStateWithLifecycle()
 
     val dalData = parseData(dal)
     val alData = parseData(al)
@@ -283,12 +325,23 @@ private fun DialogDettaglio(
                             fase = mesoCorrente?.fase ?: FaseMesociclo.PREPARAZIONE_SPECIFICA,
                             tipoMicro = microCorrente?.tipo ?: TipoMicrociclo.CARICO,
                             atleta = atleta,
-                            condizioniMediche = condizioni
+                            condizioniMediche = condizioni,
+                            tempi = tempi,
+                            logSedute = logSedute,
+                            mesocicloCorrente = mesoCorrente
                         )
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Genera Scheda Personalizzata 🏊‍♂️")
+                }
+
+                // Pulsante Gestione Tempi
+                Button(
+                    onClick = { mostraGestioneTempi = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Gestione Tempi Gara e Test ⏱️")
                 }
 
                 // Analisi FINP AI Specialist per la Condizione Medica
@@ -460,6 +513,225 @@ private fun DialogDettaglio(
                 }) { Text("Elimina") }
             },
             dismissButton = { TextButton(onClick = { conferma = false }) { Text("Annulla") } }
+        )
+    }
+
+    if (mostraGestioneTempi) {
+        DialogGestioneTempi(
+            atleta = atleta,
+            tempi = tempi,
+            mesoCorrente = mesoCorrente,
+            onChiudi = { mostraGestioneTempi = false },
+            onAggiungiTempo = { vm.aggiungiTempo(it) },
+            onEliminaTempo = { vm.eliminaTempo(it) }
+        )
+    }
+}
+
+@Composable
+private fun DialogGestioneTempi(
+    atleta: Atleta,
+    tempi: List<Tempo>,
+    mesoCorrente: Mesociclo?,
+    onChiudi: () -> Unit,
+    onAggiungiTempo: (Tempo) -> Unit,
+    onEliminaTempo: (Tempo) -> Unit
+) {
+    var data by remember { mutableStateOf(LocalDate.now().formatta()) }
+    var stile by remember { mutableStateOf(Stile.STILE_LIBERO) }
+    var distanza by remember { mutableStateOf("100") }
+    var tempoText by remember { mutableStateOf("") }
+    var contesto by remember { mutableStateOf(ContestoTempo.GARA) }
+    var note by remember { mutableStateOf("") }
+    var testoImport by remember { mutableStateOf("") }
+    var mostraImport by remember { mutableStateOf(false) }
+
+    val dataParsed = parseData(data)
+    val distanzaInt = distanza.toIntOrNull()?.coerceIn(25, 1500) ?: 100
+    val tempoCentesimi = parseTempo(tempoText)
+
+    AlertDialog(
+        onDismissRequest = onChiudi,
+        title = {
+            Column {
+                Text("Gestione Tempi ⏱️", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text("Carica tempi di gara e test per calibrare l'allenamento", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                // Form Check Notification
+                val formCheck = CalcoloRitmiRipartenze.valutaNecessitaFormCheck(atleta, tempi, emptyList(), mesoCorrente)
+                if (formCheck.necessario) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(formCheck.titoloTest, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                            Text(formCheck.motivazione, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                            Text(formCheck.istruzioniVasca, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                        }
+                    }
+                }
+
+                // Import from text/OCR
+                Button(
+                    onClick = { mostraImport = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Importa da Testo/Screenshot 📄")
+                }
+
+                HorizontalDivider()
+
+                // Manual input
+                Text("Inserimento Manuale", fontWeight = FontWeight.Bold)
+                CampoData(data, { data = it }, "Data", modifier = Modifier.fillMaxWidth())
+
+                Text("Stile", style = MaterialTheme.typography.labelSmall)
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Stile.entries.forEach { s ->
+                        FilterChip(
+                            selected = s == stile,
+                            onClick = { stile = s },
+                            label = { Text(s.name.replace("_", " ")) }
+                        )
+                    }
+                }
+
+                CampoNumero(distanza, { distanza = it }, "Distanza (m)", modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(tempoText, { tempoText = it }, label = { Text("Tempo (es. 1:02.35 o 62.35)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+
+                Text("Contesto", style = MaterialTheme.typography.labelSmall)
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    ContestoTempo.entries.forEach { c ->
+                        FilterChip(
+                            selected = c == contesto,
+                            onClick = { contesto = c },
+                            label = { Text(c.name.lowercase()) }
+                        )
+                    }
+                }
+
+                OutlinedTextField(note, { note = it }, label = { Text("Note (opzionale)" ) }, modifier = Modifier.fillMaxWidth())
+
+                Button(
+                    enabled = dataParsed != null && tempoCentesimi != null,
+                    onClick = {
+                        if (dataParsed != null && tempoCentesimi != null) {
+                            onAggiungiTempo(
+                                Tempo(
+                                    atletaId = atleta.id,
+                                    data = dataParsed,
+                                    stile = stile,
+                                    distanzaMetri = distanzaInt,
+                                    centesimi = tempoCentesimi,
+                                    contesto = contesto,
+                                    note = note.trim()
+                                )
+                            )
+                            data = LocalDate.now().formatta()
+                            tempoText = ""
+                            note = ""
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Aggiungi Tempo")
+                }
+
+                HorizontalDivider()
+
+                // Lista tempi esistenti
+                Text("Tempi Registrati", fontWeight = FontWeight.Bold)
+                if (tempi.isEmpty()) {
+                    Text("Nessun tempo registrato", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    tempi.forEach { t ->
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(Modifier.weight(1f)) {
+                                    Text("${t.stile.name.replace("_", " ")} ${t.distanzaMetri}m", fontWeight = FontWeight.SemiBold)
+                                    Text("${t.data.formatta()} · ${t.contesto.name.lowercase()}", style = MaterialTheme.typography.bodySmall)
+                                    Text(formattaTempo(t.centesimi), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                                    if (t.note.isNotBlank()) {
+                                        Text(t.note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                }
+                                IconButton(onClick = { onEliminaTempo(t) }) {
+                                    Icon(Icons.Filled.Delete, contentDescription = "Elimina", tint = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                        }
+                        Spacer(Modifier.height(4.dp))
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onChiudi) { Text("Chiudi") } }
+    )
+
+    if (mostraImport) {
+        AlertDialog(
+            onDismissRequest = { mostraImport = false },
+            title = { Text("Importa Tempi da Testo") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Incolla qui il testo da screenshot o file (es. risultati gara):", style = MaterialTheme.typography.bodySmall)
+                    OutlinedTextField(
+                        testoImport,
+                        { testoImport = it },
+                        label = { Text("Testo da importare") },
+                        modifier = Modifier.fillMaxWidth().height(150.dp),
+                        maxLines = 8
+                    )
+                    val tempiImportati = remember(testoImport) {
+                        CalcoloRitmiRipartenze.parseImportaTempi(testoImport)
+                    }
+                    if (tempiImportati.isNotEmpty()) {
+                        HorizontalDivider()
+                        Text("Tempi rilevati:", fontWeight = FontWeight.Bold)
+                        tempiImportati.forEach { t ->
+                            Text("${t.stile.name.replace("_", " ")} ${t.distanzaMetri}m: ${t.formatted} (${t.contesto.name.lowercase()})")
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        tempiImportati.forEach { t ->
+                            onAggiungiTempo(
+                                Tempo(
+                                    atletaId = atleta.id,
+                                    data = LocalDate.now(),
+                                    stile = t.stile,
+                                    distanzaMetri = t.distanzaMetri,
+                                    centesimi = t.centesimi,
+                                    contesto = t.contesto,
+                                    note = t.note
+                                )
+                            )
+                        }
+                        mostraImport = false
+                        testoImport = ""
+                    },
+                    enabled = tempiImportati.isNotEmpty()
+                ) {
+                    Text("Importa ${tempiImportati.size} tempi")
+                }
+            },
+            dismissButton = { TextButton(onClick = { mostraImport = false }) { Text("Annulla") } }
         )
     }
 }
