@@ -16,11 +16,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -48,6 +49,7 @@ import com.mattia.nuotoparalimpico.data.TipoMicrociclo
 import com.mattia.nuotoparalimpico.domain.AtletaValidator
 import com.mattia.nuotoparalimpico.domain.Avviso
 import com.mattia.nuotoparalimpico.domain.ClassiSportive
+import com.mattia.nuotoparalimpico.domain.FINPSpecialistAI
 import com.mattia.nuotoparalimpico.domain.GeneratoreSmartSeduta
 import com.mattia.nuotoparalimpico.domain.SchedaSeduta
 import com.mattia.nuotoparalimpico.domain.VolumeIndividuale
@@ -253,6 +255,7 @@ private fun DialogDettaglio(
 
     val dalData = parseData(dal)
     val alData = parseData(al)
+    val etaAnni = atleta.dataNascita?.let { Period.between(it, oggi).years }
 
     AlertDialog(
         onDismissRequest = onChiudi,
@@ -286,6 +289,70 @@ private fun DialogDettaglio(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Genera Scheda Personalizzata 🏊‍♂️")
+                }
+
+                // Analisi FINP AI Specialist per la Condizione Medica
+                if (condizioni.isNotEmpty()) {
+                    Titolo("Analisi Idrodinamica FINP AI", Icons.Filled.Info)
+                    condizioni.filter { it.attiva }.forEach { c ->
+                        val analisi = remember(c) { FINPSpecialistAI.analizza(c.descrizione, c.limitazioni, etaAnni) }
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                        ) {
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(
+                                    "Analisi Medica: ${c.descrizione}",
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                                Text(
+                                    analisi.riassuntoIdrodinamico,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                                if (analisi.fattoriNuotata.isNotEmpty()) {
+                                    Text("Fattori Biomeccanici di Nuotata:", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                                    analisi.fattoriNuotata.forEach { f ->
+                                        Text("• $f", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+
+                                // Stima Classi FINP se in attesa di ufficialità
+                                if (atleta.stato == StatoClassificazione.IN_ATTESA && analisi.stimaClassi != null) {
+                                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                                    Surface(
+                                        color = MaterialTheme.colorScheme.tertiaryContainer,
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                            Text(
+                                                "Stima Classi FINP: S${analisi.stimaClassi.classeS} · SB${analisi.stimaClassi.classeSB} · SM${analisi.stimaClassi.classeSM}",
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                                style = MaterialTheme.typography.labelLarge
+                                            )
+                                            Text(
+                                                analisi.stimaClassi.motivazione,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                                            )
+                                        }
+                                    }
+                                }
+
+                                if (analisi.raccomandazioniAllenamento.isNotEmpty()) {
+                                    Text("Consigli Allenamento:", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                                    analisi.raccomandazioniAllenamento.forEach { r ->
+                                        Text("• $r", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 Titolo("Volume delle Prossime Settimane", Icons.Filled.DateRange)
