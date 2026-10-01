@@ -25,13 +25,21 @@ val MIGRAZIONE_1_2 = object : Migration(1, 2) {
     }
 }
 
+/** v3: volume atleta automatico (colonna "volumeAuto"). Chi aveva un volume ridotto lo mantiene manuale. */
+val MIGRAZIONE_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE atleti ADD COLUMN volumeAuto INTEGER NOT NULL DEFAULT 1")
+        db.execSQL("UPDATE atleti SET volumeAuto = 0 WHERE fattoreVolume < 0.999")
+    }
+}
+
 @Database(
     entities = [
         Atleta::class, CondizioneMedica::class, Assenza::class, AtletaAttributo::class,
         Stagione::class, Macrociclo::class, Mesociclo::class, Microciclo::class,
         Chiusura::class, Gara::class, Tempo::class, LogSeduta::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -50,7 +58,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "nuoto.db"
-                ).addMigrations(MIGRAZIONE_1_2).build().also { istanza = it }
+                ).addMigrations(MIGRAZIONE_1_2, MIGRAZIONE_2_3).build().also { istanza = it }
             }
     }
 }

@@ -44,6 +44,9 @@ interface AtletaDao {
     @Query("SELECT * FROM tempi WHERE atletaId = :atletaId ORDER BY data DESC")
     fun osservaTempi(atletaId: Long): Flow<List<Tempo>>
 
+    @Query("SELECT * FROM tempi ORDER BY data DESC")
+    fun osservaTuttiTempi(): Flow<List<Tempo>>
+
     @Query("SELECT * FROM tempi WHERE atletaId = :atletaId ORDER BY data DESC")
     suspend fun leggiTempi(atletaId: Long): List<Tempo>
 
@@ -56,6 +59,9 @@ interface AtletaDao {
     // ----- Log Sedute -----
     @Query("SELECT * FROM log_sedute WHERE atletaId = :atletaId ORDER BY data DESC")
     fun osservaLogSedute(atletaId: Long): Flow<List<LogSeduta>>
+
+    @Query("SELECT * FROM log_sedute ORDER BY data DESC")
+    fun osservaTuttiLog(): Flow<List<LogSeduta>>
 
     @Query("SELECT * FROM log_sedute WHERE atletaId = :atletaId ORDER BY data DESC")
     suspend fun leggiLogSedute(atletaId: Long): List<LogSeduta>

@@ -2,25 +2,30 @@ package com.mattia.nuotoparalimpico.domain
 
 import com.mattia.nuotoparalimpico.data.Atleta
 import com.mattia.nuotoparalimpico.data.CondizioneMedica
+import com.mattia.nuotoparalimpico.data.ContestoTempo
 import com.mattia.nuotoparalimpico.data.FaseMesociclo
 import com.mattia.nuotoparalimpico.data.LogSeduta
 import com.mattia.nuotoparalimpico.data.Mesociclo
+import com.mattia.nuotoparalimpico.data.Stile
 import com.mattia.nuotoparalimpico.data.Tempo
 import com.mattia.nuotoparalimpico.data.TipoMicrociclo
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.Period
+import java.util.Locale
+import kotlin.math.pow
 import kotlin.math.roundToInt
 
-/** Funzione estensione per arrotondare i volumi (metri) rigidamente a multipli di 50m (es. 400m, 450m, 500m). */
+/** Arrotonda i volumi (metri) a multipli di 50m. */
 fun Int.arrotondaA50m(): Int = ((this + 25) / 50) * 50
 
 data class TrattoSeduta(
-    val sezione: String,          // es. "Riscaldamento", "Attivazione Velocità", "Serie Principale", "Defaticamento"
+    val sezione: String,
     val codice: CodiceAllenamento,
-    val metri: Int,               // Sempre arrotondato a multipli di 50m
-    val ripetizioni: String,     // es. "4 x 100m", "8 x 50m", "1 x 400m"
-    val descrizione: String,      // es. "Dorso/Stile libero alternati con 15m scivolamento e sensibilità"
-    val ripartenza: String? = null, // es. "a 1'25"", "recupero 20""
+    val metri: Int,
+    val ripetizioni: String,
+    val descrizione: String,
+    val ripartenza: String? = null,
     val notaSpecifica: String? = null
 )
 
@@ -32,16 +37,39 @@ data class SchedaSeduta(
     val categoriaEta: String?,
     val faseStagione: FaseMesociclo,
     val tipoMicrociclo: TipoMicrociclo,
-    val volumeTotaleMetri: Int,     // Arrotondato a multipli di 50m
-    val ripartizioneCodici: Map<CodiceAllenamento, Int>, // metri per ciascun codice (multipli di 50m)
+    val volumeTotaleMetri: Int,
+    val ripartizioneCodici: Map<CodiceAllenamento, Int>,
     val tratti: List<TrattoSeduta>,
     val adattamentiEta: List<String>,
     val avvertenzeMediche: List<String>,
     val tempiUtilizzati: List<Tempo> = emptyList(),
-    val noteCalibrazione: List<String> = emptyList()
+    val noteCalibrazione: List<String> = emptyList(),
+    val tipoSeduta: String = ""
 )
 
+private class SerieDef(
+    val codice: CodiceAllenamento,
+    val sezione: String,
+    val lunghezza: Int,
+    var n: Int,
+    val descrizione: String,
+    val notaDefault: String
+)
+
+private class Riferimento(val tempo: Tempo, val centesimi100: Int, val stimato: Boolean, val datato: Boolean)
+
 object GeneratoreSmartSeduta {
+
+    private val ORDINE_SERIE = listOf(
+        CodiceAllenamento.A2, CodiceAllenamento.B1, CodiceAllenamento.B2,
+        CodiceAllenamento.C1, CodiceAllenamento.C2, CodiceAllenamento.C3
+    )
+
+    private val RECUPERO_FISSO = mapOf(
+        CodiceAllenamento.A2 to 20, CodiceAllenamento.B1 to 15, CodiceAllenamento.B2 to 30,
+        CodiceAllenamento.C1 to 60, CodiceAllenamento.C2 to 90, CodiceAllenamento.C3 to 120,
+        CodiceAllenamento.D to 45
+    )
 
     fun genera(
         data: LocalDate?,
@@ -52,10 +80,9 @@ object GeneratoreSmartSeduta {
         condizioniMediche: List<CondizioneMedica> = emptyList(),
         tempi: List<Tempo> = emptyList(),
         logSedute: List<LogSeduta> = emptyList(),
-        mesocicloCorrente: Mesociclo? = null
+        mesocicloCorrente: Mesociclo? = null,
+        giorniAllenamento: Set<DayOfWeek> = emptySet()
     ): SchedaSeduta {
-        // Garantisce che il volume base sia arrotondato a multipli di 50m (es. 1800m, 2000m)
-        val volumeValido = metriTarget.coerceAtLeast(400).arrotondaA50m()
         val oggi = data ?: LocalDate.now()
         val eta = atleta?.dataNascita?.let { Period.between(it, oggi).years }
         val categoria = eta?.let {
@@ -69,312 +96,373 @@ object GeneratoreSmartSeduta {
         }
 
         val adattamentiEta = mutableListOf<String>()
-        val avvertenzeMediche = mutableListOf<String>()
-        val noteCalibrazione = mutableListOf<String>()
+        val avvertenze = mutableListOf<String>()
+        val note = mutableListOf<String>()
 
-        // 0. Tempi di riferimento dell'atleta
-        val tempoRiferimento = tempi
-            .filter { it.distanzaMetri == 100 }
-            .maxByOrNull { it.data }
-
-        val tabellaRitmi = if (tempoRiferimento != null && atleta != null) {
-            CalcoloRitmiRipartenze.calcolaTabellaRitmi(
-                atletaId = atleta.id,
-                tempo100mCentesimi = tempoRiferimento.centesimi,
-                stile = tempoRiferimento.stile,
-                vascaMetri = 25
-            )
-        } else null
-
-        // 1. Calcolo quote percentuali base per Codici di Allenamento
-        val quoteBase = calcolaQuoteBase(fase, tipoMicro).toMutableMap()
-
-        // 1.1 Adattamento volume in base ai tempi
-        var volumeCalibrato = volumeValido
-        if (tabellaRitmi != null && tempoRiferimento != null) {
-            val fattoreTempi = when (fase) {
-                FaseMesociclo.PREPARAZIONE_GENERALE -> 1.0
-                FaseMesociclo.PREPARAZIONE_SPECIFICA -> 1.05
-                FaseMesociclo.PRE_GARA -> 0.95
-                FaseMesociclo.COMPETITIVA -> 0.90
-            }
-            volumeCalibrato = (volumeValido * fattoreTempi).roundToInt().arrotondaA50m()
-            noteCalibrazione += "Volume calibrato sui tempi di gara: ${formattaTempo(tempoRiferimento.centesimi)} sui 100m ${tempoRiferimento.stile}"
+        // 1. Quote base per codice
+        val quote = calcolaQuoteBase(fase, tipoMicro).toMutableMap()
+        fun sposta(da: CodiceAllenamento, a: CodiceAllenamento, frazione: Double) {
+            val q = quote[da] ?: return
+            val m = q * frazione
+            quote[da] = q - m
+            quote[a] = (quote[a] ?: 0.0) + m
         }
 
-        // 2. Modifiche in base all'Età
+        // 2. Tipo di seduta nella settimana (qualità / mista / aerobica) in base ai giorni di allenamento
+        var tipoSeduta = ""
+        if (tipoMicro == TipoMicrociclo.CARICO && data != null && giorniAllenamento.size >= 2 &&
+            data.dayOfWeek in giorniAllenamento
+        ) {
+            val ordinati = giorniAllenamento.sortedBy { it.value }
+            val idx = ordinati.indexOf(data.dayOfWeek)
+            when {
+                idx == 0 -> {
+                    sposta(CodiceAllenamento.A2, CodiceAllenamento.B1, 0.35)
+                    tipoSeduta = "Seduta di qualità"
+                }
+                idx == ordinati.size - 1 -> {
+                    listOf(CodiceAllenamento.B2, CodiceAllenamento.C1, CodiceAllenamento.C2)
+                        .forEach { sposta(it, CodiceAllenamento.A2, 0.4) }
+                    tipoSeduta = "Seduta aerobica"
+                }
+                else -> tipoSeduta = "Seduta mista"
+            }
+        }
+
+        // 3. Età
         if (eta != null) {
             when {
                 eta < 12 -> {
-                    val lattato = (quoteBase[CodiceAllenamento.C1] ?: 0.0) + (quoteBase[CodiceAllenamento.C2] ?: 0.0)
-                    quoteBase[CodiceAllenamento.C1] = 0.0
-                    quoteBase[CodiceAllenamento.C2] = 0.0
-                    quoteBase[CodiceAllenamento.A1] = (quoteBase[CodiceAllenamento.A1] ?: 0.3) + lattato * 0.6
-                    quoteBase[CodiceAllenamento.D] = (quoteBase[CodiceAllenamento.D] ?: 0.05) + lattato * 0.4
+                    listOf(CodiceAllenamento.C1, CodiceAllenamento.C2).forEach {
+                        sposta(it, CodiceAllenamento.A1, 0.6)
+                        sposta(it, CodiceAllenamento.D, 1.0)
+                    }
                     adattamentiEta += "Atleta under 12: escluse serie ad alto accumulo lattacido (C1/C2). Enfasi su tecnica (A1) e reattività/giochi veloci (D)."
                 }
                 eta >= 35 -> {
-                    val c1 = (quoteBase[CodiceAllenamento.C1] ?: 0.0) * 0.5
-                    val c2 = (quoteBase[CodiceAllenamento.C2] ?: 0.0) * 0.5
-                    quoteBase[CodiceAllenamento.C1] = (quoteBase[CodiceAllenamento.C1] ?: 0.0) - c1
-                    quoteBase[CodiceAllenamento.C2] = (quoteBase[CodiceAllenamento.C2] ?: 0.0) - c2
-                    quoteBase[CodiceAllenamento.A1] = (quoteBase[CodiceAllenamento.A1] ?: 0.3) + c1 + c2
-                    adattamentiEta += "Atleta master (35+): estesa la quota di riscaldamento/scioglimento A1 e ampliati i tempi di recupero per la protezione articolare."
+                    listOf(CodiceAllenamento.C1, CodiceAllenamento.C2).forEach { sposta(it, CodiceAllenamento.A1, 0.5) }
+                    adattamentiEta += "Atleta master (35+): più riscaldamento/scioglimento A1 e recuperi ampi per la protezione articolare."
                 }
                 eta in 12..14 -> {
-                    val c2 = (quoteBase[CodiceAllenamento.C2] ?: 0.0) * 0.5
-                    quoteBase[CodiceAllenamento.C2] = (quoteBase[CodiceAllenamento.C2] ?: 0.0) - c2
-                    quoteBase[CodiceAllenamento.B1] = (quoteBase[CodiceAllenamento.B1] ?: 0.15) + c2
+                    sposta(CodiceAllenamento.C2, CodiceAllenamento.B1, 0.5)
                     adattamentiEta += "Categoria 12-14 anni: introduzione graduale della potenza lattacida, priorità allo sviluppo della soglia (B1)."
                 }
             }
         }
 
-        // 3. Modifiche per QUALSIASI Condizione Medica e Limitazione Attiva inserita
-        val condizioniAttive = condizioniMediche.filter { it.attiva }
-        condizioniAttive.forEach { c ->
-            val desc = "${c.descrizione} ${c.limitazioni}".lowercase()
-            when {
-                desc.contains("spalla") || desc.contains("articolare") || desc.contains("cuffia") || desc.contains("rotator") -> {
-                    val riduzioneB2 = (quoteBase[CodiceAllenamento.B2] ?: 0.0) * 0.4
-                    quoteBase[CodiceAllenamento.B2] = (quoteBase[CodiceAllenamento.B2] ?: 0.0) - riduzioneB2
-                    quoteBase[CodiceAllenamento.A1] = (quoteBase[CodiceAllenamento.A1] ?: 0.3) + riduzioneB2
-                    avvertenzeMediche += "⚠️ Condizione spalla/articolare (${c.descrizione}): evitate palette rigide nelle serie B2/C, inseriti esercizi di sensibilità e gambe."
-                }
-                desc.contains("affaticament") || desc.contains("neurolog") || desc.contains("spastic") || desc.contains("sclerosi") || desc.contains("midoll") || desc.contains("parapleg") || desc.contains("tetrapleg") -> {
-                    val lattacidi = (quoteBase[CodiceAllenamento.C1] ?: 0.0) + (quoteBase[CodiceAllenamento.C2] ?: 0.0)
-                    quoteBase[CodiceAllenamento.C1] = 0.0
-                    quoteBase[CodiceAllenamento.C2] = 0.0
-                    quoteBase[CodiceAllenamento.A2] = (quoteBase[CodiceAllenamento.A2] ?: 0.3) + lattacidi * 0.7
-                    quoteBase[CodiceAllenamento.A1] = (quoteBase[CodiceAllenamento.A1] ?: 0.3) + lattacidi * 0.3
-                    avvertenzeMediche += "⚠️ Condizione neurologica/funzionale (${c.descrizione}): azzerate le serie C1/C2 per prevenire blocchi muscolari e fatica centrale."
-                }
-                desc.contains("cardio") || desc.contains("cuore") || desc.contains("pressione") || desc.contains("iperten") -> {
-                    quoteBase[CodiceAllenamento.C2] = 0.0
-                    quoteBase[CodiceAllenamento.B2] = (quoteBase[CodiceAllenamento.B2] ?: 0.0) * 0.3
-                    quoteBase[CodiceAllenamento.A2] = (quoteBase[CodiceAllenamento.A2] ?: 0.3) + 0.15
-                    avvertenzeMediche += "⚠️ Attenzione cardiovascolare (${c.descrizione}): evitate apnee prolungate e picchi C2, ritmo costante A2/B1."
-                }
-                desc.contains("visiv") || desc.contains("cecit") || desc.contains("vedent") -> {
-                    avvertenzeMediche += "👁️ Disabilità visiva (${c.descrizione}): garantire la presenza del tapper per gli arrivi C1/C2/D e conteggio costante bracciate."
-                }
-                else -> {
-                    // QUALSIASI altra informazione medica generica inserita dall'utente
-                    avvertenzeMediche += "ℹ️ Adattamento Medico Personalizzato (${c.descrizione}): ${if (c.limitazioni.isNotBlank()) c.limitazioni else "Monitorare il recupero e regolare la resistenza."}"
-                }
+        // 4. Condizioni mediche (segnali dall'analisi FINP)
+        val attive = condizioniMediche.filter { it.attiva }
+        fun nomi(filtro: (FlagMedici) -> Boolean): String =
+            attive.filter { filtro(FINPSpecialistAI.flagMedici("${it.descrizione} ${it.limitazioni}")) }
+                .joinToString(", ") { it.descrizione }
+
+        val flag = FINPSpecialistAI.flagMedici(attive.joinToString(" | ") { "${it.descrizione} ${it.limitazioni}" })
+        if (flag.spalla) {
+            sposta(CodiceAllenamento.B2, CodiceAllenamento.A1, 0.4)
+            avvertenze += "⚠️ Spalla/articolazioni (${nomi { it.spalla }}): ridotte le serie B2, evitare palette rigide, più esercizi di sensibilità e gambe."
+        }
+        if (flag.neurologica) {
+            listOf(CodiceAllenamento.C1, CodiceAllenamento.C2).forEach {
+                sposta(it, CodiceAllenamento.A2, 0.7)
+                sposta(it, CodiceAllenamento.A1, 1.0)
             }
+            avvertenze += "⚠️ Condizione neurologica/funzionale (${nomi { it.neurologica }}): azzerate le serie C1/C2 per prevenire spasticità e fatica centrale; recuperi ampi."
+        }
+        if (flag.cardiorespiratoria) {
+            sposta(CodiceAllenamento.C2, CodiceAllenamento.A2, 1.0)
+            sposta(CodiceAllenamento.C1, CodiceAllenamento.A2, 0.5)
+            sposta(CodiceAllenamento.B2, CodiceAllenamento.A2, 0.7)
+            avvertenze += "⚠️ Cardiovascolare/respiratoria (${nomi { it.cardiorespiratoria }}): evitare apnee prolungate e picchi massimali, ritmo costante A2/B1."
+        }
+        if (flag.visiva) {
+            avvertenze += "👁️ Disabilità visiva (${nomi { it.visiva }}): tapper per arrivi e virate nelle serie veloci, conteggio costante delle bracciate."
+        }
+        if (flag.epilessia) {
+            avvertenze += "⚠️ Epilessia (${nomi { it.epilessia }}): sorveglianza continua a bordo vasca, mai in acqua da soli, evitare iperventilazione e apnee."
+        }
+        if (flag.termoregolazione) {
+            avvertenze += "🌡️ Termoregolazione alterata (${nomi { it.termoregolazione }}): controllare la temperatura dell'acqua e prevedere pause di recupero."
+        }
+        attive.filter { !FINPSpecialistAI.flagMedici("${it.descrizione} ${it.limitazioni}").coperta }.forEach {
+            avvertenze += "ℹ️ Adattamento personalizzato (${it.descrizione}): " +
+                    (if (it.limitazioni.isNotBlank()) it.limitazioni else "monitorare recupero e resistenza.")
         }
 
-        // 4. Normalizzazione percentuali e calcolo metri per ciascun codice (TUTTI ARROTONDATI A MULTIPLI DI 50m)
-        val sommaQuote = quoteBase.values.sum().coerceAtLeast(0.01)
-        val metriPerCodice = quoteBase.mapValues { (_, q) ->
-            ((q / sommaQuote) * volumeCalibrato).roundToInt().arrotondaA50m()
-        }.filterValues { it > 0 }
+        // 5. Volume, corretto sul carico recente dell'atleta (ACWR)
+        var volume = metriTarget.coerceAtLeast(400).arrotondaA50m()
+        val (fattoreCarico, notaCarico) = fattoreDaCarico(logSedute, oggi)
+        if (fattoreCarico < 1.0) {
+            volume = (volume * fattoreCarico).roundToInt().arrotondaA50m().coerceAtLeast(400)
+        }
+        notaCarico?.let { note += it }
 
-        // 5. Costruzione dinamica dei tratti della scheda di allenamento per la vasca
-        val tratti = costruisciTrattiScheda(volumeCalibrato, metriPerCodice, fase, tipoMicro, eta, condizioniAttive, tabellaRitmi)
+        // 6. Tempi di riferimento -> tabella ritmi
+        val rif = scegliRiferimento(tempi, oggi)
+        val tabella = rif?.let {
+            CalcoloRitmiRipartenze.calcolaTabellaRitmi(
+                atletaId = atleta?.id ?: 0L,
+                tempo100mCentesimi = it.centesimi100,
+                stile = it.tempo.stile,
+                vascaMetri = 25
+            )
+        }
+        if (rif != null) {
+            val t = rif.tempo
+            note += "Ritmi calcolati su ${formattaTempo(t.centesimi)} nei ${t.distanzaMetri}m ${nomeStile(t.stile)}" +
+                    (if (rif.stimato) " (convertito in ${formattaTempo(rif.centesimi100)} sui 100m)" else "") +
+                    (if (t.vascaMetri == 50) ", corretto per la vasca da 25m" else "")
+            if (rif.datato) note += "Il tempo di riferimento ha più di 8 mesi: fai un test per aggiornare i ritmi."
+        } else if (atleta != null) {
+            note += "Nessun tempo di riferimento: ripartenze a recupero fisso. Inserisci un tempo di gara o test per calcolarle."
+        } else {
+            note += "Scheda di squadra: ripartenze a recupero fisso. Seleziona un atleta per ritmi personalizzati."
+        }
+
+        // 7. Metri per codice e costruzione della seduta
+        val somma = quote.values.sum().coerceAtLeast(0.01)
+        val metriCodice = quote
+            .mapValues { (_, q) -> ((q / somma) * volume).roundToInt().arrotondaA50m() }
+            .filterValues { it > 0 }
+        val tratti = costruisciTratti(volume, metriCodice, fase, tabella)
 
         val nomeAtleta = atleta?.let { "${it.nome} ${it.cognome}" }
-        val titolo = if (nomeAtleta != null) "Scheda Personalizzata · $nomeAtleta" else "Scheda di Squadra"
+        val titoloBase = if (nomeAtleta != null) "Scheda Personalizzata · $nomeAtleta" else "Scheda di Squadra"
 
         return SchedaSeduta(
-            titolo = titolo,
+            titolo = if (tipoSeduta.isNotEmpty()) "$titoloBase · $tipoSeduta" else titoloBase,
             data = data,
             nomeAtleta = nomeAtleta,
             etaAtleta = eta,
             categoriaEta = categoria,
             faseStagione = fase,
             tipoMicrociclo = tipoMicro,
-            volumeTotaleMetri = tratti.sumOf { it.metri }.arrotondaA50m(),
-            ripartizioneCodici = metriPerCodice,
+            volumeTotaleMetri = tratti.sumOf { it.metri },
+            ripartizioneCodici = tratti.groupBy { it.codice }.mapValues { (_, l) -> l.sumOf { it.metri } },
             tratti = tratti,
             adattamentiEta = adattamentiEta,
-            avvertenzeMediche = avvertenzeMediche,
-            tempiUtilizzati = if (tempoRiferimento != null) listOf(tempoRiferimento) else emptyList(),
-            noteCalibrazione = noteCalibrazione
+            avvertenzeMediche = avvertenze,
+            tempiUtilizzati = listOfNotNull(rif?.tempo),
+            noteCalibrazione = note,
+            tipoSeduta = tipoSeduta
         )
     }
 
-    private fun calcolaQuoteBase(fase: FaseMesociclo, tipo: TipoMicrociclo): Map<CodiceAllenamento, Double> {
-        return when (tipo) {
-            TipoMicrociclo.ADATTAMENTO, TipoMicrociclo.RECUPERO -> mapOf(
-                CodiceAllenamento.A1 to 0.50,
-                CodiceAllenamento.A2 to 0.40,
-                CodiceAllenamento.D to 0.10
-            )
-            TipoMicrociclo.SCARICO -> mapOf(
-                CodiceAllenamento.A1 to 0.45,
-                CodiceAllenamento.A2 to 0.25,
-                CodiceAllenamento.B2 to 0.15,
-                CodiceAllenamento.D to 0.15
-            )
-            TipoMicrociclo.GARA -> mapOf(
-                CodiceAllenamento.A1 to 0.45,
-                CodiceAllenamento.C3 to 0.30,
-                CodiceAllenamento.D to 0.25
-            )
-            TipoMicrociclo.PAUSA -> mapOf(
-                CodiceAllenamento.A1 to 1.0
-            )
-            TipoMicrociclo.CARICO -> when (fase) {
-                FaseMesociclo.PREPARAZIONE_GENERALE -> mapOf(
-                    CodiceAllenamento.A1 to 0.30,
-                    CodiceAllenamento.A2 to 0.45,
-                    CodiceAllenamento.B1 to 0.20,
-                    CodiceAllenamento.D to 0.05
-                )
-                FaseMesociclo.PREPARAZIONE_SPECIFICA -> mapOf(
-                    CodiceAllenamento.A1 to 0.25,
-                    CodiceAllenamento.A2 to 0.30,
-                    CodiceAllenamento.B1 to 0.20,
-                    CodiceAllenamento.B2 to 0.15,
-                    CodiceAllenamento.D to 0.10
-                )
-                FaseMesociclo.PRE_GARA -> mapOf(
-                    CodiceAllenamento.A1 to 0.30,
-                    CodiceAllenamento.A2 to 0.20,
-                    CodiceAllenamento.B2 to 0.20,
-                    CodiceAllenamento.C1 to 0.15,
-                    CodiceAllenamento.D to 0.15
-                )
-                FaseMesociclo.COMPETITIVA -> mapOf(
-                    CodiceAllenamento.A1 to 0.35,
-                    CodiceAllenamento.A2 to 0.15,
-                    CodiceAllenamento.C2 to 0.20,
-                    CodiceAllenamento.C3 to 0.15,
-                    CodiceAllenamento.D to 0.15
-                )
-            }
+    // ---------------------------------------------------------------- RIFERIMENTO TEMPI
+
+    private fun nomeStile(s: Stile) = s.name.replace("_", " ").lowercase()
+
+    private fun scegliRiferimento(tempi: List<Tempo>, oggi: LocalDate): Riferimento? {
+        val candidati = tempi.filter { it.stile != Stile.MISTI && it.distanzaMetri in 50..400 }
+        if (candidati.isEmpty()) return null
+        val base = candidati.filter { it.contesto != ContestoTempo.ALLENAMENTO }.ifEmpty { candidati }
+        val recenti = base.filter { it.data.isAfter(oggi.minusDays(240)) }
+        val pool = recenti.ifEmpty { base }
+        val stile = if (pool.any { it.stile == Stile.STILE_LIBERO }) Stile.STILE_LIBERO
+        else pool.groupingBy { it.stile }.eachCount().maxByOrNull { it.value }!!.key
+        val delloStile = pool.filter { it.stile == stile }
+
+        fun a100(t: Tempo): Int {
+            val esponente = if (t.distanzaMetri < 100) 1.10 else 1.06
+            val vasca = if (t.vascaMetri == 50) 0.97 else 1.0
+            return (t.centesimi * vasca * (100.0 / t.distanzaMetri).pow(esponente)).roundToInt()
+        }
+
+        val esatti = delloStile.filter { it.distanzaMetri == 100 }
+        val migliore = if (esatti.isNotEmpty()) esatti.minByOrNull { a100(it) }!! else delloStile.minByOrNull { a100(it) }!!
+        return Riferimento(migliore, a100(migliore), migliore.distanzaMetri != 100, recenti.isEmpty())
+    }
+
+    // ---------------------------------------------------------------- CARICO (ACWR)
+
+    private fun fattoreDaCarico(log: List<LogSeduta>, oggi: LocalDate): Pair<Double, String?> {
+        fun carico(da: LocalDate, a: LocalDate) = log
+            .filter { it.presente && it.rpe != null && !it.data.isBefore(da) && it.data.isBefore(a) }
+            .sumOf { (it.rpe ?: 0) * it.durataMin }
+
+        val acuto = carico(oggi.minusDays(7), oggi)
+        val cronici = (1..4).map { w -> carico(oggi.minusDays(7L * (w + 1)), oggi.minusDays(7L * w)) }.filter { it > 0 }
+        if (acuto == 0 || cronici.size < 2) return 1.0 to null
+
+        val r = CalcoloScienzaNuoto.calcolaACWR(acuto, cronici).acwrRapporto
+        val rs = String.format(Locale.ROOT, "%.2f", r)
+        return when {
+            r > 1.45 -> 0.80 to "Carico recente molto alto (ACWR $rs): volume ridotto del 20% per proteggere spalle e recupero."
+            r > 1.25 -> 0.90 to "Carico recente alto (ACWR $rs): volume ridotto del 10%."
+            else -> 1.0 to null
         }
     }
 
-    private fun costruisciTrattiScheda(
-        volumeTotale: Int,
+    // ---------------------------------------------------------------- QUOTE
+
+    private fun calcolaQuoteBase(fase: FaseMesociclo, tipo: TipoMicrociclo): Map<CodiceAllenamento, Double> = when (tipo) {
+        TipoMicrociclo.ADATTAMENTO, TipoMicrociclo.RECUPERO -> mapOf(
+            CodiceAllenamento.A1 to 0.50, CodiceAllenamento.A2 to 0.40, CodiceAllenamento.D to 0.10
+        )
+        TipoMicrociclo.SCARICO -> mapOf(
+            CodiceAllenamento.A1 to 0.45, CodiceAllenamento.A2 to 0.25,
+            CodiceAllenamento.B2 to 0.15, CodiceAllenamento.D to 0.15
+        )
+        TipoMicrociclo.GARA -> mapOf(
+            CodiceAllenamento.A1 to 0.45, CodiceAllenamento.C3 to 0.30, CodiceAllenamento.D to 0.25
+        )
+        TipoMicrociclo.PAUSA -> mapOf(CodiceAllenamento.A1 to 1.0)
+        TipoMicrociclo.CARICO -> when (fase) {
+            FaseMesociclo.PREPARAZIONE_GENERALE -> mapOf(
+                CodiceAllenamento.A1 to 0.30, CodiceAllenamento.A2 to 0.45,
+                CodiceAllenamento.B1 to 0.20, CodiceAllenamento.D to 0.05
+            )
+            FaseMesociclo.PREPARAZIONE_SPECIFICA -> mapOf(
+                CodiceAllenamento.A1 to 0.25, CodiceAllenamento.A2 to 0.30, CodiceAllenamento.B1 to 0.20,
+                CodiceAllenamento.B2 to 0.15, CodiceAllenamento.D to 0.10
+            )
+            FaseMesociclo.PRE_GARA -> mapOf(
+                CodiceAllenamento.A1 to 0.30, CodiceAllenamento.A2 to 0.20, CodiceAllenamento.B2 to 0.20,
+                CodiceAllenamento.C1 to 0.15, CodiceAllenamento.D to 0.15
+            )
+            FaseMesociclo.COMPETITIVA -> mapOf(
+                CodiceAllenamento.A1 to 0.35, CodiceAllenamento.A2 to 0.15, CodiceAllenamento.C2 to 0.20,
+                CodiceAllenamento.C3 to 0.15, CodiceAllenamento.D to 0.15
+            )
+        }
+    }
+
+    // ---------------------------------------------------------------- COSTRUZIONE SEDUTA
+
+    private fun maxRipetizioni(c: CodiceAllenamento) = when (c) {
+        CodiceAllenamento.A2 -> 8
+        CodiceAllenamento.B1 -> 12
+        CodiceAllenamento.B2 -> 10
+        CodiceAllenamento.C3 -> 6
+        else -> 8
+    }
+
+    private fun sezioneSerie(c: CodiceAllenamento) = when (c) {
+        CodiceAllenamento.A2 -> "Serie Principale - Fondo e Capacità"
+        CodiceAllenamento.B1 -> "Serie Principale - Soglia Anaerobica"
+        CodiceAllenamento.B2 -> "Serie Principale - VO2 Max"
+        CodiceAllenamento.C1 -> "Serie Principale - Tolleranza Lattacida"
+        CodiceAllenamento.C2 -> "Serie Principale - Potenza Lattacida"
+        CodiceAllenamento.C3 -> "Serie Principale - Ritmo Gara"
+        else -> "Serie"
+    }
+
+    private fun descrizioneSerie(c: CodiceAllenamento, lunghezza: Int) = when (c) {
+        CodiceAllenamento.A2 -> "Stile principale o misti a ritmo costante, palette corte e boccaglio per la continuità del gesto."
+        CodiceAllenamento.B1 -> "Passo soglia regolare e controllato (FC ~165 bpm), numero di bracciate costante."
+        CodiceAllenamento.B2 -> "Intervalli ad alta intensità (FC 175+ bpm): massimo sforzo aerobico senza perdere tecnica."
+        CodiceAllenamento.C1 ->
+            if (lunghezza >= 100) "Prima metà alla massima velocità sostenibile, seconda metà in tenuta ad alta frequenza."
+            else "Velocità elevata sostenuta con tenuta tecnica."
+        CodiceAllenamento.C2 -> "Sforzo massimale con recupero ampio: la qualità viene prima della quantità."
+        CodiceAllenamento.C3 -> "Passo gara obiettivo con precisione cronometrica al decimo di secondo."
+        else -> "Velocità: 15m massimi (partenza o virata esplosiva) + 35m di scioglimento A1."
+    }
+
+    private fun notaDefault(c: CodiceAllenamento) = when (c) {
+        CodiceAllenamento.A2 -> "Respirazione regolare e controllo costante dell'andatura."
+        CodiceAllenamento.B1 -> "Lavoro fondamentale per innalzare la soglia anaerobica."
+        CodiceAllenamento.B2 -> "Mantenere costante il numero di bracciate per vasca."
+        CodiceAllenamento.C1 -> "Resistere all'acidosi mantenendo assetto e idrodinamicità."
+        CodiceAllenamento.C2 -> "Se il passo cala o il gesto si rompe, fermarsi."
+        CodiceAllenamento.C3 -> "Massima concentrazione sul ritmo di bracciata della gara prioritaria."
+        else -> "Focus sulla reattività dei primi metri e sulla frequenza di bracciata."
+    }
+
+    /** Ripartenza per una serie di una data lunghezza: tempo di nuotata scalato + recupero del codice. */
+    private fun ripartenzaPer(ritmo: RitmoCodice, lunghezza: Int): Pair<String, String> {
+        val passoRepCentesimi = (ritmo.passo100mCentesimi * lunghezza / 100.0).roundToInt()
+        val rip = (((passoRepCentesimi / 100.0) + ritmo.pausaSecondi) / 5.0).roundToInt() * 5
+        val min = rip / 60
+        val sec = rip % 60
+        val testo = if (min > 0) String.format(Locale.ROOT, "a %d'%02d\"", min, sec) else "a $sec\""
+        return testo to formattaTempo(passoRepCentesimi)
+    }
+
+    private fun costruisciTratti(
+        volume: Int,
         metriCodice: Map<CodiceAllenamento, Int>,
         fase: FaseMesociclo,
-        tipo: TipoMicrociclo,
-        eta: Int?,
-        condizioniAttive: List<CondizioneMedica>,
-        tabellaRitmi: TabellaRitmiAtleta?
+        tabella: TabellaRitmiAtleta?
     ): List<TrattoSeduta> {
+        val serie = mutableListOf<SerieDef>()
+
+        val mD = metriCodice[CodiceAllenamento.D] ?: 0
+        if (mD >= 50) {
+            val n = (mD / 50).coerceIn(2, 8)
+            serie += SerieDef(
+                CodiceAllenamento.D, "Attivazione e Velocità", 50, n,
+                descrizioneSerie(CodiceAllenamento.D, 50), notaDefault(CodiceAllenamento.D)
+            )
+        }
+
+        for (c in ORDINE_SERIE) {
+            val m = metriCodice[c] ?: continue
+            if (m < 50) continue
+            var len = when (c) {
+                CodiceAllenamento.A2 -> if (m >= 1200) 400 else 200
+                CodiceAllenamento.B1 -> if (m >= 1000) 200 else 100
+                CodiceAllenamento.C2 -> 50
+                CodiceAllenamento.C3 ->
+                    if ((fase == FaseMesociclo.COMPETITIVA || fase == FaseMesociclo.PRE_GARA) && m >= 400) 100 else 50
+                else -> 100
+            }
+            while (len > m && len > 50) len /= 2
+            val n = (m / len).coerceIn(1, maxRipetizioni(c))
+            serie += SerieDef(c, sezioneSerie(c), len, n, descrizioneSerie(c, len), notaDefault(c))
+        }
+
+        // Il resto del volume è A1 (riscaldamento + defaticamento), mai meno di 300m
+        fun metriSerie() = serie.sumOf { it.n * it.lunghezza }
+        while (volume - metriSerie() < 300) {
+            val s = serie.filter { it.n > 1 }.maxByOrNull { it.n * it.lunghezza } ?: break
+            s.n -= 1
+        }
+        val a1 = (volume - metriSerie()).coerceAtLeast(300)
+        val riscaldamento = ((a1 * 0.65).roundToInt().arrotondaA50m()).coerceIn(150, a1 - 100)
+        val defaticamento = a1 - riscaldamento
+
+        val ritmoA1 = tabella?.ritmi?.get(CodiceAllenamento.A1)
         val tratti = mutableListOf<TrattoSeduta>()
 
-        // 1. RISCALDAMENTO (A1) - Arrotondato a 50m
-        val mA1 = (metriCodice[CodiceAllenamento.A1] ?: (volumeTotale * 0.25).roundToInt()).arrotondaA50m()
-        val mRiscaldamento = (mA1 * 0.65).roundToInt().coerceAtLeast(200).arrotondaA50m()
-        val ritmoA1 = tabellaRitmi?.ritmi?.get(CodiceAllenamento.A1)
         tratti += TrattoSeduta(
             sezione = "Riscaldamento",
             codice = CodiceAllenamento.A1,
-            metri = mRiscaldamento,
-            ripetizioni = "1 x $mRiscaldamento m",
-            descrizione = "A scelta tra Stile Libero e Dorso + 100m esercizi di sensibilità (bracciata singola / cagnolino) e scivolamento.",
-            ripartenza = ritmoA1?.ripartenzaFormatted ?: "Pausa libera",
-            notaSpecifica = if (ritmoA1 != null) "Passo target: ${ritmoA1.passo100mFormatted} per 100m · ${ritmoA1.noteTecniche}" else "Ritmo sciolto e respirazione bilanciata."
+            metri = riscaldamento,
+            ripetizioni = "1 x $riscaldamento m",
+            descrizione = "Stile libero e dorso a scelta, con esercizi di sensibilità (bracciata singola, cagnolino) e scivolamento.",
+            ripartenza = "Pausa libera",
+            notaSpecifica = ritmoA1?.let { "Passo target: ${it.passo100mFormatted} per 100m · ${it.noteTecniche}" }
+                ?: "Ritmo sciolto e respirazione bilanciata."
         )
 
-        // 2. ATTIVAZIONE & VELOCITÀ (D) - Arrotondato a 50m
-        val mD = (metriCodice[CodiceAllenamento.D] ?: 0).arrotondaA50m()
-        if (mD >= 50) {
-            val numD = (mD / 50).coerceIn(2, 8)
-            val metriAzione = numD * 50
-            val ritmoD = tabellaRitmi?.ritmi?.get(CodiceAllenamento.D)
+        for (s in serie) {
+            val ritmo = tabella?.ritmi?.get(s.codice)
+            val (ripartenza, nota) = if (ritmo != null) {
+                val (r, passoRep) = ripartenzaPer(ritmo, s.lunghezza)
+                r to "Passo target: $passoRep su ${s.lunghezza}m · ${ritmo.noteTecniche}"
+            } else {
+                "recupero ${RECUPERO_FISSO[s.codice] ?: 30}\"" to s.notaDefault
+            }
             tratti += TrattoSeduta(
-                sezione = "Attivazione e Velocità",
-                codice = CodiceAllenamento.D,
-                metri = metriAzione,
-                ripetizioni = "$numD x 50m",
-                descrizione = "15m velocità massima (partenza / virata esplosiva) + 35m scioglimento A1.",
-                ripartenza = ritmoD?.ripartenzaFormatted ?: "a 1'15\"",
-                notaSpecifica = if (ritmoD != null) "Passo target: ${ritmoD.passo100mFormatted} per 100m · ${ritmoD.noteTecniche}" else "Focus sulla reattività dei primi metri e sulla frequenza di bracciata."
+                sezione = s.sezione,
+                codice = s.codice,
+                metri = s.n * s.lunghezza,
+                ripetizioni = "${s.n} x ${s.lunghezza}m",
+                descrizione = s.descrizione,
+                ripartenza = ripartenza,
+                notaSpecifica = nota
             )
         }
 
-        // 3. SERIE PRINCIPALE (A2 / B1 / B2 / C1 / C2 / C3) - Arrotondato a 50m
-        val mB1 = (metriCodice[CodiceAllenamento.B1] ?: 0).arrotondaA50m()
-        val mB2 = (metriCodice[CodiceAllenamento.B2] ?: 0).arrotondaA50m()
-        val mC1 = (metriCodice[CodiceAllenamento.C1] ?: 0).arrotondaA50m()
-        val mC2 = (metriCodice[CodiceAllenamento.C2] ?: 0).arrotondaA50m()
-        val mC3 = (metriCodice[CodiceAllenamento.C3] ?: 0).arrotondaA50m()
-        val mA2 = (metriCodice[CodiceAllenamento.A2] ?: 0).arrotondaA50m()
-
-        if (mC3 > 0) {
-            val nC3 = (mC3 / 50).coerceIn(2, 6)
-            val ritmoC3 = tabellaRitmi?.ritmi?.get(CodiceAllenamento.C3)
-            tratti += TrattoSeduta(
-                sezione = "Serie Principale - Ritmo Gara",
-                codice = CodiceAllenamento.C3,
-                metri = nC3 * 50,
-                ripetizioni = "$nC3 x 50m",
-                descrizione = "Passo gara gara obiettivo con precisione cronometrica al decimo di secondo.",
-                ripartenza = ritmoC3?.ripartenzaFormatted ?: "recupero 2' completo",
-                notaSpecifica = if (ritmoC3 != null) "Passo target: ${ritmoC3.passo100mFormatted} per 100m · ${ritmoC3.noteTecniche}" else "Massima concentrazione sul ritmo di bracciata della gara prioritaria."
-            )
-        } else if (mC1 > 0 || mC2 > 0) {
-            val mTotLattato = mC1 + mC2
-            val nLatt = (mTotLattato / 100).coerceIn(2, 6)
-            val codiceLatt = if (mC2 > mC1) CodiceAllenamento.C2 else CodiceAllenamento.C1
-            val ritmoLatt = tabellaRitmi?.ritmi?.get(codiceLatt)
-            tratti += TrattoSeduta(
-                sezione = "Serie Principale - Qualità Lattacida",
-                codice = codiceLatt,
-                metri = nLatt * 100,
-                ripetizioni = "$nLatt x 100m",
-                descrizione = "50m alla massima velocità sostenibile + 50m tenuta con elevata frequenza.",
-                ripartenza = ritmoLatt?.ripartenzaFormatted ?: "a 2'30\" (recupero ampio)",
-                notaSpecifica = if (ritmoLatt != null) "Passo target: ${ritmoLatt.passo100mFormatted} per 100m · ${ritmoLatt.noteTecniche}" else "Resistere all'acidosi mantenendo assetto e idrodinamicità."
-            )
-        } else if (mB2 > 0) {
-            val nB2 = (mB2 / 100).coerceIn(3, 8)
-            val ritmoB2 = tabellaRitmi?.ritmi?.get(CodiceAllenamento.B2)
-            tratti += TrattoSeduta(
-                sezione = "Serie Principale - VO2 Max",
-                codice = CodiceAllenamento.B2,
-                metri = nB2 * 100,
-                ripetizioni = "$nB2 x 100m",
-                descrizione = "Intervalli ad alta intensità (pulsazioni 175+ bpm), massimo sforzo aerobico.",
-                ripartenza = ritmoB2?.ripartenzaFormatted ?: "a 1'40\"",
-                notaSpecifica = if (ritmoB2 != null) "Passo target: ${ritmoB2.passo100mFormatted} per 100m · ${ritmoB2.noteTecniche}" else "Mantenere costante il numero di bracciate per vasca."
-            )
-        } else if (mB1 > 0) {
-            val nB1 = (mB1 / 100).coerceIn(4, 10)
-            val ritmoB1 = tabellaRitmi?.ritmi?.get(CodiceAllenamento.B1)
-            tratti += TrattoSeduta(
-                sezione = "Serie Principale - Soglia Anaerobica",
-                codice = CodiceAllenamento.B1,
-                metri = nB1 * 100,
-                ripetizioni = "$nB1 x 100m",
-                descrizione = "Passo soglia regolare e controllato (frequenza cardiaca ~165 bpm).",
-                ripartenza = ritmoB1?.ripartenzaFormatted ?: "a 1'35\"",
-                notaSpecifica = if (ritmoB1 != null) "Passo target: ${ritmoB1.passo100mFormatted} per 100m · ${ritmoB1.noteTecniche}" else "Lavoro fondamentale per l'innalzamento della soglia anaerobica."
-            )
-        } else if (mA2 > 0) {
-            val nA2 = (mA2 / 200).coerceIn(2, 6)
-            val ritmoA2 = tabellaRitmi?.ritmi?.get(CodiceAllenamento.A2)
-            tratti += TrattoSeduta(
-                sezione = "Serie Principale - Fondo e Capacità",
-                codice = CodiceAllenamento.A2,
-                metri = nA2 * 200,
-                ripetizioni = "$nA2 x 200m",
-                descrizione = "Stile principale / Misti con palette corte e boccaglio per la continuità del gesto.",
-                ripartenza = ritmoA2?.ripartenzaFormatted ?: "a 3'15\"",
-                notaSpecifica = if (ritmoA2 != null) "Passo target: ${ritmoA2.passo100mFormatted} per 100m · ${ritmoA2.noteTecniche}" else "Respirazione regolare e controllo costante dell'andatura."
-            )
-        }
-
-        // 4. DEFATICAMENTO E DEFATICAZIONE (A1) - Arrotondato a 50m
-        val metriGiaInseriti = tratti.sumOf { it.metri }
-        val mDefaticamento = (volumeTotale - metriGiaInseriti).coerceAtLeast(150).arrotondaA50m()
         tratti += TrattoSeduta(
             sezione = "Defaticamento",
             codice = CodiceAllenamento.A1,
-            metri = mDefaticamento,
-            ripetizioni = "1 x $mDefaticamento m",
-            descrizione = "Nuoto rilassato a dorso doppio e stile libero a respirazione 3/5 bracciate per lo smaltimento e il ripristino organico.",
+            metri = defaticamento,
+            ripetizioni = "1 x $defaticamento m",
+            descrizione = "Nuoto rilassato a dorso e stile libero con respirazione 3/5 per smaltire e ripristinare.",
             ripartenza = "Scioglimento libero",
-            notaSpecifica = "Decompressione muscolare ed allungamento in acqua."
+            notaSpecifica = "Decompressione muscolare e allungamento in acqua."
         )
-
         return tratti
     }
 }

@@ -40,9 +40,11 @@ data class Atleta(
     val classeSB: Int? = null,  // rana
     val classeSM: Int? = null,  // misti
     val stato: StatoClassificazione = StatoClassificazione.IN_ATTESA,
-    /** 1.0 = volume pieno di squadra; 0.8 = 80% ecc. Deciso dall'allenatore. */
+    /** 1.0 = volume pieno di squadra; 0.8 = 80% ecc. */
     val fattoreVolume: Double = 1.0,
-    val note: String = ""
+    val note: String = "",
+    /** true = il fattore volume lo calcola l'app (età, condizioni, classe); false = deciso a mano. */
+    @ColumnInfo(defaultValue = "1") val volumeAuto: Boolean = true
 )
 
 @Entity(
@@ -168,7 +170,7 @@ data class Gara(
     val prioritaria: Boolean = false
 )
 
-// ---------- LOG E TEMPI (UI in una fase successiva) ----------
+// ---------- LOG E TEMPI ----------
 
 @Entity(
     tableName = "tempi",
@@ -204,7 +206,6 @@ data class LogSeduta(
 )
 
 // ---------- Strutture di passaggio (non sono tabelle) ----------
-// Spostate qui da domain per eliminare la dipendenza circolare data <-> domain.
 
 data class MesoGen(val meso: Mesociclo, val micro: List<Microciclo>)
 data class MacroGen(val macro: Macrociclo, val meso: List<MesoGen>)

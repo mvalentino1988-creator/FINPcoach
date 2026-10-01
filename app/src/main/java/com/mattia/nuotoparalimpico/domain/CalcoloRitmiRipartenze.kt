@@ -9,7 +9,6 @@ import com.mattia.nuotoparalimpico.data.Stile
 import com.mattia.nuotoparalimpico.data.Tempo
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
-import kotlin.math.roundToInt
 
 data class RitmoCodice(
     val codice: CodiceAllenamento,
@@ -17,7 +16,7 @@ data class RitmoCodice(
     val passo100mFormatted: String,     // es. "1:08.35"
     val ripartenzaSecondi: Int,         // es. 85 secondi (1'25")
     val ripartenzaFormatted: String,    // es. "a 1'25\""
-    val pausaSecondi: Int,               // es. 15 secondi
+    val pausaSecondi: Int,              // es. 15 secondi
     val pausaFormatted: String,         // es. "recupero 15\""
     val noteTecniche: String
 )
@@ -49,8 +48,8 @@ data class FormCheckConsiglio(
 object CalcoloRitmiRipartenze {
 
     /**
-     * Calcola i ritmi di allenamento, le ripartenze ed il recupero preciso per tutti i codici A1-D
-     * partendo dal miglior tempo sui 100m di gara o test dell'atleta.
+     * Calcola i ritmi di allenamento, le ripartenze ed il recupero per tutti i codici A1-D
+     * partendo dal tempo sui 100m dell'atleta.
      */
     fun calcolaTabellaRitmi(
         atletaId: Long,
@@ -76,7 +75,7 @@ object CalcoloRitmiRipartenze {
             val passoCentesimi = (base + deltaPasso100Sec * 100).coerceAtLeast(2500)
             val ripartenzaSec = ((passoCentesimi / 100) + deltaRipartenzaSec)
             // Arrotonda ripartenza e pausa a multipli di 5 secondi
-            val ripartenzaSecArrotondata = ((ripartenzaSec + 2) / 5) * 5 // Arrotonda al multiplo di 5 più vicino
+            val ripartenzaSecArrotondata = ((ripartenzaSec + 2) / 5) * 5
             val pausaSecArrotondata = ((pausaSec + 2) / 5) * 5
 
             val minRip = ripartenzaSecArrotondata / 60
@@ -104,62 +103,47 @@ object CalcoloRitmiRipartenze {
         )
     }
 
-    /**
-     * Parser intelligente per importare i tempi da testo (OCR screenshot, file o incolla).
-     */
+    /** Importa tempi da testo/OCR. Per riga: sceglie il tempo più alto (finale, non i parziali), distanza e stile per parole intere. */
     fun parseImportaTempi(testo: String): List<TempoImportato> {
+        val regexTempo = Regex("""(?<![\d:.,])(?:(\d{1,2}):)?(\d{1,2})[.,](\d{1,2})(?!\d)(?![.,]\d)""")
+        val regexDistanza = Regex("""(?<!\d)(1500|800|400|200|100|50)(?!\d)""")
+        val regexParole = Regex("""[a-zà-ÿ]+""")
         val risultati = mutableListOf<TempoImportato>()
-        val righe = testo.lines()
 
-        for (riga in righe) {
-            val r = riga.trim().lowercase()
-            if (r.isBlank()) continue
+        for (riga in testo.lines()) {
+            val centesimi = regexTempo.findAll(riga).mapNotNull { parseTempo(it.value) }.toList().maxOrNull() ?: continue
+            if (centesimi < 1500) continue
+
+            val resto = regexTempo.replace(riga, " ").lowercase()
+            val distanza = regexDistanza.find(resto)?.value?.toInt() ?: 100
+            val parole = regexParole.findAll(resto).map { it.value }.toSet()
 
             val stile = when {
-                r.contains("stile") || r.contains("sl") || r.contains("freestyle") -> Stile.STILE_LIBERO
-                r.contains("dorso") || r.contains("do") || r.contains("back") -> Stile.DORSO
-                r.contains("rana") || r.contains("br") || r.contains("breast") -> Stile.RANA
-                r.contains("farfalla") || r.contains("fa") || r.contains("delfino") || r.contains("fly") -> Stile.FARFALLA
-                r.contains("misti") || r.contains("mi") || r.contains("im") -> Stile.MISTI
+                parole.any { it in setOf("misti", "im", "medley", "sm") } -> Stile.MISTI
+                parole.any { it in setOf("rana", "br", "breast", "breaststroke", "ra") } -> Stile.RANA
+                parole.any { it in setOf("farfalla", "fa", "fly", "delfino", "butterfly", "df") } -> Stile.FARFALLA
+                parole.any { it in setOf("dorso", "do", "back", "backstroke") } -> Stile.DORSO
                 else -> Stile.STILE_LIBERO
             }
-
-            val distanza = when {
-                r.contains("50") -> 50
-                r.contains("100") -> 100
-                r.contains("200") -> 200
-                r.contains("400") -> 400
-                r.contains("800") -> 800
-                r.contains("1500") -> 1500
-                else -> 100
+            val contesto = when {
+                parole.any { it.startsWith("allenam") } -> ContestoTempo.ALLENAMENTO
+                "test" in parole -> ContestoTempo.TEST
+                else -> ContestoTempo.GARA
             }
 
-            val contesto = if (r.contains("test") || r.contains("allenamento")) ContestoTempo.TEST else ContestoTempo.GARA
-
-            // Cerca sequenza tempo mm:ss.cc o ss.cc
-            val regex = Regex("""(?:\b)(\d{1,2}:)?(\d{1,2})[.,](\d{1,2})(?:\b)""")
-            val match = regex.find(riga)
-            if (match != null) {
-                val centesimi = parseTempo(match.value)
-                if (centesimi != null && centesimi > 0) {
-                    risultati += TempoImportato(
-                        stile = stile,
-                        distanzaMetri = distanza,
-                        centesimi = centesimi,
-                        formatted = formattaTempo(centesimi),
-                        contesto = contesto,
-                        note = "Importato da testo/OCR"
-                    )
-                }
-            }
+            risultati += TempoImportato(
+                stile = stile,
+                distanzaMetri = distanza,
+                centesimi = centesimi,
+                formatted = formattaTempo(centesimi),
+                contesto = contesto,
+                note = "Importato da testo/OCR"
+            )
         }
-
         return risultati
     }
 
-    /**
-     * Valuta se l'atleta necessita di un Form Check (Test in Vasca) per aggiornare i ritmi.
-     */
+    /** Valuta se l'atleta necessita di un Form Check (test in vasca) per aggiornare i ritmi. */
     fun valutaNecessitaFormCheck(
         atleta: Atleta,
         tempi: List<Tempo>,
@@ -173,7 +157,6 @@ object CalcoloRitmiRipartenze {
         val giorniDallUltimoTempo = if (ultimoTempoData != null) ChronoUnit.DAYS.between(ultimoTempoData, oggi) else 999L
 
         return when {
-            // Caso 1: Nessun tempo registrato negli ultimi 60 giorni
             giorniDallUltimoTempo > 60 -> FormCheckConsiglio(
                 necessario = true,
                 titoloTest = "⚡ Form Check Necessario: Test T30 / 100m Passo",
@@ -181,7 +164,6 @@ object CalcoloRitmiRipartenze {
                 istruzioniVasca = "Esegui un Test T30 (30 minuti continui a passo costante A2/B1) oppure 3 x 100m B1 con ripartenza a 2' per determinare la velocità di soglia."
             )
 
-            // Caso 2: Cambio di fase del Mesociclo verso la Preparazione Specifica o Pre-Gara
             mesocicloCorrente?.fase == FaseMesociclo.PREPARAZIONE_SPECIFICA && giorniDallUltimoTempo > 30 -> FormCheckConsiglio(
                 necessario = true,
                 titoloTest = "⚡ Check della Forma: Test 100m Soglia B1",
@@ -189,7 +171,6 @@ object CalcoloRitmiRipartenze {
                 istruzioniVasca = "Esegui 4 x 100m B1 alla massima velocità sostenibile regolare. Registra il tempo medio dei 100m."
             )
 
-            // Caso 3: Inizio della fase Pre-Gara
             mesocicloCorrente?.fase == FaseMesociclo.PRE_GARA && giorniDallUltimoTempo > 21 -> FormCheckConsiglio(
                 necessario = true,
                 titoloTest = "⚡ Check della Forma: Test Ritmo Gara C3 (50m / 100m)",
