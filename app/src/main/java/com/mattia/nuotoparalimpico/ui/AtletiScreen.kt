@@ -39,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -118,7 +119,7 @@ fun AtletiScreen(vm: MainViewModel) {
             )
             val condAttive = condizioni.count { it.atletaId == a.id && it.attiva }
             val tempiAtletaFlow = vm.osservaTempi(a.id)
-            val tempiAtleta by tempiAtletaFlow.collectAsStateWithLifecycle()
+            val tempiAtleta by tempiAtletaFlow.collectAsStateWithLifecycle(initialValue = emptyList())
             val mesoCorrente = micro.firstOrNull { !it.inizio.isAfter(oggi) && !it.fine.isBefore(oggi) }?.let { mi ->
                 meso.firstOrNull { it.id == mi.mesocicloId }
             }
@@ -292,8 +293,8 @@ private fun DialogDettaglio(
     var schedaSmartAtleta by remember { mutableStateOf<SchedaSeduta?>(null) }
     var mostraGestioneTempi by remember { mutableStateOf(false) }
 
-    val tempi by vm.osservaTempi(atleta.id).collectAsStateWithLifecycle()
-    val logSedute by vm.osservaLogSedute(atleta.id).collectAsStateWithLifecycle()
+    val tempi by vm.osservaTempi(atleta.id).collectAsStateWithLifecycle(initialValue = emptyList())
+    val logSedute by vm.osservaLogSedute(atleta.id).collectAsStateWithLifecycle(initialValue = emptyList())
 
     val dalData = parseData(dal)
     val alData = parseData(al)
@@ -517,6 +518,9 @@ private fun DialogDettaglio(
     }
 
     if (mostraGestioneTempi) {
+        val mesoCorrente = micro.firstOrNull { !it.inizio.isAfter(oggi) && !it.fine.isBefore(oggi) }?.let { mi ->
+            meso.firstOrNull { it.id == mi.mesocicloId }
+        }
         DialogGestioneTempi(
             atleta = atleta,
             tempi = tempi,
@@ -591,7 +595,7 @@ private fun DialogGestioneTempi(
                 CampoData(data, { data = it }, "Data", modifier = Modifier.fillMaxWidth())
 
                 Text("Stile", style = MaterialTheme.typography.labelSmall)
-                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Stile.entries.forEach { s ->
                         FilterChip(
                             selected = s == stile,
@@ -605,7 +609,7 @@ private fun DialogGestioneTempi(
                 OutlinedTextField(tempoText, { tempoText = it }, label = { Text("Tempo (es. 1:02.35 o 62.35)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
 
                 Text("Contesto", style = MaterialTheme.typography.labelSmall)
-                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     ContestoTempo.entries.forEach { c ->
                         FilterChip(
                             selected = c == contesto,
@@ -695,19 +699,10 @@ private fun DialogGestioneTempi(
                         modifier = Modifier.fillMaxWidth().height(150.dp),
                         maxLines = 8
                     )
-                    val tempiImportati = remember(testoImport) {
-                        CalcoloRitmiRipartenze.parseImportaTempi(testoImport)
-                    }
-                    if (tempiImportati.isNotEmpty()) {
-                        HorizontalDivider()
-                        Text("Tempi rilevati:", fontWeight = FontWeight.Bold)
-                        tempiImportati.forEach { t ->
-                            Text("${t.stile.name.replace("_", " ")} ${t.distanzaMetri}m: ${t.formatted} (${t.contesto.name.lowercase()})")
-                        }
-                    }
                 }
             },
             confirmButton = {
+                val tempiImportati = CalcoloRitmiRipartenze.parseImportaTempi(testoImport)
                 TextButton(
                     onClick = {
                         tempiImportati.forEach { t ->

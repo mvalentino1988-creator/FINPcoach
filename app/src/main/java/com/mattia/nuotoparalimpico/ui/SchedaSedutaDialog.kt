@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mattia.nuotoparalimpico.domain.SchedaSeduta
+import com.mattia.nuotoparalimpico.domain.formattaTempo
 
 @Composable
 fun DialogSchedaSedutaSmart(
