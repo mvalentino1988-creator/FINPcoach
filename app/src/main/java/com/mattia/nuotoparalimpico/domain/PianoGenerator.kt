@@ -19,7 +19,7 @@ data class ParametriPiano(
     val giorniAllenamento: Set<DayOfWeek> = setOf(DayOfWeek.WEDNESDAY, DayOfWeek.SATURDAY),
     /** Usato solo se non ci sono gare prioritarie: con gare prioritarie ogni macrociclo finisce con una gara. */
     val numeroMacrocicli: Int = 1,
-    /** Metri di una seduta "piena". Da tarare sul livello reale del gruppo. */
+    /** Metri di una seduta "piena". Da tarare sul livello reale del gruppo (es. 1800-2500m). */
     val metriBaseSeduta: Int = 1800,
     /** Ogni quante settimane c'è uno scarico (4 = 3 di carico + 1 di scarico). */
     val settimaneCicloCarico: Int = 4
@@ -221,21 +221,22 @@ object PianoGenerator {
             else -> TipoMicrociclo.CARICO
         }
 
-        // Progressione dell'Intensità all'inizio Stagione:
-        // Nelle prime 3 settimane di stagione l'intensità e volume aumentano con gradualità (60% -> 75% -> 90%)
+        // Metodica d'Inizio Stagione (Rientro da 2 mesi di stop):
+        // L'atleta agonista conserva capacità aerobica e memoria motoria.
+        // Volumi MANTENUTI ELEVATI (85% -> 90% -> 95%), ma intensità spostata su A1/A2 e D (no C1/C2)
         val coefficienteInizioStagione = when (idxSettimana) {
-            0 -> 0.60  // Settimana 1: Adattamento aerobico/idrodinamico soft
-            1 -> 0.75  // Settimana 2: Condizionamento aerobico progressivo
-            2 -> 0.90  // Settimana 3: Consolidamento base
+            0 -> 0.85  // Settimana 1: Rientro agonistico, volume 85%, focus A1/A2 e reattività
+            1 -> 0.90  // Settimana 2: Consolidamento aerobico 90%
+            2 -> 0.95  // Settimana 3: Regime completo
             else -> 1.0
         }
 
         val fattoreBase = when (tipo) {
             TipoMicrociclo.PAUSA -> 0.0
-            TipoMicrociclo.ADATTAMENTO -> 0.7
-            TipoMicrociclo.SCARICO -> 0.7
-            TipoMicrociclo.RECUPERO -> 0.5
-            TipoMicrociclo.GARA -> if (garaPrioritariaInSettimana) 0.6 else 0.85 // B-races (gare secondarie) mantengono maggior volume
+            TipoMicrociclo.ADATTAMENTO -> 0.85
+            TipoMicrociclo.SCARICO -> 0.75
+            TipoMicrociclo.RECUPERO -> 0.60
+            TipoMicrociclo.GARA -> if (garaPrioritariaInSettimana) 0.65 else 0.90 // B-races (gare secondarie) mantengono alto volume
             TipoMicrociclo.CARICO -> (FATTORE_FASE[fase] ?: 1.0) * (1.0 + 0.05 * stato.caricoNelCiclo)
         }
 
@@ -252,10 +253,10 @@ object PianoGenerator {
         val previste = p.giorniAllenamento.size
         val noteSpecifiche = mutableListOf<String>()
         if (idxSettimana in 0..2) {
-            noteSpecifiche += "Inizio stagione: condizionamento progressivo (intensità ${(coefficienteInizioStagione * 100).roundToInt()}%)"
+            noteSpecifiche += "Rientro da pausa estiva: volume agonistico ${(coefficienteInizioStagione * 100).roundToInt()}% (focus A1/A2 e reattività D, no lattacido)"
         }
         if (garaSecondariaInSettimana && !garaPrioritariaInSettimana) {
-            noteSpecifiche += "Gara di passaggio (B-Race): mantenuta la continuità di carico"
+            noteSpecifiche += "Gara di passaggio B-Race: mantenuta la continuità di carico"
         }
         if (tipo != TipoMicrociclo.PAUSA && giorniUtili.size < previste) {
             noteSpecifiche += "${giorniUtili.size} sedute su $previste (chiusure/festività)"
