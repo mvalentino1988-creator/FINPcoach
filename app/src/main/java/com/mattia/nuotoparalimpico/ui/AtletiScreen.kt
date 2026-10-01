@@ -39,7 +39,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -345,11 +344,45 @@ private fun DialogDettaglio(
                     Text("Gestione Tempi Gara e Test ⏱️")
                 }
 
-                // Analisi FINP AI Specialist per la Condizione Medica
-                if (condizioni.isNotEmpty()) {
-                    Titolo("Analisi Idrodinamica FINP AI", Icons.Filled.Info)
-                    condizioni.filter { it.attiva }.forEach { c ->
-                        val analisi = remember(c) { FINPSpecialistAI.analizza(c.descrizione, c.limitazioni, etaAnni) }
+                // Analisi FINP AI Specialist per la Condizione Medica e Stima Classi
+                Titolo("Analisi Idrodinamica & Stima Classi FINP AI", Icons.Filled.Info)
+                val condAttive = condizioni.filter { it.attiva }
+
+                if (condAttive.isEmpty()) {
+                    // Se l'atleta non ha ancora condizioni registrate, genera comunque l'analisi e stima classi basata su note/profilo
+                    val analisiGenerale = FINPSpecialistAI.analizza(atleta.note, "Nessuna patologia severa registrata", etaAnni)
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("Profilo Atleta Agonista", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                            Text(analisiGenerale.riassuntoIdrodinamico, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
+
+                            if (atleta.stato == StatoClassificazione.IN_ATTESA) {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                                Surface(
+                                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        Text(
+                                            "Stima Classi FINP: S${analisiGenerale.stimaClassi.classeS} · SB${analisiGenerale.stimaClassi.classeSB} · SM${analisiGenerale.stimaClassi.classeSM}",
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                            style = MaterialTheme.typography.labelLarge
+                                        )
+                                        Text(analisiGenerale.stimaClassi.motivazione, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    condAttive.forEach { c ->
+                        val analisi = FINPSpecialistAI.analizza(c.descrizione, c.limitazioni, etaAnni)
                         Card(
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                             shape = RoundedCornerShape(12.dp),
@@ -374,8 +407,8 @@ private fun DialogDettaglio(
                                     }
                                 }
 
-                                // Stima Classi FINP se in attesa di ufficialità
-                                if (atleta.stato == StatoClassificazione.IN_ATTESA && analisi.stimaClassi != null) {
+                                // Stima Classi FINP
+                                if (atleta.stato == StatoClassificazione.IN_ATTESA) {
                                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                                     Surface(
                                         color = MaterialTheme.colorScheme.tertiaryContainer,
