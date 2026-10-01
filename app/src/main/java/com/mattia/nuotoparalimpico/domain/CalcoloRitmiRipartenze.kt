@@ -74,20 +74,23 @@ object CalcoloRitmiRipartenze {
             }
 
             val passoCentesimi = (base + deltaPasso100Sec * 100).coerceAtLeast(2500)
-            val ripartenzaSec = (passoCentesimi / 100) + deltaRipartenzaSec
+            val ripartenzaSec = ((passoCentesimi / 100) + deltaRipartenzaSec)
+            // Arrotonda ripartenza e pausa a multipli di 5 secondi
+            val ripartenzaSecArrotondata = ((ripartenzaSec + 2) / 5) * 5 // Arrotonda al multiplo di 5 più vicino
+            val pausaSecArrotondata = ((pausaSec + 2) / 5) * 5
 
-            val minRip = ripartenzaSec / 60
-            val secRip = ripartenzaSec % 60
+            val minRip = ripartenzaSecArrotondata / 60
+            val secRip = ripartenzaSecArrotondata % 60
             val strRipartenza = if (minRip > 0) String.format("a %d'%02d\"", minRip, secRip) else String.format("a %d\"", secRip)
 
             ritmiMap[codice] = RitmoCodice(
                 codice = codice,
                 passo100mCentesimi = passoCentesimi,
                 passo100mFormatted = formattaTempo(passoCentesimi),
-                ripartenzaSecondi = ripartenzaSec,
+                ripartenzaSecondi = ripartenzaSecArrotondata,
                 ripartenzaFormatted = strRipartenza,
-                pausaSecondi = pausaSec,
-                pausaFormatted = "recupero $pausaSec\"",
+                pausaSecondi = pausaSecArrotondata,
+                pausaFormatted = "recupero $pausaSecArrotondata\"",
                 noteTecniche = nota
             )
         }
