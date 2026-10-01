@@ -4,7 +4,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.AlertDialog
@@ -24,7 +22,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -46,6 +43,7 @@ import com.mattia.nuotoparalimpico.data.Mesociclo
 import com.mattia.nuotoparalimpico.data.Stile
 import com.mattia.nuotoparalimpico.data.Tempo
 import com.mattia.nuotoparalimpico.domain.CalcoloRitmiRipartenze
+import com.mattia.nuotoparalimpico.domain.CalcoloScienzaNuoto
 import com.mattia.nuotoparalimpico.domain.CodiceAllenamento
 import com.mattia.nuotoparalimpico.domain.formattaTempo
 import com.mattia.nuotoparalimpico.domain.parseTempo
@@ -146,6 +144,29 @@ private fun ContenutoTempiAtleta(
                 Text(formCheck.titoloTest, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onTertiaryContainer)
                 Text(formCheck.motivazione, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
                 Text(formCheck.istruzioniVasca, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onTertiaryContainer)
+            }
+        }
+    }
+
+    // Calcolo VAM / CSS (Critical Swim Speed)
+    val t400 = tempi.filter { it.distanzaMetri == 400 }.maxByOrNull { it.data }
+    val t100 = tempi.filter { it.distanzaMetri == 100 }.maxByOrNull { it.data }
+    if (t400 != null && t100 != null) {
+        val cssRes = remember(t400, t100) { CalcoloScienzaNuoto.calcolaCSS(t400.centesimi, t100.centesimi) }
+        if (cssRes != null) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                        Text("Calcolo Scientifico CSS (Soglia B1)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                    }
+                    Text("Passo Soglia Aerobica CSS: ${cssRes.passo100mFormatted} / 100m", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Text(cssRes.spiegazioneMetodologica, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                }
             }
         }
     }

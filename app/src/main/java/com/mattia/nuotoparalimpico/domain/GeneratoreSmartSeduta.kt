@@ -11,13 +11,16 @@ import java.time.LocalDate
 import java.time.Period
 import kotlin.math.roundToInt
 
+/** Funzione estensione per arrotondare i volumi (metri) rigidamente a multipli di 50m (es. 400m, 450m, 500m). */
+fun Int.arrotondaA50m(): Int = ((this + 25) / 50) * 50
+
 data class TrattoSeduta(
     val sezione: String,          // es. "Riscaldamento", "Attivazione Velocità", "Serie Principale", "Defaticamento"
     val codice: CodiceAllenamento,
-    val metri: Int,
+    val metri: Int,               // Sempre arrotondato a multipli di 50m
     val ripetizioni: String,     // es. "4 x 100m", "8 x 50m", "1 x 400m"
     val descrizione: String,      // es. "Dorso/Stile libero alternati con 15m scivolamento e sensibilità"
-    val ripartenza: String? = null, // es. "a 1'45"", "recupero 45""
+    val ripartenza: String? = null, // es. "a 1'25"", "recupero 20""
     val notaSpecifica: String? = null
 )
 
@@ -29,13 +32,13 @@ data class SchedaSeduta(
     val categoriaEta: String?,
     val faseStagione: FaseMesociclo,
     val tipoMicrociclo: TipoMicrociclo,
-    val volumeTotaleMetri: Int,
-    val ripartizioneCodici: Map<CodiceAllenamento, Int>, // metri per ciascun codice
+    val volumeTotaleMetri: Int,     // Arrotondato a multipli di 50m
+    val ripartizioneCodici: Map<CodiceAllenamento, Int>, // metri per ciascun codice (multipli di 50m)
     val tratti: List<TrattoSeduta>,
     val adattamentiEta: List<String>,
     val avvertenzeMediche: List<String>,
-    val tempiUtilizzati: List<Tempo> = emptyList(), // Tempi di gara usati per calibrare la seduta
-    val noteCalibrazione: List<String> = emptyList() // Note su come i tempi hanno influenzato la seduta
+    val tempiUtilizzati: List<Tempo> = emptyList(),
+    val noteCalibrazione: List<String> = emptyList()
 )
 
 object GeneratoreSmartSeduta {
@@ -51,7 +54,8 @@ object GeneratoreSmartSeduta {
         logSedute: List<LogSeduta> = emptyList(),
         mesocicloCorrente: Mesociclo? = null
     ): SchedaSeduta {
-        val volumeValido = metriTarget.coerceAtLeast(400)
+        // Garantisce che il volume base sia arrotondato a multipli di 50m (es. 1800m, 2000m)
+        val volumeValido = metriTarget.coerceAtLeast(400).arrotondaA50m()
         val oggi = data ?: LocalDate.now()
         val eta = atleta?.dataNascita?.let { Period.between(it, oggi).years }
         val categoria = eta?.let {
@@ -68,7 +72,7 @@ object GeneratoreSmartSeduta {
         val avvertenzeMediche = mutableListOf<String>()
         val noteCalibrazione = mutableListOf<String>()
 
-        // 0. Analisi dei tempi dell'atleta per calibrare la seduta
+        // 0. Tempi di riferimento dell'atleta
         val tempoRiferimento = tempi
             .filter { it.distanzaMetri == 100 }
             .maxByOrNull { it.data }
@@ -82,20 +86,19 @@ object GeneratoreSmartSeduta {
             )
         } else null
 
-        // 1. Calcolo quote percentuali base per Codici di Allenamento in base alla Fase e Microciclo
+        // 1. Calcolo quote percentuali base per Codici di Allenamento
         val quoteBase = calcolaQuoteBase(fase, tipoMicro).toMutableMap()
 
-        // 1.1 Adattamento volume in base ai tempi se disponibili
+        // 1.1 Adattamento volume in base ai tempi
         var volumeCalibrato = volumeValido
         if (tabellaRitmi != null && tempoRiferimento != null) {
-            // Se l'atleta ha tempi registrati, adatta il volume in base alla fase
             val fattoreTempi = when (fase) {
                 FaseMesociclo.PREPARAZIONE_GENERALE -> 1.0
                 FaseMesociclo.PREPARAZIONE_SPECIFICA -> 1.05
                 FaseMesociclo.PRE_GARA -> 0.95
                 FaseMesociclo.COMPETITIVA -> 0.90
             }
-            volumeCalibrato = (volumeValido * fattoreTempi).roundToInt()
+            volumeCalibrato = (volumeValido * fattoreTempi).roundToInt().arrotondaA50m()
             noteCalibrazione += "Volume calibrato sui tempi di gara: ${formattaTempo(tempoRiferimento.centesimi)} sui 100m ${tempoRiferimento.stile}"
         }
 
@@ -103,7 +106,6 @@ object GeneratoreSmartSeduta {
         if (eta != null) {
             when {
                 eta < 12 -> {
-                    // Under 12: No C1/C2 lattacidi pesanti -> trasferisci a A1 (tecnica) e D (velocità/giochi)
                     val lattato = (quoteBase[CodiceAllenamento.C1] ?: 0.0) + (quoteBase[CodiceAllenamento.C2] ?: 0.0)
                     quoteBase[CodiceAllenamento.C1] = 0.0
                     quoteBase[CodiceAllenamento.C2] = 0.0
@@ -112,7 +114,6 @@ object GeneratoreSmartSeduta {
                     adattamentiEta += "Atleta under 12: escluse serie ad alto accumulo lattacido (C1/C2). Enfasi su tecnica (A1) e reattività/giochi veloci (D)."
                 }
                 eta >= 35 -> {
-                    // Master 35+: Riscaldamento A1 e defaticamento esteso, moderazione C1/C2
                     val c1 = (quoteBase[CodiceAllenamento.C1] ?: 0.0) * 0.5
                     val c2 = (quoteBase[CodiceAllenamento.C2] ?: 0.0) * 0.5
                     quoteBase[CodiceAllenamento.C1] = (quoteBase[CodiceAllenamento.C1] ?: 0.0) - c1
@@ -129,43 +130,45 @@ object GeneratoreSmartSeduta {
             }
         }
 
-        // 3. Modifiche per Condizioni Mediche e Limitazioni Attive
+        // 3. Modifiche per QUALSIASI Condizione Medica e Limitazione Attiva inserita
         val condizioniAttive = condizioniMediche.filter { it.attiva }
         condizioniAttive.forEach { c ->
             val desc = "${c.descrizione} ${c.limitazioni}".lowercase()
             when {
-                desc.contains("spalla") || desc.contains("articolare") -> {
+                desc.contains("spalla") || desc.contains("articolare") || desc.contains("cuffia") || desc.contains("rotator") -> {
                     val riduzioneB2 = (quoteBase[CodiceAllenamento.B2] ?: 0.0) * 0.4
                     quoteBase[CodiceAllenamento.B2] = (quoteBase[CodiceAllenamento.B2] ?: 0.0) - riduzioneB2
                     quoteBase[CodiceAllenamento.A1] = (quoteBase[CodiceAllenamento.A1] ?: 0.3) + riduzioneB2
-                    avvertenzeMediche += "⚠️ Condizione articolare/spalla (${c.descrizione}): evitate palette rigide nelle serie B2/C, inseriti esercizi di sensibilità e gambe."
+                    avvertenzeMediche += "⚠️ Condizione spalla/articolare (${c.descrizione}): evitate palette rigide nelle serie B2/C, inseriti esercizi di sensibilità e gambe."
                 }
-                desc.contains("affaticamento") || desc.contains("neurolog") || desc.contains("spastic") || desc.contains("sclerosi") -> {
+                desc.contains("affaticament") || desc.contains("neurolog") || desc.contains("spastic") || desc.contains("sclerosi") || desc.contains("midoll") || desc.contains("parapleg") || desc.contains("tetrapleg") -> {
                     val lattacidi = (quoteBase[CodiceAllenamento.C1] ?: 0.0) + (quoteBase[CodiceAllenamento.C2] ?: 0.0)
                     quoteBase[CodiceAllenamento.C1] = 0.0
                     quoteBase[CodiceAllenamento.C2] = 0.0
                     quoteBase[CodiceAllenamento.A2] = (quoteBase[CodiceAllenamento.A2] ?: 0.3) + lattacidi * 0.7
                     quoteBase[CodiceAllenamento.A1] = (quoteBase[CodiceAllenamento.A1] ?: 0.3) + lattacidi * 0.3
-                    avvertenzeMediche += "⚠️ Limitazione neurologica/spasticità (${c.descrizione}): azzerate le serie C1/C2 per prevenire blocchi muscolari e fatica centrale."
+                    avvertenzeMediche += "⚠️ Condizione neurologica/funzionale (${c.descrizione}): azzerate le serie C1/C2 per prevenire blocchi muscolari e fatica centrale."
                 }
-                desc.contains("cardio") || desc.contains("cuore") || desc.contains("pressione") -> {
+                desc.contains("cardio") || desc.contains("cuore") || desc.contains("pressione") || desc.contains("iperten") -> {
                     quoteBase[CodiceAllenamento.C2] = 0.0
                     quoteBase[CodiceAllenamento.B2] = (quoteBase[CodiceAllenamento.B2] ?: 0.0) * 0.3
                     quoteBase[CodiceAllenamento.A2] = (quoteBase[CodiceAllenamento.A2] ?: 0.3) + 0.15
                     avvertenzeMediche += "⚠️ Attenzione cardiovascolare (${c.descrizione}): evitate apnee prolungate e picchi C2, ritmo costante A2/B1."
                 }
+                desc.contains("visiv") || desc.contains("cecit") || desc.contains("vedent") -> {
+                    avvertenzeMediche += "👁️ Disabilità visiva (${c.descrizione}): garantire la presenza del tapper per gli arrivi C1/C2/D e conteggio costante bracciate."
+                }
                 else -> {
-                    if (c.limitazioni.isNotBlank()) {
-                        avvertenzeMediche += "ℹ️ Nota medica (${c.descrizione}): ${c.limitazioni}"
-                    }
+                    // QUALSIASI altra informazione medica generica inserita dall'utente
+                    avvertenzeMediche += "ℹ️ Adattamento Medico Personalizzato (${c.descrizione}): ${if (c.limitazioni.isNotBlank()) c.limitazioni else "Monitorare il recupero e regolare la resistenza."}"
                 }
             }
         }
 
-        // 4. Normalizzazione percentuali e calcolo metri per ciascun codice
+        // 4. Normalizzazione percentuali e calcolo metri per ciascun codice (TUTTI ARROTONDATI A MULTIPLI DI 50m)
         val sommaQuote = quoteBase.values.sum().coerceAtLeast(0.01)
         val metriPerCodice = quoteBase.mapValues { (_, q) ->
-            ((q / sommaQuote) * volumeCalibrato).roundToInt()
+            ((q / sommaQuote) * volumeCalibrato).roundToInt().arrotondaA50m()
         }.filterValues { it > 0 }
 
         // 5. Costruzione dinamica dei tratti della scheda di allenamento per la vasca
@@ -182,7 +185,7 @@ object GeneratoreSmartSeduta {
             categoriaEta = categoria,
             faseStagione = fase,
             tipoMicrociclo = tipoMicro,
-            volumeTotaleMetri = tratti.sumOf { it.metri },
+            volumeTotaleMetri = tratti.sumOf { it.metri }.arrotondaA50m(),
             ripartizioneCodici = metriPerCodice,
             tratti = tratti,
             adattamentiEta = adattamentiEta,
@@ -256,9 +259,9 @@ object GeneratoreSmartSeduta {
     ): List<TrattoSeduta> {
         val tratti = mutableListOf<TrattoSeduta>()
 
-        // 1. RISCALDAMENTO (A1)
-        val mA1 = metriCodice[CodiceAllenamento.A1] ?: (volumeTotale * 0.25).roundToInt()
-        val mRiscaldamento = (mA1 * 0.65).roundToInt().coerceAtLeast(200)
+        // 1. RISCALDAMENTO (A1) - Arrotondato a 50m
+        val mA1 = (metriCodice[CodiceAllenamento.A1] ?: (volumeTotale * 0.25).roundToInt()).arrotondaA50m()
+        val mRiscaldamento = (mA1 * 0.65).roundToInt().coerceAtLeast(200).arrotondaA50m()
         val ritmoA1 = tabellaRitmi?.ritmi?.get(CodiceAllenamento.A1)
         tratti += TrattoSeduta(
             sezione = "Riscaldamento",
@@ -270,8 +273,8 @@ object GeneratoreSmartSeduta {
             notaSpecifica = if (ritmoA1 != null) "Passo target: ${ritmoA1.passo100mFormatted} per 100m · ${ritmoA1.noteTecniche}" else "Ritmo sciolto e respirazione bilanciata."
         )
 
-        // 2. ATTIVAZIONE & VELOCITÀ (D)
-        val mD = metriCodice[CodiceAllenamento.D] ?: 0
+        // 2. ATTIVAZIONE & VELOCITÀ (D) - Arrotondato a 50m
+        val mD = (metriCodice[CodiceAllenamento.D] ?: 0).arrotondaA50m()
         if (mD >= 50) {
             val numD = (mD / 50).coerceIn(2, 8)
             val metriAzione = numD * 50
@@ -287,13 +290,13 @@ object GeneratoreSmartSeduta {
             )
         }
 
-        // 3. SERIE PRINCIPALE (A2 / B1 / B2 / C1 / C2 / C3)
-        val mB1 = metriCodice[CodiceAllenamento.B1] ?: 0
-        val mB2 = metriCodice[CodiceAllenamento.B2] ?: 0
-        val mC1 = metriCodice[CodiceAllenamento.C1] ?: 0
-        val mC2 = metriCodice[CodiceAllenamento.C2] ?: 0
-        val mC3 = metriCodice[CodiceAllenamento.C3] ?: 0
-        val mA2 = metriCodice[CodiceAllenamento.A2] ?: 0
+        // 3. SERIE PRINCIPALE (A2 / B1 / B2 / C1 / C2 / C3) - Arrotondato a 50m
+        val mB1 = (metriCodice[CodiceAllenamento.B1] ?: 0).arrotondaA50m()
+        val mB2 = (metriCodice[CodiceAllenamento.B2] ?: 0).arrotondaA50m()
+        val mC1 = (metriCodice[CodiceAllenamento.C1] ?: 0).arrotondaA50m()
+        val mC2 = (metriCodice[CodiceAllenamento.C2] ?: 0).arrotondaA50m()
+        val mC3 = (metriCodice[CodiceAllenamento.C3] ?: 0).arrotondaA50m()
+        val mA2 = (metriCodice[CodiceAllenamento.A2] ?: 0).arrotondaA50m()
 
         if (mC3 > 0) {
             val nC3 = (mC3 / 50).coerceIn(2, 6)
@@ -359,9 +362,9 @@ object GeneratoreSmartSeduta {
             )
         }
 
-        // 4. DEFATICAMENTO E DEFATICAZIONE (A1)
+        // 4. DEFATICAMENTO E DEFATICAZIONE (A1) - Arrotondato a 50m
         val metriGiaInseriti = tratti.sumOf { it.metri }
-        val mDefaticamento = (volumeTotale - metriGiaInseriti).coerceAtLeast(150)
+        val mDefaticamento = (volumeTotale - metriGiaInseriti).coerceAtLeast(150).arrotondaA50m()
         tratti += TrattoSeduta(
             sezione = "Defaticamento",
             codice = CodiceAllenamento.A1,

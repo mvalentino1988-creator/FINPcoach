@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -22,8 +23,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mattia.nuotoparalimpico.domain.SchedaSeduta
@@ -34,6 +41,33 @@ fun DialogSchedaSedutaSmart(
     scheda: SchedaSeduta,
     onChiudi: () -> Unit
 ) {
+    val clipboardManager = LocalClipboardManager.current
+    var copiato by remember { mutableStateOf(false) }
+
+    val testoCopiabile = remember(scheda) {
+        buildString {
+            appendLine("🏊‍♂️ ${scheda.titolo}")
+            if (scheda.data != null) appendLine("📅 Data: ${scheda.data.formatta()}")
+            appendLine("📊 Volume Totale: ${scheda.volumeTotaleMetri} m")
+            appendLine("🎯 Fase: ${scheda.faseStagione.etichetta} (${scheda.tipoMicrociclo.etichetta})")
+            if (scheda.categoriaEta != null) appendLine("👤 Categoria: ${scheda.categoriaEta}")
+            appendLine()
+            if (scheda.avvertenzeMediche.isNotEmpty()) {
+                appendLine("⚠️ ADATTAMENTI MEDICI:")
+                scheda.avvertenzeMediche.forEach { appendLine("- $it") }
+                appendLine()
+            }
+            appendLine("📋 SERIE D'ALLENAMENTO BORDO VASCA:")
+            scheda.tratti.forEachIndexed { i, t ->
+                appendLine("${i + 1}. [${t.codice.codice}] ${t.sezione} - ${t.ripetizioni} (${t.metri}m)")
+                appendLine("   ${t.descrizione}")
+                if (t.ripartenza != null) appendLine("   ⏱️ Ripartenza: ${t.ripartenza}")
+                if (t.notaSpecifica != null) appendLine("   • Focus: ${t.notaSpecifica}")
+                appendLine()
+            }
+        }
+    }
+
     AlertDialog(
         onDismissRequest = onChiudi,
         title = {
@@ -79,6 +113,17 @@ fun DialogSchedaSedutaSmart(
                             )
                         }
                     }
+                }
+
+                // Pulsante Copia / Condividi
+                Button(
+                    onClick = {
+                        clipboardManager.setText(AnnotatedString(testoCopiabile))
+                        copiato = true
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (copiato) "Copiato negli Appunti! ✅" else "Copia Scheda per WhatsApp/Bordo Vasca 📋")
                 }
 
                 // Avvertenze Mediche

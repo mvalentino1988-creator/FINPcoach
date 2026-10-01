@@ -49,6 +49,7 @@ import com.mattia.nuotoparalimpico.data.Microciclo
 import com.mattia.nuotoparalimpico.data.Stile
 import com.mattia.nuotoparalimpico.data.Tempo
 import com.mattia.nuotoparalimpico.data.TipoMicrociclo
+import com.mattia.nuotoparalimpico.domain.CalcoloScienzaNuoto
 import com.mattia.nuotoparalimpico.domain.GeneratoreSmartSeduta
 import com.mattia.nuotoparalimpico.domain.Riepilogo
 import com.mattia.nuotoparalimpico.domain.SchedaSeduta
@@ -413,9 +414,30 @@ private fun SezioneStorico(atleta: Atleta, vm: MainViewModel, rvm: RegistroViewM
         Text("Nessuna seduta registrata.", style = MaterialTheme.typography.bodySmall)
         return
     }
+
+    // Monitoraggio Carico Acuto / Cronico ACWR
+    val carichiPrecedenti = settimane.drop(1).map { it.caricoSrpe }
+    val caricoAcuto = settimane.firstOrNull()?.caricoSrpe ?: 0
+    val acwr = remember(caricoAcuto, carichiPrecedenti) {
+        CalcoloScienzaNuoto.calcolaACWR(caricoAcuto, carichiPrecedenti)
+    }
+
+    if (acwr.avvisoInfortunio != null) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("Monitoraggio Infortuni ACWR: ${acwr.livelloRischio}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onErrorContainer, style = MaterialTheme.typography.titleSmall)
+                Text(acwr.avvisoInfortunio, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
+            }
+        }
+    }
+
     Text("Presenze: $presenti su ${mioLog.size} sedute registrate", fontWeight = FontWeight.SemiBold)
     Text(
-        "Carico sRPE = RPE x durata (minuti) della seduta.",
+        "Carico sRPE = RPE x durata (minuti) della seduta. Stato Carico ACWR: ${acwr.livelloRischio}",
         style = MaterialTheme.typography.bodySmall
     )
     settimane.forEach { s ->
