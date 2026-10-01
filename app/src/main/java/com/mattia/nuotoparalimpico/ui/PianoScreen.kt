@@ -1,5 +1,6 @@
 package com.mattia.nuotoparalimpico.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +16,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -106,6 +109,7 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
     var confermaElimina by remember { mutableStateOf(false) }
     var microSelezionato by remember { mutableStateOf<Microciclo?>(null) }
     var schedaSmartVisualizzata by remember { mutableStateOf<SchedaSeduta?>(null) }
+    var chiusureEspanso by remember { mutableStateOf(false) }
 
     // ----- Intestazione -----
     Surface(
@@ -122,40 +126,70 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
 
     HorizontalDivider()
 
-    // ----- Chiusure -----
-    Titolo("Chiusure e Festività", Icons.Filled.Info)
-    chiusure.forEach { c ->
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                if (c.dal == c.al) "${c.dal.formatta()} · ${c.motivo}"
-                else "${c.dal.formatta()} – ${c.al.formatta()} · ${c.motivo}",
-                Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyMedium
-            )
-            TextButton(onClick = { vm.eliminaChiusura(c) }) { Text("Elimina") }
-        }
-    }
-    var cDal by remember { mutableStateOf("") }
-    var cAl by remember { mutableStateOf("") }
-    var cMotivo by remember { mutableStateOf("") }
-    val cDalData = parseData(cDal)
-    val cAlData = parseData(cAl)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        CampoData(cDal, { cDal = it }, "Dal", Modifier.weight(1f))
-        CampoData(cAl, { cAl = it }, "Al", Modifier.weight(1f))
-    }
-    OutlinedTextField(cMotivo, { cMotivo = it }, label = { Text("Motivo (es. Festività natalizie)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Button(
-            enabled = cDalData != null && cAlData != null && !cAlData.isBefore(cDalData) && cMotivo.isNotBlank(),
-            onClick = {
-                if (cDalData != null && cAlData != null) {
-                    vm.aggiungiChiusura(cDalData, cAlData, cMotivo.trim())
-                    cDal = ""; cAl = ""; cMotivo = ""
+    // ----- Chiusure e Festività Compatte (Expandable) -----
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth().clickable { chiusureEspanso = !chiusureEspanso }
+    ) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Text(
+                        "Chiusure e Festività (${chiusure.size} registrate)",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+                Icon(
+                    if (chiusureEspanso) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                    contentDescription = if (chiusureEspanso) "Riduci" else "Espandi"
+                )
+            }
+
+            AnimatedVisibility(visible = chiusureEspanso) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                    chiusure.forEach { c ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                if (c.dal == c.al) "${c.dal.formatta()} · ${c.motivo}"
+                                else "${c.dal.formatta()} – ${c.al.formatta()} · ${c.motivo}",
+                                Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            TextButton(onClick = { vm.eliminaChiusura(c) }) { Text("Elimina") }
+                        }
+                    }
+                    var cDal by remember { mutableStateOf("") }
+                    var cAl by remember { mutableStateOf("") }
+                    var cMotivo by remember { mutableStateOf("") }
+                    val cDalData = parseData(cDal)
+                    val cAlData = parseData(cAl)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        CampoData(cDal, { cDal = it }, "Dal", Modifier.weight(1f))
+                        CampoData(cAl, { cAl = it }, "Al", Modifier.weight(1f))
+                    }
+                    OutlinedTextField(cMotivo, { cMotivo = it }, label = { Text("Motivo (es. Festività natalizie)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            enabled = cDalData != null && cAlData != null && !cAlData.isBefore(cDalData) && cMotivo.isNotBlank(),
+                            onClick = {
+                                if (cDalData != null && cAlData != null) {
+                                    vm.aggiungiChiusura(cDalData, cAlData, cMotivo.trim())
+                                    cDal = ""; cAl = ""; cMotivo = ""
+                                }
+                            }
+                        ) { Text("Aggiungi") }
+                        OutlinedButton(onClick = { vm.aggiungiFestivitaNazionali() }) { Text("Festività nazionali") }
+                    }
                 }
             }
-        ) { Text("Aggiungi") }
-        OutlinedButton(onClick = { vm.aggiungiFestivitaNazionali() }) { Text("Festività nazionali") }
+        }
     }
 
     HorizontalDivider()
