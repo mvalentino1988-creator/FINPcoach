@@ -49,6 +49,7 @@ interface AppContextType {
 
   // Stagione e Piano
   creaStagione: (nome: string, inizio: string, fine: string) => void;
+  modificaDateStagione: (inizio: string, fine: string) => void;
   eliminaStagione: () => void;
   aggiungiChiusura: (dal: string, al: string, motivo: string) => void;
   eliminaChiusura: (id: number) => void;
@@ -285,6 +286,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setMicro(newMicro);
   };
 
+  const modificaDateStagione = (inizio: string, fine: string) => {
+    if (!stagione) return;
+    const stagioneAggiornata: Stagione = {
+      ...stagione,
+      inizio,
+      fine
+    };
+    setStagione(stagioneAggiornata);
+
+    // Recompute plan
+    const planGen = PianoGenerator.genera(stagioneAggiornata, chiusure, gare, parametriEffettivi);
+    let macroId = 1;
+    let mesoId = 1;
+    let microId = 1;
+
+    const newMacro: Macrociclo[] = [];
+    const newMeso: Mesociclo[] = [];
+    const newMicro: Microciclo[] = [];
+    const vecchi = new Map(micro.map(m => [m.inizio, m]));
+
+    for (const macroItem of planGen) {
+      const maId = macroId++;
+      newMacro.push({ ...macroItem.macro, id: maId, stagioneId: stagioneAggiornata.id });
+      for (const mesoItem of macroItem.meso) {
+        const meId = mesoId++;
+        newMeso.push({ ...mesoItem.meso, id: meId, macrocicloId: maId });
+        for (const microItem of mesoItem.micro) {
+          const miId = microId++;
+          const vecchio = vecchi.get(microItem.inizio);
+          let finalMicro = { ...microItem, id: miId, mesocicloId: meId };
+          if (vecchio && vecchio.bloccato) {
+            finalMicro = {
+              ...finalMicro,
+              tipo: vecchio.tipo,
+              sedutePreviste: vecchio.sedutePreviste,
+              volumeTargetMetri: vecchio.volumeTargetMetri,
+              note: vecchio.note,
+              bloccato: true
+            };
+          }
+          newMicro.push(finalMicro);
+        }
+      }
+    }
+
+    setMacro(newMacro);
+    setMeso(newMeso);
+    setMicro(newMicro);
+  };
+
   const eliminaStagione = () => {
     setStagione(null);
     setChiusure([]);
@@ -392,6 +443,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         aggiungiAssenza,
         eliminaAssenza,
         creaStagione,
+        modificaDateStagione,
         eliminaStagione,
         aggiungiChiusura,
         eliminaChiusura,

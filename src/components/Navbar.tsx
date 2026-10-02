@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Calendar, CheckCircle2, ClipboardList, Database, Timer, Users, Waves } from 'lucide-react';
 import { BackupModal } from './BackupModal';
 
-export type TabKey = 'atleti' | 'piano' | 'schede' | 'tempi' | 'registro';
+export type TabKey = 'oggi' | 'piano' | 'schede' | 'tempi' | 'atleti' | 'registro';
 
 interface Props {
   currentTab: TabKey;
@@ -13,10 +13,11 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange }) => {
   const [backupOpen, setBackupOpen] = useState(false);
 
   const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
-    { key: 'atleti', label: 'Atleti', icon: <Users size={18} /> },
+    { key: 'oggi', label: 'Oggi', icon: <Waves size={18} /> },
     { key: 'piano', label: 'Piano', icon: <Calendar size={18} /> },
     { key: 'schede', label: 'Schede', icon: <ClipboardList size={18} /> },
     { key: 'tempi', label: 'Tempi', icon: <Timer size={18} /> },
+    { key: 'atleti', label: 'Atleti', icon: <Users size={18} /> },
     { key: 'registro', label: 'Registro', icon: <CheckCircle2 size={18} /> }
   ];
 
@@ -77,7 +78,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange }) => {
 
       {/* Mobile Bottom Navigation Bar */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-lg safe-bottom">
-        <div className="grid grid-cols-5 h-14">
+        <div className="grid grid-cols-6 h-14">
           {tabs.map(tab => (
             <button
               key={tab.key}
