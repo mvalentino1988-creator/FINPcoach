@@ -13,3 +13,11 @@
 .externalNativeBuild
 .cxx
 local.properties
+node_modules
+dist
+.env
+.env.local
+mia-chiave
+debug.keystore.base64
+bun.lock
+

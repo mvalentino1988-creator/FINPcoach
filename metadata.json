@@ -1,0 +1,5 @@
+{
+  "name": "FINPcoach - Nuoto Paralimpico",
+  "description": "Piattaforma gestionale e tecnica per allenatori FINP: gestione atleti con analisi medica e stima classi, programmazione stagionale intelligente, calcolo andature/ripartenze e schede vasca.",
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

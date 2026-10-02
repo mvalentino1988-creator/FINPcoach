@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #F4FAFC;
+  color: #1a202c;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbars for clean deck look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 104, 116, 0.2);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 104, 116, 0.4);
+}
+
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+  header, nav, .sm\\:hidden, .no-print, button {
+    display: none !important;
+  }
+  .print-area {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+}
