@@ -6,17 +6,16 @@ import androidx.lifecycle.viewModelScope
 import com.mattia.nuotoparalimpico.data.AppDatabase
 import com.mattia.nuotoparalimpico.data.Assenza
 import com.mattia.nuotoparalimpico.data.Atleta
+import com.mattia.nuotoparalimpico.data.AtletaAttributo
 import com.mattia.nuotoparalimpico.data.Chiusura
 import com.mattia.nuotoparalimpico.data.CondizioneMedica
 import com.mattia.nuotoparalimpico.data.Gara
+import com.mattia.nuotoparalimpico.data.LivelloGara
 import com.mattia.nuotoparalimpico.data.LogSeduta
 import com.mattia.nuotoparalimpico.data.Macrociclo
 import com.mattia.nuotoparalimpico.data.Mesociclo
 import com.mattia.nuotoparalimpico.data.Microciclo
-import com.mattia.nuotoparalimpico.data.RankingAtleta
-import com.mattia.nuotoparalimpico.data.RegolamentiRepository
 import com.mattia.nuotoparalimpico.data.Stagione
-import com.mattia.nuotoparalimpico.data.StatoRegolamenti
 import com.mattia.nuotoparalimpico.data.Tempo
 import com.mattia.nuotoparalimpico.domain.Avviso
 import com.mattia.nuotoparalimpico.domain.Festivita
@@ -26,7 +25,6 @@ import com.mattia.nuotoparalimpico.domain.PianoValidator
 import java.time.LocalDate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -34,7 +32,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -43,8 +40,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val db = AppDatabase.get(app)
     private val atletaDao = db.atletaDao()
     private val pianoDao = db.pianoDao()
-    private val rankingDao = db.rankingDao()
-    private val repoRegolamenti = RegolamentiRepository(app)
 
     private fun <T> stato(flow: Flow<T>, iniziale: T): StateFlow<T> =
         flow.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), iniziale)
@@ -62,18 +57,38 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val atleti: StateFlow<List<Atleta>> = stato(atletaDao.osservaAtleti(), emptyList())
     val condizioni: StateFlow<List<CondizioneMedica>> = stato(atletaDao.osservaCondizioni(), emptyList())
     val assenze: StateFlow<List<Assenza>> = stato(atletaDao.osservaAssenze(), emptyList())
+    val attributi: StateFlow<List<AtletaAttributo>> = stato(atletaDao.osservaAttributi(), emptyList())
 
     fun aggiungiAtleta(a: Atleta) { viewModelScope.launch { atletaDao.inserisci(a) } }
     fun aggiornaAtleta(a: Atleta) { viewModelScope.launch { atletaDao.aggiorna(a) } }
-    fun eliminaAtleta(a: Atleta) { viewModelScope.launch { atletaDao.elimina(a) } }
+    fun eliminaAtleta(a: Atleta) {
+        viewModelScope.launch { atletaDao.elimina(a) }
+        synchronized(cacheTempi) { cacheTempi.remove(a.id) }
+        synchronized(cacheLog) { cacheLog.remove(a.id) }
+    }
     fun aggiungiCondizione(c: CondizioneMedica) { viewModelScope.launch { atletaDao.inserisciCondizione(c) } }
     fun eliminaCondizione(c: CondizioneMedica) { viewModelScope.launch { atletaDao.eliminaCondizione(c) } }
     fun aggiungiAssenza(a: Assenza) { viewModelScope.launch { atletaDao.inserisciAssenza(a) } }
     fun eliminaAssenza(a: Assenza) { viewModelScope.launch { atletaDao.eliminaAssenza(a) } }
 
+    fun aggiungiAttributo(a: AtletaAttributo) { viewModelScope.launch { atletaDao.inserisciAttributo(a) } }
+    fun aggiornaAttributo(a: AtletaAttributo) { viewModelScope.launch { atletaDao.aggiornaAttributo(a) } }
+    fun eliminaAttributo(a: AtletaAttributo) { viewModelScope.launch { atletaDao.eliminaAttributo(a) } }
+
     // ---------- Tempi e Log ----------
-    fun osservaTempi(atletaId: Long): Flow<List<Tempo>> = atletaDao.osservaTempi(atletaId)
-    fun osservaLogSedute(atletaId: Long): Flow<List<LogSeduta>> = atletaDao.osservaLogSedute(atletaId)
+    // Un solo StateFlow per atleta: le recomposizioni riusano lo stesso flusso invece di rifare la query.
+    private val cacheTempi = HashMap<Long, StateFlow<List<Tempo>>>()
+    private val cacheLog = HashMap<Long, StateFlow<List<LogSeduta>>>()
+
+    fun osservaTempi(atletaId: Long): Flow<List<Tempo>> =
+        synchronized(cacheTempi) {
+            cacheTempi.getOrPut(atletaId) { stato(atletaDao.osservaTempi(atletaId), emptyList()) }
+        }
+
+    fun osservaLogSedute(atletaId: Long): Flow<List<LogSeduta>> =
+        synchronized(cacheLog) {
+            cacheLog.getOrPut(atletaId) { stato(atletaDao.osservaLogSedute(atletaId), emptyList()) }
+        }
 
     fun aggiungiTempo(tempo: Tempo) { viewModelScope.launch { atletaDao.inserisciTempo(tempo) } }
     fun eliminaTempo(tempo: Tempo) { viewModelScope.launch { atletaDao.eliminaTempo(tempo) } }
@@ -82,12 +97,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     suspend fun leggiTempi(atletaId: Long): List<Tempo> = atletaDao.leggiTempi(atletaId)
     suspend fun leggiLogSedute(atletaId: Long): List<LogSeduta> = atletaDao.leggiLogSedute(atletaId)
-
-    // ---------- Ranking (posizioni inserite dall'allenatore) ----------
-    val rankings: StateFlow<List<RankingAtleta>> = stato(rankingDao.osserva(), emptyList())
-
-    fun salvaRanking(r: RankingAtleta) { viewModelScope.launch { rankingDao.salva(r) } }
-    fun eliminaRanking(r: RankingAtleta) { viewModelScope.launch { rankingDao.elimina(r) } }
 
     // ---------- Stagione e piano ----------
     val stagione: StateFlow<Stagione?> = stato(pianoDao.osservaStagione(), null)
@@ -132,11 +141,21 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun aggiungiGara(nome: String, dal: LocalDate, al: LocalDate, prioritaria: Boolean) {
+    fun aggiungiGara(
+        nome: String,
+        dal: LocalDate,
+        al: LocalDate,
+        prioritaria: Boolean,
+        livello: LivelloGara = LivelloGara.ALTRO,
+        distanze: String = ""
+    ) {
         viewModelScope.launch {
             val s = stagioneCorrente() ?: return@launch
             pianoDao.inserisciGara(
-                Gara(stagioneId = s.id, nome = nome, dal = dal, al = al, prioritaria = prioritaria)
+                Gara(
+                    stagioneId = s.id, nome = nome, dal = dal, al = al,
+                    prioritaria = prioritaria, livello = livello, distanze = distanze
+                )
             )
         }
     }
@@ -181,41 +200,4 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** La settimana torna automatica: verrà ricalcolata alla prossima rigenerazione. */
     fun sbloccaMicro(m: Microciclo) { viewModelScope.launch { pianoDao.aggiornaMicro(m.copy(bloccato = false)) } }
-
-    // ---------- Regolamenti (rete solo su richiesta, al massimo una volta al giorno) ----------
-    private val _regolamenti = MutableStateFlow(StatoRegolamenti())
-    val regolamenti: StateFlow<StatoRegolamenti> = _regolamenti
-
-    init {
-        val (docs, ts) = repoRegolamenti.leggiCache()
-        _regolamenti.value = StatoRegolamenti(documenti = docs, aggiornatoIl = ts)
-    }
-
-    /** [forza] = false: scarica solo se la copia salvata ha più di 24 ore. */
-    fun aggiornaRegolamenti(forza: Boolean = false) {
-        val attuale = _regolamenti.value
-        if (attuale.caricamento) return
-        val fresco = attuale.aggiornatoIl?.let { System.currentTimeMillis() - it < 24L * 60 * 60 * 1000 } ?: false
-        if (!forza && fresco && attuale.documenti.isNotEmpty()) return
-
-        _regolamenti.update { it.copy(caricamento = true, errore = null) }
-        viewModelScope.launch {
-            val esito = repoRegolamenti.scarica()
-            _regolamenti.update { s ->
-                if (esito.documenti.isNotEmpty()) {
-                    StatoRegolamenti(
-                        documenti = esito.documenti,
-                        caricamento = false,
-                        errore = esito.errori.takeIf { it.isNotEmpty() }?.joinToString("\n"),
-                        aggiornatoIl = esito.timestamp
-                    )
-                } else {
-                    s.copy(
-                        caricamento = false,
-                        errore = esito.errori.joinToString("\n").ifBlank { "Nessun documento trovato sulle pagine ufficiali." }
-                    )
-                }
-            }
-        }
-    }
 }

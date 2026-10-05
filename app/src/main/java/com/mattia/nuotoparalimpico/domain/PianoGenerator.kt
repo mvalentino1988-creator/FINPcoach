@@ -3,6 +3,7 @@ package com.mattia.nuotoparalimpico.domain
 import com.mattia.nuotoparalimpico.data.Chiusura
 import com.mattia.nuotoparalimpico.data.FaseMesociclo
 import com.mattia.nuotoparalimpico.data.Gara
+import com.mattia.nuotoparalimpico.data.LivelloGara
 import com.mattia.nuotoparalimpico.data.MacroGen
 import com.mattia.nuotoparalimpico.data.Macrociclo
 import com.mattia.nuotoparalimpico.data.MesoGen
@@ -17,12 +18,14 @@ import kotlin.math.roundToInt
 
 data class ParametriPiano(
     val giorniAllenamento: Set<DayOfWeek> = setOf(DayOfWeek.WEDNESDAY, DayOfWeek.SATURDAY),
-    /** Usato solo se non ci sono gare prioritarie: con gare prioritarie ogni macrociclo finisce con una gara. */
+    /** Usato solo se non ci sono gare prioritarie. */
     val numeroMacrocicli: Int = 1,
-    /** Metri di una seduta "piena". Da tarare sul livello reale del gruppo (es. 1800-2500m). */
     val metriBaseSeduta: Int = 1800,
     /** Ogni quante settimane c'è uno scarico (4 = 3 di carico + 1 di scarico). */
-    val settimaneCicloCarico: Int = 4
+    val settimaneCicloCarico: Int = 4,
+    /** Coefficienti di volume per le prime settimane di stagione (rientro). Lista vuota = nessun rientro graduale. */
+    val coefficientiRientro: List<Double> = listOf(0.85, 0.90, 0.95),
+    val etichettaRientro: String = "Rientro a inizio stagione"
 )
 
 object PianoGenerator {
@@ -41,9 +44,6 @@ object PianoGenerator {
         FaseMesociclo.COMPETITIVA to 0.8
     )
 
-    /** Settimane di fase pre-gara prima della settimana di gara (l'ultima è il tapering). */
-    private const val SETTIMANE_PRE_GARA = 3
-
     /** Quota della preparazione (prima della fase pre-gara) dedicata alla parte specifica. */
     private const val QUOTA_SPECIFICA = 0.45
 
@@ -60,10 +60,9 @@ object PianoGenerator {
         gare: List<Gara>,
         p: ParametriPiano
     ): List<MacroGen> {
-        // Ancoraggio: Il primo allenamento coincide esattamente con il primo giorno della stagione
         val primoLunedi = stagione.inizio.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 
-        // La fine della stagione coincide con l'ultima gara di stagione (se presente ed oltre la data di fine)
+        // L'attività arriva fino all'ultima gara anche se cade dopo la fine nominale della stagione.
         val ultimaGaraData = gare.maxOfOrNull { it.al }
         val fineEffettiva = if (ultimaGaraData != null && ultimaGaraData.isAfter(stagione.fine)) ultimaGaraData else stagione.fine
         val ultimaDomenica = fineEffettiva.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
@@ -83,7 +82,7 @@ object PianoGenerator {
                         inizio = sett.first(),
                         fine = sett.last().plusDays(6)
                     ),
-                    micro = microcicli(sett, fase, settimane.first(), stagione, chiusure, gare, p, stato)
+                    micro = microcicli(sett, fase, settimane.first(), stagione, fineEffettiva, chiusure, gare, p, stato)
                 )
             }
             MacroGen(
@@ -102,15 +101,14 @@ object PianoGenerator {
     private fun costruisciBlocchi(settimane: List<LocalDate>, gare: List<Gara>, p: ParametriPiano): List<Blocco> {
         val ultimaDomenica = settimane.last().plusDays(6)
         val indiciGara = mutableListOf<Int>()
-        val nomiGara = mutableListOf<String>()
+        val gareScelte = mutableListOf<Gara>()
 
-        // Considera le gare prioritarie (A-Races) per definire i picchi di macrociclo
         gare.filter { it.prioritaria }.sortedBy { it.dal }.forEach { g ->
             val idx = settimane.indexOfLast { !it.isAfter(g.dal) }
             val distanteAbbastanza = indiciGara.isEmpty() || idx >= indiciGara.last() + 2
             if (idx >= 0 && !g.dal.isAfter(ultimaDomenica) && distanteAbbastanza) {
                 indiciGara += idx
-                nomiGara += g.nome
+                gareScelte += g
             }
         }
 
@@ -127,21 +125,24 @@ object PianoGenerator {
             val inizio = if (k == 0) 0 else indiciGara[k - 1] + 2
             val fine = if (k == indiciGara.lastIndex) ultimo else minOf(r + 1, ultimo)
             val rLocale = r - inizio
+            val g = gareScelte[k]
+            val pre = g.livello.settimanePreGara
             Blocco(
-                settimane = (inizio..fine).map { i -> settimane[i] to faseAttorno(i - inizio, rLocale) },
-                obiettivo = "Obiettivo A-Race (Gara Prioritaria): ${nomiGara[k]}"
+                settimane = (inizio..fine).map { i -> settimane[i] to faseAttorno(i - inizio, rLocale, pre) },
+                obiettivo = "Obiettivo A-Race (Gara Prioritaria): ${g.nome}" +
+                    if (g.livello == LivelloGara.ALTRO) "" else " · ${g.livello.etichetta}"
             )
         }
     }
 
-    private fun faseAttorno(j: Int, r: Int): FaseMesociclo {
+    private fun faseAttorno(j: Int, r: Int, preGara: Int): FaseMesociclo {
         val d = r - j
         return when {
             d < -1 -> FaseMesociclo.PREPARAZIONE_GENERALE
             d <= 0 -> FaseMesociclo.COMPETITIVA
-            d <= SETTIMANE_PRE_GARA -> FaseMesociclo.PRE_GARA
+            d <= preGara -> FaseMesociclo.PRE_GARA
             else -> {
-                val n = r - SETTIMANE_PRE_GARA
+                val n = (r - preGara).coerceAtLeast(0)
                 val nSpecifica = (n * QUOTA_SPECIFICA).roundToInt()
                 if (j >= n - nSpecifica) FaseMesociclo.PREPARAZIONE_SPECIFICA
                 else FaseMesociclo.PREPARAZIONE_GENERALE
@@ -184,6 +185,7 @@ object PianoGenerator {
         fase: FaseMesociclo,
         primaSettimanaStagione: LocalDate,
         stagione: Stagione,
+        fineAttivita: LocalDate,
         chiusure: List<Chiusura>,
         gare: List<Gara>,
         p: ParametriPiano,
@@ -193,8 +195,8 @@ object PianoGenerator {
         val idxSettimana = stato.settimanaStagioneIndex++
 
         val giorniUtili = p.giorniAllenamento.map { lunedi.with(it) }.filter { d ->
-            !d.isBefore(stagione.inizio) && !d.isAfter(stagione.fine) &&
-                    chiusure.none { c -> !d.isBefore(c.dal) && !d.isAfter(c.al) }
+            !d.isBefore(stagione.inizio) && !d.isAfter(fineAttivita) &&
+                chiusure.none { c -> !d.isBefore(c.dal) && !d.isAfter(c.al) }
         }
         val gareInSettimana = gare.filter { g -> !g.dal.isAfter(domenica) && !g.al.isBefore(lunedi) }
         val garaPrioritariaInSettimana = gareInSettimana.any { it.prioritaria }
@@ -202,14 +204,15 @@ object PianoGenerator {
 
         val dopoGaraPrioritaria = gare.any { g ->
             g.prioritaria &&
-                    !g.al.isBefore(lunedi.minusWeeks(1)) &&
-                    !g.al.isAfter(domenica.minusWeeks(1))
+                !g.al.isBefore(lunedi.minusWeeks(1)) &&
+                !g.al.isAfter(domenica.minusWeeks(1))
         }
         val prePrioritaria = gare.any { g ->
             g.prioritaria &&
-                    !g.dal.isBefore(lunedi.plusWeeks(1)) &&
-                    !g.dal.isAfter(domenica.plusWeeks(1))
+                !g.dal.isBefore(lunedi.plusWeeks(1)) &&
+                !g.dal.isAfter(domenica.plusWeeks(1))
         }
+        val ultimaPrioritaria = gare.filter { it.prioritaria }.maxOfOrNull { it.al }
 
         val tipo = when {
             giorniUtili.isEmpty() -> TipoMicrociclo.PAUSA
@@ -221,45 +224,39 @@ object PianoGenerator {
             else -> TipoMicrociclo.CARICO
         }
 
-        // Metodica d'Inizio Stagione (Rientro da 2 mesi di stop):
-        // L'atleta agonista conserva capacità aerobica e memoria motoria.
-        // Volumi MANTENUTI ELEVATI (85% -> 90% -> 95%), ma intensità spostata su A1/A2 e D (no C1/C2)
-        val coefficienteInizioStagione = when (idxSettimana) {
-            0 -> 0.85  // Settimana 1: Rientro agonistico, volume 85%, focus A1/A2 e reattività
-            1 -> 0.90  // Settimana 2: Consolidamento aerobico 90%
-            2 -> 0.95  // Settimana 3: Regime completo
-            else -> 1.0
-        }
+        // Rientro graduale a inizio stagione: i coefficienti sono parametri del piano.
+        val coefficienteRientro = p.coefficientiRientro.getOrElse(idxSettimana) { 1.0 }
 
         val fattoreBase = when (tipo) {
             TipoMicrociclo.PAUSA -> 0.0
-            TipoMicrociclo.ADATTAMENTO -> 0.85
+            // 1.0: il rientro è già definito da coefficientiRientro, niente doppio taglio.
+            TipoMicrociclo.ADATTAMENTO -> 1.0
             TipoMicrociclo.SCARICO -> 0.75
             TipoMicrociclo.RECUPERO -> 0.60
-            TipoMicrociclo.GARA -> if (garaPrioritariaInSettimana) 0.65 else 0.90 // B-races (gare secondarie) mantengono alto volume
+            TipoMicrociclo.GARA -> if (garaPrioritariaInSettimana) 0.65 else 0.90
             TipoMicrociclo.CARICO -> (FATTORE_FASE[fase] ?: 1.0) * (1.0 + 0.05 * stato.caricoNelCiclo)
         }
-
-        val fattoreFinale = fattoreBase * coefficienteInizioStagione
+        val fattoreFinale = fattoreBase * coefficienteRientro
 
         when (tipo) {
             TipoMicrociclo.CARICO -> stato.caricoNelCiclo++
-            TipoMicrociclo.GARA -> {
-                if (garaPrioritariaInSettimana) stato.caricoNelCiclo = 0
-            }
+            TipoMicrociclo.GARA -> if (garaPrioritariaInSettimana) stato.caricoNelCiclo = 0
             else -> stato.caricoNelCiclo = 0
         }
 
         val previste = p.giorniAllenamento.size
-        val noteSpecifiche = mutableListOf<String>()
-        if (idxSettimana in 0..2) {
-            noteSpecifiche += "Rientro da pausa estiva: volume agonistico ${(coefficienteInizioStagione * 100).roundToInt()}% (focus A1/A2 e reattività D, no lattacido)"
+        val note = mutableListOf<String>()
+        if (idxSettimana < p.coefficientiRientro.size) {
+            note += "${p.etichettaRientro}: volume ${(coefficienteRientro * 100).roundToInt()}% (focus A1/A2 e reattività D, no lattacido)"
         }
         if (garaSecondariaInSettimana && !garaPrioritariaInSettimana) {
-            noteSpecifiche += "Gara di passaggio B-Race: mantenuta la continuità di carico"
+            note += "Gara di passaggio B-Race: mantenuta la continuità di carico"
+        }
+        if (ultimaPrioritaria != null && lunedi.isAfter(ultimaPrioritaria.plusWeeks(1))) {
+            note += "Dopo l'ultima gara prioritaria: nessun picco previsto (aggiungi una gara per programmare un nuovo ciclo)"
         }
         if (tipo != TipoMicrociclo.PAUSA && giorniUtili.size < previste) {
-            noteSpecifiche += "${giorniUtili.size} sedute su $previste (chiusure/festività)"
+            note += "${giorniUtili.size} sedute su $previste (chiusure/festività)"
         }
 
         Microciclo(
@@ -269,7 +266,7 @@ object PianoGenerator {
             tipo = tipo,
             sedutePreviste = giorniUtili.size,
             volumeTargetMetri = (giorniUtili.size * p.metriBaseSeduta * fattoreFinale).roundToInt(),
-            note = noteSpecifiche.joinToString(" · ")
+            note = note.joinToString(" · ")
         )
     }
 }

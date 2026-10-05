@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.OnConflictStrategy
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
@@ -35,5 +36,8 @@ abstract class RegistroDao {
     open suspend fun salvaSeduta(data: LocalDate, log: List<LogSeduta>) {
         eliminaLogDelGiorno(data)
         inserisciLog(log)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun inserisciLog(log: List<LogSeduta>)
     }
 }

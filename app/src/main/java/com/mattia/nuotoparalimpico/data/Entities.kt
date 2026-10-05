@@ -9,16 +9,6 @@ import java.time.LocalDate
 
 enum class StatoClassificazione { UFFICIALE, IN_ATTESA }
 
-enum class Sesso(val etichetta: String) {
-    MASCHIO("Maschio"),
-    FEMMINA("Femmina")
-}
-
-enum class AmbitoRanking(val etichetta: String) {
-    ITALIA("Italia"),
-    MONDO("Mondo")
-}
-
 enum class FaseMesociclo(val etichetta: String) {
     PREPARAZIONE_GENERALE("Preparazione generale"),
     PREPARAZIONE_SPECIFICA("Preparazione specifica"),
@@ -35,6 +25,17 @@ enum class TipoMicrociclo(val etichetta: String) {
     PAUSA("Pausa")
 }
 
+/** Livello della gara. Le settimane di pre-gara sono valori di default da validare con il tecnico. */
+enum class LivelloGara(val etichetta: String, val settimanePreGara: Int) {
+    ITALIANI("Campionati Italiani", 3),
+    ASSOLUTI("Assoluti", 3),
+    WORLD_SERIES("World Series", 3),
+    EUROPEI("Europei", 4),
+    MONDIALI("Mondiali", 4),
+    PARALIMPIADI("Paralimpiadi", 4),
+    ALTRO("Altro", 3)
+}
+
 enum class Stile { STILE_LIBERO, DORSO, RANA, FARFALLA, MISTI }
 enum class ContestoTempo { GARA, ALLENAMENTO, TEST }
 
@@ -46,16 +47,12 @@ data class Atleta(
     val nome: String,
     val cognome: String,
     val dataNascita: LocalDate? = null,
-    val classeS: Int? = null,   // libero/dorso/farfalla
-    val classeSB: Int? = null,  // rana
-    val classeSM: Int? = null,  // misti
+    val classeS: Int? = null,
+    val classeSB: Int? = null,
+    val classeSM: Int? = null,
     val stato: StatoClassificazione = StatoClassificazione.IN_ATTESA,
     /** 1.0 = volume pieno di squadra; 0.8 = 80% ecc. Deciso dall'allenatore. */
     val fattoreVolume: Double = 1.0,
-    /** Serve per i ranking (separati per sesso). */
-    val sesso: Sesso? = null,
-    /** Massimo volume a seduta che l'atleta può sostenere, indicato dall'allenatore. */
-    val metriMaxSeduta: Int? = null,
     val note: String = ""
 )
 
@@ -96,22 +93,6 @@ data class AtletaAttributo(
     val atletaId: Long,
     val chiave: String,
     val valore: String
-)
-
-/** Posizione in un ranking ufficiale (inserita a mano dall'allenatore, con data di rilevazione). */
-@Entity(
-    tableName = "ranking_atleta",
-    foreignKeys = [ForeignKey(entity = Atleta::class, parentColumns = ["id"], childColumns = ["atletaId"], onDelete = ForeignKey.CASCADE)],
-    indices = [Index("atletaId")]
-)
-data class RankingAtleta(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val atletaId: Long,
-    val stile: Stile,
-    val distanzaMetri: Int,
-    val ambito: AmbitoRanking,
-    val posizione: Int,
-    val aggiornatoIl: LocalDate
 )
 
 // ---------- PROGRAMMAZIONE ----------
@@ -195,7 +176,10 @@ data class Gara(
     val dal: LocalDate,
     val al: LocalDate,
     val luogo: String = "",
-    val prioritaria: Boolean = false
+    val prioritaria: Boolean = false,
+    @ColumnInfo(defaultValue = "'ALTRO'") val livello: LivelloGara = LivelloGara.ALTRO,
+    /** Testo libero, es. "50 SL, 100 DO". */
+    @ColumnInfo(defaultValue = "''") val distanze: String = ""
 )
 
 // ---------- LOG E TEMPI ----------
@@ -203,7 +187,7 @@ data class Gara(
 @Entity(
     tableName = "tempi",
     foreignKeys = [ForeignKey(entity = Atleta::class, parentColumns = ["id"], childColumns = ["atletaId"], onDelete = ForeignKey.CASCADE)],
-    indices = [Index("atletaId")]
+    indices = [Index(value = ["atletaId", "data"])]
 )
 data class Tempo(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -220,7 +204,7 @@ data class Tempo(
 @Entity(
     tableName = "log_sedute",
     foreignKeys = [ForeignKey(entity = Atleta::class, parentColumns = ["id"], childColumns = ["atletaId"], onDelete = ForeignKey.CASCADE)],
-    indices = [Index("atletaId")]
+    indices = [Index(value = ["atletaId", "data"], unique = true)]
 )
 data class LogSeduta(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -234,7 +218,6 @@ data class LogSeduta(
 )
 
 // ---------- Strutture di passaggio (non sono tabelle) ----------
-// Spostate qui da domain per eliminare la dipendenza circolare data <-> domain.
 
 data class MesoGen(val meso: Mesociclo, val micro: List<Microciclo>)
 data class MacroGen(val macro: Macrociclo, val meso: List<MesoGen>)

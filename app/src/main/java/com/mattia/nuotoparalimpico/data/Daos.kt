@@ -3,6 +3,7 @@ package com.mattia.nuotoparalimpico.data
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
@@ -40,12 +41,22 @@ interface AtletaDao {
     @Delete
     suspend fun eliminaAssenza(assenza: Assenza)
 
+    // ----- Attributi liberi -----
+    @Query("SELECT * FROM atleta_attributi ORDER BY atletaId, chiave")
+    fun osservaAttributi(): Flow<List<AtletaAttributo>>
+
+    @Insert
+    suspend fun inserisciAttributo(attributo: AtletaAttributo)
+
+    @Update
+    suspend fun aggiornaAttributo(attributo: AtletaAttributo)
+
+    @Delete
+    suspend fun eliminaAttributo(attributo: AtletaAttributo)
+
     // ----- Tempi -----
     @Query("SELECT * FROM tempi WHERE atletaId = :atletaId ORDER BY data DESC")
     fun osservaTempi(atletaId: Long): Flow<List<Tempo>>
-
-    @Query("SELECT * FROM tempi ORDER BY data DESC")
-    fun osservaTuttiTempi(): Flow<List<Tempo>>
 
     @Query("SELECT * FROM tempi WHERE atletaId = :atletaId ORDER BY data DESC")
     suspend fun leggiTempi(atletaId: Long): List<Tempo>
@@ -56,17 +67,14 @@ interface AtletaDao {
     @Delete
     suspend fun eliminaTempo(tempo: Tempo)
 
-    // ----- Log Sedute -----
+    // ----- Log Sedute (una riga per atleta e giorno: REPLACE) -----
     @Query("SELECT * FROM log_sedute WHERE atletaId = :atletaId ORDER BY data DESC")
     fun osservaLogSedute(atletaId: Long): Flow<List<LogSeduta>>
-
-    @Query("SELECT * FROM log_sedute ORDER BY data DESC")
-    fun osservaTuttiLog(): Flow<List<LogSeduta>>
 
     @Query("SELECT * FROM log_sedute WHERE atletaId = :atletaId ORDER BY data DESC")
     suspend fun leggiLogSedute(atletaId: Long): List<LogSeduta>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun inserisciLogSeduta(log: LogSeduta)
 
     @Update
