@@ -10,29 +10,25 @@ import com.mattia.nuotoparalimpico.data.Tempo
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.Locale
-import kotlin.math.ceil
-import kotlin.math.roundToInt
 
 data class RitmoCodice(
     val codice: CodiceAllenamento,
-    val passo100mCentesimi: Int,        // Passo su 100m
-    val passo100mFormatted: String,     // es. "1:08.35"
-    val ripartenzaSecondi: Int,         // ripartenza su base 100m, multiplo di 5"
-    val ripartenzaFormatted: String,    // es. "a 1'25\""
-    val pausaSecondi: Int,              // recupero nominale su base 100m
-    val pausaFormatted: String,         // es. "recupero 15\""
-    val noteTecniche: String
-)
+    val passo100mCentesimi: Int,
+    val passo100mFormatted: String,
+    val ripartenzaSecondi: Int,        // riferita a serie da 100m
+    val ripartenzaFormatted: String,   // es. a 1'25"
+    val pausaSecondi: Int,             // pausa nominale per 100m
+    val pausaFormatted: String,
+    val noteTecniche: String,
+    val zona: ZonaAllenamento
+) {
+    /** Ripartenza corretta per la distanza della serie (50, 100, 200...). */
+    fun ripartenzaPer(distanzaMetri: Int): String =
+        formattaRipartenza(zona.ripartenzaSecondi(distanzaMetri))
 
-/** Ripartenza calcolata per la distanza REALE della ripetizione (es. 50m, 200m). */
-data class RipartenzaDistanza(
-    val distanzaMetri: Int,
-    val passoCentesimi: Int,
-    val passoFormatted: String,
-    val ripartenzaSecondi: Int,
-    val ripartenzaFormatted: String,
-    val pausaEffettivaSecondi: Int
-)
+    fun passoPer(distanzaMetri: Int): String =
+        formattaTempo(zona.passoPerDistanzaCentesimi(distanzaMetri))
+}
 
 data class TabellaRitmiAtleta(
     val atletaId: Long,
@@ -40,16 +36,8 @@ data class TabellaRitmiAtleta(
     val stileRiferimento: Stile,
     val vascaMetri: Int,
     val ritmi: Map<CodiceAllenamento, RitmoCodice>,
-    val origine: String = "100m"
-)
-
-data class RiferimentoRitmi(
-    val tempo: Tempo,
-    /** Tempo 100m riportato alla vasca da 25m. */
-    val centesimi25: Int,
-    val cssPasso100Centesimi: Int?,
-    val tempo400UsatoPerCss: Tempo?,
-    val note: List<String>
+    val cssPasso100mCentesimi: Int = 0,
+    val cssStimata: Boolean = true
 )
 
 data class TempoImportato(
@@ -58,7 +46,8 @@ data class TempoImportato(
     val centesimi: Int,
     val formatted: String,
     val contesto: ContestoTempo,
-    val note: String = ""
+    val note: String = "",
+    val data: LocalDate? = null
 )
 
 data class FormCheckConsiglio(
@@ -68,224 +57,141 @@ data class FormCheckConsiglio(
     val istruzioniVasca: String
 )
 
+fun formattaRipartenza(secondi: Int): String {
+    val m = secondi / 60
+    val s = secondi % 60
+    return if (m > 0) String.format(Locale.ROOT, "a %d'%02d\"", m, s) else String.format(Locale.ROOT, "a %d\"", s)
+}
+
 object CalcoloRitmiRipartenze {
 
-    /** Oltre questa età (giorni) un tempo non è più considerato rappresentativo. */
-    const val GIORNI_VALIDITA = 120
-
-    /** Stima: i tempi in vasca da 50m sono circa 1,5% più lenti che in 25m (meno virate). */
-    private const val FATTORE_50_A_25 = 0.985
-
-    private class Param(val delta: Double, val pausa100: Int, val nota: String)
-
-    // delta = scarto percentuale rispetto al miglior 100m recente (scala con il livello dell'atleta)
-    private val PARAM = mapOf(
-        CodiceAllenamento.A1 to Param(0.23, 15, "Nuoto rilassato e coordinato, frequenza cardiaca contenuta."),
-        CodiceAllenamento.A2 to Param(0.17, 10, "Passo fondo costante, controllo del numero di bracciate."),
-        CodiceAllenamento.B1 to Param(0.09, 10, "Passo Soglia Anaerobica: mantenere costante per tutta la serie."),
-        CodiceAllenamento.B2 to Param(0.045, 20, "Passo VO2 Max: sforzo ad alta frequenza cardiaca."),
-        CodiceAllenamento.C1 to Param(0.0, 75, "Passo Gara 100m: tolleranza all'acidosi con ampio recupero."),
-        CodiceAllenamento.C2 to Param(-0.03, 120, "Sforzo Massimale: picco di potenza lattacida."),
-        CodiceAllenamento.C3 to Param(0.0, 90, "Simulazione esatta passo gara prioritaria."),
-        CodiceAllenamento.D to Param(-0.07, 60, "Velocità pura alattacida sui primi 15m-25m.")
+    private val NOTE = mapOf(
+        CodiceAllenamento.A1 to "Nuoto rilassato e coordinato, frequenza cardiaca contenuta.",
+        CodiceAllenamento.A2 to "Passo fondo costante, controllo del numero di bracciate.",
+        CodiceAllenamento.B1 to "Passo soglia (CSS): mantenere costante per tutta la serie.",
+        CodiceAllenamento.B2 to "Passo VO2 Max: sforzo ad alta frequenza cardiaca.",
+        CodiceAllenamento.C1 to "Tolleranza all'acidosi su 100-200m con ampio recupero.",
+        CodiceAllenamento.C2 to "Sforzo massimale con recupero ampio: non attendersi di battere il PB.",
+        CodiceAllenamento.C3 to "Simulazione del passo gara con precisione cronometrica.",
+        CodiceAllenamento.D to "Velocità pura 15-25m: il passo per 100m è solo indicativo, non cronometrare sul 100."
     )
 
-    private fun arrotonda5(x: Int): Int = ((x + 2) / 5) * 5
+    /** Miglior 100m recente (gara/test), stesso stile e vasca se indicati. Mai tempi di allenamento. */
+    fun selezionaTempoRiferimento100(
+        tempi: List<Tempo>,
+        stile: Stile? = null,
+        vascaMetri: Int? = null,
+        oggi: LocalDate = LocalDate.now(),
+        finestraGiorni: Long = 120
+    ): Tempo? = tempi.filter {
+        it.distanzaMetri == 100 &&
+            it.contesto != ContestoTempo.ALLENAMENTO &&
+            (stile == null || it.stile == stile) &&
+            (vascaMetri == null || it.vascaMetri == vascaMetri) &&
+            ChronoUnit.DAYS.between(it.data, oggi) in 0L..finestraGiorni
+    }.minByOrNull { it.centesimi }
 
-    private fun su5(x: Double): Int = (ceil(x / 5.0) * 5).toInt()
-
-    /** Il passo non cresce in modo perfettamente lineare con la distanza (stima prudenziale). */
-    private fun fattoreDistanza(d: Int): Double = when {
-        d <= 25 -> 0.96
-        d <= 50 -> 0.98
-        d <= 100 -> 1.0
-        d <= 200 -> 1.015
-        d <= 400 -> 1.03
-        else -> 1.045
-    }
-
-    fun formattaRipartenza(sec: Int): String {
-        val m = sec / 60
-        val s = sec % 60
-        return if (m > 0) String.format(Locale.ROOT, "a %d'%02d\"", m, s) else String.format(Locale.ROOT, "a %d\"", s)
-    }
-
-    /**
-     * Tabella ritmi su base 100m. Se è disponibile la velocità critica (CSS) A1, A2, B1 e B2
-     * si ancorano a quella; le zone di gara (C, D) restano ancorate al miglior 100m.
-     */
     fun calcolaTabellaRitmi(
         atletaId: Long,
         tempo100mCentesimi: Int,
         stile: Stile = Stile.STILE_LIBERO,
         vascaMetri: Int = 25,
-        cssPasso100Centesimi: Int? = null
+        cssPasso100mCentesimi: Int? = null,
+        config: ConfigurazioneZone = CalcoloScienzaNuoto.ZONE_DEFAULT
     ): TabellaRitmiAtleta {
         val base = tempo100mCentesimi.coerceAtLeast(4000)
-        val ritmiMap = mutableMapOf<CodiceAllenamento, RitmoCodice>()
+        val cssStimata = cssPasso100mCentesimi == null
+        val css = cssPasso100mCentesimi ?: CalcoloScienzaNuoto.stimaCssDaPassoGara(base)
+        val zone = CalcoloScienzaNuoto.calcolaZone(css, base, cssStimata, config)
 
-        CodiceAllenamento.entries.forEach { codice ->
-            val p = PARAM.getValue(codice)
-            val passoD: Double = when {
-                cssPasso100Centesimi != null && codice == CodiceAllenamento.B1 -> cssPasso100Centesimi.toDouble()
-                cssPasso100Centesimi != null && codice == CodiceAllenamento.A2 -> cssPasso100Centesimi * 1.06
-                cssPasso100Centesimi != null && codice == CodiceAllenamento.A1 -> cssPasso100Centesimi * 1.14
-                cssPasso100Centesimi != null && codice == CodiceAllenamento.B2 -> cssPasso100Centesimi * 0.97
-                else -> base * (1.0 + p.delta)
-            }
-            val passo = passoD.roundToInt().coerceAtLeast(2500)
-            val pausa = arrotonda5(p.pausa100)
-            // la D è un'attivazione: il tratto non di velocità si nuota a passo A1
-            val passoRipartenza = if (codice == CodiceAllenamento.D) {
-                ritmiMap[CodiceAllenamento.A1]?.passo100mCentesimi ?: passo
-            } else passo
-            val ripartenza = su5(passoRipartenza / 100.0 + pausa)
-
-            ritmiMap[codice] = RitmoCodice(
+        val ritmi = CodiceAllenamento.entries.associateWith { codice ->
+            val z = zone.getValue(codice)
+            val rip100 = z.ripartenzaSecondi(100)
+            RitmoCodice(
                 codice = codice,
-                passo100mCentesimi = passo,
-                passo100mFormatted = formattaTempo(passo),
-                ripartenzaSecondi = ripartenza,
-                ripartenzaFormatted = formattaRipartenza(ripartenza),
-                pausaSecondi = pausa,
-                pausaFormatted = "recupero $pausa\"",
-                noteTecniche = p.nota
+                passo100mCentesimi = z.passo100mCentesimi,
+                passo100mFormatted = formattaTempo(z.passo100mCentesimi),
+                ripartenzaSecondi = rip100,
+                ripartenzaFormatted = formattaRipartenza(rip100),
+                pausaSecondi = z.pausaPer100Secondi,
+                pausaFormatted = "recupero ${z.pausaPer100Secondi}\"",
+                noteTecniche = NOTE.getValue(codice) + if (cssStimata && codice.ordinal <= CodiceAllenamento.B2.ordinal) " (CSS stimata: esegui un test 400/200)" else "",
+                zona = z
             )
         }
-
-        return TabellaRitmiAtleta(
-            atletaId = atletaId,
-            tempoRiferimento100mCentesimi = base,
-            stileRiferimento = stile,
-            vascaMetri = vascaMetri,
-            ritmi = ritmiMap,
-            origine = if (cssPasso100Centesimi != null) "100m + CSS" else "100m"
-        )
+        return TabellaRitmiAtleta(atletaId, base, stile, vascaMetri, ritmi, css, cssStimata)
     }
 
-    /**
-     * Passo e ripartenza per una ripetizione di [distanza] metri (50, 100, 200...).
-     * Il recupero delle zone aerobiche scala con la distanza; quello delle zone lattacide
-     * e di velocità è fisso, perché è l'obiettivo della serie.
-     */
-    fun ripartenzaPer(tabella: TabellaRitmiAtleta, codice: CodiceAllenamento, distanza: Int): RipartenzaDistanza? {
-        val r = tabella.ritmi[codice] ?: return null
-        val passoRif = if (codice == CodiceAllenamento.D) {
-            tabella.ritmi[CodiceAllenamento.A1]?.passo100mCentesimi ?: r.passo100mCentesimi
-        } else r.passo100mCentesimi
+    // ---------------- Parser import ----------------
 
-        val passo = (passoRif * distanza / 100.0 * fattoreDistanza(distanza)).roundToInt()
-        val pausa = when (codice) {
-            CodiceAllenamento.A1, CodiceAllenamento.A2, CodiceAllenamento.B1, CodiceAllenamento.B2 ->
-                arrotonda5((r.pausaSecondi * (distanza / 100.0).coerceIn(0.5, 2.0)).roundToInt()).coerceAtLeast(5)
-            CodiceAllenamento.D -> 45
-            else -> r.pausaSecondi
-        }
-        val ripartenza = su5(passo / 100.0 + pausa)
-        return RipartenzaDistanza(
-            distanzaMetri = distanza,
-            passoCentesimi = passo,
-            passoFormatted = formattaTempo(passo),
-            ripartenzaSecondi = ripartenza,
-            ripartenzaFormatted = formattaRipartenza(ripartenza),
-            pausaEffettivaSecondi = (ripartenza - passo / 100.0).roundToInt()
-        )
-    }
-
-    private fun giorni(t: Tempo, oggi: LocalDate): Long = ChronoUnit.DAYS.between(t.data, oggi)
-
-    private fun adatta25(t: Tempo): Int =
-        if (t.vascaMetri >= 50) (t.centesimi * FATTORE_50_A_25).roundToInt() else t.centesimi
-
-    /**
-     * Sceglie il tempo di riferimento per i ritmi: 100m, preferibilmente stile libero, di gara o test,
-     * degli ultimi [GIORNI_VALIDITA] giorni (il migliore). Restituisce null se non esiste nessun 100m.
-     */
-    fun scegliRiferimento(tempi: List<Tempo>, oggi: LocalDate = LocalDate.now()): RiferimentoRitmi? {
-        val c100 = tempi.filter { it.distanzaMetri == 100 }
-        if (c100.isEmpty()) return null
-        val note = mutableListOf<String>()
-
-        val ufficiali = c100.filter { it.contesto != ContestoTempo.ALLENAMENTO }
-        val pool = if (ufficiali.isNotEmpty()) ufficiali else {
-            note += "Solo tempi di allenamento: i ritmi potrebbero essere prudenziali."
-            c100
-        }
-        val liberi = pool.filter { it.stile == Stile.STILE_LIBERO }
-        val candidati = if (liberi.isNotEmpty()) liberi else {
-            val s = pool.first().stile
-            note += "Nessun 100m stile libero: ritmi ricavati da un 100m ${nomeStile(s)}, da verificare."
-            pool
-        }
-        val recenti = candidati.filter { giorni(it, oggi) <= GIORNI_VALIDITA }
-        val scelto = recenti.minByOrNull { it.centesimi }
-            ?: candidati.maxByOrNull { it.data }!!.also {
-                note += "Tempo di riferimento datato (${giorni(it, oggi)} giorni): aggiorna con un test."
-            }
-        if (scelto.vascaMetri >= 50) note += "Tempo in vasca da ${scelto.vascaMetri}m riportato a 25m (stima −1,5%)."
-
-        // Velocità critica: 400 e 100 stile libero recenti, di gara o test
-        val t400 = tempi.filter {
-            it.distanzaMetri == 400 && it.stile == Stile.STILE_LIBERO &&
-                it.contesto != ContestoTempo.ALLENAMENTO && giorni(it, oggi) <= GIORNI_VALIDITA
-        }.minByOrNull { it.centesimi }
-        val t100css = liberi.filter { giorni(it, oggi) <= GIORNI_VALIDITA }.minByOrNull { it.centesimi }
-
-        var cssPasso: Int? = null
-        var t400Usato: Tempo? = null
-        if (t400 != null && t100css != null) {
-            val css = CalcoloScienzaNuoto.calcolaCSS(adatta25(t400), adatta25(t100css))
-            if (css != null && css.passo100mCentesimi > adatta25(t100css)) {
-                cssPasso = css.passo100mCentesimi
-                t400Usato = t400
-                note += "Soglia B1 ancorata alla velocità critica (CSS ${css.passo100mFormatted}/100m, da 400m e 100m)."
-            }
-        }
-        return RiferimentoRitmi(scelto, adatta25(scelto), cssPasso, t400Usato, note)
-    }
-
-    private val REGEX_TEMPO_IMPORT = Regex("""\b(?:(\d{1,2}):)?(\d{1,2})[.,](\d{1,2})\b""")
+    private val REGEX_DATA = Regex("""\b(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{2,4})\b""")
+    private val REGEX_TEMPO = Regex("""\b(?:\d{1,2}:\d{2}[.,]\d{1,2}|\d{2,3}[.,]\d{2})\b""")
     private val REGEX_DISTANZA = Regex("""\b(1500|800|400|200|100|50)\b""")
-    private val REGEX_PAROLE = Regex("""[a-zà-ú]+""")
+    private val R_MISTI = Regex("""\b(misti|medley|im|mi)\b""")
+    private val R_FARFALLA = Regex("""\b(farfalla|delfino|butterfly|fly|fa|df)\b""")
+    private val R_DORSO = Regex("""\b(dorso|backstroke|back|do)\b""")
+    private val R_RANA = Regex("""\b(rana|breaststroke|breast|ra|br)\b""")
+    private val R_LIBERO = Regex("""\b(stile|libero|freestyle|free|sl)\b""")
 
-    /**
-     * Importa i tempi da testo (OCR, risultati incollati). Il tempo viene estratto per primo,
-     * poi distanza e stile si cercano nel resto della riga (così "1:50.20" non diventa "50 m").
-     */
+    private fun riconosciStile(r: String): Stile? = when {
+        R_MISTI.containsMatchIn(r) -> Stile.MISTI
+        R_FARFALLA.containsMatchIn(r) -> Stile.FARFALLA
+        R_DORSO.containsMatchIn(r) -> Stile.DORSO
+        R_RANA.containsMatchIn(r) -> Stile.RANA
+        R_LIBERO.containsMatchIn(r) -> Stile.STILE_LIBERO
+        else -> null
+    }
+
+    private fun leggiData(m: MatchResult): LocalDate? = try {
+        val anno = m.groupValues[3].toInt().let { if (it < 100) it + 2000 else it }
+        LocalDate.of(anno, m.groupValues[2].toInt(), m.groupValues[1].toInt())
+    } catch (e: Exception) {
+        null
+    }
+
+    /** Importa tempi da testo/OCR. Ciò che viene assunto (stile, distanza) è dichiarato nelle note. */
     fun parseImportaTempi(testo: String): List<TempoImportato> {
         val risultati = mutableListOf<TempoImportato>()
         for (riga in testo.lines()) {
-            val r = riga.trim().lowercase()
+            var r = riga.trim().lowercase()
             if (r.isBlank()) continue
-            val match = REGEX_TEMPO_IMPORT.find(r) ?: continue
-            val centesimi = parseTempo(match.value) ?: continue
 
-            val resto = r.removeRange(match.range)
-            val parole = REGEX_PAROLE.findAll(resto).map { it.value }.toSet()
+            val dataRiga = REGEX_DATA.find(r)?.let { leggiData(it) }
+            r = r.replace(REGEX_DATA, " ")
 
-            val stile = when {
-                parole.any { it in setOf("dorso", "back", "backstroke", "do", "ds") } -> Stile.DORSO
-                parole.any { it in setOf("rana", "breast", "breaststroke", "br", "ra") } -> Stile.RANA
-                parole.any { it in setOf("farfalla", "fly", "delfino", "butterfly", "fa", "fl") } -> Stile.FARFALLA
-                parole.any { it in setOf("misti", "misto", "im", "medley", "mi") } -> Stile.MISTI
-                else -> Stile.STILE_LIBERO
+            val mTempo = REGEX_TEMPO.find(r) ?: continue
+            val centesimi = parseTempo(mTempo.value) ?: continue
+            if (centesimi < 1500) continue // < 15" non plausibile: probabile data/numero d'ordine
+
+            val resto = r.removeRange(mTempo.range)
+            val distanza = REGEX_DISTANZA.find(resto)?.groupValues?.get(1)?.toInt()
+            val stile = riconosciStile(resto)
+            val contesto = when {
+                Regex("""\b(test)\b""").containsMatchIn(resto) -> ContestoTempo.TEST
+                Regex("""\b(allenamento|training)\b""").containsMatchIn(resto) -> ContestoTempo.ALLENAMENTO
+                else -> ContestoTempo.GARA
             }
-            val distanza = REGEX_DISTANZA.find(resto)?.value?.toInt() ?: 100
-            val contesto = if (parole.any { it in setOf("test", "allenamento") }) ContestoTempo.TEST else ContestoTempo.GARA
-
+            val note = buildString {
+                append("Importato da testo/OCR")
+                if (distanza == null) append(" · distanza assunta 100m")
+                if (stile == null) append(" · stile assunto: stile libero")
+                if (dataRiga == null) append(" · data non rilevata")
+            }
             risultati += TempoImportato(
-                stile = stile,
-                distanzaMetri = distanza,
+                stile = stile ?: Stile.STILE_LIBERO,
+                distanzaMetri = distanza ?: 100,
                 centesimi = centesimi,
                 formatted = formattaTempo(centesimi),
                 contesto = contesto,
-                note = "Importato da testo/OCR"
+                note = note,
+                data = dataRiga
             )
         }
         return risultati
     }
 
-    /** Valuta se l'atleta necessita di un Form Check (test in vasca) per aggiornare i ritmi. */
+    // ---------------- Form check ----------------
+
     fun valutaNecessitaFormCheck(
         atleta: Atleta,
         tempi: List<Tempo>,
@@ -293,35 +199,30 @@ object CalcoloRitmiRipartenze {
         mesocicloCorrente: Mesociclo?
     ): FormCheckConsiglio {
         val oggi = LocalDate.now()
-        val ultimoTempoData = tempi
-            .filter { it.atletaId == atleta.id && it.contesto != ContestoTempo.ALLENAMENTO }
+        val ultimo = tempi.filter { it.atletaId == atleta.id && it.contesto != ContestoTempo.ALLENAMENTO }
             .maxOfOrNull { it.data }
-        val giorniDallUltimoTempo = if (ultimoTempoData != null) ChronoUnit.DAYS.between(ultimoTempoData, oggi) else 999L
+        val giorni = if (ultimo != null) ChronoUnit.DAYS.between(ultimo, oggi) else 999L
 
         return when {
-            giorniDallUltimoTempo > 60 -> FormCheckConsiglio(
-                necessario = true,
-                titoloTest = "⚡ Form Check Necessario: Test T30 / 100m Passo",
-                motivazione = "Non ci sono tempi di gara o test registrati da oltre 60 giorni per ${atleta.nome}. È necessario un test per calibrare le ripartenze.",
-                istruzioniVasca = "Esegui un Test T30 (30 minuti continui a passo costante A2/B1) oppure 3 x 100m B1 con ripartenza a 2' per determinare la velocità di soglia."
+            giorni > 60 -> FormCheckConsiglio(
+                true, "⚡ Form Check necessario: test 400/200",
+                "Nessun tempo di gara o test negli ultimi 60 giorni per ${atleta.nome}: le ripartenze vanno ricalibrate.",
+                "Esegui un 400m e un 200m (stesso stile, stessa vasca, a pochi giorni di distanza) per calcolare la CSS."
             )
-            mesocicloCorrente?.fase == FaseMesociclo.PREPARAZIONE_SPECIFICA && giorniDallUltimoTempo > 30 -> FormCheckConsiglio(
-                necessario = true,
-                titoloTest = "⚡ Check della Forma: Test 100m Soglia B1",
-                motivazione = "Inizio della fase di Preparazione Specifica: occorre verificare la velocità di soglia anaerobica B1 prima delle serie VO2 Max B2.",
-                istruzioniVasca = "Esegui 4 x 100m B1 alla massima velocità sostenibile regolare. Registra il tempo medio dei 100m."
+            mesocicloCorrente?.fase == FaseMesociclo.PREPARAZIONE_SPECIFICA && giorni > 30 -> FormCheckConsiglio(
+                true, "⚡ Check della forma: soglia B1",
+                "Fase di preparazione specifica: verifica la soglia prima delle serie VO2 Max (B2).",
+                "Ripeti il test 400/200 o 4 x 100m B1 a passo regolare e registra il tempo medio."
             )
-            mesocicloCorrente?.fase == FaseMesociclo.PRE_GARA && giorniDallUltimoTempo > 21 -> FormCheckConsiglio(
-                necessario = true,
-                titoloTest = "⚡ Check della Forma: Test Ritmo Gara C3 (50m / 100m)",
-                motivazione = "Fase Pre-Gara: verifica il passo gara sui 50m o 100m per perfezionare le ripartenze della fase di tapering.",
-                istruzioniVasca = "Esegui 2 x 50m C3 al passo gara obiettivo con 3 minuti di recupero passivo."
+            mesocicloCorrente?.fase == FaseMesociclo.PRE_GARA && giorni > 21 -> FormCheckConsiglio(
+                true, "⚡ Check della forma: ritmo gara C3",
+                "Fase pre-gara: verifica il passo gara per rifinire le ripartenze del tapering.",
+                "Esegui 2 x 50m C3 al passo gara obiettivo con 3 minuti di recupero passivo."
             )
             else -> FormCheckConsiglio(
-                necessario = false,
-                titoloTest = "Forma e Ritmi Aggiornati",
-                motivazione = "I tempi dell'atleta sono recenti e calibrati correttamente.",
-                istruzioniVasca = "Prosegui la programmazione standard con la tabella dei ritmi corrente."
+                false, "Forma e ritmi aggiornati",
+                "I tempi dell'atleta sono recenti e calibrati correttamente.",
+                "Prosegui con la tabella dei ritmi corrente."
             )
         }
     }
