@@ -27,6 +27,7 @@ export const SchedeVascaScreen: React.FC = () => {
   const [dataTesto, setDataTesto] = useState<string>(formattaData(todayISO()));
   const [metriManual, setMetriManual] = useState<string>('1800');
   const [copiato, setCopiato] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const oggi = parseData(dataTesto) ?? todayISO();
   const atletaSel = atleti.find(a => a.id === atletaSelId) ?? null;
@@ -208,21 +209,30 @@ export const SchedeVascaScreen: React.FC = () => {
             </div>
           </div>
 
-          <button
-            onClick={handleCopy}
-            className="self-start sm:self-center inline-flex items-center gap-2 px-4 py-2 bg-[#006874] hover:bg-[#004f58] text-white rounded-xl text-xs font-bold transition shadow-xs"
-          >
-            {copiato ? <Check size={16} className="text-emerald-300" /> : <Copy size={16} />}
-            <span>{copiato ? 'Copiato!' : 'Copia per WhatsApp / Bordo Vasca'}</span>
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setShowDetails(!showDetails)}
+              className="self-start sm:self-center inline-flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+            >
+              {showDetails ? 'Semplifica' : 'Dettagli'}
+            </button>
+            <button
+              onClick={handleCopy}
+              className="self-start sm:self-center inline-flex items-center gap-2 px-4 py-2 bg-[#006874] hover:bg-[#004f58] text-white rounded-xl text-xs font-bold transition shadow-xs"
+            >
+              {copiato ? <Check size={16} className="text-emerald-300" /> : <Copy size={16} />}
+              <span>{copiato ? 'Copiato!' : 'Copia'}</span>
+            </button>
+          </div>
         </div>
 
-        {/* Medical & Physiological Alerts */}
+        {/* Medical Alerts - Always Visible */}
         {scheda.avvertenzeMediche.length > 0 && (
           <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1.5 text-xs">
             <div className="flex items-center gap-1.5 text-rose-900 font-bold uppercase tracking-wider">
               <HeartPulse size={15} className="text-rose-600" />
-              <span>Adattamenti per Condizione Medica</span>
+              <span>⚠️ Adattamenti Medici</span>
             </div>
             <ul className="list-disc list-inside space-y-0.5 text-rose-800 font-medium">
               {scheda.avvertenzeMediche.map((avv, i) => (
@@ -232,51 +242,56 @@ export const SchedeVascaScreen: React.FC = () => {
           </div>
         )}
 
-        {scheda.adattamentiEta.length > 0 && (
-          <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl space-y-1.5 text-xs">
-            <div className="flex items-center gap-1.5 text-indigo-900 font-bold uppercase tracking-wider">
-              <Sparkles size={15} className="text-indigo-600" />
-              <span>Modifiche Fisiologiche / Età</span>
+        {/* Detailed Content - Collapsible */}
+        {showDetails && (
+          <>
+            {scheda.adattamentiEta.length > 0 && (
+              <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl space-y-1.5 text-xs">
+                <div className="flex items-center gap-1.5 text-indigo-900 font-bold uppercase tracking-wider">
+                  <Sparkles size={15} className="text-indigo-600" />
+                  <span>Modifiche Fisiologiche / Età</span>
+                </div>
+                <ul className="list-disc list-inside space-y-0.5 text-indigo-800 font-medium">
+                  {scheda.adattamentiEta.map((ad, i) => (
+                    <li key={i}>{ad}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {scheda.noteCalibrazione.length > 0 && (
+              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl space-y-1.5 text-xs">
+                <div className="flex items-center gap-1.5 text-amber-900 font-bold uppercase tracking-wider">
+                  <Timer size={15} className="text-amber-600" />
+                  <span>Calibrazione sui Tempi</span>
+                </div>
+                <ul className="list-disc list-inside space-y-0.5 text-amber-800 font-medium">
+                  {scheda.noteCalibrazione.map((nota, i) => (
+                    <li key={i}>{nota}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Energy Zones Breakdown */}
+            <div className="space-y-2 pt-2 border-t border-slate-100">
+              <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                <Flame size={15} className="text-[#006874]" />
+                <span>Zone Energetiche della Seduta (A1 – D)</span>
+              </h4>
+              <IndicatoreCodici
+                ripartizione={scheda.ripartizioneCodici}
+                volumeTotale={scheda.volumeTotaleMetri}
+              />
             </div>
-            <ul className="list-disc list-inside space-y-0.5 text-indigo-800 font-medium">
-              {scheda.adattamentiEta.map((ad, i) => (
-                <li key={i}>{ad}</li>
-              ))}
-            </ul>
-          </div>
+          </>
         )}
 
-        {scheda.noteCalibrazione.length > 0 && (
-          <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl space-y-1.5 text-xs">
-            <div className="flex items-center gap-1.5 text-amber-900 font-bold uppercase tracking-wider">
-              <Timer size={15} className="text-amber-600" />
-              <span>Calibrazione sui Tempi</span>
-            </div>
-            <ul className="list-disc list-inside space-y-0.5 text-amber-800 font-medium">
-              {scheda.noteCalibrazione.map((nota, i) => (
-                <li key={i}>{nota}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Energy Zones Breakdown */}
-        <div className="space-y-2 pt-2 border-t border-slate-100">
-          <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
-            <Flame size={15} className="text-[#006874]" />
-            <span>Zone Energetiche della Seduta (A1 – D)</span>
-          </h4>
-          <IndicatoreCodici
-            ripartizione={scheda.ripartizioneCodici}
-            volumeTotale={scheda.volumeTotaleMetri}
-          />
-        </div>
-
-        {/* Detailed Sets */}
+        {/* Detailed Sets - Always Visible but Simplified */}
         <div className="space-y-3 pt-2 border-t border-slate-100">
           <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
             <List size={15} className="text-[#006874]" />
-            <span>Dettaglio Serie per Bordo Vasca</span>
+            <span>Serie per Bordo Vasca</span>
           </h4>
 
           <div className="space-y-2.5">
@@ -296,16 +311,18 @@ export const SchedeVascaScreen: React.FC = () => {
                   {tratto.ripetizioni} · <span className="text-slate-500 font-semibold">{tratto.metri} m</span>
                 </div>
 
-                <p className="text-xs text-slate-600 leading-relaxed">{tratto.descrizione}</p>
+                {showDetails && (
+                  <p className="text-xs text-slate-600 leading-relaxed">{tratto.descrizione}</p>
+                )}
 
                 {tratto.ripartenza && (
                   <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                    <span>⏱️ Ripartenza / Recupero:</span>
+                    <span>⏱️ Ripartenza:</span>
                     <span>{tratto.ripartenza}</span>
                   </div>
                 )}
 
-                {tratto.notaSpecifica && (
+                {showDetails && tratto.notaSpecifica && (
                   <div className="text-[11px] text-slate-500 font-medium italic">
                     • Focus: {tratto.notaSpecifica}
                   </div>

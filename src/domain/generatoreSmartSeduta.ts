@@ -12,11 +12,13 @@ import {
   Stile,
   TabellaRitmiAtleta,
   Tempo,
+  TempoImportato,
   TipoMicrociclo,
   TrattoSeduta
 } from '../types';
 import { CalcoloRitmiRipartenze } from './calcoloRitmiRipartenze';
 import { CalcoloScienzaNuoto } from './calcoloCSS';
+import { CalibrazioneAtleta } from './calibrazioneAtleta';
 import { addDays, daysBetween, getDayOfWeek, isBefore, todayISO, yearsBetween } from './dateUtils';
 import { FINPSpecialistAI } from './finpAnalisiMedica';
 import { formattaTempo } from './tempoUtils';
@@ -39,6 +41,7 @@ interface Riferimento {
   centesimi100: number;
   stimato: boolean;
   datato: boolean;
+  distanzaRiferimento?: number;
 }
 
 export class GeneratoreSmartSeduta {
@@ -196,12 +199,23 @@ export class GeneratoreSmartSeduta {
         );
       });
 
-    // 5. Volume, corretto sul carico recente dell'atleta (ACWR)
+    // 5. Calibrazione automatica atleta-specifica
+    let fattoreCalibrazione = 1.0;
+    let limitaDistanzeLunghe = false;
+    if (atleta != null) {
+      const calibrazione = CalibrazioneAtleta.calibra(atleta, tempi, condizioniMediche);
+      fattoreCalibrazione = calibrazione.fattoreCorrezione;
+      limitaDistanzeLunghe = !calibrazione.puoSostenereDistanzeLunghe;
+      note.push(...calibrazione.note);
+    }
+
+    // 6. Volume, corretto sul carico recente dell'atleta (ACWR) e calibrazione
     let volume = Math.max(400, arrotondaA50m(metriTarget));
     const [fattoreCarico, notaCarico] = this.fattoreDaCarico(logSedute, oggi);
-    if (fattoreCarico < 1.0) {
-      volume = Math.max(400, arrotondaA50m(Math.round(volume * fattoreCarico)));
-    }
+    
+    // Applica fattori: prima ACWR, poi calibrazione atleta
+    volume = Math.max(400, arrotondaA50m(Math.round(volume * fattoreCarico * fattoreCalibrazione)));
+    
     if (notaCarico) note.push(notaCarico);
 
     // 6. Tempi di riferimento -> tabella ritmi
@@ -217,13 +231,21 @@ export class GeneratoreSmartSeduta {
 
     if (rif != null) {
       const t = rif.tempo;
-      let msg = `Ritmi calcolati su ${formattaTempo(t.centesimi)} nei ${t.distanzaMetri}m ${this.nomeStile(t.stile)}`;
-      if (rif.stimato) msg += ` (convertito in ${formattaTempo(rif.centesimi100)} sui 100m)`;
-      if (t.vascaMetri === 50) msg += ', corretto per la vasca da 25m';
+      let msg = `Ritmi calibrati su ${formattaTempo(t.centesimi)} nei ${t.distanzaMetri}m ${this.nomeStile(t.stile)}`;
+      if (rif.stimato) {
+        msg += ` → stimato ${formattaTempo(rif.centesimi100)} sui 100m`;
+        if (rif.distanzaRiferimento && rif.distanzaRiferimento < 100) {
+          msg += ` (conversione conservativa da distanza corta)`;
+        }
+      }
+      if (t.vascaMetri === 50) msg += ', corretto per vasca 25m';
       note.push(msg);
-      if (rif.datato) note.push('Il tempo di riferimento ha più di 8 mesi: fai un test per aggiornare i ritmi.');
+      if (rif.datato) note.push('⚠️ Tempo di riferimento datato (>8 mesi): fai un test per aggiornare i ritmi.');
+      if (rif.distanzaRiferimento && rif.distanzaRiferimento < 100) {
+        note.push('ℹ️ Usato tempo su distanza corta: per maggiore precisione inserisci anche un 100m.');
+      }
     } else if (atleta != null) {
-      note.push('Nessun tempo di riferimento: ripartenze a recupero fisso. Inserisci un tempo di gara o test per calcolarle.');
+      note.push('⚠️ Nessun tempo di riferimento: ripartenze a recupero fisso. Inserisci almeno un 50m o 100m di gara/test per calcolarle.');
     } else {
       note.push('Scheda di squadra: ripartenze a recupero fisso. Seleziona un atleta per ritmi personalizzati.');
     }
@@ -238,7 +260,7 @@ export class GeneratoreSmartSeduta {
       if (m > 0) metriCodice[k] = m;
     }
 
-    const tratti = this.costruisciTratti(volume, metriCodice, fase, tabella);
+    const tratti = this.costruisciTratti(volume, metriCodice, fase, tabella, limitaDistanzeLunghe);
 
     const nomeAtleta = atleta ? `${atleta.cognome} ${atleta.nome}` : null;
     const titoloBase = nomeAtleta ? `Scheda Personalizzata · ${nomeAtleta}` : 'Scheda di Squadra';
@@ -272,6 +294,7 @@ export class GeneratoreSmartSeduta {
   }
 
   private static scegliRiferimento(tempi: Tempo[], oggi: string): Riferimento | null {
+    // Accetta anche distanze corte (50m, 100m) - importante per atleti che non possono fare 400m
     const candidati = tempi.filter(t => t.stile !== 'MISTI' && t.distanzaMetri >= 50 && t.distanzaMetri <= 400);
     if (candidati.length === 0) return null;
 
@@ -299,25 +322,43 @@ export class GeneratoreSmartSeduta {
 
     const delloStile = pool.filter(t => t.stile === stile);
 
+    // Conversione a 100m con esponenti più conservativi per distanze corte
+    // Per paralimpici, la decelerazione con la distanza può essere più marcata
     const a100 = (t: Tempo): number => {
-      const esponente = t.distanzaMetri < 100 ? 1.10 : 1.06;
+      let esponente: number;
+      if (t.distanzaMetri <= 50) {
+        esponente = 1.15; // 50m → 100m: +15% conservativo
+      } else if (t.distanzaMetri <= 100) {
+        esponente = 1.08; // 100m → 100m: +8%
+      } else if (t.distanzaMetri <= 200) {
+        esponente = 1.06; // 200m → 100m: +6%
+      } else {
+        esponente = 1.04; // 400m → 100m: +4%
+      }
       const vasca = t.vascaMetri === 50 ? 0.97 : 1.0;
       return Math.round(t.centesimi * vasca * Math.pow(100.0 / t.distanzaMetri, esponente));
     };
 
+    // Priorità: 100m > 200m > 50m > 400m (per atleti che non possono fare 400m)
     const esatti = delloStile.filter(t => t.distanzaMetri === 100);
     let migliore: Tempo;
     if (esatti.length > 0) {
       migliore = esatti.reduce((min, t) => a100(t) < a100(min) ? t : min);
     } else {
-      migliore = delloStile.reduce((min, t) => a100(t) < a100(min) ? t : min);
+      const corti = delloStile.filter(t => t.distanzaMetri <= 100);
+      if (corti.length > 0) {
+        migliore = corti.reduce((min, t) => a100(t) < a100(min) ? t : min);
+      } else {
+        migliore = delloStile.reduce((min, t) => a100(t) < a100(min) ? t : min);
+      }
     }
 
     return {
       tempo: migliore,
       centesimi100: a100(migliore),
       stimato: migliore.distanzaMetri !== 100,
-      datato: recenti.length === 0
+      datato: recenti.length === 0,
+      distanzaRiferimento: migliore.distanzaMetri
     };
   }
 
@@ -437,7 +478,8 @@ export class GeneratoreSmartSeduta {
     volume: number,
     metriCodice: Partial<Record<CodiceAllenamentoKey, number>>,
     fase: FaseMesociclo,
-    tabella: TabellaRitmiAtleta | null
+    tabella: TabellaRitmiAtleta | null,
+    limitaDistanzeLunghe: boolean = false
   ): TrattoSeduta[] {
     const serie: SerieDef[] = [];
 
@@ -457,11 +499,22 @@ export class GeneratoreSmartSeduta {
     for (const c of this.ORDINE_SERIE) {
       const m = metriCodice[c];
       if (!m || m < 50) continue;
+      
       let len = 100;
       if (c === 'A2') len = m >= 1200 ? 400 : 200;
       else if (c === 'B1') len = m >= 1000 ? 200 : 100;
       else if (c === 'C2') len = 50;
       else if (c === 'C3') len = (fase === 'COMPETITIVA' || fase === 'PRE_GARA') && m >= 400 ? 100 : 50;
+
+      // Se l'atleta non può sostenere distanze lunghe, limita a 100m
+      if (limitaDistanzeLunghe && len > 100) {
+        len = 100;
+        // Per C1/C2, se limita distanze lunghe, riduce anche il volume
+        if (c === 'C1' || c === 'C2') {
+          const riduzione = 0.6;
+          metriCodice[c] = Math.round((metriCodice[c] ?? 0) * riduzione);
+        }
+      }
 
       while (len > m && len > 50) len = Math.floor(len / 2);
       const n = Math.max(1, Math.min(this.maxRipetizioni(c), Math.floor(m / len)));

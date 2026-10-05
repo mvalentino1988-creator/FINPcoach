@@ -7,6 +7,7 @@ import { PianoScreen } from './components/PianoScreen';
 import { SchedeVascaScreen } from './components/SchedeVascaScreen';
 import { TempiRipartenzeScreen } from './components/TempiRipartenzeScreen';
 import { RegistroScreen } from './components/RegistroScreen';
+import { DatiScreen } from './components/DatiScreen';
 
 export const AppContent: React.FC = () => {
   const [tab, setTab] = useState<TabKey>('oggi');
@@ -18,10 +19,8 @@ export const AppContent: React.FC = () => {
       <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 pb-20 sm:pb-8">
         {tab === 'oggi' && <OggiScreen onNavigateTab={setTab} />}
         {tab === 'piano' && <PianoScreen />}
-        {tab === 'schede' && <SchedeVascaScreen />}
-        {tab === 'tempi' && <TempiRipartenzeScreen />}
         {tab === 'atleti' && <AtletiScreen />}
-        {tab === 'registro' && <RegistroScreen />}
+        {tab === 'dati' && <DatiScreen />}
       </main>
     </div>
   );
