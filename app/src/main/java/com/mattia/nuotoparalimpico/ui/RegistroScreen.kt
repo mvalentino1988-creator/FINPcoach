@@ -33,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -43,22 +44,21 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mattia.nuotoparalimpico.data.Assenza
 import com.mattia.nuotoparalimpico.data.Atleta
 import com.mattia.nuotoparalimpico.data.ContestoTempo
-import com.mattia.nuotoparalimpico.data.FaseMesociclo
 import com.mattia.nuotoparalimpico.data.LogSeduta
 import com.mattia.nuotoparalimpico.data.Microciclo
 import com.mattia.nuotoparalimpico.data.Stile
 import com.mattia.nuotoparalimpico.data.Tempo
-import com.mattia.nuotoparalimpico.data.TipoMicrociclo
-import com.mattia.nuotoparalimpico.domain.CalcoloScienzaNuoto
-import com.mattia.nuotoparalimpico.domain.GeneratoreSmartSeduta
-import com.mattia.nuotoparalimpico.domain.Riepilogo
+import com.mattia.nuotoparalimpico.domain.LivelloAcwr
 import com.mattia.nuotoparalimpico.domain.SchedaSeduta
 import com.mattia.nuotoparalimpico.domain.VolumeIndividuale
 import com.mattia.nuotoparalimpico.domain.formattaTempo
 import com.mattia.nuotoparalimpico.domain.parseTempo
 import com.mattia.nuotoparalimpico.domain.primatiPersonali
+import com.mattia.nuotoparalimpico.domain.usecase.CalcolaCaricoAtletaUseCase
+import com.mattia.nuotoparalimpico.domain.usecase.RigaSedutaInput
 import java.time.LocalDate
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 private val NOMI_STILI = mapOf(
     Stile.STILE_LIBERO to "Stile libero",
@@ -160,13 +160,14 @@ private fun creaRiga(
 private fun SezioneSeduta(vm: MainViewModel, rvm: RegistroViewModel) {
     val atleti by vm.atleti.collectAsStateWithLifecycle()
     val assenze by vm.assenze.collectAsStateWithLifecycle()
-    val meso by vm.meso.collectAsStateWithLifecycle()
     val micro by vm.micro.collectAsStateWithLifecycle()
     val log by rvm.log.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
 
     var dataTesto by remember { mutableStateOf(LocalDate.now().formatta()) }
     var durata by remember { mutableStateOf("60") }
     var schedaGiorno by remember { mutableStateOf<SchedaSeduta?>(null) }
+    var errori by remember { mutableStateOf<List<String>>(emptyList()) }
 
     val data = parseData(dataTesto)
     val durataInt = durata.toIntOrNull()
@@ -182,19 +183,10 @@ private fun SezioneSeduta(vm: MainViewModel, rvm: RegistroViewModel) {
         CampoNumero(durata, { durata = it }, "Durata (minuti)", Modifier.weight(1f), isError = durataInt == null || durataInt !in 1..300)
     }
 
-    // Pulsante per vedere la scheda d'allenamento generata per il giorno
     OutlinedButton(
         onClick = {
             val d = data ?: LocalDate.now()
-            val mic = micro.firstOrNull { !d.isBefore(it.inizio) && !d.isAfter(it.fine) }
-            val mes = mic?.let { m -> meso.firstOrNull { it.id == m.mesocicloId } }
-            val volumeMedia = if (mic != null && mic.sedutePreviste > 0) mic.volumeTargetMetri / mic.sedutePreviste else 1800
-            schedaGiorno = GeneratoreSmartSeduta.genera(
-                data = d,
-                metriTarget = volumeMedia,
-                fase = mes?.fase ?: FaseMesociclo.PREPARAZIONE_SPECIFICA,
-                tipoMicro = mic?.tipo ?: TipoMicrociclo.CARICO
-            )
+            scope.launch { schedaGiorno = vm.generaScheda(d) }
         },
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -212,6 +204,7 @@ private fun SezioneSeduta(vm: MainViewModel, rvm: RegistroViewModel) {
             color = MaterialTheme.colorScheme.tertiary
         )
     }
+    errori.forEach { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
 
     atleti.forEach { a ->
         val r = righe[a.id] ?: return@forEach
@@ -242,20 +235,16 @@ private fun SezioneSeduta(vm: MainViewModel, rvm: RegistroViewModel) {
         enabled = valido,
         onClick = {
             if (data != null && durataInt != null) {
+                errori = emptyList()
                 rvm.salvaSeduta(
                     data,
+                    durataInt,
                     atleti.mapNotNull { a ->
                         righe[a.id]?.let { r ->
-                            LogSeduta(
-                                atletaId = a.id,
-                                data = data,
-                                presente = r.presente,
-                                durataMin = if (r.presente) durataInt else 0,
-                                metriEffettivi = if (r.presente) r.metri.toIntOrNull() ?: 0 else 0,
-                                rpe = if (r.presente) r.rpe.toIntOrNull() else null
-                            )
+                            RigaSedutaInput(a.id, r.presente, r.metri.toIntOrNull(), r.rpe.toIntOrNull())
                         }
-                    }
+                    },
+                    onErrori = { errori = it }
                 )
             }
         },
@@ -407,7 +396,6 @@ private fun SezioneStorico(atleta: Atleta, vm: MainViewModel, rvm: RegistroViewM
 
     val mioLog = log.filter { it.atletaId == atleta.id }
     val presenti = mioLog.count { it.presente }
-    val settimane = Riepilogo.perAtleta(atleta, mioLog, micro, assenze.filter { it.atletaId == atleta.id })
 
     Titolo("Storico Presenze e Carico · ${atleta.nome}", Icons.Filled.Info)
     if (mioLog.isEmpty()) {
@@ -415,32 +403,38 @@ private fun SezioneStorico(atleta: Atleta, vm: MainViewModel, rvm: RegistroViewM
         return
     }
 
-    // Monitoraggio Carico Acuto / Cronico ACWR
-    val carichiPrecedenti = settimane.drop(1).map { it.caricoSrpe }
-    val caricoAcuto = settimane.firstOrNull()?.caricoSrpe ?: 0
-    val acwr = remember(caricoAcuto, carichiPrecedenti) {
-        CalcoloScienzaNuoto.calcolaACWR(caricoAcuto, carichiPrecedenti)
+    val calcolo = remember { CalcolaCaricoAtletaUseCase() }
+    val carico = remember(atleta, mioLog, micro, assenze) {
+        calcolo.calcola(atleta, mioLog, micro, assenze.filter { it.atletaId == atleta.id }, LocalDate.now())
     }
 
-    if (acwr.avvisoInfortunio != null) {
+    if (carico.affidabile && (carico.livello == LivelloAcwr.RISCHIO || carico.livello == LivelloAcwr.ATTENZIONE)) {
+        val rischio = carico.livello == LivelloAcwr.RISCHIO
         Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+            colors = CardDefaults.cardColors(
+                containerColor = if (rischio) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer
+            ),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Monitoraggio Infortuni ACWR: ${acwr.livelloRischio}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onErrorContainer, style = MaterialTheme.typography.titleSmall)
-                Text(acwr.avvisoInfortunio, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
+                Text(
+                    "Monitoraggio carico ACWR: ${carico.livello.name.lowercase()}",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleSmall
+                )
+                Text(carico.messaggio, style = MaterialTheme.typography.bodySmall)
             }
         }
     }
 
     Text("Presenze: $presenti su ${mioLog.size} sedute registrate", fontWeight = FontWeight.SemiBold)
     Text(
-        "Carico sRPE = RPE x durata (minuti) della seduta. Stato Carico ACWR: ${acwr.livelloRischio}",
+        "Carico sRPE = RPE x durata (minuti) della seduta. " +
+            if (carico.affidabile) "ACWR: ${carico.livello.name.lowercase()}." else "ACWR: dati insufficienti per un valore affidabile.",
         style = MaterialTheme.typography.bodySmall
     )
-    settimane.forEach { s ->
+    carico.settimane.forEach { s ->
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
             shape = RoundedCornerShape(10.dp),

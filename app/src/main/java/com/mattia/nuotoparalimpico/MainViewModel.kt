@@ -3,7 +3,7 @@ package com.mattia.nuotoparalimpico.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.mattia.nuotoparalimpico.data.AppDatabase
+import com.mattia.nuotoparalimpico.NuotoParalimpicoApp
 import com.mattia.nuotoparalimpico.data.Assenza
 import com.mattia.nuotoparalimpico.data.Atleta
 import com.mattia.nuotoparalimpico.data.AtletaAttributo
@@ -20,15 +20,14 @@ import com.mattia.nuotoparalimpico.data.Tempo
 import com.mattia.nuotoparalimpico.domain.Avviso
 import com.mattia.nuotoparalimpico.domain.Festivita
 import com.mattia.nuotoparalimpico.domain.ParametriPiano
-import com.mattia.nuotoparalimpico.domain.PianoGenerator
 import com.mattia.nuotoparalimpico.domain.PianoValidator
+import com.mattia.nuotoparalimpico.domain.SchedaSeduta
 import java.time.LocalDate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
@@ -37,9 +36,9 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val db = AppDatabase.get(app)
-    private val atletaDao = db.atletaDao()
-    private val pianoDao = db.pianoDao()
+    private val c = (app as NuotoParalimpicoApp).container
+    private val atletiRepo = c.atleti
+    private val pianoRepo = c.piano
 
     private fun <T> stato(flow: Flow<T>, iniziale: T): StateFlow<T> =
         flow.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), iniziale)
@@ -50,61 +49,65 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             emptyList<T>()
         )
 
-    /** Legge la stagione direttamente dal database, senza dipendere dagli osservatori della UI. */
-    private suspend fun stagioneCorrente(): Stagione? = pianoDao.osservaStagione().first()
-
     // ---------- Atleti ----------
-    val atleti: StateFlow<List<Atleta>> = stato(atletaDao.osservaAtleti(), emptyList())
-    val condizioni: StateFlow<List<CondizioneMedica>> = stato(atletaDao.osservaCondizioni(), emptyList())
-    val assenze: StateFlow<List<Assenza>> = stato(atletaDao.osservaAssenze(), emptyList())
-    val attributi: StateFlow<List<AtletaAttributo>> = stato(atletaDao.osservaAttributi(), emptyList())
+    val atleti: StateFlow<List<Atleta>> = stato(atletiRepo.atleti, emptyList())
+    val condizioni: StateFlow<List<CondizioneMedica>> = stato(atletiRepo.condizioni, emptyList())
+    val assenze: StateFlow<List<Assenza>> = stato(atletiRepo.assenze, emptyList())
+    val attributi: StateFlow<List<AtletaAttributo>> = stato(atletiRepo.attributi, emptyList())
 
-    fun aggiungiAtleta(a: Atleta) { viewModelScope.launch { atletaDao.inserisci(a) } }
-    fun aggiornaAtleta(a: Atleta) { viewModelScope.launch { atletaDao.aggiorna(a) } }
+    fun aggiungiAtleta(a: Atleta) { viewModelScope.launch { atletiRepo.aggiungi(a) } }
+    fun aggiornaAtleta(a: Atleta) { viewModelScope.launch { atletiRepo.aggiorna(a) } }
     fun eliminaAtleta(a: Atleta) {
-        viewModelScope.launch { atletaDao.elimina(a) }
+        viewModelScope.launch { atletiRepo.elimina(a) }
         synchronized(cacheTempi) { cacheTempi.remove(a.id) }
         synchronized(cacheLog) { cacheLog.remove(a.id) }
     }
-    fun aggiungiCondizione(c: CondizioneMedica) { viewModelScope.launch { atletaDao.inserisciCondizione(c) } }
-    fun eliminaCondizione(c: CondizioneMedica) { viewModelScope.launch { atletaDao.eliminaCondizione(c) } }
-    fun aggiungiAssenza(a: Assenza) { viewModelScope.launch { atletaDao.inserisciAssenza(a) } }
-    fun eliminaAssenza(a: Assenza) { viewModelScope.launch { atletaDao.eliminaAssenza(a) } }
-
-    fun aggiungiAttributo(a: AtletaAttributo) { viewModelScope.launch { atletaDao.inserisciAttributo(a) } }
-    fun aggiornaAttributo(a: AtletaAttributo) { viewModelScope.launch { atletaDao.aggiornaAttributo(a) } }
-    fun eliminaAttributo(a: AtletaAttributo) { viewModelScope.launch { atletaDao.eliminaAttributo(a) } }
+    fun aggiungiCondizione(x: CondizioneMedica) { viewModelScope.launch { atletiRepo.aggiungiCondizione(x) } }
+    fun eliminaCondizione(x: CondizioneMedica) { viewModelScope.launch { atletiRepo.eliminaCondizione(x) } }
+    fun aggiungiAssenza(a: Assenza) { viewModelScope.launch { atletiRepo.aggiungiAssenza(a) } }
+    fun eliminaAssenza(a: Assenza) { viewModelScope.launch { atletiRepo.eliminaAssenza(a) } }
+    fun aggiungiAttributo(a: AtletaAttributo) { viewModelScope.launch { atletiRepo.aggiungiAttributo(a) } }
+    fun aggiornaAttributo(a: AtletaAttributo) { viewModelScope.launch { atletiRepo.aggiornaAttributo(a) } }
+    fun eliminaAttributo(a: AtletaAttributo) { viewModelScope.launch { atletiRepo.eliminaAttributo(a) } }
 
     // ---------- Tempi e Log ----------
-    // Un solo StateFlow per atleta: le recomposizioni riusano lo stesso flusso invece di rifare la query.
     private val cacheTempi = HashMap<Long, StateFlow<List<Tempo>>>()
     private val cacheLog = HashMap<Long, StateFlow<List<LogSeduta>>>()
 
     fun osservaTempi(atletaId: Long): Flow<List<Tempo>> =
         synchronized(cacheTempi) {
-            cacheTempi.getOrPut(atletaId) { stato(atletaDao.osservaTempi(atletaId), emptyList()) }
+            cacheTempi.getOrPut(atletaId) { stato(atletiRepo.osservaTempi(atletaId), emptyList()) }
         }
 
     fun osservaLogSedute(atletaId: Long): Flow<List<LogSeduta>> =
         synchronized(cacheLog) {
-            cacheLog.getOrPut(atletaId) { stato(atletaDao.osservaLogSedute(atletaId), emptyList()) }
+            cacheLog.getOrPut(atletaId) { stato(atletiRepo.osservaLog(atletaId), emptyList()) }
         }
 
-    fun aggiungiTempo(tempo: Tempo) { viewModelScope.launch { atletaDao.inserisciTempo(tempo) } }
-    fun eliminaTempo(tempo: Tempo) { viewModelScope.launch { atletaDao.eliminaTempo(tempo) } }
-    fun inserisciLogSeduta(log: LogSeduta) { viewModelScope.launch { atletaDao.inserisciLogSeduta(log) } }
-    fun aggiornaLogSeduta(log: LogSeduta) { viewModelScope.launch { atletaDao.aggiornaLogSeduta(log) } }
+    fun aggiungiTempo(t: Tempo) { viewModelScope.launch { atletiRepo.aggiungiTempo(t) } }
+    fun eliminaTempo(t: Tempo) { viewModelScope.launch { atletiRepo.eliminaTempo(t) } }
+    fun inserisciLogSeduta(l: LogSeduta) { viewModelScope.launch { atletiRepo.salvaLog(l) } }
+    fun aggiornaLogSeduta(l: LogSeduta) { viewModelScope.launch { atletiRepo.aggiornaLog(l) } }
 
-    suspend fun leggiTempi(atletaId: Long): List<Tempo> = atletaDao.leggiTempi(atletaId)
-    suspend fun leggiLogSedute(atletaId: Long): List<LogSeduta> = atletaDao.leggiLogSedute(atletaId)
+    suspend fun leggiTempi(atletaId: Long): List<Tempo> = atletiRepo.leggiTempi(atletaId)
+    suspend fun leggiLogSedute(atletaId: Long): List<LogSeduta> = atletiRepo.leggiLog(atletaId)
+
+    /** Importa tempi da testo saltando i duplicati; [onFine] riceve quanti ne ha salvati. */
+    fun importaTempi(atletaId: Long, testo: String, vascaMetri: Int = 25, onFine: (Int) -> Unit = {}) {
+        viewModelScope.launch { onFine(c.importaTempi(atletaId, testo, LocalDate.now(), vascaMetri)) }
+    }
+
+    /** Scheda per data: di squadra (atletaId null) o personalizzata. */
+    suspend fun generaScheda(data: LocalDate, atletaId: Long? = null, metriManuali: Int? = null): SchedaSeduta =
+        c.generaSeduta(data, atletaId, metriManuali)
 
     // ---------- Stagione e piano ----------
-    val stagione: StateFlow<Stagione?> = stato(pianoDao.osservaStagione(), null)
-    val chiusure: StateFlow<List<Chiusura>> = perStagione<Chiusura> { pianoDao.osservaChiusure(it) }
-    val gare: StateFlow<List<Gara>> = perStagione<Gara> { pianoDao.osservaGare(it) }
-    val macro: StateFlow<List<Macrociclo>> = perStagione<Macrociclo> { pianoDao.osservaMacro(it) }
-    val meso: StateFlow<List<Mesociclo>> = perStagione<Mesociclo> { pianoDao.osservaMeso(it) }
-    val micro: StateFlow<List<Microciclo>> = perStagione<Microciclo> { pianoDao.osservaMicro(it) }
+    val stagione: StateFlow<Stagione?> = stato(pianoRepo.stagione, null)
+    val chiusure: StateFlow<List<Chiusura>> = perStagione<Chiusura> { pianoRepo.chiusure(it) }
+    val gare: StateFlow<List<Gara>> = perStagione<Gara> { pianoRepo.gare(it) }
+    val macro: StateFlow<List<Macrociclo>> = perStagione<Macrociclo> { pianoRepo.macro(it) }
+    val meso: StateFlow<List<Mesociclo>> = perStagione<Mesociclo> { pianoRepo.meso(it) }
+    val micro: StateFlow<List<Microciclo>> = perStagione<Microciclo> { pianoRepo.micro(it) }
 
     val avvisiPiano: StateFlow<List<Avviso>> = stato(
         combine(stagione, micro, gare) { s, m, g ->
@@ -114,30 +117,28 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     )
 
     fun creaStagione(nome: String, inizio: LocalDate, fine: LocalDate) {
-        viewModelScope.launch {
-            pianoDao.inserisciStagione(Stagione(nome = nome, inizio = inizio, fine = fine))
-        }
+        viewModelScope.launch { pianoRepo.creaStagione(nome, inizio, fine) }
     }
 
     fun eliminaStagione() {
-        viewModelScope.launch { stagioneCorrente()?.let { pianoDao.eliminaStagione(it) } }
+        viewModelScope.launch { pianoRepo.stagioneCorrente()?.let { pianoRepo.eliminaStagione(it) } }
     }
 
     fun aggiungiChiusura(dal: LocalDate, al: LocalDate, motivo: String) {
         viewModelScope.launch {
-            val s = stagioneCorrente() ?: return@launch
-            pianoDao.inserisciChiusura(Chiusura(stagioneId = s.id, dal = dal, al = al, motivo = motivo))
+            val s = pianoRepo.stagioneCorrente() ?: return@launch
+            pianoRepo.aggiungiChiusura(Chiusura(stagioneId = s.id, dal = dal, al = al, motivo = motivo))
         }
     }
 
-    fun eliminaChiusura(c: Chiusura) { viewModelScope.launch { pianoDao.eliminaChiusura(c) } }
+    fun eliminaChiusura(x: Chiusura) { viewModelScope.launch { pianoRepo.eliminaChiusura(x) } }
 
     fun aggiungiFestivitaNazionali() {
         viewModelScope.launch {
-            val s = stagioneCorrente() ?: return@launch
-            val giaPresenti = pianoDao.leggiChiusure(s.id).map { it.dal }.toSet()
+            val s = pianoRepo.stagioneCorrente() ?: return@launch
+            val giaPresenti = pianoRepo.leggiChiusure(s.id).map { it.dal }.toSet()
             val nuove = Festivita.perStagione(s).filter { it.dal !in giaPresenti }
-            if (nuove.isNotEmpty()) pianoDao.inserisciChiusure(nuove)
+            if (nuove.isNotEmpty()) pianoRepo.aggiungiChiusure(nuove)
         }
     }
 
@@ -150,8 +151,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         distanze: String = ""
     ) {
         viewModelScope.launch {
-            val s = stagioneCorrente() ?: return@launch
-            pianoDao.inserisciGara(
+            val s = pianoRepo.stagioneCorrente() ?: return@launch
+            pianoRepo.aggiungiGara(
                 Gara(
                     stagioneId = s.id, nome = nome, dal = dal, al = al,
                     prioritaria = prioritaria, livello = livello, distanze = distanze
@@ -160,44 +161,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun eliminaGara(g: Gara) { viewModelScope.launch { pianoDao.eliminaGara(g) } }
+    fun eliminaGara(g: Gara) { viewModelScope.launch { pianoRepo.eliminaGara(g) } }
 
-    /**
-     * Rigenera il piano. Le settimane modificate a mano (bloccate) mantengono i valori scelti,
-     * agganciate alla data di inizio della settimana.
-     */
-    fun generaPiano(parametri: ParametriPiano) {
-        viewModelScope.launch {
-            val s = stagioneCorrente() ?: return@launch
-            val chiusureAttuali = pianoDao.leggiChiusure(s.id)
-            val gareAttuali = pianoDao.leggiGare(s.id)
-            val bloccati = pianoDao.leggiMicro(s.id).filter { it.bloccato }.associateBy { it.inizio }
-
-            val piano = PianoGenerator.genera(s, chiusureAttuali, gareAttuali, parametri).map { macroGen ->
-                macroGen.copy(
-                    meso = macroGen.meso.map { mesoGen ->
-                        mesoGen.copy(
-                            micro = mesoGen.micro.map { mi ->
-                                val vecchio = bloccati[mi.inizio]
-                                if (vecchio == null) mi else mi.copy(
-                                    tipo = vecchio.tipo,
-                                    sedutePreviste = vecchio.sedutePreviste,
-                                    volumeTargetMetri = vecchio.volumeTargetMetri,
-                                    note = vecchio.note,
-                                    bloccato = true
-                                )
-                            }
-                        )
-                    }
-                )
-            }
-            pianoDao.salvaPiano(s.id, piano)
-        }
-    }
+    fun generaPiano(parametri: ParametriPiano) { viewModelScope.launch { c.generaPiano(parametri) } }
 
     /** Salva una modifica manuale: la settimana viene marcata come bloccata. */
-    fun modificaMicro(m: Microciclo) { viewModelScope.launch { pianoDao.aggiornaMicro(m.copy(bloccato = true)) } }
+    fun modificaMicro(m: Microciclo) { viewModelScope.launch { pianoRepo.aggiornaMicro(m.copy(bloccato = true)) } }
 
     /** La settimana torna automatica: verrà ricalcolata alla prossima rigenerazione. */
-    fun sbloccaMicro(m: Microciclo) { viewModelScope.launch { pianoDao.aggiornaMicro(m.copy(bloccato = false)) } }
+    fun sbloccaMicro(m: Microciclo) { viewModelScope.launch { pianoRepo.aggiornaMicro(m.copy(bloccato = false)) } }
 }
