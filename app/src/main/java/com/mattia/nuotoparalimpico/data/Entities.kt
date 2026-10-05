@@ -9,6 +9,16 @@ import java.time.LocalDate
 
 enum class StatoClassificazione { UFFICIALE, IN_ATTESA }
 
+enum class Sesso(val etichetta: String) {
+    MASCHIO("Maschio"),
+    FEMMINA("Femmina")
+}
+
+enum class AmbitoRanking(val etichetta: String) {
+    ITALIA("Italia"),
+    MONDO("Mondo")
+}
+
 enum class FaseMesociclo(val etichetta: String) {
     PREPARAZIONE_GENERALE("Preparazione generale"),
     PREPARAZIONE_SPECIFICA("Preparazione specifica"),
@@ -40,11 +50,13 @@ data class Atleta(
     val classeSB: Int? = null,  // rana
     val classeSM: Int? = null,  // misti
     val stato: StatoClassificazione = StatoClassificazione.IN_ATTESA,
-    /** 1.0 = volume pieno di squadra; 0.8 = 80% ecc. */
+    /** 1.0 = volume pieno di squadra; 0.8 = 80% ecc. Deciso dall'allenatore. */
     val fattoreVolume: Double = 1.0,
-    val note: String = "",
-    /** true = il fattore volume lo calcola l'app (età, condizioni, classe); false = deciso a mano. */
-    @ColumnInfo(defaultValue = "1") val volumeAuto: Boolean = true
+    /** Serve per i ranking (separati per sesso). */
+    val sesso: Sesso? = null,
+    /** Massimo volume a seduta che l'atleta può sostenere, indicato dall'allenatore. */
+    val metriMaxSeduta: Int? = null,
+    val note: String = ""
 )
 
 @Entity(
@@ -84,6 +96,22 @@ data class AtletaAttributo(
     val atletaId: Long,
     val chiave: String,
     val valore: String
+)
+
+/** Posizione in un ranking ufficiale (inserita a mano dall'allenatore, con data di rilevazione). */
+@Entity(
+    tableName = "ranking_atleta",
+    foreignKeys = [ForeignKey(entity = Atleta::class, parentColumns = ["id"], childColumns = ["atletaId"], onDelete = ForeignKey.CASCADE)],
+    indices = [Index("atletaId")]
+)
+data class RankingAtleta(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val atletaId: Long,
+    val stile: Stile,
+    val distanzaMetri: Int,
+    val ambito: AmbitoRanking,
+    val posizione: Int,
+    val aggiornatoIl: LocalDate
 )
 
 // ---------- PROGRAMMAZIONE ----------
@@ -206,6 +234,7 @@ data class LogSeduta(
 )
 
 // ---------- Strutture di passaggio (non sono tabelle) ----------
+// Spostate qui da domain per eliminare la dipendenza circolare data <-> domain.
 
 data class MesoGen(val meso: Mesociclo, val micro: List<Microciclo>)
 data class MacroGen(val macro: Macrociclo, val meso: List<MesoGen>)

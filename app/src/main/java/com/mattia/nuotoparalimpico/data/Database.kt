@@ -25,11 +25,23 @@ val MIGRAZIONE_1_2 = object : Migration(1, 2) {
     }
 }
 
-/** v3: volume atleta automatico (colonna "volumeAuto"). Chi aveva un volume ridotto lo mantiene manuale. */
+/** v3: sesso e volume massimo per atleta, tabella dei ranking. I dati esistenti restano. */
 val MIGRAZIONE_2_3 = object : Migration(2, 3) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("ALTER TABLE atleti ADD COLUMN volumeAuto INTEGER NOT NULL DEFAULT 1")
-        db.execSQL("UPDATE atleti SET volumeAuto = 0 WHERE fattoreVolume < 0.999")
+        db.execSQL("ALTER TABLE atleti ADD COLUMN sesso TEXT")
+        db.execSQL("ALTER TABLE atleti ADD COLUMN metriMaxSeduta INTEGER")
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `ranking_atleta` (" +
+                "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`atletaId` INTEGER NOT NULL, " +
+                "`stile` TEXT NOT NULL, " +
+                "`distanzaMetri` INTEGER NOT NULL, " +
+                "`ambito` TEXT NOT NULL, " +
+                "`posizione` INTEGER NOT NULL, " +
+                "`aggiornatoIl` INTEGER NOT NULL, " +
+                "FOREIGN KEY(`atletaId`) REFERENCES `atleti`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_ranking_atleta_atletaId` ON `ranking_atleta` (`atletaId`)")
     }
 }
 
@@ -37,7 +49,7 @@ val MIGRAZIONE_2_3 = object : Migration(2, 3) {
     entities = [
         Atleta::class, CondizioneMedica::class, Assenza::class, AtletaAttributo::class,
         Stagione::class, Macrociclo::class, Mesociclo::class, Microciclo::class,
-        Chiusura::class, Gara::class, Tempo::class, LogSeduta::class
+        Chiusura::class, Gara::class, Tempo::class, LogSeduta::class, RankingAtleta::class
     ],
     version = 3,
     exportSchema = true
@@ -47,6 +59,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun atletaDao(): AtletaDao
     abstract fun pianoDao(): PianoDao
     abstract fun registroDao(): RegistroDao
+    abstract fun rankingDao(): RankingDao
 
     companion object {
         @Volatile

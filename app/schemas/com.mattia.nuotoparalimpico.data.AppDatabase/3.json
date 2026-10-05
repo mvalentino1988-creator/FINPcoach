@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "665057068efd48e0c6c649aae128ae0b",
+    "identityHash": "a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2",
     "entities": [
       {
         "tableName": "atleti",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `nome` TEXT NOT NULL, `cognome` TEXT NOT NULL, `dataNascita` INTEGER, `classeS` INTEGER, `classeSB` INTEGER, `classeSM` INTEGER, `stato` TEXT NOT NULL, `fattoreVolume` REAL NOT NULL, `note` TEXT NOT NULL, `volumeAuto` INTEGER NOT NULL DEFAULT 1)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `nome` TEXT NOT NULL, `cognome` TEXT NOT NULL, `dataNascita` INTEGER, `classeS` INTEGER, `classeSB` INTEGER, `classeSM` INTEGER, `stato` TEXT NOT NULL, `fattoreVolume` REAL NOT NULL, `sesso` TEXT, `metriMaxSeduta` INTEGER, `note` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -65,11 +65,14 @@
             "notNull": true
           },
           {
-            "fieldPath": "volumeAuto",
-            "columnName": "volumeAuto",
-            "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "1"
+            "fieldPath": "sesso",
+            "columnName": "sesso",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "metriMaxSeduta",
+            "columnName": "metriMaxSeduta",
+            "affinity": "INTEGER"
           }
         ],
         "primaryKey": {
@@ -843,6 +846,84 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_log_sedute_atletaId` ON `${TABLE_NAME}` (`atletaId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "atleti",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "atletaId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "ranking_atleta",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `atletaId` INTEGER NOT NULL, `stile` TEXT NOT NULL, `distanzaMetri` INTEGER NOT NULL, `ambito` TEXT NOT NULL, `posizione` INTEGER NOT NULL, `aggiornatoIl` INTEGER NOT NULL, FOREIGN KEY(`atletaId`) REFERENCES `atleti`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "atletaId",
+            "columnName": "atletaId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stile",
+            "columnName": "stile",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "distanzaMetri",
+            "columnName": "distanzaMetri",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ambito",
+            "columnName": "ambito",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "posizione",
+            "columnName": "posizione",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "aggiornatoIl",
+            "columnName": "aggiornatoIl",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_ranking_atleta_atletaId",
+            "unique": false,
+            "columnNames": [
+              "atletaId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ranking_atleta_atletaId` ON `${TABLE_NAME}` (`atletaId`)"
           }
         ],
         "foreignKeys": [

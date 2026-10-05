@@ -1,7 +1,6 @@
 package com.mattia.nuotoparalimpico.ui
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
@@ -51,18 +51,19 @@ import com.mattia.nuotoparalimpico.data.ContestoTempo
 import com.mattia.nuotoparalimpico.data.FaseMesociclo
 import com.mattia.nuotoparalimpico.data.Mesociclo
 import com.mattia.nuotoparalimpico.data.Microciclo
+import com.mattia.nuotoparalimpico.data.Sesso
 import com.mattia.nuotoparalimpico.data.StatoClassificazione
 import com.mattia.nuotoparalimpico.data.Stile
 import com.mattia.nuotoparalimpico.data.Tempo
 import com.mattia.nuotoparalimpico.data.TipoMicrociclo
 import com.mattia.nuotoparalimpico.domain.AtletaValidator
 import com.mattia.nuotoparalimpico.domain.Avviso
+import com.mattia.nuotoparalimpico.domain.CalcoloCarico
 import com.mattia.nuotoparalimpico.domain.CalcoloRitmiRipartenze
 import com.mattia.nuotoparalimpico.domain.ClassiSportive
 import com.mattia.nuotoparalimpico.domain.FINPSpecialistAI
 import com.mattia.nuotoparalimpico.domain.GeneratoreSmartSeduta
 import com.mattia.nuotoparalimpico.domain.SchedaSeduta
-import com.mattia.nuotoparalimpico.domain.StimaClassiFINP
 import com.mattia.nuotoparalimpico.domain.VolumeIndividuale
 import com.mattia.nuotoparalimpico.domain.formattaTempo
 import com.mattia.nuotoparalimpico.domain.parseTempo
@@ -91,7 +92,6 @@ fun AtletiScreen(vm: MainViewModel) {
     val assenze by vm.assenze.collectAsStateWithLifecycle()
     val meso by vm.meso.collectAsStateWithLifecycle()
     val micro by vm.micro.collectAsStateWithLifecycle()
-    val tuttiTempi by vm.tuttiTempi.collectAsStateWithLifecycle()
     var nuovo by remember { mutableStateOf(false) }
     var selezionatoId by remember { mutableStateOf<Long?>(null) }
     val oggi = remember { LocalDate.now() }
@@ -118,11 +118,15 @@ fun AtletiScreen(vm: MainViewModel) {
                 oggi
             )
             val condAttive = condizioni.count { it.atletaId == a.id && it.attiva }
-            val tempiAtleta = tuttiTempi.filter { it.atletaId == a.id }
+            val tempiFlow = remember(a.id) { vm.osservaTempi(a.id) }
+            val logFlow = remember(a.id) { vm.osservaLogSedute(a.id) }
+            val tempiAtleta by tempiFlow.collectAsStateWithLifecycle(initialValue = emptyList())
+            val logAtleta by logFlow.collectAsStateWithLifecycle(initialValue = emptyList())
             val mesoCorrente = micro.firstOrNull { !it.inizio.isAfter(oggi) && !it.fine.isBefore(oggi) }?.let { mi ->
                 meso.firstOrNull { it.id == mi.mesocicloId }
             }
             val formCheck = CalcoloRitmiRipartenze.valutaNecessitaFormCheck(a, tempiAtleta, emptyList(), mesoCorrente)
+            val mancanti = CalcoloCarico.datiMancanti(a, tempiAtleta, logAtleta, oggi)
 
             Card(
                 shape = RoundedCornerShape(12.dp),
@@ -163,16 +167,24 @@ fun AtletiScreen(vm: MainViewModel) {
                                     )
                                 }
                             }
+                            if (mancanti.isNotEmpty()) {
+                                Surface(
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Text(
+                                        "${mancanti.size} dati mancanti",
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                }
+                            }
                         }
                     }
                     Text(descrizioneClasseEAge(a, oggi), style = MaterialTheme.typography.bodyMedium)
                     if (a.fattoreVolume < 1.0) {
-                        Text(
-                            "Volume personalizzato: ${(a.fattoreVolume * 100).roundToInt()}% della squadra" +
-                                    if (a.volumeAuto) " (auto)" else "",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        Text("Volume personalizzato: ${(a.fattoreVolume * 100).roundToInt()}% della squadra", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                     }
                     if (formCheck.necessario) {
                         Text("⚡ ${formCheck.titoloTest}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
@@ -212,12 +224,13 @@ fun DialogAtleta(iniziale: Atleta?, onAnnulla: () -> Unit, onSalva: (Atleta) -> 
     var nome by remember { mutableStateOf(iniziale?.nome ?: "") }
     var cognome by remember { mutableStateOf(iniziale?.cognome ?: "") }
     var nascita by remember { mutableStateOf(iniziale?.dataNascita?.formatta() ?: "") }
+    var sesso by remember { mutableStateOf(iniziale?.sesso) }
     var s by remember { mutableStateOf(iniziale?.classeS?.toString() ?: "") }
     var sb by remember { mutableStateOf(iniziale?.classeSB?.toString() ?: "") }
     var sm by remember { mutableStateOf(iniziale?.classeSM?.toString() ?: "") }
     var ufficiale by remember { mutableStateOf(iniziale?.stato == StatoClassificazione.UFFICIALE) }
-    var volumeAuto by remember { mutableStateOf(iniziale?.volumeAuto ?: true) }
     var fattore by remember { mutableStateOf(((iniziale?.fattoreVolume ?: 1.0) * 100).roundToInt().toString()) }
+    var metriMax by remember { mutableStateOf(iniziale?.metriMaxSeduta?.toString() ?: "") }
     var note by remember { mutableStateOf(iniziale?.note ?: "") }
 
     val cS = s.toIntOrNull()
@@ -226,8 +239,10 @@ fun DialogAtleta(iniziale: Atleta?, onAnnulla: () -> Unit, onSalva: (Atleta) -> 
     val errori = ClassiSportive.valida(cS, cSB, cSM)
     val nascitaOk = nascita.isBlank() || parseData(nascita) != null
     val fatt = fattore.toIntOrNull()
-    val fattoreOk = volumeAuto || (fatt != null && fatt in 10..100)
-    val valido = nome.isNotBlank() && cognome.isNotBlank() && errori.isEmpty() && nascitaOk && fattoreOk
+    val fattoreOk = fatt != null && fatt in 10..100
+    val metriMaxInt = metriMax.toIntOrNull()
+    val metriMaxOk = metriMax.isBlank() || (metriMaxInt != null && metriMaxInt in 200..10_000)
+    val valido = nome.isNotBlank() && cognome.isNotBlank() && errori.isEmpty() && nascitaOk && fattoreOk && metriMaxOk
 
     AlertDialog(
         onDismissRequest = onAnnulla,
@@ -237,6 +252,12 @@ fun DialogAtleta(iniziale: Atleta?, onAnnulla: () -> Unit, onSalva: (Atleta) -> 
                 OutlinedTextField(nome, { nome = it }, label = { Text("Nome") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(cognome, { cognome = it }, label = { Text("Cognome") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 CampoData(nascita, { nascita = it }, "Data di nascita (facoltativa)", modifier = Modifier.fillMaxWidth())
+                Text("Sesso (serve per il ranking)", style = MaterialTheme.typography.labelSmall)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Sesso.entries.forEach { x ->
+                        FilterChip(selected = sesso == x, onClick = { sesso = if (sesso == x) null else x }, label = { Text(x.etichetta) })
+                    }
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     CampoNumero(s, { s = it }, "Classe S", Modifier.weight(1f))
                     CampoNumero(sb, { sb = it }, "SB", Modifier.weight(1f))
@@ -247,21 +268,8 @@ fun DialogAtleta(iniziale: Atleta?, onAnnulla: () -> Unit, onSalva: (Atleta) -> 
                     Text("Classificazione ufficiale FINP", Modifier.weight(1f))
                     Switch(checked = ufficiale, onCheckedChange = { ufficiale = it })
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Volume automatico (età, condizioni, classe)", Modifier.weight(1f))
-                    Switch(checked = volumeAuto, onCheckedChange = { volumeAuto = it })
-                }
-                if (volumeAuto) {
-                    Text(
-                        "Attuale: $fattore% della squadra, calcolato dall'app",
-                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary
-                    )
-                } else {
-                    CampoNumero(
-                        fattore, { fattore = it }, "Volume rispetto alla squadra (10-100 %)",
-                        modifier = Modifier.fillMaxWidth(), isError = !fattoreOk
-                    )
-                }
+                CampoNumero(fattore, { fattore = it }, "Volume rispetto alla squadra (10-100 %)", modifier = Modifier.fillMaxWidth(), isError = !fattoreOk)
+                CampoNumero(metriMax, { metriMax = it }, "Massimo metri a seduta (facoltativo, 200-10000)", modifier = Modifier.fillMaxWidth(), isError = !metriMaxOk)
                 OutlinedTextField(note, { note = it }, label = { Text("Note particolari") }, modifier = Modifier.fillMaxWidth())
             }
         },
@@ -275,12 +283,13 @@ fun DialogAtleta(iniziale: Atleta?, onAnnulla: () -> Unit, onSalva: (Atleta) -> 
                             nome = nome.trim(),
                             cognome = cognome.trim(),
                             dataNascita = parseData(nascita),
+                            sesso = sesso,
                             classeS = cS,
                             classeSB = cSB,
                             classeSM = cSM,
                             stato = if (ufficiale) StatoClassificazione.UFFICIALE else StatoClassificazione.IN_ATTESA,
-                            fattoreVolume = if (volumeAuto) (iniziale?.fattoreVolume ?: 1.0) else (fatt ?: 100) / 100.0,
-                            volumeAuto = volumeAuto,
+                            fattoreVolume = (fatt ?: 100) / 100.0,
+                            metriMaxSeduta = metriMaxInt,
                             note = note.trim()
                         )
                     )
@@ -289,47 +298,6 @@ fun DialogAtleta(iniziale: Atleta?, onAnnulla: () -> Unit, onSalva: (Atleta) -> 
         },
         dismissButton = { TextButton(onClick = onAnnulla) { Text("Annulla") } }
     )
-}
-
-/** Stima delle classi (solo per atleti in attesa di classificazione) con pulsante per applicarla. */
-@Composable
-private fun BloccoStima(atleta: Atleta, stima: StimaClassiFINP, onApplica: (StimaClassiFINP) -> Unit) {
-    if (atleta.stato != StatoClassificazione.IN_ATTESA) return
-    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-    Surface(
-        color = MaterialTheme.colorScheme.tertiaryContainer,
-        shape = RoundedCornerShape(8.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            if (stima.eleggibile) {
-                Text(
-                    "Stima Classi FINP: S${stima.classeS} · SB${stima.classeSB} · SM${stima.classeSM}",
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer,
-                    style = MaterialTheme.typography.labelLarge
-                )
-                Text(
-                    "Affidabilità: ${stima.affidabilita}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                )
-                Text(stima.motivazione, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
-                val diversa = atleta.classeS != stima.classeS || atleta.classeSB != stima.classeSB || atleta.classeSM != stima.classeSM
-                if (diversa) {
-                    TextButton(onClick = { onApplica(stima) }) { Text("Applica classi stimate (provvisorie)") }
-                }
-            } else {
-                Text(
-                    "Stima classi non attendibile",
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer,
-                    style = MaterialTheme.typography.labelLarge
-                )
-                Text(stima.motivazione, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
-            }
-        }
-    }
 }
 
 @Composable
@@ -354,14 +322,13 @@ private fun DialogDettaglio(
     var schedaSmartAtleta by remember { mutableStateOf<SchedaSeduta?>(null) }
     var mostraGestioneTempi by remember { mutableStateOf(false) }
 
-    val tuttiTempi by vm.tuttiTempi.collectAsStateWithLifecycle()
-    val tuttiLog by vm.tuttiLog.collectAsStateWithLifecycle()
-    val tempi = remember(tuttiTempi, atleta.id) { tuttiTempi.filter { it.atletaId == atleta.id } }
-    val logSedute = remember(tuttiLog, atleta.id) { tuttiLog.filter { it.atletaId == atleta.id } }
+    val tempi by vm.osservaTempi(atleta.id).collectAsStateWithLifecycle(initialValue = emptyList())
+    val logSedute by vm.osservaLogSedute(atleta.id).collectAsStateWithLifecycle(initialValue = emptyList())
 
     val dalData = parseData(dal)
     val alData = parseData(al)
     val etaAnni = atleta.dataNascita?.let { Period.between(it, oggi).years }
+    val datiMancanti = CalcoloCarico.datiMancanti(atleta, tempi, logSedute, oggi)
 
     AlertDialog(
         onDismissRequest = onChiudi,
@@ -375,7 +342,9 @@ private fun DialogDettaglio(
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 ElencoAvvisi(avvisi)
 
-                // Scheda personalizzata
+                CardDatiMancanti(datiMancanti, onCompleta = { modifica = true })
+
+                // Pulsante Genera Scheda Personalizzata
                 val microCorrente = micro.firstOrNull { !it.inizio.isAfter(oggi) && !it.fine.isBefore(oggi) } ?: micro.firstOrNull()
                 val mesoCorrente = microCorrente?.let { mi -> meso.firstOrNull { it.id == mi.mesocicloId } }
                 Button(
@@ -392,8 +361,7 @@ private fun DialogDettaglio(
                             condizioniMediche = condizioni,
                             tempi = tempi,
                             logSedute = logSedute,
-                            mesocicloCorrente = mesoCorrente,
-                            giorniAllenamento = vm.parametriEffettivi.value.giorniAllenamento
+                            mesocicloCorrente = mesoCorrente
                         )
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -401,6 +369,7 @@ private fun DialogDettaglio(
                     Text("Genera Scheda Personalizzata 🏊‍♂️")
                 }
 
+                // Pulsante Gestione Tempi
                 Button(
                     onClick = { mostraGestioneTempi = true },
                     modifier = Modifier.fillMaxWidth()
@@ -408,28 +377,40 @@ private fun DialogDettaglio(
                     Text("Gestione Tempi Gara e Test ⏱️")
                 }
 
-                // Analisi FINP per condizione medica e stima classi
-                Titolo("Analisi Idrodinamica & Stima Classi FINP", Icons.Filled.Info)
+                // Gare consigliate e ranking
+                SezioneGareERanking(atleta, tempi, logSedute, condizioni, vm)
+
+                // Analisi FINP AI Specialist per la Condizione Medica e Stima Classi
+                Titolo("Analisi Idrodinamica & Stima Classi FINP AI", Icons.Filled.Info)
                 val condAttive = condizioni.filter { it.attiva }
 
                 if (condAttive.isEmpty()) {
-                    if (atleta.note.isBlank()) {
-                        Text(
-                            "Nessuna condizione medica registrata: aggiungine una per ottenere analisi e stima delle classi.",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    } else {
-                        val analisiNote = FINPSpecialistAI.analizza(atleta.note, "", etaAnni)
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text("Profilo dalle note dell'atleta", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
-                                Text(analisiNote.riassuntoIdrodinamico, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
-                                BloccoStima(atleta, analisiNote.stimaClassi) { st ->
-                                    vm.aggiornaAtleta(atleta.copy(classeS = st.classeS, classeSB = st.classeSB, classeSM = st.classeSM))
+                    val analisiGenerale = FINPSpecialistAI.analizza(atleta.note, "Nessuna patologia severa registrata", etaAnni)
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("Profilo Atleta Agonista", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                            Text(analisiGenerale.riassuntoIdrodinamico, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
+
+                            if (atleta.stato == StatoClassificazione.IN_ATTESA) {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                                Surface(
+                                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        Text(
+                                            "Stima Classi FINP: S${analisiGenerale.stimaClassi.classeS} · SB${analisiGenerale.stimaClassi.classeSB} · SM${analisiGenerale.stimaClassi.classeSM}",
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                            style = MaterialTheme.typography.labelLarge
+                                        )
+                                        Text(analisiGenerale.stimaClassi.motivazione, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                                    }
                                 }
                             }
                         }
@@ -461,8 +442,27 @@ private fun DialogDettaglio(
                                     }
                                 }
 
-                                BloccoStima(atleta, analisi.stimaClassi) { st ->
-                                    vm.aggiornaAtleta(atleta.copy(classeS = st.classeS, classeSB = st.classeSB, classeSM = st.classeSM))
+                                if (atleta.stato == StatoClassificazione.IN_ATTESA) {
+                                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                                    Surface(
+                                        color = MaterialTheme.colorScheme.tertiaryContainer,
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                            Text(
+                                                "Stima Classi FINP: S${analisi.stimaClassi.classeS} · SB${analisi.stimaClassi.classeSB} · SM${analisi.stimaClassi.classeSM}",
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                                style = MaterialTheme.typography.labelLarge
+                                            )
+                                            Text(
+                                                analisi.stimaClassi.motivazione,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                                            )
+                                        }
+                                    }
                                 }
 
                                 if (analisi.raccomandazioniAllenamento.isNotEmpty()) {
@@ -572,7 +572,7 @@ private fun DialogDettaglio(
         AlertDialog(
             onDismissRequest = { conferma = false },
             title = { Text("Eliminare ${atleta.nome}?") },
-            text = { Text("Verranno eliminati anche condizioni mediche, assenze, tempi e log. L'operazione non è reversibile.") },
+            text = { Text("Verranno eliminati anche condizioni mediche, assenze, tempi, log e ranking. L'operazione non è reversibile.") },
             confirmButton = {
                 TextButton(onClick = {
                     vm.eliminaAtleta(atleta)
@@ -613,6 +613,7 @@ private fun DialogGestioneTempi(
     var distanza by remember { mutableStateOf("100") }
     var tempoText by remember { mutableStateOf("") }
     var contesto by remember { mutableStateOf(ContestoTempo.GARA) }
+    var vasca by remember { mutableStateOf(25) }
     var note by remember { mutableStateOf("") }
     var testoImport by remember { mutableStateOf("") }
     var mostraImport by remember { mutableStateOf(false) }
@@ -659,7 +660,7 @@ private fun DialogGestioneTempi(
                 CampoData(data, { data = it }, "Data", modifier = Modifier.fillMaxWidth())
 
                 Text("Stile", style = MaterialTheme.typography.labelSmall)
-                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(Modifier.fillMaxWidth().horizontalScrollCompat(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Stile.entries.forEach { s ->
                         FilterChip(
                             selected = s == stile,
@@ -672,14 +673,17 @@ private fun DialogGestioneTempi(
                 CampoNumero(distanza, { distanza = it }, "Distanza (m)", modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(tempoText, { tempoText = it }, label = { Text("Tempo (es. 1:02.35 o 62.35)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
 
-                Text("Contesto", style = MaterialTheme.typography.labelSmall)
-                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Contesto e vasca", style = MaterialTheme.typography.labelSmall)
+                Row(Modifier.fillMaxWidth().horizontalScrollCompat(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     ContestoTempo.entries.forEach { c ->
                         FilterChip(
                             selected = c == contesto,
                             onClick = { contesto = c },
                             label = { Text(c.name.lowercase()) }
                         )
+                    }
+                    listOf(25, 50).forEach { v ->
+                        FilterChip(selected = v == vasca, onClick = { vasca = v }, label = { Text("Vasca $v m") })
                     }
                 }
 
@@ -697,6 +701,7 @@ private fun DialogGestioneTempi(
                                     distanzaMetri = distanzaInt,
                                     centesimi = tempoCentesimi,
                                     contesto = contesto,
+                                    vascaMetri = vasca,
                                     note = note.trim()
                                 )
                             )
@@ -729,7 +734,7 @@ private fun DialogGestioneTempi(
                             ) {
                                 Column(Modifier.weight(1f)) {
                                     Text("${t.stile.name.replace("_", " ")} ${t.distanzaMetri}m", fontWeight = FontWeight.SemiBold)
-                                    Text("${t.data.formatta()} · ${t.contesto.name.lowercase()}", style = MaterialTheme.typography.bodySmall)
+                                    Text("${t.data.formatta()} · ${t.contesto.name.lowercase()} · vasca ${t.vascaMetri}m", style = MaterialTheme.typography.bodySmall)
                                     Text(formattaTempo(t.centesimi), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                                     if (t.note.isNotBlank()) {
                                         Text(t.note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -793,3 +798,8 @@ private fun DialogGestioneTempi(
         )
     }
 }
+
+/** Scorrimento orizzontale per le righe di chip dentro i dialog (evita che escano dallo schermo). */
+@Composable
+private fun Modifier.horizontalScrollCompat(): Modifier =
+    this.then(Modifier.horizontalScroll(rememberScrollState()))

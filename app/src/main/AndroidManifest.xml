@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Nessun permesso di rete: i dati sanitari degli atleti restano solo sul dispositivo -->
+    <!--
+      Rete solo per scaricare pagine pubbliche (regolamenti FINP e World Para Swimming).
+      I dati degli atleti NON vengono mai inviati: restano solo sul dispositivo.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".NuotoParalimpicoApp"

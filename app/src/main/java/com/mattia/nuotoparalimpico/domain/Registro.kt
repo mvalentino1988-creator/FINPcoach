@@ -72,19 +72,28 @@ data class RiepilogoSettimana(
 
 object Riepilogo {
 
-    /** Ultime settimane con sedute registrate per l'atleta, dalla più recente. */
+    /**
+     * Ultime settimane dell'atleta, dalla più recente con sedute registrate.
+     * Le settimane senza sedute tra due settimane registrate vengono incluse con carico 0:
+     * così la media cronica (ACWR) non viene gonfiata dai buchi.
+     */
     fun perAtleta(
         atleta: Atleta,
         log: List<LogSeduta>,
         micro: List<Microciclo>,
         assenze: List<Assenza>,
         maxSettimane: Int = 8
-    ): List<RiepilogoSettimana> =
-        log.groupBy { it.data.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)) }
-            .entries
-            .sortedByDescending { it.key }
-            .take(maxSettimane)
-            .map { (lunedi, l) ->
+    ): List<RiepilogoSettimana> {
+        if (log.isEmpty()) return emptyList()
+        val perSettimana = log.groupBy { it.data.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)) }
+        val ultima = perSettimana.keys.maxOrNull() ?: return emptyList()
+        val prima = perSettimana.keys.minOrNull() ?: ultima
+
+        return (0 until maxSettimane)
+            .map { ultima.minusWeeks(it.toLong()) }
+            .filter { !it.isBefore(prima) }
+            .map { lunedi ->
+                val l = perSettimana[lunedi].orEmpty()
                 val presenti = l.filter { it.presente }
                 val rpe = presenti.mapNotNull { it.rpe }
                 RiepilogoSettimana(
@@ -98,4 +107,5 @@ object Riepilogo {
                         ?.let { VolumeIndividuale.settimana(it, atleta, assenze).metri }
                 )
             }
+    }
 }

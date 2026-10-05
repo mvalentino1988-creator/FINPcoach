@@ -1,208 +1,191 @@
 package com.mattia.nuotoparalimpico.domain
 
+import com.mattia.nuotoparalimpico.data.AmbitoRanking
+import com.mattia.nuotoparalimpico.data.Atleta
+import com.mattia.nuotoparalimpico.data.CondizioneMedica
+import com.mattia.nuotoparalimpico.data.ContestoTempo
+import com.mattia.nuotoparalimpico.data.Gara
+import com.mattia.nuotoparalimpico.data.LogSeduta
+import com.mattia.nuotoparalimpico.data.RankingAtleta
+import com.mattia.nuotoparalimpico.data.StatoClassificazione
 import com.mattia.nuotoparalimpico.data.Stile
+import com.mattia.nuotoparalimpico.data.Tempo
+import java.time.LocalDate
+import java.time.Period
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
-/**
- * Sistema di gestione del regolamento tecnico FINP/Paralympic per suggerire gare appropriate
- * in base alla classe di classificazione dell'atleta.
- * 
- * Basato sul Regolamento Tecnico Nuoto FINP 2026 e World Para Swimming Rules.
- */
+fun nomeStile(s: Stile): String = when (s) {
+    Stile.STILE_LIBERO -> "Stile libero"
+    Stile.DORSO -> "Dorso"
+    Stile.RANA -> "Rana"
+    Stile.FARFALLA -> "Farfalla"
+    Stile.MISTI -> "Misti"
+}
+
+enum class CategoriaClasse(val prefisso: String) { S("S"), SB("SB"), SM("SM") }
 
 data class GaraDisponibile(
     val distanzaMetri: Int,
     val stile: Stile,
-    val descrizione: String,
-    val minClasse: Int? = null,  // Classe minima per partecipare (null = tutte)
-    val maxClasse: Int? = null,  // Classe massima per partecipare (null = tutte)
-    val note: String = ""
+    val categoria: CategoriaClasse,
+    val classi: Set<Int>,
+    val descrizione: String
 )
 
 data class SuggerimentoGara(
     val gara: GaraDisponibile,
-    val priorita: Int,  // 1-5, dove 1 è la più raccomandata
-    val motivazione: String
-)
+    val classeAtleta: Int,
+    val priorita: Int,            // 1 principale, 2 secondaria, 3 opzionale
+    val punteggio: Int,
+    val motivazione: List<String>,
+    val pbCentesimi: Int?
+) {
+    val etichettaPriorita: String
+        get() = when (priorita) {
+            1 -> "Principale"
+            2 -> "Secondaria"
+            else -> "Opzionale"
+        }
+}
 
+/**
+ * Programma gare per classe e motore dei consigli.
+ *
+ * ATTENZIONE: il PROGRAMMA è il programma standard World Para Swimming / Paralimpico (nuoto in vasca).
+ * Non viene letto dal PDF: va verificato ogni stagione sul Regolamento Tecnico Nuoto FINP e sul
+ * World Para Swimming Rules and Regulations (sezione Regolamenti dell'app).
+ */
 object RegolamentoGare {
 
-    /**
-     * Gare disponibili secondo il regolamento FINP 2026 e World Para Swimming.
-     * Le classi S1-S14 sono per nuoto in vasca, SB1-SB14 per rana, SM1-SM14 per misti.
-     */
-    private val GARE_S_STILE_LIBERO = listOf(
-        GaraDisponibile(50, Stile.STILE_LIBERO, "50m Stile Libero"),
-        GaraDisponibile(100, Stile.STILE_LIBERO, "100m Stile Libero"),
-        GaraDisponibile(200, Stile.STILE_LIBERO, "200m Stile Libero"),
-        GaraDisponibile(400, Stile.STILE_LIBERO, "400m Stile Libero", minClasse = 1, maxClasse = 10),
-        GaraDisponibile(800, Stile.STILE_LIBERO, "800m Stile Libero", minClasse = 1, maxClasse = 8),
-        GaraDisponibile(1500, Stile.STILE_LIBERO, "1500m Stile Libero", minClasse = 1, maxClasse = 7)
+    private val FORMATO = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+    private fun voce(d: Int, s: Stile, c: CategoriaClasse, classi: Collection<Int>) =
+        GaraDisponibile(d, s, c, classi.toSet(), "${d}m ${nomeStile(s)}")
+
+    val PROGRAMMA: List<GaraDisponibile> = listOf(
+        voce(50, Stile.STILE_LIBERO, CategoriaClasse.S, 3..13),
+        voce(100, Stile.STILE_LIBERO, CategoriaClasse.S, 4..14),
+        voce(200, Stile.STILE_LIBERO, CategoriaClasse.S, (2..5) + 14),
+        voce(400, Stile.STILE_LIBERO, CategoriaClasse.S, 6..13),
+        voce(50, Stile.DORSO, CategoriaClasse.S, 1..5),
+        voce(100, Stile.DORSO, CategoriaClasse.S, listOf(1, 2) + (6..14)),
+        voce(50, Stile.FARFALLA, CategoriaClasse.S, 5..7),
+        voce(100, Stile.FARFALLA, CategoriaClasse.S, 8..14),
+        voce(50, Stile.RANA, CategoriaClasse.SB, 1..3),
+        voce(100, Stile.RANA, CategoriaClasse.SB, (4..9) + (11..14)),   // SB10 non esiste
+        voce(150, Stile.MISTI, CategoriaClasse.SM, 1..4),
+        voce(200, Stile.MISTI, CategoriaClasse.SM, 5..14)
     )
 
-    private val GARE_S_DORSO = listOf(
-        GaraDisponibile(50, Stile.DORSO, "50m Dorso"),
-        GaraDisponibile(100, Stile.DORSO, "100m Dorso"),
-        GaraDisponibile(200, Stile.DORSO, "200m Dorso")
-    )
+    fun note(atleta: Atleta): List<String> {
+        val n = mutableListOf<String>()
+        if (atleta.stato == StatoClassificazione.IN_ATTESA) {
+            n += "Classificazione in attesa: i consigli valgono per le classi inserite e sono provvisori."
+        }
+        if (atleta.classeS in 11..13) n += "Classi visive (S11-S13): previsto il tapper; per S11 occhialini oscurati."
+        n += "Dopo una rivalutazione la classe può cambiare, e con essa il programma gare."
+        return n
+    }
 
-    private val GARE_S_RANA = listOf(
-        GaraDisponibile(50, Stile.RANA, "50m Rana"),
-        GaraDisponibile(100, Stile.RANA, "100m Rana")
-    )
-
-    private val GARE_S_FARFALLA = listOf(
-        GaraDisponibile(50, Stile.FARFALLA, "50m Farfalla"),
-        GaraDisponibile(100, Stile.FARFALLA, "100m Farfalla")
-    )
-
-    private val GARE_S_MISTI = listOf(
-        GaraDisponibile(150, Stile.MISTI, "150m Misti"),
-        GaraDisponibile(200, Stile.MISTI, "200m Misti")
-    )
-
-    private val GARE_SB_RANA = listOf(
-        GaraDisponibile(50, Stile.RANA, "50m Rana (SB)"),
-        GaraDisponibile(100, Stile.RANA, "100m Rana (SB)")
-    )
-
-    private val GARE_SM_MISTI = listOf(
-        GaraDisponibile(150, Stile.MISTI, "150m Misti (SM)"),
-        GaraDisponibile(200, Stile.MISTI, "200m Misti (SM)")
-    )
-
-    /**
-     * Suggerisce le gare più appropriate per un atleta in base alla sua classe di classificazione.
-     * 
-     * @param classeS Classe per stile libero/dorso/farfalla (null se non classificato)
-     * @param classeSB Classe per rana (null se non classificato)
-     * @param classeSM Classe per misti (null se non classificato)
-     * @param tempiDisponibili Tempi registrati dall'atleta per dare priorità alle gare migliori
-     * @return Lista di suggerimenti ordinati per priorità
-     */
     fun suggerisciGare(
-        classeS: Int?,
-        classeSB: Int?,
-        classeSM: Int?,
-        tempiDisponibili: Map<Pair<Stile, Int>, Int> = emptyMap()
+        atleta: Atleta,
+        tempi: List<Tempo>,
+        ranking: List<RankingAtleta>,
+        log: List<LogSeduta>,
+        condizioni: List<CondizioneMedica>,
+        gare: List<Gara>,
+        oggi: LocalDate
     ): List<SuggerimentoGara> {
-        val suggerimenti = mutableListOf<SuggerimentoGara>()
+        val profilo = CalcoloCarico.profilo(log, oggi)
+        val eta = atleta.dataNascita?.let { Period.between(it, oggi).years }
+        val testoMedico = condizioni.filter { it.attiva }
+            .joinToString(" ") { "${it.descrizione} ${it.limitazioni}" }.lowercase()
+        val spalla = listOf("spalla", "cuffia", "rotator", "articolar").any { testoMedico.contains(it) }
+        val neuro = listOf("spastic", "neurolog", "sclerosi", "midoll", "parapleg", "tetrapleg", "emipares", "cerebr")
+            .any { testoMedico.contains(it) }
+        val cardio = listOf("cardio", "cuore", "pression", "iperten").any { testoMedico.contains(it) }
+        val prossimaPrioritaria = gare.filter { it.prioritaria && !it.dal.isBefore(oggi) }.minByOrNull { it.dal }
+        val giorniAllaGara = prossimaPrioritaria?.let { ChronoUnit.DAYS.between(oggi, it.dal) }
+        val mieiRanking = ranking.filter { it.atletaId == atleta.id }
 
-        // Suggerimenti per Stile Libero (classe S)
-        if (classeS != null) {
-            suggerimenti += suggerisciPerClasse(GARE_S_STILE_LIBERO, classeS, tempiDisponibili, "S")
-            suggerimenti += suggerisciPerClasse(GARE_S_DORSO, classeS, tempiDisponibili, "S")
-            suggerimenti += suggerisciPerClasse(GARE_S_FARFALLA, classeS, tempiDisponibili, "S")
-            suggerimenti += suggerisciPerClasse(GARE_S_MISTI, classeS, tempiDisponibili, "S")
-        }
+        val risultati = mutableListOf<SuggerimentoGara>()
+        for (g in PROGRAMMA) {
+            val classe = when (g.categoria) {
+                CategoriaClasse.S -> atleta.classeS
+                CategoriaClasse.SB -> atleta.classeSB
+                CategoriaClasse.SM -> atleta.classeSM
+            } ?: continue
+            if (classe !in g.classi) continue
 
-        // Suggerimenti per Rana (classe SB)
-        if (classeSB != null) {
-            suggerimenti += suggerisciPerClasse(GARE_SB_RANA, classeSB, tempiDisponibili, "SB")
-        }
+            var p = 20
+            val motivi = mutableListOf("Nel programma WPS per la classe ${g.categoria.prefisso}$classe")
 
-        // Suggerimenti per Misti (classe SM)
-        if (classeSM != null) {
-            suggerimenti += suggerisciPerClasse(GARE_SM_MISTI, classeSM, tempiDisponibili, "SM")
-        }
-
-        // Se non classificato, suggerisci gare generiche
-        if (classeS == null && classeSB == null && classeSM == null) {
-            suggerimenti += GARE_S_STILE_LIBERO.take(3).map { gara ->
-                SuggerimentoGara(
-                    gara = gara,
-                    priorita = 3,
-                    motivazione = "Gara standard consigliata per atleti non classificati"
-                )
-            }
-        }
-
-        return suggerimenti.sortedBy { it.priorita }
-    }
-
-    private fun suggerisciPerClasse(
-        gare: List<GaraDisponibile>,
-        classe: Int,
-        tempi: Map<Pair<Stile, Int>, Int>,
-        prefissoClasse: String
-    ): List<SuggerimentoGara> {
-        val gareValide = gare.filter { gara ->
-            (gara.minClasse == null || classe >= gara.minClasse) &&
-            (gara.maxClasse == null || classe <= gara.maxClasse)
-        }
-
-        return gareValide.mapIndexed { index, gara ->
-            val prioritaBase = when (index) {
-                0 -> 1 // Prima gara più importante
-                1 -> 2
-                else -> 3
-            }
-
-            val haTempo = tempi.containsKey(Pair(gara.stile, gara.distanzaMetri))
-            val priorita = if (haTempo) prioritaBase else prioritaBase + 1
-
-            val motivazione = buildString {
-                append("Gara ")
-                append(prefissoClasse)
-                append(classe)
-                append(" - ")
-                if (haTempo) {
-                    append("⭐ Hai già un tempo registrato, gare ideale per migliorare il PB")
-                } else {
-                    append("Consigliata per la tua classe di classificazione")
+            // Tempi
+            val gareTempi = tempi.filter {
+                it.contesto == ContestoTempo.GARA && it.stile == g.stile && it.distanzaMetri == g.distanzaMetri
+            }.sortedBy { it.data }
+            val pb = gareTempi.minByOrNull { it.centesimi }
+            if (pb != null) {
+                p += 25
+                motivi += "PB ${formattaTempo(pb.centesimi)} (${pb.data.format(FORMATO)})"
+                val giorni = ChronoUnit.DAYS.between(pb.data, oggi)
+                if (giorni <= 180) p += 5 else if (giorni > 365) { p -= 5; motivi += "tempo datato (oltre un anno)" }
+                if (gareTempi.size >= 2) {
+                    val ultimo = gareTempi.last()
+                    val migliorePrima = gareTempi.dropLast(1).minOf { it.centesimi }
+                    if (ultimo.centesimi < migliorePrima) { p += 8; motivi += "ultimo tempo in miglioramento" }
+                    else if (ultimo.centesimi > migliorePrima * 1.02) { p -= 3; motivi += "ultimo tempo sopra il PB" }
                 }
-                if (gara.note.isNotBlank()) {
-                    append(". ")
-                    append(gara.note)
+                if (giorniAllaGara != null && giorniAllaGara <= 70 && giorni <= 120) {
+                    p += 5
+                    motivi += "tempo recente, vicino alla gara prioritaria «${prossimaPrioritaria.nome}»"
+                }
+            } else {
+                val altri = tempi.any { it.contesto != ContestoTempo.GARA && it.stile == g.stile && it.distanzaMetri == g.distanzaMetri }
+                if (altri) { p += 8; motivi += "ha tempi di test/allenamento, nessun tempo di gara" }
+                else motivi += "nessun tempo registrato: da testare"
+            }
+
+            // Ranking
+            mieiRanking.filter { it.stile == g.stile && it.distanzaMetri == g.distanzaMetri }.forEach { r ->
+                val fa = ChronoUnit.DAYS.between(r.aggiornatoIl, oggi)
+                val dato = if (fa > 60) " (dato di $fa giorni fa)" else ""
+                when (r.ambito) {
+                    AmbitoRanking.ITALIA -> {
+                        if (r.posizione <= 3) p += 20 else if (r.posizione <= 10) p += 10
+                        motivi += "n° ${r.posizione} in Italia$dato"
+                    }
+                    AmbitoRanking.MONDO -> {
+                        if (r.posizione <= 8) p += 25 else if (r.posizione <= 20) p += 15 else if (r.posizione <= 50) p += 5
+                        motivi += "n° ${r.posizione} nel mondo$dato"
+                    }
                 }
             }
 
-            SuggerimentoGara(gara, priorita, motivazione)
-        }
-    }
-
-    /**
-     * Verifica se una gara è consentita per una specifica classe.
-     */
-    fun isGaraConsentita(gara: GaraDisponibile, classe: Int, tipoClasse: String): Boolean {
-        return when (tipoClasse) {
-            "S", "SB", "SM" -> {
-                (gara.minClasse == null || classe >= gara.minClasse) &&
-                (gara.maxClasse == null || classe <= gara.maxClasse)
+            // Età
+            if (eta != null) {
+                if (eta < 14 && g.distanzaMetri >= 400) { p -= 25; motivi += "distanza lunga: sconsigliata sotto i 14 anni" }
+                else if (eta < 12 && g.distanzaMetri >= 200) { p -= 10; motivi += "under 12: preferibili distanze brevi" }
             }
-            else -> true
-        }
-    }
 
-    /**
-     * Restituisce tutte le gare disponibili per un dato stile.
-     */
-    fun getGarePerStile(stile: Stile): List<GaraDisponibile> {
-        return when (stile) {
-            Stile.STILE_LIBERO -> GARE_S_STILE_LIBERO
-            Stile.DORSO -> GARE_S_DORSO
-            Stile.RANA -> GARE_S_RANA
-            Stile.FARFALLA -> GARE_S_FARFALLA
-            Stile.MISTI -> GARE_S_MISTI
-        }
-    }
+            // Capacità reale (volume abituale)
+            val medi = profilo.metriMedi
+            if (profilo.sedute >= CalcoloCarico.SEDUTE_MINIME && medi != null) {
+                if (g.distanzaMetri >= 400 && medi < 1500) { p -= 15; motivi += "volume abituale ~$medi m a seduta: base aerobica da costruire" }
+                else if (g.distanzaMetri >= 200 && medi < 1000) { p -= 8; motivi += "volume abituale ~$medi m a seduta" }
+            }
 
-    /**
-     * Informazioni sulle restrizioni di classe per gare di lunga distanza.
-     * Secondo il regolamento FINP 2026, alcune gare lunghe non sono disponibili per classi più severe.
-     */
-    fun getNoteRegolamento(classe: Int): List<String> {
-        val note = mutableListOf<String>()
+            // Condizioni mediche
+            if (spalla && g.stile == Stile.FARFALLA) { p -= 12; motivi += "spalla: la farfalla è molto gravosa" }
+            if (neuro && g.distanzaMetri >= 200) { p -= 8; motivi += "lattato elevato può aggravare la spasticità" }
+            if (cardio && g.distanzaMetri <= 50) { p -= 8; motivi += "sforzi massimali brevi: da valutare con il medico" }
 
-        if (classe >= 11) {
-            note += "Classi S11-S14: gare di 400m, 800m e 1500m non disponibili in competizioni internazionali"
-        }
-        if (classe >= 9) {
-            note += "Classi S9-S14: 1500m stile libero non disponibile ai Giochi Paralimpici"
-        }
-        if (classe >= 8) {
-            note += "Classi S8-S14: 800m stile libero non disponibile ai Giochi Paralimpici"
+            risultati += SuggerimentoGara(g, classe, 3, p, motivi, pb?.centesimi)
         }
 
-        return note
+        return risultati.sortedByDescending { it.punteggio }
+            .take(8)
+            .mapIndexed { i, s -> s.copy(priorita = if (i < 3) 1 else if (i < 6) 2 else 3) }
     }
 }
