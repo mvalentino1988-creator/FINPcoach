@@ -9,63 +9,36 @@ import com.mattia.nuotoparalimpico.data.Atleta
 import com.mattia.nuotoparalimpico.data.Chiusura
 import com.mattia.nuotoparalimpico.data.CondizioneMedica
 import com.mattia.nuotoparalimpico.data.Gara
-import com.mattia.nuotoparalimpico.data.ImpostazioniPiano
-import com.mattia.nuotoparalimpico.data.ImpostazioniStore
 import com.mattia.nuotoparalimpico.data.LogSeduta
 import com.mattia.nuotoparalimpico.data.Macrociclo
 import com.mattia.nuotoparalimpico.data.Mesociclo
 import com.mattia.nuotoparalimpico.data.Microciclo
 import com.mattia.nuotoparalimpico.data.Stagione
-import com.mattia.nuotoparalimpico.data.StatoClassificazione
 import com.mattia.nuotoparalimpico.data.Tempo
-import com.mattia.nuotoparalimpico.domain.AutoPianificatore
 import com.mattia.nuotoparalimpico.domain.Avviso
-import com.mattia.nuotoparalimpico.domain.FINPSpecialistAI
+import com.mattia.nuotoparalimpico.domain.Calendario
 import com.mattia.nuotoparalimpico.domain.Festivita
 import com.mattia.nuotoparalimpico.domain.ParametriPiano
 import com.mattia.nuotoparalimpico.domain.PianoGenerator
 import com.mattia.nuotoparalimpico.domain.PianoValidator
-import com.mattia.nuotoparalimpico.domain.GeneratoreSmartSeduta
-import com.mattia.nuotoparalimpico.domain.SchedaSeduta
-import com.mattia.nuotoparalimpico.data.FaseMesociclo
-import com.mattia.nuotoparalimpico.data.TipoMicrociclo
-import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.Period
-import java.time.temporal.TemporalAdjusters
-import kotlin.math.abs
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-private data class InputPiano(
-    val stagione: Stagione?,
-    val chiusure: List<Chiusura>,
-    val gare: List<Gara>,
-    val parametri: ParametriPiano
-)
-
-@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private val db = AppDatabase.get(app)
     private val atletaDao = db.atletaDao()
     private val pianoDao = db.pianoDao()
-    private val rankingDao = db.rankingDao()
-    private val regolamentiRepository = com.mattia.nuotoparalimpico.data.RegolamentiRepository(app)
-    private val store = ImpostazioniStore(app)
 
     private fun <T> stato(flow: Flow<T>, iniziale: T): StateFlow<T> =
         flow.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), iniziale)
@@ -76,14 +49,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             emptyList<T>()
         )
 
+    /** Legge la stagione direttamente dal database, senza dipendere dagli osservatori della UI. */
     private suspend fun stagioneCorrente(): Stagione? = pianoDao.osservaStagione().first()
 
     // ---------- Atleti ----------
     val atleti: StateFlow<List<Atleta>> = stato(atletaDao.osservaAtleti(), emptyList())
     val condizioni: StateFlow<List<CondizioneMedica>> = stato(atletaDao.osservaCondizioni(), emptyList())
     val assenze: StateFlow<List<Assenza>> = stato(atletaDao.osservaAssenze(), emptyList())
-    val tuttiTempi: StateFlow<List<Tempo>> = stato(atletaDao.osservaTuttiTempi(), emptyList())
-    val tuttiLog: StateFlow<List<LogSeduta>> = stato(atletaDao.osservaTuttiLog(), emptyList())
 
     fun aggiungiAtleta(a: Atleta) { viewModelScope.launch { atletaDao.inserisci(a) } }
     fun aggiornaAtleta(a: Atleta) { viewModelScope.launch { atletaDao.aggiorna(a) } }
@@ -94,8 +66,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun eliminaAssenza(a: Assenza) { viewModelScope.launch { atletaDao.eliminaAssenza(a) } }
 
     // ---------- Tempi e Log ----------
-    fun osservaTempi(atletaId: Long): Flow<List<Tempo>> = atletaDao.osservaTempi(atletaId)
-    fun osservaLogSedute(atletaId: Long): Flow<List<LogSeduta>> = atletaDao.osservaLogSedute(atletaId)
+    // I Flow vengono creati una volta sola per atleta: se la UI ne chiedesse uno nuovo a ogni
+    // ricomposizione, collectAsStateWithLifecycle ripartirebbe da capo ogni volta.
+    private val cacheTempi = mutableMapOf<Long, Flow<List<Tempo>>>()
+    private val cacheLog = mutableMapOf<Long, Flow<List<LogSeduta>>>()
+
+    fun osservaTempi(atletaId: Long): Flow<List<Tempo>> =
+        cacheTempi.getOrPut(atletaId) { atletaDao.osservaTempi(atletaId) }
+
+    fun osservaLogSedute(atletaId: Long): Flow<List<LogSeduta>> =
+        cacheLog.getOrPut(atletaId) { atletaDao.osservaLogSedute(atletaId) }
 
     fun aggiungiTempo(tempo: Tempo) { viewModelScope.launch { atletaDao.inserisciTempo(tempo) } }
     fun eliminaTempo(tempo: Tempo) { viewModelScope.launch { atletaDao.eliminaTempo(tempo) } }
@@ -104,48 +84,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     suspend fun leggiTempi(atletaId: Long): List<Tempo> = atletaDao.leggiTempi(atletaId)
     suspend fun leggiLogSedute(atletaId: Long): List<LogSeduta> = atletaDao.leggiLogSedute(atletaId)
-
-    // ---------- Rankings e Regolamenti ----------
-    val rankings: StateFlow<List<com.mattia.nuotoparalimpico.data.RankingAtleta>> = stato(rankingDao.osserva(), emptyList())
-    fun salvaRanking(r: com.mattia.nuotoparalimpico.data.RankingAtleta) { viewModelScope.launch { rankingDao.salva(r) } }
-    fun eliminaRanking(r: com.mattia.nuotoparalimpico.data.RankingAtleta) { viewModelScope.launch { rankingDao.elimina(r) } }
-
-    private val _regolamenti = MutableStateFlow(com.mattia.nuotoparalimpico.data.StatoRegolamenti())
-    val regolamenti: StateFlow<com.mattia.nuotoparalimpico.data.StatoRegolamenti> = _regolamenti.asStateFlow()
-
-    fun aggiornaRegolamenti(forza: Boolean = false) {
-        viewModelScope.launch {
-            val (cached, ts) = regolamentiRepository.leggiCache()
-            if (!forza && cached.isNotEmpty() && ts != null && (System.currentTimeMillis() - ts) < 24 * 3600 * 1000L) {
-                _regolamenti.value = com.mattia.nuotoparalimpico.data.StatoRegolamenti(documenti = cached, caricamento = false, aggiornatoIl = ts)
-                return@launch
-            }
-            _regolamenti.value = _regolamenti.value.copy(caricamento = true, errore = null)
-            val esito = regolamentiRepository.scarica()
-            _regolamenti.value = com.mattia.nuotoparalimpico.data.StatoRegolamenti(
-                documenti = esito.documenti,
-                caricamento = false,
-                errore = esito.errori.joinToString("\n").takeIf { it.isNotBlank() },
-                aggiornatoIl = esito.timestamp
-            )
-        }
-    }
-
-    suspend fun generaScheda(data: LocalDate): SchedaSeduta {
-        val s = stagione.value
-        val mList = micro.value
-        val mesoList = meso.value
-        val mc = mList.firstOrNull { !data.isBefore(it.inizio) && !data.isAfter(it.fine) }
-        val mesoC = mc?.let { m -> mesoList.firstOrNull { it.id == m.mesocicloId } }
-        val metri = if (mc != null && mc.sedutePreviste > 0) mc.volumeTargetMetri / mc.sedutePreviste else 1800
-        return GeneratoreSmartSeduta.genera(
-            data = data,
-            metriTarget = metri,
-            fase = mesoC?.fase ?: FaseMesociclo.PREPARAZIONE_SPECIFICA,
-            tipoMicro = mc?.tipo ?: TipoMicrociclo.CARICO,
-            vascaMetri = s?.vascaMetri ?: 25
-        )
-    }
 
     // ---------- Stagione e piano ----------
     val stagione: StateFlow<Stagione?> = stato(pianoDao.osservaStagione(), null)
@@ -162,34 +100,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         emptyList()
     )
 
-    // ---------- Impostazioni: null = automatico ----------
-    private val _impostazioni = MutableStateFlow(store.leggi())
-    val impostazioni: StateFlow<ImpostazioniPiano> = _impostazioni.asStateFlow()
-
-    fun salvaImpostazioni(i: ImpostazioniPiano) {
-        store.salva(i)
-        _impostazioni.value = i
-    }
-
-    /** Parametri realmente in uso: quelli manuali se impostati, altrimenti quelli calcolati dall'app. */
-    val parametriEffettivi: StateFlow<ParametriPiano> = stato(
-        combine(_impostazioni, atleti, tuttiLog, stagione) { imp, at, log, s ->
-            val auto = AutoPianificatore.parametriAuto(at, log, s, LocalDate.now())
-            ParametriPiano(
-                giorniAllenamento = imp.giorni ?: auto.giorniAllenamento,
-                numeroMacrocicli = imp.numeroMacrocicli ?: auto.numeroMacrocicli,
-                metriBaseSeduta = imp.metriBaseSeduta ?: auto.metriBaseSeduta,
-                settimaneCicloCarico = imp.settimaneCicloCarico ?: auto.settimaneCicloCarico
-            )
-        },
-        ParametriPiano()
-    )
-
     fun creaStagione(nome: String, inizio: LocalDate, fine: LocalDate) {
         viewModelScope.launch {
-            val id = pianoDao.inserisciStagione(Stagione(nome = nome, inizio = inizio, fine = fine))
-            val feste = Festivita.perStagione(Stagione(id = id, nome = nome, inizio = inizio, fine = fine))
-            if (feste.isNotEmpty()) pianoDao.inserisciChiusure(feste)
+            pianoDao.inserisciStagione(Stagione(nome = nome, inizio = inizio, fine = fine))
         }
     }
 
@@ -218,28 +131,46 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun aggiungiGara(nome: String, dal: LocalDate, al: LocalDate, prioritaria: Boolean) {
         viewModelScope.launch {
             val s = stagioneCorrente() ?: return@launch
-            pianoDao.inserisciGara(Gara(stagioneId = s.id, nome = nome, dal = dal, al = al, prioritaria = prioritaria))
+            pianoDao.inserisciGara(
+                Gara(stagioneId = s.id, nome = nome, dal = dal, al = al, prioritaria = prioritaria)
+            )
         }
     }
 
     fun eliminaGara(g: Gara) { viewModelScope.launch { pianoDao.eliminaGara(g) } }
 
-    /** Rigenerazione manuale completa: ricalcola anche le settimane passate (restano solo quelle bloccate). */
-    fun rigeneraPianoCompleto() {
-        viewModelScope.launch {
-            val s = stagioneCorrente() ?: return@launch
-            val c = pianoDao.leggiChiusure(s.id)
-            val g = pianoDao.leggiGare(s.id)
-            val p = parametriEffettivi.value
-            rigeneraPiano(s, c, g, p, conservaPassato = false)
-            store.salvaFirmaPiano(firmaPiano(InputPiano(s, c, g, p)).hashCode())
-        }
-    }
-
+    /**
+     * Rigenera il piano. Le settimane modificate a mano (bloccate) mantengono i valori scelti,
+     * agganciate alla data di inizio della settimana. I giorni di allenamento scelti vengono
+     * salvati nella stagione, così il calendario sa in quali giorni c'è seduta.
+     */
     fun generaPiano(parametri: ParametriPiano) {
         viewModelScope.launch {
             val s = stagioneCorrente() ?: return@launch
-            rigeneraPiano(s, pianoDao.leggiChiusure(s.id), pianoDao.leggiGare(s.id), parametri, conservaPassato = false)
+            val chiusureAttuali = pianoDao.leggiChiusure(s.id)
+            val gareAttuali = pianoDao.leggiGare(s.id)
+            val bloccati = pianoDao.leggiMicro(s.id).filter { it.bloccato }.associateBy { it.inizio }
+
+            val piano = PianoGenerator.genera(s, chiusureAttuali, gareAttuali, parametri).map { macroGen ->
+                macroGen.copy(
+                    meso = macroGen.meso.map { mesoGen ->
+                        mesoGen.copy(
+                            micro = mesoGen.micro.map { mi ->
+                                val vecchio = bloccati[mi.inizio]
+                                if (vecchio == null) mi else mi.copy(
+                                    tipo = vecchio.tipo,
+                                    sedutePreviste = vecchio.sedutePreviste,
+                                    volumeTargetMetri = vecchio.volumeTargetMetri,
+                                    note = vecchio.note,
+                                    bloccato = true
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+            pianoDao.salvaPiano(s.id, piano)
+            pianoDao.aggiornaStagione(s.copy(giorniAllenamento = Calendario.maschera(parametri.giorniAllenamento)))
         }
     }
 
@@ -248,107 +179,4 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** La settimana torna automatica: verrà ricalcolata alla prossima rigenerazione. */
     fun sbloccaMicro(m: Microciclo) { viewModelScope.launch { pianoDao.aggiornaMicro(m.copy(bloccato = false)) } }
-
-    // ---------- Logica automatica ----------
-
-    private suspend fun rigeneraPiano(
-        s: Stagione,
-        chiusure: List<Chiusura>,
-        gare: List<Gara>,
-        parametri: ParametriPiano,
-        conservaPassato: Boolean
-    ) {
-        val vecchi = pianoDao.leggiMicro(s.id).associateBy { it.inizio }
-        val lunediCorrente = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-
-        val piano = PianoGenerator.genera(s, chiusure, gare, parametri).map { macroGen ->
-            macroGen.copy(
-                meso = macroGen.meso.map { mesoGen ->
-                    mesoGen.copy(
-                        micro = mesoGen.micro.map { mi ->
-                            val vecchio = vecchi[mi.inizio]
-                            when {
-                                vecchio == null -> mi
-                                vecchio.bloccato -> mi.copy(
-                                    tipo = vecchio.tipo, sedutePreviste = vecchio.sedutePreviste,
-                                    volumeTargetMetri = vecchio.volumeTargetMetri, note = vecchio.note, bloccato = true
-                                )
-                                conservaPassato && mi.inizio.isBefore(lunediCorrente) -> mi.copy(
-                                    tipo = vecchio.tipo, sedutePreviste = vecchio.sedutePreviste,
-                                    volumeTargetMetri = vecchio.volumeTargetMetri, note = vecchio.note, bloccato = false
-                                )
-                                else -> mi
-                            }
-                        }
-                    )
-                }
-            )
-        }
-        pianoDao.salvaPiano(s.id, piano)
-    }
-
-    private fun firmaPiano(i: InputPiano): String = buildString {
-        val s = i.stagione
-        append(s?.id).append('|').append(s?.inizio).append('|').append(s?.fine).append('|')
-        i.chiusure.forEach { append(it.dal).append('-').append(it.al).append(';') }
-        append('|')
-        i.gare.forEach { append(it.dal).append('-').append(it.al).append(it.prioritaria).append(it.nome).append(';') }
-        append('|')
-        append(i.parametri.giorniAllenamento.sortedBy { it.value }.joinToString(",") { it.name })
-        append('|').append(i.parametri.numeroMacrocicli)
-        append('|').append(i.parametri.metriBaseSeduta)
-        append('|').append(i.parametri.settimaneCicloCarico)
-    }
-
-    init {
-        // 1. Il piano si rigenera da solo quando cambia qualcosa di rilevante.
-        viewModelScope.launch {
-            combine(stagione, chiusure, gare, parametriEffettivi) { s, c, g, p -> InputPiano(s, c, g, p) }
-                .debounce(1_000)
-                .collectLatest { inp ->
-                    val s = inp.stagione ?: return@collectLatest
-                    val firma = firmaPiano(inp).hashCode()
-                    val esistente = pianoDao.leggiMicro(s.id)
-                    if (esistente.isNotEmpty() && store.ultimaFirmaPiano() == firma) return@collectLatest
-                    rigeneraPiano(s, inp.chiusure, inp.gare, inp.parametri, conservaPassato = esistente.isNotEmpty())
-                    store.salvaFirmaPiano(firma)
-                }
-        }
-
-        // 2. Volume degli atleti in automatico + classi provvisorie dalla prima analisi FINP.
-        viewModelScope.launch {
-            combine(atleti, condizioni) { a, c -> a to c }
-                .debounce(500)
-                .collect { (elenco, tutte) ->
-                    val oggi = LocalDate.now()
-                    for (a in elenco) {
-                        val mie = tutte.filter { it.atletaId == a.id && it.attiva }
-                        var nuovo = a
-
-                        if (a.volumeAuto) {
-                            val f = AutoPianificatore.fattoreVolumeSuggerito(a, mie, oggi)
-                            if (abs(f - a.fattoreVolume) > 0.001) nuovo = nuovo.copy(fattoreVolume = f)
-                        }
-
-                        if (mie.isNotEmpty() && a.stato == StatoClassificazione.IN_ATTESA &&
-                            a.classeS == null && a.classeSB == null && a.classeSM == null &&
-                            !store.classiGiaStimate(a.id)
-                        ) {
-                            val eta = a.dataNascita?.let { Period.between(it, oggi).years }
-                            val st = FINPSpecialistAI.analizza(
-                                mie.joinToString(" | ") { it.descrizione },
-                                mie.joinToString(" | ") { it.limitazioni },
-                                eta
-                            ).stimaClassi
-                            if (st.eleggibile && st.affidabilita != "Bassa") {
-                                nuovo = nuovo.copy(classeS = st.classeS, classeSB = st.classeSB, classeSM = st.classeSM)
-                                store.segnaClassiStimate(a.id)
-                            }
-                        }
-
-                        if (nuovo != a) atletaDao.aggiorna(nuovo)
-                    }
-                }
-        }
-    }
 }
