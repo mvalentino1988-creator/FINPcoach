@@ -133,7 +133,7 @@ fun DashboardScreen(vm: MainViewModel, rvm: RegistroViewModel) {
                     )
                     Text(
                         if (!r.carico.affidabile) "ACWR: dati insufficienti"
-                        else "ACWR: ${r.carico.livello.name.lowercase()}",
+                        else "ACWR: ${r.carico.livello?.name?.lowercase() ?: "n.d."}",
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.SemiBold
                     )

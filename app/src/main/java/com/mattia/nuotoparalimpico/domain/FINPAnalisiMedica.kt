@@ -4,7 +4,9 @@ data class StimaClassiFINP(
     val classeS: Int,    // Stile libero, Dorso, Farfalla
     val classeSB: Int,   // Rana (SB10 non esiste)
     val classeSM: Int,   // Misti
-    val motivazione: String
+    val motivazione: String,
+    val eleggibile: Boolean = true,
+    val affidabilita: String = "Media"
 )
 
 /** Categorie cliniche riconosciute. L'ordine è la priorità: vince il tag con ordinal minore. */
@@ -251,4 +253,14 @@ object FINPSpecialistAI {
             tag = tag
         )
     }
+
+    fun flagMedici(testo: String): FlagMedici {
+        val t = testo.lowercase()
+        return FlagMedici(
+            cardiorespiratoria = t.contains("cardio") || t.contains("respirat") || t.contains("asma") || t.contains("cuore"),
+            spalla = t.contains("spalla") || t.contains("cuffia") || t.contains("rotator")
+        )
+    }
 }
+
+data class FlagMedici(val cardiorespiratoria: Boolean, val spalla: Boolean)

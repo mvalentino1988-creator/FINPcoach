@@ -25,6 +25,10 @@ import com.mattia.nuotoparalimpico.domain.Festivita
 import com.mattia.nuotoparalimpico.domain.ParametriPiano
 import com.mattia.nuotoparalimpico.domain.PianoGenerator
 import com.mattia.nuotoparalimpico.domain.PianoValidator
+import com.mattia.nuotoparalimpico.domain.GeneratoreSmartSeduta
+import com.mattia.nuotoparalimpico.domain.SchedaSeduta
+import com.mattia.nuotoparalimpico.data.FaseMesociclo
+import com.mattia.nuotoparalimpico.data.TipoMicrociclo
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.Period
@@ -59,6 +63,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val db = AppDatabase.get(app)
     private val atletaDao = db.atletaDao()
     private val pianoDao = db.pianoDao()
+    private val rankingDao = db.rankingDao()
+    private val regolamentiRepository = com.mattia.nuotoparalimpico.data.RegolamentiRepository(app)
     private val store = ImpostazioniStore(app)
 
     private fun <T> stato(flow: Flow<T>, iniziale: T): StateFlow<T> =
@@ -98,6 +104,48 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     suspend fun leggiTempi(atletaId: Long): List<Tempo> = atletaDao.leggiTempi(atletaId)
     suspend fun leggiLogSedute(atletaId: Long): List<LogSeduta> = atletaDao.leggiLogSedute(atletaId)
+
+    // ---------- Rankings e Regolamenti ----------
+    val rankings: StateFlow<List<com.mattia.nuotoparalimpico.data.RankingAtleta>> = stato(rankingDao.osserva(), emptyList())
+    fun salvaRanking(r: com.mattia.nuotoparalimpico.data.RankingAtleta) { viewModelScope.launch { rankingDao.salva(r) } }
+    fun eliminaRanking(r: com.mattia.nuotoparalimpico.data.RankingAtleta) { viewModelScope.launch { rankingDao.elimina(r) } }
+
+    private val _regolamenti = MutableStateFlow(com.mattia.nuotoparalimpico.data.StatoRegolamenti())
+    val regolamenti: StateFlow<com.mattia.nuotoparalimpico.data.StatoRegolamenti> = _regolamenti.asStateFlow()
+
+    fun aggiornaRegolamenti(forza: Boolean = false) {
+        viewModelScope.launch {
+            val (cached, ts) = regolamentiRepository.leggiCache()
+            if (!forza && cached.isNotEmpty() && ts != null && (System.currentTimeMillis() - ts) < 24 * 3600 * 1000L) {
+                _regolamenti.value = com.mattia.nuotoparalimpico.data.StatoRegolamenti(documenti = cached, caricamento = false, aggiornatoIl = ts)
+                return@launch
+            }
+            _regolamenti.value = _regolamenti.value.copy(caricamento = true, errore = null)
+            val esito = regolamentiRepository.scarica()
+            _regolamenti.value = com.mattia.nuotoparalimpico.data.StatoRegolamenti(
+                documenti = esito.documenti,
+                caricamento = false,
+                errore = esito.errori.joinToString("\n").takeIf { it.isNotBlank() },
+                aggiornatoIl = esito.timestamp
+            )
+        }
+    }
+
+    suspend fun generaScheda(data: LocalDate): SchedaSeduta {
+        val s = stagione.value
+        val mList = micro.value
+        val mesoList = meso.value
+        val mc = mList.firstOrNull { !data.isBefore(it.inizio) && !data.isAfter(it.fine) }
+        val mesoC = mc?.let { m -> mesoList.firstOrNull { it.id == m.mesocicloId } }
+        val metri = if (mc != null && mc.sedutePreviste > 0) mc.volumeTargetMetri / mc.sedutePreviste else 1800
+        return GeneratoreSmartSeduta.genera(
+            data = data,
+            metriTarget = metri,
+            fase = mesoC?.fase ?: FaseMesociclo.PREPARAZIONE_SPECIFICA,
+            tipoMicro = mc?.tipo ?: TipoMicrociclo.CARICO,
+            vascaMetri = s?.vascaMetri ?: 25
+        )
+    }
 
     // ---------- Stagione e piano ----------
     val stagione: StateFlow<Stagione?> = stato(pianoDao.osservaStagione(), null)

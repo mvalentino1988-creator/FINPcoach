@@ -140,7 +140,7 @@ class SalvaSedutaUseCase(private val registro: RegistroRepository) {
 
 data class CaricoAtleta(
     val affidabile: Boolean,
-    val livello: LivelloAcwr,
+    val livello: LivelloAcwr?,
     val messaggio: String,
     val settimane: List<RiepilogoSettimana>,
     val ultimaSeduta: LocalDate?

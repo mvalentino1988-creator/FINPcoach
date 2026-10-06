@@ -51,13 +51,34 @@ val MIGRAZIONE_2_3 = object : Migration(2, 3) {
     }
 }
 
+val MIGRAZIONE_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS `ranking_atleta` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `atletaId` INTEGER NOT NULL,
+                `stile` TEXT NOT NULL,
+                `distanzaMetri` INTEGER NOT NULL,
+                `ambito` TEXT NOT NULL,
+                `posizione` INTEGER NOT NULL,
+                `vascaMetri` INTEGER NOT NULL DEFAULT 25,
+                `tempoCentesimi` INTEGER,
+                `note` TEXT NOT NULL DEFAULT '',
+                `aggiornatoIl` INTEGER NOT NULL,
+                FOREIGN KEY(`atletaId`) REFERENCES `atleti`(`id`) ON DELETE CASCADE
+            )
+        """.trimIndent())
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_ranking_atleta_atletaId` ON `ranking_atleta` (`atletaId`)")
+    }
+}
+
 @Database(
     entities = [
         Atleta::class, CondizioneMedica::class, Assenza::class, AtletaAttributo::class,
         Stagione::class, Macrociclo::class, Mesociclo::class, Microciclo::class,
-        Chiusura::class, Gara::class, Tempo::class, LogSeduta::class
+        Chiusura::class, Gara::class, Tempo::class, LogSeduta::class, RankingAtleta::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -65,6 +86,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun atletaDao(): AtletaDao
     abstract fun pianoDao(): PianoDao
     abstract fun registroDao(): RegistroDao
+    abstract fun rankingDao(): RankingDao
 
     companion object {
         @Volatile
@@ -76,7 +98,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "nuoto.db"
-                ).addMigrations(MIGRAZIONE_1_2, MIGRAZIONE_2_3).build().also { istanza = it }
+                ).addMigrations(MIGRAZIONE_1_2, MIGRAZIONE_2_3, MIGRAZIONE_3_4).build().also { istanza = it }
             }
     }
 }

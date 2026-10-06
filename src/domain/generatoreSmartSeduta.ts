@@ -22,6 +22,8 @@ import { CalibrazioneAtleta } from './calibrazioneAtleta';
 import { addDays, daysBetween, getDayOfWeek, isBefore, todayISO, yearsBetween } from './dateUtils';
 import { FINPSpecialistAI } from './finpAnalisiMedica';
 import { formattaTempo } from './tempoUtils';
+import { FINPStorage } from '../data/storage';
+import { ParserScheda } from './parserScheda';
 
 export function arrotondaA50m(n: number): number {
   return Math.round(n / 50) * 50;
@@ -84,6 +86,21 @@ export class GeneratoreSmartSeduta {
     const adattamentiEta: string[] = [];
     const avvertenze: string[] = [];
     const note: string[] = [];
+
+    // Adaptive Continuity: Adatta il volume target sulla base degli ultimi allenamenti manuali inseriti dall'allenatore
+    try {
+      const customWorkouts = FINPStorage.getCustomWorkouts();
+      if (customWorkouts && customWorkouts.length > 0) {
+        const ultimi = customWorkouts.slice(0, 5);
+        const sommaMetri = ultimi.reduce((acc, w) => acc + ParserScheda.calcolaMetriDaTesto(w.testo), 0);
+        const mediaManuale = Math.round(sommaMetri / ultimi.length);
+        if (mediaManuale > 500) {
+          metriTarget = Math.round((metriTarget * 0.3) + (mediaManuale * 0.7));
+        }
+      }
+    } catch (e) {
+      // Fallback
+    }
 
     // 1. Quote base per codice
     const quote: Record<CodiceAllenamentoKey, number> = {
@@ -202,15 +219,24 @@ export class GeneratoreSmartSeduta {
     // 5. Calibrazione automatica atleta-specifica
     let fattoreCalibrazione = 1.0;
     let limitaDistanzeLunghe = false;
+    let volumeBaseCalibrazione: number | null = null;
     if (atleta != null) {
-      const calibrazione = CalibrazioneAtleta.calibra(atleta, tempi, condizioniMediche);
+      const calibrazione = CalibrazioneAtleta.calibra(atleta, tempi, condizioniMediche, logSedute);
       fattoreCalibrazione = calibrazione.fattoreCorrezione;
       limitaDistanzeLunghe = !calibrazione.puoSostenereDistanzeLunghe;
+      volumeBaseCalibrazione = calibrazione.volumeBaseGiornaliero;
       note.push(...calibrazione.note);
     }
 
     // 6. Volume, corretto sul carico recente dell'atleta (ACWR) e calibrazione
     let volume = Math.max(400, arrotondaA50m(metriTarget));
+    
+    // Se abbiamo un volume base dalla calibrazione, usalo come riferimento
+    if (volumeBaseCalibrazione && atleta != null) {
+      volume = Math.max(400, arrotondaA50m(volumeBaseCalibrazione));
+      note.push(`Volume base calibrato sul livello: ${volumeBaseCalibrazione}m`);
+    }
+    
     const [fattoreCarico, notaCarico] = this.fattoreDaCarico(logSedute, oggi);
     
     // Applica fattori: prima ACWR, poi calibrazione atleta

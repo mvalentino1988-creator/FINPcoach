@@ -10,7 +10,7 @@ import {
   TipoMicrociclo,
   TIPO_MICROCICLO_LABEL
 } from '../types';
-import { formattaData, parseData, todayISO, isBefore } from '../domain/dateUtils';
+import { formattaData, parseData, todayISO, isBefore, addDays, daysBetween } from '../domain/dateUtils';
 import { AutoPianificatore } from '../domain/autoPianificatore';
 import { GeneratoreSmartSeduta } from '../domain/generatoreSmartSeduta';
 import { IndicatoreCodici } from './IndicatoreCodici';
@@ -64,6 +64,19 @@ export const PianoScreen: React.FC = () => {
   const [chiusureEspanso, setChiusureEspanso] = useState(false);
   const [microSelezionato, setMicroSelezionato] = useState<Microciclo | null>(null);
   const [schedaSmart, setSchedaSmart] = useState<SchedaSeduta | null>(null);
+
+  const generaDateSedute = (inizioISO: string, fineISO: string, nSedute: number): string[] => {
+    const start = parseData(inizioISO) ?? todayISO();
+    const end = parseData(fineISO) ?? addDays(start, 6);
+    const totalDays = daysBetween(start, end) + 1;
+    if (nSedute <= 0) return [];
+    const dates: string[] = [];
+    for (let i = 0; i < nSedute; i++) {
+      const offset = Math.round((i * (totalDays - 1)) / Math.max(1, nSedute - 1));
+      dates.push(addDays(start, offset));
+    }
+    return dates;
+  };
 
   // Modifica date stagione esistente
   const [modificaDateOpen, setModificaDateOpen] = useState(false);
@@ -889,6 +902,35 @@ export const PianoScreen: React.FC = () => {
                             {mi.note && (
                               <p className="text-[11px] text-slate-500 italic">{mi.note}</p>
                             )}
+                          </div>
+
+                          {/* Sedute del giorno cliccabili direttamente dal calendario */}
+                          <div className="pt-2 border-t border-slate-100 space-y-1">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                              Schede Giornaliere (Varietà):
+                            </span>
+                            <div className="flex flex-wrap gap-1">
+                              {generaDateSedute(mi.inizio, mi.fine, mi.sedutePreviste).map((dataSeduta, sIdx) => {
+                                const schedaSedutaGiorno = GeneratoreSmartSeduta.genera(
+                                  dataSeduta,
+                                  metriSeduta,
+                                  activeMeso?.fase ?? 'PREPARAZIONE_SPECIFICA',
+                                  mi.tipo
+                                );
+                                return (
+                                  <button
+                                    key={sIdx}
+                                    type="button"
+                                    onClick={() => setSchedaSmart(schedaSedutaGiorno)}
+                                    className="px-2 py-0.5 bg-cyan-50 hover:bg-[#006874] hover:text-white text-[#006874] rounded-md text-[10px] font-bold transition border border-cyan-200 flex items-center gap-1 shadow-xs"
+                                    title={`Apri scheda per il ${formattaData(dataSeduta)}`}
+                                  >
+                                    <Waves size={11} />
+                                    <span>S.{sIdx + 1} ({formattaData(dataSeduta).substring(0, 5)})</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
                           </div>
 
                           <button

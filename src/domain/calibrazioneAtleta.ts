@@ -1,5 +1,6 @@
 import { Atleta, CondizioneMedica, Tempo } from '../types';
 import { todayISO, yearsBetween } from './dateUtils';
+import { RilevamentoLivello, LivelloAtleta } from './rilevamentoLivello';
 
 export interface CalibrazioneAtleta {
   /** Passo 100m stimato (centesimi) */
@@ -10,6 +11,10 @@ export interface CalibrazioneAtleta {
   puoSostenereDistanzeLunghe: boolean;
   /** Fattore di correzione per età/patologie */
   fattoreCorrezione: number;
+  /** Livello dell'atleta */
+  livello: LivelloAtleta;
+  /** Volume base giornaliero consigliato */
+  volumeBaseGiornaliero: number;
   /** Note esplicative della calibrazione */
   note: string[];
 }
@@ -25,7 +30,8 @@ export class CalibrazioneAtleta {
   static calibra(
     atleta: Atleta,
     tempi: Tempo[],
-    condizioni: CondizioneMedica[]
+    condizioni: CondizioneMedica[],
+    logSedute: any[] = []
   ): CalibrazioneAtleta {
     const oggi = todayISO();
     const eta = atleta.dataNascita ? yearsBetween(atleta.dataNascita, oggi) : null;
@@ -33,7 +39,11 @@ export class CalibrazioneAtleta {
     let fattoreCorrezione = 1.0;
     let puoSostenereDistanzeLunghe = true;
 
-    // 1. Valutazione tempi
+    // 1. Rilevamento livello (principiante/intermedio/avanzato)
+    const valutazioneLivello = RilevamentoLivello.valuta(atleta, tempi, logSedute);
+    note.push(...valutazioneLivello.note);
+
+    // 2. Valutazione tempi
     const tempiAtleta = tempi.filter(t => t.atletaId === atleta.id);
     const tempiRecenti = tempiAtleta.filter(t => t.distanzaMetri >= 50);
 
@@ -43,36 +53,38 @@ export class CalibrazioneAtleta {
         indiceForma: 50,
         puoSostenereDistanzeLunghe: true,
         fattoreCorrezione: 1.0,
-        note: ['Nessun tempo registrato: calibrazione di default. Inserisci almeno un 50m o 100m.']
+        livello: valutazioneLivello.livello,
+        volumeBaseGiornaliero: valutazioneLivello.volumeBaseGiornaliero,
+        note
       };
     }
 
-    // 2. Capacità distanze - controlla se ha tempi 200m+
+    // 3. Capacità distanze - controlla se ha tempi 200m+
     const tempiLungi = tempiRecenti.filter(t => t.distanzaMetri >= 200);
     if (tempiLungi.length === 0) {
       puoSostenereDistanzeLunghe = false;
       note.push('Atleta con solo distanze corte (50-100m): evita serie >200m e volume eccessivo.');
     }
 
-    // 3. Calcolo passo 100m dal miglior tempo
+    // 4. Calcolo passo 100m dal miglior tempo
     const migliorTempo = this.scegliMigliorTempo(tempiRecenti);
     const passo100m = this.convertiA100m(migliorTempo);
     
-    // 4. Valutazione età
+    // 5. Valutazione età
     if (eta !== null) {
       if (eta < 12) {
         fattoreCorrezione = 0.85;
         note.push('Under 12: volume ridotto al 85%, enfasi su tecnica non lattacido.');
       } else if (eta >= 35) {
         fattoreCorrezione = 0.90;
-        note.push('Master 35+: volume ridotto al 90%, recuperi più ampi.');
+        note.push('Master 35+: volume ridotto al 90%, recuperi ampi.');
       } else if (eta >= 12 && eta <= 14) {
         fattoreCorrezione = 0.95;
         note.push('12-14 anni: introduzione graduale lattacido, volume 95%.');
       }
     }
 
-    // 5. Valutazione condizioni mediche
+    // 6. Valutazione condizioni mediche
     const attive = condizioni.filter(c => c.attiva);
     const testoMedico = attive.map(c => `${c.descrizione} ${c.limitazioni}`).join(' ').toLowerCase();
     
@@ -92,7 +104,7 @@ export class CalibrazioneAtleta {
       note.push('Patologia cardiorespiratoria: ritmo costante A2/B1, evita apnee.');
     }
 
-    // 6. Indice di forma (basato su miglioramento tempi)
+    // 7. Indice di forma (basato su miglioramento tempi)
     const indiceForma = this.calcolaIndiceForma(tempiRecenti, migliorTempo);
     if (indiceForma < 40) {
       note.push('Forma in calo: considera scarico o focus tecnico.');
@@ -105,17 +117,23 @@ export class CalibrazioneAtleta {
       indiceForma,
       puoSostenereDistanzeLunghe,
       fattoreCorrezione,
+      livello: valutazioneLivello.livello,
+      volumeBaseGiornaliero: valutazioneLivello.volumeBaseGiornaliero,
       note
     };
   }
 
   private static scegliMigliorTempo(tempi: Tempo[]): Tempo {
     // Priorità: 100m > 200m > 50m > 400m
-    const perDistanza = tempi.reduce((acc, t) => {
-      if (!acc[t.distanzaMetri]) acc[t.distanzaMeti] = [];
-      acc[t.distanzaMeti].push(t);
-      return acc;
-    }, {} as Record<number, Tempo[]>);
+    const perDistanza: Record<number, Tempo[]> = {};
+    
+    for (const t of tempi) {
+      const dist = t.distanzaMetri;
+      if (!perDistanza[dist]) {
+        perDistanza[dist] = [];
+      }
+      perDistanza[dist].push(t);
+    }
 
     // Preferisce 100m se disponibile
     if (perDistanza[100] && perDistanza[100].length > 0) {

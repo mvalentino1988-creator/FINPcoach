@@ -21,6 +21,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -61,6 +62,7 @@ fun parseData(testo: String): LocalDate? =
 
 fun LocalDate.formatta(): String = format(FORMATO_DATA)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CampoData(
     valore: String,

@@ -392,8 +392,7 @@ private fun DialogDettaglio(
                             condizioniMediche = condizioni,
                             tempi = tempi,
                             logSedute = logSedute,
-                            mesocicloCorrente = mesoCorrente,
-                            giorniAllenamento = vm.parametriEffettivi.value.giorniAllenamento
+                            mesocicloCorrente = mesoCorrente
                         )
                     },
                     modifier = Modifier.fillMaxWidth()

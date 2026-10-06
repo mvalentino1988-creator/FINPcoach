@@ -60,7 +60,7 @@ object RegolamentoGare {
 
     private val FORMATO = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
-    private fun voce(d: Int, s: Stile, c: CategoriaClasse, classi: Collection<Int>) =
+    private fun voce(d: Int, s: Stile, c: CategoriaClasse, classi: Iterable<Int>) =
         GaraDisponibile(d, s, c, classi.toSet(), "${d}m ${nomeStile(s)}")
 
     val PROGRAMMA: List<GaraDisponibile> = listOf(

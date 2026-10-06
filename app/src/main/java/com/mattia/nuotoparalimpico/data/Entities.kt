@@ -39,6 +39,8 @@ enum class LivelloGara(val etichetta: String, val settimanePreGara: Int) {
 enum class Stile { STILE_LIBERO, DORSO, RANA, FARFALLA, MISTI }
 enum class ContestoTempo { GARA, ALLENAMENTO, TEST }
 
+enum class Sesso(val etichetta: String) { M("Maschile"), F("Femminile") }
+
 // ---------- ATLETI ----------
 
 @Entity(tableName = "atleti")
@@ -47,13 +49,16 @@ data class Atleta(
     val nome: String,
     val cognome: String,
     val dataNascita: LocalDate? = null,
+    val sesso: Sesso? = null,
     val classeS: Int? = null,
     val classeSB: Int? = null,
     val classeSM: Int? = null,
     val stato: StatoClassificazione = StatoClassificazione.IN_ATTESA,
     /** 1.0 = volume pieno di squadra; 0.8 = 80% ecc. Deciso dall'allenatore. */
     val fattoreVolume: Double = 1.0,
-    val note: String = ""
+    val metriMaxSeduta: Int? = null,
+    val note: String = "",
+    val volumeAuto: Boolean = true
 )
 
 @Entity(
@@ -221,3 +226,23 @@ data class LogSeduta(
 
 data class MesoGen(val meso: Mesociclo, val micro: List<Microciclo>)
 data class MacroGen(val macro: Macrociclo, val meso: List<MesoGen>)
+
+enum class AmbitoRanking(val etichetta: String) { ITALIA("Italiano (FINP)"), MONDO("Mondiale (WPS)") }
+
+@Entity(
+    tableName = "ranking_atleta",
+    foreignKeys = [ForeignKey(entity = Atleta::class, parentColumns = ["id"], childColumns = ["atletaId"], onDelete = ForeignKey.CASCADE)],
+    indices = [Index("atletaId")]
+)
+data class RankingAtleta(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val atletaId: Long,
+    val stile: Stile,
+    val distanzaMetri: Int,
+    val ambito: AmbitoRanking,
+    val posizione: Int,
+    val vascaMetri: Int = 25,
+    val tempoCentesimi: Int? = null,
+    val note: String = "",
+    val aggiornatoIl: LocalDate = LocalDate.now()
+)

@@ -431,7 +431,7 @@ private fun SezioneStorico(atleta: Atleta, vm: MainViewModel, rvm: RegistroViewM
     Text("Presenze: $presenti su ${mioLog.size} sedute registrate", fontWeight = FontWeight.SemiBold)
     Text(
         "Carico sRPE = RPE x durata (minuti) della seduta. " +
-            if (carico.affidabile) "ACWR: ${carico.livello.name.lowercase()}." else "ACWR: dati insufficienti per un valore affidabile.",
+            if (carico.affidabile) "ACWR: ${carico.livello?.name?.lowercase() ?: "n.d."}." else "ACWR: dati insufficienti per un valore affidabile.",
         style = MaterialTheme.typography.bodySmall
     )
     carico.settimane.forEach { s ->

@@ -164,7 +164,7 @@ object CalcoloCarico {
         if (atleta.classeS == null && atleta.classeSB == null && atleta.classeSM == null) m += DatoMancante.CLASSI
         if (atleta.metriMaxSeduta == null) m += DatoMancante.METRI_MAX
 
-        fun recente(t: Tempo) = ChronoUnit.DAYS.between(t.data, oggi) <= CalcoloRitmiRipartenze.GIORNI_VALIDITA
+        fun recente(t: Tempo) = ChronoUnit.DAYS.between(t.data, oggi) <= 180
         if (tempi.none { it.distanzaMetri == 100 && it.contesto != ContestoTempo.ALLENAMENTO && recente(it) }) {
             m += DatoMancante.TEMPO_100
         }

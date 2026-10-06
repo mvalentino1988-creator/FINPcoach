@@ -30,7 +30,8 @@ const STORAGE_KEYS = {
   MICROCICLI: 'finp_microcicli',
   IMPOSTAZIONI: 'finp_impostazioni',
   FIRMA_PIANO: 'finp_firma_piano',
-  CLASSI_STIMATE: 'finp_classi_stimate'
+  CLASSI_STIMATE: 'finp_classi_stimate',
+  CUSTOM_WORKOUTS: 'finpcoach_custom_workouts'
 };
 
 function load<T>(key: string, defaultValue: T): T {
@@ -52,6 +53,14 @@ function save<T>(key: string, value: T): void {
 }
 
 export class FINPStorage {
+  static getCustomWorkouts(): any[] {
+    return load<any[]>(STORAGE_KEYS.CUSTOM_WORKOUTS, []);
+  }
+
+  static saveCustomWorkouts(workouts: any[]) {
+    save(STORAGE_KEYS.CUSTOM_WORKOUTS, workouts);
+  }
+
   static getAtleti(): Atleta[] {
     const list = load<Atleta[]>(STORAGE_KEYS.ATLETI, []);
     if (list.length === 0) {
