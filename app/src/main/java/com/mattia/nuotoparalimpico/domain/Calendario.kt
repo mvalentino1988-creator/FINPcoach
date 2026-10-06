@@ -1,7 +1,5 @@
 package com.mattia.nuotoparalimpico.domain
 
-package com.mattia.nuotoparalimpico.domain
-
 import com.mattia.nuotoparalimpico.data.Chiusura
 import com.mattia.nuotoparalimpico.data.Gara
 import com.mattia.nuotoparalimpico.data.Microciclo
