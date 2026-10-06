@@ -9,6 +9,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Configure Git for long paths
+        run: git config --global core.longpaths true
+
       - name: Checkout
         uses: actions/checkout@v4
 
