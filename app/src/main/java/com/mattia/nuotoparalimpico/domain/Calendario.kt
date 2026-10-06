@@ -32,7 +32,8 @@ object Calendario {
         stagione: Stagione,
         micro: List<Microciclo>,
         chiusure: List<Chiusura>,
-        gare: List<Gara>
+        gare: List<Gara>,
+        giorniAllenamento: Set<DayOfWeek> = setOf(DayOfWeek.WEDNESDAY, DayOfWeek.SATURDAY)
     ): GiornoCalendario {
         val settimana = micro.firstOrNull { !data.isBefore(it.inizio) && !data.isAfter(it.fine) }
         val chiusura = chiusure.firstOrNull { !data.isBefore(it.dal) && !data.isAfter(it.al) }
@@ -40,7 +41,7 @@ object Calendario {
         val seduta = settimana != null &&
                 settimana.tipo != TipoMicrociclo.PAUSA &&
                 settimana.sedutePreviste > 0 &&
-                data.dayOfWeek in giorni(stagione.giorniAllenamento) &&
+                data.dayOfWeek in giorniAllenamento &&
                 chiusura == null &&
                 gareGiorno.isEmpty() &&
                 !data.isBefore(stagione.inizio) && !data.isAfter(stagione.fine)
