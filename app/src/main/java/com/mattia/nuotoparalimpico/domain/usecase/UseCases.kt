@@ -14,6 +14,7 @@ import com.mattia.nuotoparalimpico.data.repository.PianoRepository
 import com.mattia.nuotoparalimpico.data.repository.RegistroRepository
 import com.mattia.nuotoparalimpico.domain.CalcoloAcwr
 import com.mattia.nuotoparalimpico.domain.CalcoloRitmiRipartenze
+import com.mattia.nuotoparalimpico.domain.TempoImportato
 import com.mattia.nuotoparalimpico.domain.GeneratoreSmartSeduta
 import com.mattia.nuotoparalimpico.domain.LivelloAcwr
 import com.mattia.nuotoparalimpico.domain.ParametriPiano
@@ -168,31 +169,8 @@ class CalcolaCaricoAtletaUseCase {
 
 // ------------------------------------------------------------------ 5. Import tempi
 
-/** Interpreta il testo incollato e salva i tempi nuovi, saltando i duplicati. Restituisce quanti ne ha salvati. */
-class ImportaTempiUseCase(private val atleti: AtletaRepository) {
-    suspend operator fun invoke(
-        atletaId: Long,
-        testo: String,
-        data: LocalDate = LocalDate.now(),
-        vascaMetri: Int = 25
-    ): Int {
-        val esistenti = atleti.leggiTempi(atletaId)
-        var salvati = 0
-        for (t in CalcoloRitmiRipartenze.parseImportaTempi(testo)) {
-            val doppio = esistenti.any {
-                it.data == data && it.stile == t.stile && it.distanzaMetri == t.distanzaMetri &&
-                    it.centesimi == t.centesimi && it.contesto == t.contesto
-            }
-            if (doppio) continue
-            atleti.aggiungiTempo(
-                Tempo(
-                    atletaId = atletaId, data = data, stile = t.stile,
-                    distanzaMetri = t.distanzaMetri, centesimi = t.centesimi,
-                    contesto = t.contesto, vascaMetri = vascaMetri, note = t.note
-                )
-            )
-            salvati++
-        }
-        return salvati
-    }
+/** Analizza i risultati selezionati; il salvataggio avviene solo dopo la conferma nell'anteprima. */
+class ImportaTempiUseCase {
+    operator fun invoke(testo: String, cognome: String, nome: String? = null): List<TempoImportato> =
+        CalcoloRitmiRipartenze.parseImportaTempi(testo, cognome, nome)
 }

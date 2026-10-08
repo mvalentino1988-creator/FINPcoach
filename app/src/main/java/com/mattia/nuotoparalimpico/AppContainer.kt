@@ -22,5 +22,5 @@ class AppContainer(app: Application) {
     val generaSeduta = GeneraSedutaUseCase(atleti, piano)
     val salvaSeduta = SalvaSedutaUseCase(registro)
     val calcolaCarico = CalcolaCaricoAtletaUseCase()
-    val importaTempi = ImportaTempiUseCase(atleti)
+    val importaTempi = ImportaTempiUseCase()
 }

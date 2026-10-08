@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -23,7 +21,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,15 +35,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mattia.nuotoparalimpico.data.Atleta
-import com.mattia.nuotoparalimpico.data.ContestoTempo
 import com.mattia.nuotoparalimpico.data.Mesociclo
-import com.mattia.nuotoparalimpico.data.Stile
 import com.mattia.nuotoparalimpico.data.Tempo
 import com.mattia.nuotoparalimpico.domain.CalcoloRitmiRipartenze
 import com.mattia.nuotoparalimpico.domain.CalcoloScienzaNuoto
 import com.mattia.nuotoparalimpico.domain.CodiceAllenamento
 import com.mattia.nuotoparalimpico.domain.formattaTempo
-import com.mattia.nuotoparalimpico.domain.parseTempo
 import com.mattia.nuotoparalimpico.domain.primatiPersonali
 import java.time.LocalDate
 
@@ -118,17 +112,6 @@ private fun ContenutoTempiAtleta(
     var mostraImport by remember { mutableStateOf(false) }
     var testoImport by remember { mutableStateOf("") }
 
-    var dataTesto by remember { mutableStateOf(LocalDate.now().formatta()) }
-    var stile by remember { mutableStateOf(Stile.STILE_LIBERO) }
-    var distanza by remember { mutableStateOf("100") }
-    var tempoTesto by remember { mutableStateOf("") }
-    var contesto by remember { mutableStateOf(ContestoTempo.GARA) }
-    var note by remember { mutableStateOf("") }
-
-    val dataParsed = parseData(dataTesto)
-    val distanzaInt = distanza.toIntOrNull()?.coerceIn(25, 1500) ?: 100
-    val tempoCentesimi = parseTempo(tempoTesto)
-
     // Form Check Alert
     val formCheck = remember(atleta, tempi, mesoCorrente) {
         CalcoloRitmiRipartenze.valutaNecessitaFormCheck(atleta, tempi, emptyList(), mesoCorrente)
@@ -148,42 +131,59 @@ private fun ContenutoTempiAtleta(
         }
     }
 
-    // Calcolo VAM / CSS (Critical Swim Speed)
-    val t400 = tempi.filter { it.distanzaMetri == 400 }.maxByOrNull { it.data }
-    val t100 = tempi.filter { it.distanzaMetri == 100 }.maxByOrNull { it.data }
-    if (t400 != null && t100 != null) {
-        val cssRes = remember(t400, t100) { CalcoloScienzaNuoto.calcolaCSS(t400.centesimi, t100.centesimi) }
-        if (cssRes != null) {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
-                        Text("Calcolo Scientifico CSS (Soglia B1)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
-                    }
-                    Text("Passo Soglia Aerobica CSS: ${cssRes.passo100mFormatted} / 100m", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                    Text(cssRes.spiegazioneMetodologica, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
+    val riferimento100 = remember(tempi) {
+        CalcoloRitmiRipartenze.tempoRiferimento100(tempi, stile = null, vascaMetri = null, oggi = LocalDate.now())
+    }
+    val tempo100 = riferimento100?.tempo
+    val tempo400 = tempo100?.let { CalcoloRitmiRipartenze.tempoRiferimento400(tempi, it) }
+    val css = if (tempo100 != null && tempo400 != null) {
+        remember(tempo100, tempo400) { CalcoloScienzaNuoto.calcolaCssRiferimenti(tempo100, tempo400) }
+    } else null
+    if (tempo100 != null) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                    Text("Calcolo Scientifico CSS (Soglia B1)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                }
+                if (css == null) {
+                    Text("manca un 400 dello stesso stile/vasca recente", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                } else {
+                    Text("Passo Soglia Aerobica CSS: ${css.passo100mFormatted} / 100m", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Text("Riferimento 100m: ${tempo100.stile.etichetta}, vasca ${tempo100.vascaMetri}m · ${tempo100.data.formatta()} · ${formattaTempo(tempo100.centesimi)}", style = MaterialTheme.typography.bodySmall)
+                    Text("Riferimento 400m: ${tempo400?.data?.formatta()} · ${formattaTempo(tempo400?.centesimi ?: 0)}", style = MaterialTheme.typography.bodySmall)
+                    Text("CSS calcolata dai riferimenti 100/400 dello stesso stile e vasca.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
                 }
             }
         }
     }
 
     // Tabella Ripartenze Calcolate sui tempi
-    val migliorTempo100 = tempi.filter { it.distanzaMetri == 100 }.maxByOrNull { it.data }
+    val migliorTempo100 = tempo100
     if (migliorTempo100 != null) {
         val tabella = remember(migliorTempo100) {
             CalcoloRitmiRipartenze.calcolaTabellaRitmi(
                 atletaId = atleta.id,
                 tempo100mCentesimi = migliorTempo100.centesimi,
-                stile = migliorTempo100.stile
+                stile = migliorTempo100.stile,
+                vascaMetri = migliorTempo100.vascaMetri
             )
         }
 
         Titolo("Tabella Ritmi & Ripartenze a 5 Secondi · ${atleta.nome}", Icons.Filled.List)
-        Text("Calcolata sul miglior tempo 100m ${migliorTempo100.stile.name.replace("_", " ")}: ${formattaTempo(migliorTempo100.centesimi)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+        Text(
+            "Riferimento: ${migliorTempo100.data.formatta()} · ${migliorTempo100.stile.etichetta} · vasca ${migliorTempo100.vascaMetri}m · ${formattaTempo(migliorTempo100.centesimi)}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
+        )
+        if (riferimento100?.datato == true) {
+            Text("Attenzione: il tempo di riferimento è datato (oltre 180 giorni).", color = MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.bodySmall)
+        }
 
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             CodiceAllenamento.entries.forEach { codice ->
@@ -239,54 +239,7 @@ private fun ContenutoTempiAtleta(
 
     HorizontalDivider()
 
-    // Form Inserimento Manuale
-    Titolo("Aggiungi Nuovo Tempo di Gara / Test", Icons.Filled.DateRange)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        CampoData(dataTesto, { dataTesto = it }, "Data", Modifier.weight(1f))
-        CampoNumero(distanza, { distanza = it }, "Distanza (m)", Modifier.weight(1f))
-    }
-    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Stile.entries.forEach { s ->
-            FilterChip(selected = s == stile, onClick = { stile = s }, label = { Text(s.name.replace("_", " ")) })
-        }
-    }
-    OutlinedTextField(
-        tempoTesto,
-        { tempoTesto = it },
-        label = { Text("Tempo (es. 1:02.35 o 62.35)") },
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth()
-    )
-    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        ContestoTempo.entries.forEach { c ->
-            FilterChip(selected = c == contesto, onClick = { contesto = c }, label = { Text(c.name.lowercase()) })
-        }
-    }
-    OutlinedTextField(note, { note = it }, label = { Text("Note") }, modifier = Modifier.fillMaxWidth())
-
-    Button(
-        enabled = dataParsed != null && tempoCentesimi != null,
-        onClick = {
-            if (dataParsed != null && tempoCentesimi != null) {
-                vm.aggiungiTempo(
-                    Tempo(
-                        atletaId = atleta.id,
-                        data = dataParsed,
-                        stile = stile,
-                        distanzaMetri = distanzaInt,
-                        centesimi = tempoCentesimi,
-                        contesto = contesto,
-                        note = note.trim()
-                    )
-                )
-                tempoTesto = ""
-                note = ""
-            }
-        },
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text("Salva Tempo")
-    }
+    FormNuovoTempo(atleta.id, "Aggiungi Nuovo Tempo di Gara / Test") { vm.aggiungiTempo(it) }
 
     HorizontalDivider()
 
@@ -308,7 +261,7 @@ private fun ContenutoTempiAtleta(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "${p.stile.name.replace("_", " ")} ${p.distanzaMetri} m",
+                        "${p.stile.etichetta} ${p.distanzaMetri} m (vasca ${p.vascaMetri} m)",
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
@@ -322,49 +275,14 @@ private fun ContenutoTempiAtleta(
         }
     }
 
-    // Modal Importazione OCR
+    // Anteprima importazione OCR
     if (mostraImport) {
-        AlertDialog(
-            onDismissRequest = { mostraImport = false },
-            title = { Text("Importa Tempi da Screenshot / Testo") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Incolla il testo estratto dallo screenshot o dai risultati di gara:", style = MaterialTheme.typography.bodySmall)
-                    OutlinedTextField(
-                        testoImport,
-                        { testoImport = it },
-                        label = { Text("Testo da analizzare") },
-                        modifier = Modifier.fillMaxWidth().height(140.dp),
-                        maxLines = 8
-                    )
-                }
-            },
-            confirmButton = {
-                val tempiImportati = CalcoloRitmiRipartenze.parseImportaTempi(testoImport)
-                TextButton(
-                    onClick = {
-                        tempiImportati.forEach { t ->
-                            vm.aggiungiTempo(
-                                Tempo(
-                                    atletaId = atleta.id,
-                                    data = LocalDate.now(),
-                                    stile = t.stile,
-                                    distanzaMetri = t.distanzaMetri,
-                                    centesimi = t.centesimi,
-                                    contesto = t.contesto,
-                                    note = t.note
-                                )
-                            )
-                        }
-                        mostraImport = false
-                        testoImport = ""
-                    },
-                    enabled = tempiImportati.isNotEmpty()
-                ) {
-                    Text("Importa ${tempiImportati.size} tempi")
-                }
-            },
-            dismissButton = { TextButton(onClick = { mostraImport = false }) { Text("Annulla") } }
+        DialogImportaTempi(
+            atleta = atleta,
+            tempiEsistenti = tempi,
+            analizza = vm::analizzaTempiImportati,
+            onImporta = { importati -> importati.forEach(vm::aggiungiTempo) },
+            onChiudi = { mostraImport = false }
         )
     }
 }

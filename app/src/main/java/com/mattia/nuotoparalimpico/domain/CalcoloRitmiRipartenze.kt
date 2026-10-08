@@ -9,7 +9,9 @@ import com.mattia.nuotoparalimpico.data.Stile
 import com.mattia.nuotoparalimpico.data.Tempo
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.text.Normalizer
 import java.util.Locale
+import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
@@ -33,13 +35,17 @@ data class TabellaRitmiAtleta(
 )
 
 data class TempoImportato(
-    val stile: Stile,
+    val stile: Stile?,
     val distanzaMetri: Int,
     val centesimi: Int,
     val formatted: String,
     val contesto: ContestoTempo,
+    val rigaOriginale: String,
+    val stileNonRiconosciuto: Boolean = stile == null,
     val note: String = ""
 )
+
+data class RiferimentoTempo(val tempo: Tempo, val datato: Boolean)
 
 data class FormCheckConsiglio(
     val necessario: Boolean,
@@ -50,16 +56,56 @@ data class FormCheckConsiglio(
 
 object CalcoloRitmiRipartenze {
 
-    /**
-     * Tempo di riferimento sui 100m per calibrare i ritmi: il MIGLIOR tempo (gara o test, mai
-     * allenamento) degli ultimi 180 giorni, preferendo lo stile libero. Se non ce ne sono di
-     * recenti si usa il migliore in assoluto.
-     */
-    fun tempoRiferimento100(tempi: List<Tempo>, oggi: LocalDate = LocalDate.now()): Tempo? {
-        val validi = tempi.filter { it.distanzaMetri == 100 && it.contesto != ContestoTempo.ALLENAMENTO }
-        val liberi = validi.filter { it.stile == Stile.STILE_LIBERO }.ifEmpty { validi }
-        val recenti = liberi.filter { ChronoUnit.DAYS.between(it.data, oggi) <= 180 }
-        return recenti.ifEmpty { liberi }.minByOrNull { it.centesimi }
+    /** Miglior riferimento 100m recente (o assoluto), mantenendo la compatibilità con il generatore. */
+    fun tempoRiferimento100(tempi: List<Tempo>, oggi: LocalDate = LocalDate.now()): Tempo? =
+        tempoRiferimento100(tempi, stile = null, vascaMetri = null, oggi = oggi)?.tempo
+
+    fun tempoRiferimento100(
+        tempi: List<Tempo>,
+        stile: Stile?,
+        vascaMetri: Int?,
+        oggi: LocalDate = LocalDate.now()
+    ): RiferimentoTempo? {
+        val validi = tempi.filter {
+            it.distanzaMetri == 100 &&
+                it.contesto != ContestoTempo.ALLENAMENTO &&
+                (vascaMetri == null || it.vascaMetri == vascaMetri) &&
+                !it.data.isAfter(oggi)
+        }
+        val candidati = if (stile != null) validi.filter { it.stile == stile }.ifEmpty { validi } else validi
+        val recenti = candidati.filter { ChronoUnit.DAYS.between(it.data, oggi) in 0L..180L }
+        val scelto = (recenti.ifEmpty { candidati }).minByOrNull { it.centesimi } ?: return null
+        return RiferimentoTempo(
+            tempo = scelto,
+            datato = ChronoUnit.DAYS.between(scelto.data, oggi) > 180
+        )
+    }
+
+    /** Miglior 400 dello stesso stile e vasca, entro 90 giorni dal 100 di riferimento. */
+    fun tempoRiferimento400(tempi: List<Tempo>, riferimento100: Tempo): Tempo? =
+        tempi.filter {
+            it.distanzaMetri == 400 &&
+                it.stile == riferimento100.stile &&
+                it.vascaMetri == riferimento100.vascaMetri &&
+                it.contesto != ContestoTempo.ALLENAMENTO &&
+                abs(ChronoUnit.DAYS.between(it.data, riferimento100.data)) <= 90
+        }.minByOrNull { it.centesimi }
+
+    fun isTempoDuplicato(
+        tempi: List<Tempo>,
+        atletaId: Long,
+        data: LocalDate,
+        stile: Stile,
+        distanzaMetri: Int,
+        vascaMetri: Int,
+        centesimi: Int
+    ): Boolean = tempi.any {
+        it.atletaId == atletaId &&
+            it.data == data &&
+            it.stile == stile &&
+            it.distanzaMetri == distanzaMetri &&
+            it.vascaMetri == vascaMetri &&
+            it.centesimi == centesimi
     }
 
     /** Ripartenza per una ripetuta, sempre almeno 5 secondi dopo il tempo di nuoto. */
@@ -160,55 +206,106 @@ object CalcoloRitmiRipartenze {
     /**
      * Parser intelligente per importare i tempi da testo (OCR screenshot, file o incolla).
      */
-    fun parseImportaTempi(testo: String): List<TempoImportato> {
+    fun parseImportaTempi(testo: String, cognome: String, nome: String? = null): List<TempoImportato> {
+        val cognomeNormalizzato = normalizzaTesto(cognome).trim()
+        if (cognomeNormalizzato.isBlank()) return emptyList()
         val risultati = mutableListOf<TempoImportato>()
-        val righe = testo.lines()
+        val cognomePattern = Regex("(?<![\\p{L}\\p{N}])${Regex.escape(cognomeNormalizzato)}(?![\\p{L}\\p{N}])")
+        val nomeNormalizzato = nome?.let(::normalizzaTesto)?.trim().orEmpty()
+        val nomePattern = nomeNormalizzato.takeIf { it.isNotBlank() }
+            ?.let { Regex("(?<![\\p{L}\\p{N}])${Regex.escape(it)}(?![\\p{L}\\p{N}])") }
+        val distanzaPattern = Regex(
+            """(?<![\p{L}\p{N}])(1500|800|400|200|100|50)(?=\s*(?:m|metri)\b|[^\p{L}\p{N}]|$)"""
+        )
+        val stilePattern = Regex(
+            """(?<![\p{L}\p{N}])(stile\s+libero|freestyle|libero|sl|dorso|backstroke|back|do|rana|breaststroke|breast|br|farfalla|delfino|butterfly|fly|fa|misti|individuale|medley|im|mi)(?![\p{L}\p{N}])"""
+        )
+        val datePattern = Regex("""\b\d{1,2}[./]\d{1,2}[./]\d{2,4}\b""")
+        val clockPattern = Regex("""\b(?:[01]?\d|2[0-3]):[0-5]\d(?::[0-5]\d)?\b(?![.,]\d)""")
+        val tempoPattern = Regex("""(?<![\p{L}\p{N}])(?:\d{1,2}:\d{1,2}[.,]\d{1,2}|\d{1,3}[.,]\d{1,2}|\d{1,2})(?![\p{L}\p{N}])""")
 
-        for (riga in righe) {
-            val r = riga.trim().lowercase()
-            if (r.isBlank()) continue
+        var distanzaCorrente: Int? = null
+        var stileCorrente: Stile? = null
+        var stileIntestazioneNonRiconosciuto = false
+        var contestoCorrente = ContestoTempo.GARA
 
-            val stile = when {
-                r.contains("stile") || r.contains("sl") || r.contains("freestyle") -> Stile.STILE_LIBERO
-                r.contains("dorso") || r.contains("do") || r.contains("back") -> Stile.DORSO
-                r.contains("rana") || r.contains("br") || r.contains("breast") -> Stile.RANA
-                r.contains("farfalla") || r.contains("fa") || r.contains("delfino") || r.contains("fly") -> Stile.FARFALLA
-                r.contains("misti") || r.contains("mi") || r.contains("im") -> Stile.MISTI
-                else -> Stile.STILE_LIBERO
+        for (riga in testo.lines()) {
+            if (riga.isBlank()) continue
+            val normalizzata = normalizzaTesto(riga)
+            val matchDistanza = distanzaPattern.find(normalizzata)
+            val distanzaEsplicita = matchDistanza?.let { match ->
+                val seguitoDaUnita = Regex("""^\s*(?:m|metri)\b""")
+                    .containsMatchIn(normalizzata.substring(match.range.last + 1))
+                match.value.toInt().takeIf { seguitoDaUnita }
             }
-
-            val distanza = when {
-                r.contains("50") -> 50
-                r.contains("100") -> 100
-                r.contains("200") -> 200
-                r.contains("400") -> 400
-                r.contains("800") -> 800
-                r.contains("1500") -> 1500
-                else -> 100
-            }
-
-            val contesto = if (r.contains("test") || r.contains("allenamento")) ContestoTempo.TEST else ContestoTempo.GARA
-
-            // Cerca sequenza tempo mm:ss.cc o ss.cc
-            val regex = Regex("""(?:\b)(\d{1,2}:)?(\d{1,2})[.,](\d{1,2})(?:\b)""")
-            val match = regex.find(riga)
-            if (match != null) {
-                val centesimi = parseTempo(match.value)
-                if (centesimi != null && centesimi > 0) {
-                    risultati += TempoImportato(
-                        stile = stile,
-                        distanzaMetri = distanza,
-                        centesimi = centesimi,
-                        formatted = formattaTempo(centesimi),
-                        contesto = contesto,
-                        note = "Importato da testo/OCR"
-                    )
+            val stileMatch = stilePattern.find(normalizzata)
+            val intestazioneStileSconosciuto =
+                Regex("""\bstile\b""").containsMatchIn(normalizzata) && stileMatch == null
+            val stileIntestazione = stileMatch?.let { match ->
+                when (match.value) {
+                    "stile libero", "freestyle", "libero", "sl" -> Stile.STILE_LIBERO
+                    "dorso", "backstroke", "back", "do" -> Stile.DORSO
+                    "rana", "breaststroke", "breast", "br" -> Stile.RANA
+                    "farfalla", "delfino", "butterfly", "fly", "fa" -> Stile.FARFALLA
+                    "misti", "individuale", "medley", "im", "mi" -> Stile.MISTI
+                    else -> null
                 }
             }
+            val haTempo = estraiTempo(normalizzata, datePattern, clockPattern, tempoPattern) != null
+            val intestazioneConDistanza = distanzaEsplicita != null ||
+                (matchDistanza != null && stileMatch != null && !haTempo)
+
+            if (intestazioneConDistanza) {
+                distanzaCorrente = (distanzaEsplicita ?: matchDistanza?.value?.toInt())
+                    ?.takeIf { it in setOf(50, 100, 200, 400, 800, 1500) }
+                if (stileMatch != null || intestazioneStileSconosciuto) {
+                    stileCorrente = stileIntestazione
+                    stileIntestazioneNonRiconosciuto = stileIntestazione == null
+                }
+            }
+
+            when {
+                Regex("""\btest\b""").containsMatchIn(normalizzata) -> contestoCorrente = ContestoTempo.TEST
+                Regex("""\ballenamento\b""").containsMatchIn(normalizzata) -> contestoCorrente = ContestoTempo.ALLENAMENTO
+                Regex("""\bgara\b""").containsMatchIn(normalizzata) -> contestoCorrente = ContestoTempo.GARA
+            }
+
+            if (!cognomePattern.containsMatchIn(normalizzata) ||
+                (nomePattern != null && !nomePattern.containsMatchIn(normalizzata))
+            ) continue
+            val distanza = distanzaCorrente ?: continue
+            val centesimi = estraiTempo(normalizzata, datePattern, clockPattern, tempoPattern) ?: continue
+            val contestoRiga = when {
+                Regex("""\btest\b""").containsMatchIn(normalizzata) -> ContestoTempo.TEST
+                Regex("""\ballenamento\b""").containsMatchIn(normalizzata) -> ContestoTempo.ALLENAMENTO
+                else -> contestoCorrente
+            }
+            risultati += TempoImportato(
+                stile = stileCorrente,
+                distanzaMetri = distanza,
+                centesimi = centesimi,
+                formatted = formattaTempo(centesimi),
+                contesto = contestoRiga,
+                rigaOriginale = riga,
+                stileNonRiconosciuto = stileIntestazioneNonRiconosciuto || stileCorrente == null,
+                note = "Importato da testo/OCR"
+            )
         }
 
         return risultati
     }
+
+    private fun estraiTempo(testo: String, datePattern: Regex, clockPattern: Regex, tempoPattern: Regex): Int? {
+        val senzaDate = datePattern.replace(testo) { " ".repeat(it.value.length) }
+        val senzaOrari = clockPattern.replace(senzaDate) { " ".repeat(it.value.length) }
+        return tempoPattern.findAll(senzaOrari)
+            .mapNotNull { parseTempo(it.value) }
+            .lastOrNull()
+    }
+
+    private fun normalizzaTesto(testo: String): String =
+        Normalizer.normalize(testo.lowercase(Locale.ROOT), Normalizer.Form.NFD)
+            .replace(Regex("\\p{M}+"), "")
 
     /**
      * Valuta se l'atleta necessita di un Form Check (Test in Vasca) per aggiornare i ritmi.

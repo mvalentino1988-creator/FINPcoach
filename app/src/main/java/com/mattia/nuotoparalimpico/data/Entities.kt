@@ -29,8 +29,18 @@ enum class TipoMicrociclo(val etichetta: String) {
     PAUSA("Pausa")
 }
 
-enum class Stile { STILE_LIBERO, DORSO, RANA, FARFALLA, MISTI }
-enum class ContestoTempo { GARA, ALLENAMENTO, TEST }
+enum class Stile(val etichetta: String) {
+    STILE_LIBERO("Stile libero"),
+    DORSO("Dorso"),
+    RANA("Rana"),
+    FARFALLA("Farfalla"),
+    MISTI("Misti")
+}
+enum class ContestoTempo(val etichetta: String) {
+    GARA("Gara"),
+    ALLENAMENTO("Allenamento"),
+    TEST("Test")
+}
 enum class AmbitoRanking(val etichetta: String) {
     ITALIA("Italia"),
     MONDO("Mondo")

@@ -23,7 +23,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -52,27 +51,12 @@ import com.mattia.nuotoparalimpico.domain.LivelloAcwr
 import com.mattia.nuotoparalimpico.domain.SchedaSeduta
 import com.mattia.nuotoparalimpico.domain.VolumeIndividuale
 import com.mattia.nuotoparalimpico.domain.formattaTempo
-import com.mattia.nuotoparalimpico.domain.parseTempo
 import com.mattia.nuotoparalimpico.domain.primatiPersonali
 import com.mattia.nuotoparalimpico.domain.usecase.CalcolaCaricoAtletaUseCase
 import com.mattia.nuotoparalimpico.domain.usecase.RigaSedutaInput
 import java.time.LocalDate
 import java.util.Locale
 import kotlinx.coroutines.launch
-
-private val NOMI_STILI = mapOf(
-    Stile.STILE_LIBERO to "Stile libero",
-    Stile.DORSO to "Dorso",
-    Stile.RANA to "Rana",
-    Stile.FARFALLA to "Farfalla",
-    Stile.MISTI to "Misti"
-)
-
-private val NOMI_CONTESTI = mapOf(
-    ContestoTempo.GARA to "Gara",
-    ContestoTempo.ALLENAMENTO to "Allenamento",
-    ContestoTempo.TEST to "Test"
-)
 
 @Composable
 fun RegistroScreen(vm: MainViewModel, rvm: RegistroViewModel) {
@@ -266,67 +250,7 @@ private fun SezioneTempi(atleta: Atleta, rvm: RegistroViewModel) {
     val tempi by rvm.tempi.collectAsStateWithLifecycle()
     val mieiTempi = tempi.filter { it.atletaId == atleta.id }
 
-    var dataTesto by remember { mutableStateOf(LocalDate.now().formatta()) }
-    var stile by remember { mutableStateOf(Stile.STILE_LIBERO) }
-    var distanza by remember { mutableStateOf("50") }
-    var tempoTesto by remember { mutableStateOf("") }
-    var contesto by remember { mutableStateOf(ContestoTempo.GARA) }
-    var vasca by remember { mutableStateOf(25) }
-    var note by remember { mutableStateOf("") }
-
-    val data = parseData(dataTesto)
-    val distanzaInt = distanza.toIntOrNull()
-    val centesimi = parseTempo(tempoTesto)
-
-    Titolo("Nuovo Tempo · ${atleta.nome}", Icons.Filled.DateRange)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        CampoData(dataTesto, { dataTesto = it }, "Data", Modifier.weight(1f))
-        CampoNumero(distanza, { distanza = it }, "Distanza (m)", Modifier.weight(1f), isError = distanzaInt == null || distanzaInt !in 25..1500)
-    }
-    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Stile.entries.forEach { s ->
-            FilterChip(selected = s == stile, onClick = { stile = s }, label = { Text(NOMI_STILI.getValue(s)) })
-        }
-    }
-    OutlinedTextField(
-        value = tempoTesto,
-        onValueChange = { tempoTesto = it },
-        label = { Text("Tempo (es. 1:02.35 o 28.40)") },
-        singleLine = true,
-        isError = tempoTesto.isNotBlank() && centesimi == null,
-        modifier = Modifier.fillMaxWidth()
-    )
-    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        ContestoTempo.entries.forEach { c ->
-            FilterChip(selected = c == contesto, onClick = { contesto = c }, label = { Text(NOMI_CONTESTI.getValue(c)) })
-        }
-        listOf(25, 50).forEach { v ->
-            FilterChip(selected = v == vasca, onClick = { vasca = v }, label = { Text("Vasca $v m") })
-        }
-    }
-    OutlinedTextField(note, { note = it }, label = { Text("Note") }, modifier = Modifier.fillMaxWidth())
-    Button(
-        enabled = data != null && distanzaInt != null && distanzaInt in 25..1500 && centesimi != null,
-        onClick = {
-            if (data != null && distanzaInt != null && centesimi != null) {
-                rvm.aggiungiTempo(
-                    Tempo(
-                        atletaId = atleta.id,
-                        data = data,
-                        stile = stile,
-                        distanzaMetri = distanzaInt,
-                        centesimi = centesimi,
-                        contesto = contesto,
-                        vascaMetri = vasca,
-                        note = note.trim()
-                    )
-                )
-                tempoTesto = ""
-                note = ""
-            }
-        },
-        modifier = Modifier.fillMaxWidth()
-    ) { Text("Aggiungi Tempo") }
+    FormNuovoTempo(atleta.id, "Nuovo Tempo · ${atleta.nome}", rvm::aggiungiTempo)
 
     HorizontalDivider()
 
@@ -347,7 +271,7 @@ private fun SezioneTempi(atleta: Atleta, rvm: RegistroViewModel) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "${NOMI_STILI.getValue(p.stile)} ${p.distanzaMetri} m (vasca ${p.vascaMetri}m)",
+                        "${p.stile.etichetta} ${p.distanzaMetri} m (vasca ${p.vascaMetri}m)",
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
@@ -371,12 +295,12 @@ private fun SezioneTempi(atleta: Atleta, rvm: RegistroViewModel) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    "${NOMI_STILI.getValue(t.stile)} ${t.distanzaMetri} m · ${formattaTempo(t.centesimi)}",
+                    "${t.stile.etichetta} ${t.distanzaMetri} m · ${formattaTempo(t.centesimi)}",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    "${t.data.formatta()} · ${NOMI_CONTESTI.getValue(t.contesto)} · Vasca ${t.vascaMetri} m" +
+                    "${t.data.formatta()} · ${t.contesto.etichetta} · Vasca ${t.vascaMetri} m" +
                         if (t.note.isNotBlank()) " · ${t.note}" else "",
                     style = MaterialTheme.typography.bodySmall
                 )

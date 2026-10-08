@@ -144,6 +144,18 @@ object CalcoloScienzaNuoto {
         return null
     }
 
+    /** CSS tra i riferimenti 100/400, solo se stile, vasca e finestra temporale coincidono. */
+    fun calcolaCssRiferimenti(tempo100: Tempo, tempo400: Tempo): RisultatoCssStandard? {
+        if (tempo100.distanzaMetri != 100 || tempo400.distanzaMetri != 400) return null
+        if (tempo100.stile != tempo400.stile || tempo100.vascaMetri != tempo400.vascaMetri) return null
+        if (tempo100.contesto == ContestoTempo.ALLENAMENTO || tempo400.contesto == ContestoTempo.ALLENAMENTO) return null
+        if (abs(ChronoUnit.DAYS.between(tempo100.data, tempo400.data)) > 90) return null
+        return calcolaCssStandard(
+            TestCss(400, tempo400.centesimi),
+            TestCss(100, tempo100.centesimi)
+        )?.copy(dataRiferimento = tempo400.data)
+    }
+
     fun stimaCssDaPassoGara(passoGara100Centesimi: Int): Int =
         (passoGara100Centesimi * FATTORE_CSS_STIMATO).roundToInt()
 

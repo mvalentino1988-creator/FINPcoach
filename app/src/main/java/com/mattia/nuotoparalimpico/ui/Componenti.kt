@@ -9,19 +9,27 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +40,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,8 +52,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.mattia.nuotoparalimpico.domain.Avviso
+import com.mattia.nuotoparalimpico.domain.CalcoloRitmiRipartenze
 import com.mattia.nuotoparalimpico.domain.CodiceAllenamento
 import com.mattia.nuotoparalimpico.domain.Gravita
+import com.mattia.nuotoparalimpico.domain.TempoImportato
+import com.mattia.nuotoparalimpico.domain.formattaTempo
+import com.mattia.nuotoparalimpico.domain.parseTempo
+import com.mattia.nuotoparalimpico.data.Atleta
+import com.mattia.nuotoparalimpico.data.ContestoTempo
+import com.mattia.nuotoparalimpico.data.Stile
+import com.mattia.nuotoparalimpico.data.Tempo
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -125,6 +142,241 @@ fun CampoNumero(
         isError = isError,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         modifier = modifier
+    )
+}
+
+@Composable
+fun FormNuovoTempo(
+    atletaId: Long,
+    titolo: String,
+    onSalva: (Tempo) -> Unit
+) {
+    var dataTesto by remember { mutableStateOf("") }
+    var stile by remember { mutableStateOf(Stile.STILE_LIBERO) }
+    var distanza by remember { mutableStateOf<Int?>(100) }
+    var vasca by remember { mutableStateOf<Int?>(null) }
+    var tempoTesto by remember { mutableStateOf("") }
+    var contesto by remember { mutableStateOf(ContestoTempo.GARA) }
+    var note by remember { mutableStateOf("") }
+
+    val data = parseData(dataTesto)
+    val centesimi = parseTempo(tempoTesto)
+    val distanzaValida = distanza
+    val vascaValida = vasca
+    val valido = data != null && distanzaValida != null && vascaValida != null && centesimi != null
+
+    Titolo(titolo)
+    CampoData(dataTesto, { dataTesto = it }, "Data", Modifier.fillMaxWidth())
+    Text("Stile", style = MaterialTheme.typography.labelSmall)
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Stile.entries.forEach { opzione ->
+            FilterChip(opzione == stile, { stile = opzione }, label = { Text(opzione.etichetta) })
+        }
+    }
+    Text("Distanza", style = MaterialTheme.typography.labelSmall)
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        listOf(50, 100, 200, 400, 800, 1500).forEach { opzione ->
+            FilterChip(distanza == opzione, { distanza = opzione }, label = { Text("$opzione m") })
+        }
+    }
+    Text("Vasca (obbligatoria)", style = MaterialTheme.typography.labelSmall)
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        listOf(25, 50).forEach { opzione ->
+            FilterChip(vasca == opzione, { vasca = opzione }, label = { Text("Vasca $opzione m") })
+        }
+    }
+    OutlinedTextField(
+        value = tempoTesto,
+        onValueChange = { tempoTesto = it },
+        label = { Text("Tempo (es. 1:02.35 o 28,40)") },
+        singleLine = true,
+        isError = tempoTesto.isNotBlank() && centesimi == null,
+        modifier = Modifier.fillMaxWidth()
+    )
+    if (tempoTesto.isNotBlank() && centesimi == null) {
+        Text("Inserisci un tempo valido, ad esempio 1:02.35 o 28,40.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+    }
+    Text("Contesto", style = MaterialTheme.typography.labelSmall)
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        ContestoTempo.entries.forEach { opzione ->
+            FilterChip(opzione == contesto, { contesto = opzione }, label = { Text(opzione.etichetta) })
+        }
+    }
+    OutlinedTextField(note, { note = it }, label = { Text("Note (opzionali)") }, modifier = Modifier.fillMaxWidth())
+    Button(
+        enabled = valido,
+        onClick = {
+            val dataValida = data ?: return@Button
+            val distanzaSelezionata = distanzaValida ?: return@Button
+            val vascaSelezionata = vascaValida ?: return@Button
+            val tempoValido = centesimi ?: return@Button
+            onSalva(
+                Tempo(
+                    atletaId = atletaId,
+                    data = dataValida,
+                    stile = stile,
+                    distanzaMetri = distanzaSelezionata,
+                    centesimi = tempoValido,
+                    contesto = contesto,
+                    vascaMetri = vascaSelezionata,
+                    note = note.trim()
+                )
+            )
+            tempoTesto = ""
+            note = ""
+        },
+        modifier = Modifier.fillMaxWidth()
+    ) { Text("Salva tempo") }
+}
+
+@Composable
+fun DialogImportaTempi(
+    atleta: Atleta,
+    tempiEsistenti: List<Tempo>,
+    analizza: (String, String, String?) -> List<TempoImportato>,
+    onImporta: (List<Tempo>) -> Unit,
+    onChiudi: () -> Unit
+) {
+    var testo by remember { mutableStateOf("") }
+    var dataTesto by remember { mutableStateOf("") }
+    var vasca by remember { mutableStateOf<Int?>(null) }
+    var contesto by remember { mutableStateOf(ContestoTempo.GARA) }
+    var risultati by remember { mutableStateOf(emptyList<TempoImportato>()) }
+    val selezionati = remember { mutableStateMapOf<Int, Boolean>() }
+    val stiliScelti = remember { mutableStateMapOf<Int, Stile>() }
+    val data = parseData(dataTesto)
+    val vascaScelta = vasca
+
+    AlertDialog(
+        onDismissRequest = onChiudi,
+        title = { Text("Anteprima importazione tempi") },
+        text = {
+            Column(
+                Modifier.heightIn(max = 540.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("Saranno considerate solo le righe di ${atleta.cognome} ${atleta.nome}.", style = MaterialTheme.typography.bodySmall)
+                OutlinedTextField(
+                    value = testo,
+                    onValueChange = { testo = it },
+                    label = { Text("Testo da analizzare") },
+                    modifier = Modifier.fillMaxWidth().height(150.dp),
+                    maxLines = 8
+                )
+                Button(
+                    onClick = {
+                        risultati = analizza(testo, atleta.cognome, null)
+                        selezionati.clear()
+                        stiliScelti.clear()
+                        risultati.indices.forEach { selezionati[it] = true }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Analizza testo") }
+
+                if (risultati.isNotEmpty()) {
+                    HorizontalDivider()
+                    CampoData(dataTesto, { dataTesto = it }, "Data gara/test (obbligatoria)", Modifier.fillMaxWidth())
+                    Text("Vasca (obbligatoria)", style = MaterialTheme.typography.labelSmall)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf(25, 50).forEach { opzione ->
+                            FilterChip(vasca == opzione, { vasca = opzione }, label = { Text("Vasca $opzione m") })
+                        }
+                    }
+                    Text("Contesto", style = MaterialTheme.typography.labelSmall)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        ContestoTempo.entries.forEach { opzione ->
+                            FilterChip(contesto == opzione, { contesto = opzione }, label = { Text(opzione.etichetta) })
+                        }
+                    }
+
+                    risultati.forEachIndexed { indice, risultato ->
+                        val stile = risultato.stile ?: stiliScelti[indice]
+                        val duplicato = data != null && vascaScelta != null && stile != null &&
+                            CalcoloRitmiRipartenze.isTempoDuplicato(
+                                tempiEsistenti,
+                                atleta.id,
+                                data,
+                                stile,
+                                risultato.distanzaMetri,
+                                vascaScelta,
+                                risultato.centesimi
+                            )
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (duplicato) MaterialTheme.colorScheme.errorContainer
+                                else MaterialTheme.colorScheme.surfaceVariant
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(Modifier.padding(8.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Checkbox(
+                                        checked = selezionati[indice] != false && !duplicato,
+                                        onCheckedChange = { selezionati[indice] = it },
+                                        enabled = !duplicato
+                                    )
+                                    Column {
+                                        Text(
+                                            "${stile?.etichetta ?: "Stile non riconosciuto"} · ${risultato.distanzaMetri} m · ${formattaTempo(risultato.centesimi)}",
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        if (duplicato) Text("Duplicato: deselezionato", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                                if (risultato.stileNonRiconosciuto) {
+                                    Text("Seleziona manualmente lo stile:", style = MaterialTheme.typography.bodySmall)
+                                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Stile.entries.forEach { opzione ->
+                                            FilterChip(
+                                                selected = stiliScelti[indice] == opzione,
+                                                onClick = { stiliScelti[indice] = opzione },
+                                                label = { Text(opzione.etichetta) }
+                                            )
+                                        }
+                                    }
+                                }
+                                Text(risultato.rigaOriginale, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            val daImportare = risultati.mapIndexedNotNull { indice, item ->
+                val stile = item.stile ?: stiliScelti[indice]
+                val dataValida = data
+                val vascaValida = vascaScelta
+                if (
+                    selezionati[indice] == true &&
+                    stile != null &&
+                    dataValida != null &&
+                    vascaValida != null &&
+                    !CalcoloRitmiRipartenze.isTempoDuplicato(
+                        tempiEsistenti, atleta.id, dataValida, stile, item.distanzaMetri, vascaValida, item.centesimi
+                    )
+                ) {
+                    Tempo(
+                        atletaId = atleta.id,
+                        data = dataValida,
+                        stile = stile,
+                        distanzaMetri = item.distanzaMetri,
+                        centesimi = item.centesimi,
+                        contesto = contesto,
+                        vascaMetri = vascaValida,
+                        note = item.note
+                    )
+                } else null
+            }
+            TextButton(
+                enabled = daImportare.isNotEmpty(),
+                onClick = {
+                    onImporta(daImportare)
+                    onChiudi()
+                }
+            ) { Text("Importa ${daImportare.size} tempi") }
+        },
+        dismissButton = { TextButton(onClick = onChiudi) { Text("Annulla") } }
     )
 }
 

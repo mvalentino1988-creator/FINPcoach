@@ -63,6 +63,7 @@ import com.mattia.nuotoparalimpico.domain.FINPSpecialistAI
 import com.mattia.nuotoparalimpico.domain.GeneratoreSmartSeduta
 import com.mattia.nuotoparalimpico.domain.SchedaSeduta
 import com.mattia.nuotoparalimpico.domain.StimaClassiFINP
+import com.mattia.nuotoparalimpico.domain.TempoImportato
 import com.mattia.nuotoparalimpico.domain.VolumeIndividuale
 import com.mattia.nuotoparalimpico.domain.formattaTempo
 import com.mattia.nuotoparalimpico.domain.parseTempo
@@ -591,6 +592,7 @@ private fun DialogDettaglio(
             atleta = atleta,
             tempi = tempi,
             mesoCorrente = mesoCorrente,
+            analizzaTempi = vm::analizzaTempiImportati,
             onChiudi = { mostraGestioneTempi = false },
             onAggiungiTempo = { vm.aggiungiTempo(it) },
             onEliminaTempo = { vm.eliminaTempo(it) }
@@ -603,22 +605,12 @@ private fun DialogGestioneTempi(
     atleta: Atleta,
     tempi: List<Tempo>,
     mesoCorrente: Mesociclo?,
+    analizzaTempi: (String, String, String?) -> List<TempoImportato>,
     onChiudi: () -> Unit,
     onAggiungiTempo: (Tempo) -> Unit,
     onEliminaTempo: (Tempo) -> Unit
 ) {
-    var data by remember { mutableStateOf(LocalDate.now().formatta()) }
-    var stile by remember { mutableStateOf(Stile.STILE_LIBERO) }
-    var distanza by remember { mutableStateOf("100") }
-    var tempoText by remember { mutableStateOf("") }
-    var contesto by remember { mutableStateOf(ContestoTempo.GARA) }
-    var note by remember { mutableStateOf("") }
-    var testoImport by remember { mutableStateOf("") }
     var mostraImport by remember { mutableStateOf(false) }
-
-    val dataParsed = parseData(data)
-    val distanzaInt = distanza.toIntOrNull()?.coerceIn(25, 1500) ?: 100
-    val tempoCentesimi = parseTempo(tempoText)
 
     AlertDialog(
         onDismissRequest = onChiudi,
@@ -652,62 +644,7 @@ private fun DialogGestioneTempi(
                     Text("Importa da Testo/Screenshot 📄")
                 }
 
-                HorizontalDivider()
-
-                Text("Inserimento Manuale", fontWeight = FontWeight.Bold)
-                CampoData(data, { data = it }, "Data", modifier = Modifier.fillMaxWidth())
-
-                Text("Stile", style = MaterialTheme.typography.labelSmall)
-                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Stile.entries.forEach { s ->
-                        FilterChip(
-                            selected = s == stile,
-                            onClick = { stile = s },
-                            label = { Text(s.name.replace("_", " ")) }
-                        )
-                    }
-                }
-
-                CampoNumero(distanza, { distanza = it }, "Distanza (m)", modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(tempoText, { tempoText = it }, label = { Text("Tempo (es. 1:02.35 o 62.35)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-
-                Text("Contesto", style = MaterialTheme.typography.labelSmall)
-                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    ContestoTempo.entries.forEach { c ->
-                        FilterChip(
-                            selected = c == contesto,
-                            onClick = { contesto = c },
-                            label = { Text(c.name.lowercase()) }
-                        )
-                    }
-                }
-
-                OutlinedTextField(note, { note = it }, label = { Text("Note (opzionale)") }, modifier = Modifier.fillMaxWidth())
-
-                Button(
-                    enabled = dataParsed != null && tempoCentesimi != null,
-                    onClick = {
-                        if (dataParsed != null && tempoCentesimi != null) {
-                            onAggiungiTempo(
-                                Tempo(
-                                    atletaId = atleta.id,
-                                    data = dataParsed,
-                                    stile = stile,
-                                    distanzaMetri = distanzaInt,
-                                    centesimi = tempoCentesimi,
-                                    contesto = contesto,
-                                    note = note.trim()
-                                )
-                            )
-                            data = LocalDate.now().formatta()
-                            tempoText = ""
-                            note = ""
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Aggiungi Tempo")
-                }
+                FormNuovoTempo(atleta.id, "Inserimento Manuale", onAggiungiTempo)
 
                 HorizontalDivider()
 
@@ -727,8 +664,8 @@ private fun DialogGestioneTempi(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(Modifier.weight(1f)) {
-                                    Text("${t.stile.name.replace("_", " ")} ${t.distanzaMetri}m", fontWeight = FontWeight.SemiBold)
-                                    Text("${t.data.formatta()} · ${t.contesto.name.lowercase()}", style = MaterialTheme.typography.bodySmall)
+                                    Text("${t.stile.etichetta} ${t.distanzaMetri}m", fontWeight = FontWeight.SemiBold)
+                                    Text("${t.data.formatta()} · ${t.contesto.etichetta}", style = MaterialTheme.typography.bodySmall)
                                     Text(formattaTempo(t.centesimi), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                                     if (t.note.isNotBlank()) {
                                         Text(t.note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -748,47 +685,12 @@ private fun DialogGestioneTempi(
     )
 
     if (mostraImport) {
-        AlertDialog(
-            onDismissRequest = { mostraImport = false },
-            title = { Text("Importa Tempi da Testo") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Incolla qui il testo da screenshot o file (es. risultati gara):", style = MaterialTheme.typography.bodySmall)
-                    OutlinedTextField(
-                        testoImport,
-                        { testoImport = it },
-                        label = { Text("Testo da importare") },
-                        modifier = Modifier.fillMaxWidth().height(150.dp),
-                        maxLines = 8
-                    )
-                }
-            },
-            confirmButton = {
-                val tempiImportati = CalcoloRitmiRipartenze.parseImportaTempi(testoImport)
-                TextButton(
-                    onClick = {
-                        tempiImportati.forEach { t ->
-                            onAggiungiTempo(
-                                Tempo(
-                                    atletaId = atleta.id,
-                                    data = LocalDate.now(),
-                                    stile = t.stile,
-                                    distanzaMetri = t.distanzaMetri,
-                                    centesimi = t.centesimi,
-                                    contesto = t.contesto,
-                                    note = t.note
-                                )
-                            )
-                        }
-                        mostraImport = false
-                        testoImport = ""
-                    },
-                    enabled = tempiImportati.isNotEmpty()
-                ) {
-                    Text("Importa ${tempiImportati.size} tempi")
-                }
-            },
-            dismissButton = { TextButton(onClick = { mostraImport = false }) { Text("Annulla") } }
+        DialogImportaTempi(
+            atleta = atleta,
+            tempiEsistenti = tempi,
+            analizza = analizzaTempi,
+            onImporta = { importati -> importati.forEach(onAggiungiTempo) },
+            onChiudi = { mostraImport = false }
         )
     }
 }

@@ -183,7 +183,7 @@ fun DialogSchedaSedutaSmart(
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                                 Text("Tempi di riferimento utilizzati:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onTertiaryContainer)
                                 scheda.tempiUtilizzati.forEach { tempo ->
-                                    Text("${tempo.stile} ${tempo.distanzaMetri}m: ${formattaTempo(tempo.centesimi)} (${tempo.contesto.name.lowercase()})", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                                    Text("${tempo.stile.etichetta} ${tempo.distanzaMetri}m: ${formattaTempo(tempo.centesimi)} (${tempo.contesto.etichetta})", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
                                 }
                             }
                         }

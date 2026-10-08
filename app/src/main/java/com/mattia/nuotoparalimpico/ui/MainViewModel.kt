@@ -3,6 +3,7 @@ package com.mattia.nuotoparalimpico.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.mattia.nuotoparalimpico.NuotoParalimpicoApp
 import com.mattia.nuotoparalimpico.data.AppDatabase
 import com.mattia.nuotoparalimpico.data.Assenza
 import com.mattia.nuotoparalimpico.data.Atleta
@@ -30,6 +31,7 @@ import com.mattia.nuotoparalimpico.domain.ParametriPiano
 import com.mattia.nuotoparalimpico.domain.PianoGenerator
 import com.mattia.nuotoparalimpico.domain.PianoValidator
 import com.mattia.nuotoparalimpico.domain.SchedaSeduta
+import com.mattia.nuotoparalimpico.domain.TempoImportato
 import java.time.LocalDate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -102,6 +104,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     suspend fun leggiTempi(atletaId: Long): List<Tempo> = atletaDao.leggiTempi(atletaId)
     suspend fun leggiLogSedute(atletaId: Long): List<LogSeduta> = atletaDao.leggiLogSedute(atletaId)
+    fun analizzaTempiImportati(testo: String, cognome: String, nome: String? = null): List<TempoImportato> =
+        (getApplication<NuotoParalimpicoApp>().container).importaTempi(testo, cognome, nome)
 
     // ---------- Stagione e piano ----------
     val stagione: StateFlow<Stagione?> = stato(pianoDao.osservaStagione(), null)
