@@ -10,6 +10,7 @@ import com.mattia.nuotoparalimpico.data.Tempo
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.Locale
+import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 data class RitmoCodice(
@@ -61,20 +62,37 @@ object CalcoloRitmiRipartenze {
         return recenti.ifEmpty { liberi }.minByOrNull { it.centesimi }
     }
 
+    /** Ripartenza per una ripetuta, sempre almeno 5 secondi dopo il tempo di nuoto. */
+    fun ripartenzaSecondi(ritmo: RitmoCodice, distanzaMetri: Int): Int {
+        require(distanzaMetri > 0) { "La distanza della ripetuta deve essere positiva" }
+        val tempoNuoto = ritmo.passo100mCentesimi * distanzaMetri / 10_000.0
+        val recuperoDesiderato = ritmo.pausaSecondi * distanzaMetri / 100.0
+        return arrotondaRipartenza(tempoNuoto, recuperoDesiderato)
+    }
+
     /**
-     * Ripartenza per una ripetizione di [distanzaMetri]: il tempo di nuoto sulla distanza al passo
-     * del codice più lo stesso recupero previsto sui 100m, arrotondata ai 5 secondi.
+     * Unico arrotondamento delle ripartenze: al multiplo di 5 successivo, con almeno 5"
+     * effettivi di recupero anche quando il passo non corrisponde a secondi interi.
      */
-    fun ripartenzaPer(ritmo: RitmoCodice, distanzaMetri: Int): String {
-        val passo100Sec = ritmo.passo100mCentesimi / 100.0
-        val recupero = ritmo.ripartenzaSecondi - passo100Sec
-        val nuotoSec = passo100Sec * distanzaMetri / 100.0
-        val totale = (((nuotoSec + recupero) / 5.0).roundToInt() * 5).coerceAtLeast(10)
-        val minuti = totale / 60
-        val secondi = totale % 60
+    private fun arrotondaRipartenza(tempoNuotoSecondi: Double, recuperoDesideratoSecondi: Double): Int {
+        val conRecupero = ceil((tempoNuotoSecondi + recuperoDesideratoSecondi) / 5.0) * 5
+        val minimo = ceil((tempoNuotoSecondi + 5.0) / 5.0) * 5
+        return maxOf(conRecupero, minimo).toInt()
+    }
+
+    private fun formattaRipartenza(secondiTotali: Int): String {
+        val minuti = secondiTotali / 60
+        val secondi = secondiTotali % 60
         return if (minuti > 0) String.format(Locale.ROOT, "a %d'%02d\"", minuti, secondi)
         else String.format(Locale.ROOT, "a %d\"", secondi)
     }
+
+    /**
+     * Ripartenza per una ripetizione di [distanzaMetri], calcolata sul passo del codice e
+     * arrotondata con la stessa regola della tabella dei ritmi.
+     */
+    fun ripartenzaPer(ritmo: RitmoCodice, distanzaMetri: Int): String =
+        formattaRipartenza(ripartenzaSecondi(ritmo, distanzaMetri))
 
     /**
      * Calcola i ritmi di allenamento, le ripartenze ed il recupero preciso per tutti i codici A1-D
@@ -109,12 +127,14 @@ object CalcoloRitmiRipartenze {
                 passoCss
             }
             val passoCentesimi = (riferimentoCentesimi * zona.first).roundToInt().coerceAtLeast(2500)
-            val pausaSecArrotondata = ((passoCentesimi / 100.0 * zona.second) / 5.0).roundToInt() * 5
-            val ripartenzaSecArrotondata = (passoCentesimi / 100 + pausaSecArrotondata / 5 * 5)
+            val tempoNuoto100 = passoCentesimi / 100.0
+            val ripartenzaSecArrotondata = arrotondaRipartenza(
+                tempoNuotoSecondi = tempoNuoto100,
+                recuperoDesideratoSecondi = tempoNuoto100 * zona.second
+            )
+            val pausaSecArrotondata = ripartenzaSecArrotondata - ceil(tempoNuoto100).toInt()
 
-            val minRip = ripartenzaSecArrotondata / 60
-            val secRip = ripartenzaSecArrotondata % 60
-            val strRipartenza = if (minRip > 0) String.format("a %d'%02d\"", minRip, secRip) else String.format("a %d\"", secRip)
+            val strRipartenza = formattaRipartenza(ripartenzaSecArrotondata)
 
             ritmiMap[codice] = RitmoCodice(
                 codice = codice,

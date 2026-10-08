@@ -28,6 +28,11 @@ data class ParametriPiano(
     val etichettaRientro: String = "Rientro a inizio stagione"
 )
 
+sealed interface ControlloGarePiano {
+    object Valide : ControlloGarePiano
+    data class FuoriStagione(val messaggio: String) : ControlloGarePiano
+}
+
 object PianoGenerator {
 
     private val PROPORZIONI = listOf(
@@ -54,6 +59,15 @@ object PianoGenerator {
 
     private class Blocco(val settimane: List<Pair<LocalDate, FaseMesociclo>>, val obiettivo: String)
 
+    fun controllaGareFuoriStagione(stagione: Stagione, gare: List<Gara>): ControlloGarePiano {
+        val garaFuoriStagione = gare.firstOrNull {
+            it.dal.isBefore(stagione.inizio) || it.al.isAfter(stagione.fine)
+        } ?: return ControlloGarePiano.Valide
+        return ControlloGarePiano.FuoriStagione(
+            "La gara \"${garaFuoriStagione.nome}\" è fuori dalla stagione: correggi le date"
+        )
+    }
+
     fun genera(
         stagione: Stagione,
         chiusure: List<Chiusura>,
@@ -62,9 +76,9 @@ object PianoGenerator {
     ): List<MacroGen> {
         val primoLunedi = stagione.inizio.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 
-        require(gare.none { it.dal.isBefore(stagione.inizio) || it.al.isAfter(stagione.fine) }) {
-            "Le gare devono essere comprese nelle date della stagione"
-        }
+        val controlloGare = controllaGareFuoriStagione(stagione, gare)
+        val erroreGare = (controlloGare as? ControlloGarePiano.FuoriStagione)?.messaggio
+        require(erroreGare == null) { erroreGare.orEmpty() }
         val fineEffettiva = stagione.fine
         val ultimaDomenica = stagione.fine.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
 

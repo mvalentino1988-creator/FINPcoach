@@ -87,7 +87,7 @@ class PianoGeneratorTest {
     }
 
     @Test
-    fun garaFuoriStagioneVieneRifiutata() {
+    fun garaFuoriStagioneRestituisceErroreEIlPianoNonVieneGenerato() {
         val garaFuoriStagione = Gara(
             stagioneId = 0,
             nome = "Fuori stagione",
@@ -95,8 +95,25 @@ class PianoGeneratorTest {
             al = stagione.fine.plusDays(1),
             prioritaria = true
         )
+        val controllo = PianoGenerator.controllaGareFuoriStagione(stagione, listOf(garaFuoriStagione))
+        assertTrue(controllo is ControlloGarePiano.FuoriStagione)
+        assertTrue(
+            (controllo as ControlloGarePiano.FuoriStagione).messaggio.contains("Fuori stagione")
+        )
         assertThrows(IllegalArgumentException::class.java) {
             PianoGenerator.genera(stagione, emptyList(), listOf(garaFuoriStagione), ParametriPiano())
         }
+    }
+
+    @Test
+    fun gareInStagioneSuperanoIlControlloPreventivo() {
+        val gara = Gara(
+            stagioneId = 0,
+            nome = "Assoluti",
+            dal = LocalDate.of(2027, 5, 15),
+            al = LocalDate.of(2027, 5, 15),
+            prioritaria = true
+        )
+        assertEquals(ControlloGarePiano.Valide, PianoGenerator.controllaGareFuoriStagione(stagione, listOf(gara)))
     }
 }

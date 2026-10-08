@@ -136,6 +136,7 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
     val meso by vm.meso.collectAsStateWithLifecycle()
     val micro by vm.micro.collectAsStateWithLifecycle()
     val avvisi by vm.avvisiPiano.collectAsStateWithLifecycle()
+    val erroreGenerazione by vm.erroreGenerazionePiano.collectAsStateWithLifecycle()
 
     var sezione by rememberSaveable { mutableIntStateOf(0) }
     var microSelezionato by remember { mutableStateOf<Microciclo?>(null) }
@@ -150,6 +151,7 @@ private fun ContenutoStagione(vm: MainViewModel, s: Stagione) {
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            erroreGenerazione?.let { ElencoAvvisi(listOf(it)) }
             when (sezione) {
                 0 -> SezioneCalendario(vm, s, chiusure, gare, meso, micro) { microSelezionato = it }
                 1 -> SezioneProgramma(avvisi, macro, meso, micro, gare) { microSelezionato = it }

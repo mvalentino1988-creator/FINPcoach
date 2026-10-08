@@ -23,6 +23,7 @@ import com.mattia.nuotoparalimpico.data.TipoMicrociclo
 import com.mattia.nuotoparalimpico.domain.Avviso
 import com.mattia.nuotoparalimpico.domain.AutoPianificatore
 import com.mattia.nuotoparalimpico.domain.Calendario
+import com.mattia.nuotoparalimpico.domain.ControlloGarePiano
 import com.mattia.nuotoparalimpico.domain.Festivita
 import com.mattia.nuotoparalimpico.domain.GeneratoreSmartSeduta
 import com.mattia.nuotoparalimpico.domain.ParametriPiano
@@ -116,6 +117,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         },
         emptyList()
     )
+    private val _erroreGenerazionePiano = MutableStateFlow<Avviso?>(null)
+    val erroreGenerazionePiano: StateFlow<Avviso?> = _erroreGenerazionePiano.asStateFlow()
 
     private val _regolamenti = MutableStateFlow(StatoRegolamenti())
     val regolamenti: StateFlow<StatoRegolamenti> = _regolamenti.asStateFlow()
@@ -215,9 +218,20 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
      */
     fun generaPiano(parametri: ParametriPiano) {
         viewModelScope.launch {
+            _erroreGenerazionePiano.value = null
             val s = stagioneCorrente() ?: return@launch
-            val chiusureAttuali = pianoDao.leggiChiusure(s.id)
             val gareAttuali = pianoDao.leggiGare(s.id)
+            when (val controllo = PianoGenerator.controllaGareFuoriStagione(s, gareAttuali)) {
+                is ControlloGarePiano.FuoriStagione -> {
+                    _erroreGenerazionePiano.value = Avviso(
+                        gravita = com.mattia.nuotoparalimpico.domain.Gravita.ERRORE,
+                        messaggio = controllo.messaggio
+                    )
+                    return@launch
+                }
+                ControlloGarePiano.Valide -> Unit
+            }
+            val chiusureAttuali = pianoDao.leggiChiusure(s.id)
             val parametriAutomatici = AutoPianificatore.parametriAuto(
                 atleti = atletaDao.osservaAtleti().first(),
                 log = atletaDao.osservaTuttiLog().first(),

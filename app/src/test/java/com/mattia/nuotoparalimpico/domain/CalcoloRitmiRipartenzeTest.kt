@@ -35,10 +35,45 @@ class CalcoloRitmiRipartenzeTest {
         assertTrue(ripartenza50.startsWith("a "))
         assertTrue(ripartenza200.startsWith("a "))
         assertTrue(ripartenza200.length >= ripartenza50.length)
-        assertEquals(0, ritmo.pausaSecondi % 5)
         assertEquals(
-            ritmo.passo100mCentesimi / 100 + ritmo.pausaSecondi,
-            ritmo.ripartenzaSecondi
+            ritmo.ripartenzaSecondi - kotlin.math.ceil(ritmo.passo100mCentesimi / 100.0).toInt(),
+            ritmo.pausaSecondi
         )
+        assertEquals(
+            ritmo.ripartenzaSecondi,
+            CalcoloRitmiRipartenze.ripartenzaSecondi(ritmo, 100)
+        )
+    }
+
+    @Test
+    fun ripartenzeDiTabellaESerieSonoMultipliDiCinqueECoerentiSuCentoMetri() {
+        listOf(5500, 11000).forEach { tempoBase ->
+            val tabella = CalcoloRitmiRipartenze.calcolaTabellaRitmi(
+                atletaId = 1,
+                tempo100mCentesimi = tempoBase,
+                stile = Stile.STILE_LIBERO
+            )
+
+            CodiceAllenamento.entries.forEach { codice ->
+                val ritmo = tabella.ritmi.getValue(codice)
+                val ripartenza100 = CalcoloRitmiRipartenze.ripartenzaSecondi(ritmo, 100)
+                val tempoNuoto = ritmo.passo100mCentesimi / 100.0
+
+                assertEquals("$tempoBase $codice", 0, ritmo.ripartenzaSecondi % 5)
+                assertEquals("$tempoBase $codice", 0, ripartenza100 % 5)
+                assertTrue("$tempoBase $codice: ripartenza insufficiente", ripartenza100 - tempoNuoto >= 5.0)
+                assertTrue("$tempoBase $codice: recupero negativo", ritmo.pausaSecondi >= 5)
+                assertEquals(
+                    "$tempoBase $codice: recupero incoerente",
+                    ritmo.ripartenzaSecondi - kotlin.math.ceil(tempoNuoto).toInt(),
+                    ritmo.pausaSecondi
+                )
+                assertEquals(
+                    "$tempoBase $codice: tabella diversa dalla serie a 100m",
+                    ritmo.ripartenzaFormatted,
+                    CalcoloRitmiRipartenze.ripartenzaPer(ritmo, 100)
+                )
+            }
+        }
     }
 }
