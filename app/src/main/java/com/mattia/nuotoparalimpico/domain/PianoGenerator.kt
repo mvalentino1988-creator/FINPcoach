@@ -62,10 +62,11 @@ object PianoGenerator {
     ): List<MacroGen> {
         val primoLunedi = stagione.inizio.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 
-        // L'attività arriva fino all'ultima gara anche se cade dopo la fine nominale della stagione.
-        val ultimaGaraData = gare.maxOfOrNull { it.al }
-        val fineEffettiva = if (ultimaGaraData != null && ultimaGaraData.isAfter(stagione.fine)) ultimaGaraData else stagione.fine
-        val ultimaDomenica = fineEffettiva.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+        require(gare.none { it.dal.isBefore(stagione.inizio) || it.al.isAfter(stagione.fine) }) {
+            "Le gare devono essere comprese nelle date della stagione"
+        }
+        val fineEffettiva = stagione.fine
+        val ultimaDomenica = stagione.fine.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
 
         val settimane = generateSequence(primoLunedi) { it.plusWeeks(1) }
             .takeWhile { !it.isAfter(ultimaDomenica) }
@@ -225,7 +226,12 @@ object PianoGenerator {
         }
 
         // Rientro graduale a inizio stagione: i coefficienti sono parametri del piano.
-        val coefficienteRientro = p.coefficientiRientro.getOrElse(idxSettimana) { 1.0 }
+        val rientroEstivo = stagione.inizio.monthValue in 8..10
+        val coefficienteRientro = if (rientroEstivo) {
+            p.coefficientiRientro.getOrElse(idxSettimana) { 1.0 }
+        } else {
+            1.0
+        }
 
         val fattoreBase = when (tipo) {
             TipoMicrociclo.PAUSA -> 0.0
@@ -246,7 +252,7 @@ object PianoGenerator {
 
         val previste = p.giorniAllenamento.size
         val note = mutableListOf<String>()
-        if (idxSettimana < p.coefficientiRientro.size) {
+        if (rientroEstivo && idxSettimana < p.coefficientiRientro.size) {
             note += "${p.etichettaRientro}: volume ${(coefficienteRientro * 100).roundToInt()}% (focus A1/A2 e reattività D, no lattacido)"
         }
         if (garaSecondariaInSettimana && !garaPrioritariaInSettimana) {

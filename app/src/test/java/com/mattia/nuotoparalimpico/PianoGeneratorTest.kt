@@ -6,6 +6,8 @@ import com.mattia.nuotoparalimpico.data.Stagione
 import com.mattia.nuotoparalimpico.data.TipoMicrociclo
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -62,5 +64,39 @@ class PianoGeneratorTest {
         assertTrue(macro.flatMap { it.meso }.all {
             !it.meso.inizio.isBefore(stagione.inizio) && !it.meso.fine.isAfter(stagione.fine)
         })
+    }
+
+    @Test
+    fun adattamentoApplicaUnSoloCoefficienteDiRientro() {
+        val primo = micro(emptyList()).first()
+        assertEquals(TipoMicrociclo.ADATTAMENTO, primo.tipo)
+        assertEquals(3060, primo.volumeTargetMetri)
+        assertTrue(primo.note.contains("Rientro a inizio stagione"))
+    }
+
+    @Test
+    fun rientroEstivoNonSiApplicaAUnaStagioneCheIniziaAgennaio() {
+        val stagioneInvernale = stagione.copy(
+            inizio = LocalDate.of(2027, 1, 4),
+            fine = LocalDate.of(2027, 6, 13)
+        )
+        val micro = PianoGenerator.genera(stagioneInvernale, emptyList(), emptyList(), ParametriPiano())
+            .flatMap { it.meso }.flatMap { it.micro }
+        assertEquals(3600, micro.first().volumeTargetMetri)
+        assertFalse(micro.first().note.contains("Rientro a inizio stagione"))
+    }
+
+    @Test
+    fun garaFuoriStagioneVieneRifiutata() {
+        val garaFuoriStagione = Gara(
+            stagioneId = 0,
+            nome = "Fuori stagione",
+            dal = stagione.fine.plusDays(1),
+            al = stagione.fine.plusDays(1),
+            prioritaria = true
+        )
+        assertThrows(IllegalArgumentException::class.java) {
+            PianoGenerator.genera(stagione, emptyList(), listOf(garaFuoriStagione), ParametriPiano())
+        }
     }
 }

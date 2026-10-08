@@ -177,7 +177,7 @@ object GeneratoreSmartSeduta {
         vascaMetri: Int = 25,
         variante: Int = 0
     ): SchedaSeduta {
-        val volumeValido = metriTarget.coerceAtLeast(400).arrotondaA50m()
+        val volumeValido = metriTarget.coerceAtLeast(600).arrotondaA50m()
         val oggi = data ?: LocalDate.now()
         val rnd = Random((oggi.toEpochDay() * 1_000_003L) + (atleta?.id ?: 0L) * 7_919L + variante * 104_729L)
 
@@ -280,12 +280,45 @@ object GeneratoreSmartSeduta {
 
         // 4. Metri per codice (multipli di 50m)
         val sommaQuote = quoteBase.values.sum().coerceAtLeast(0.01)
-        val metriPerCodice = quoteBase.mapValues { (_, q) ->
-            ((q / sommaQuote) * volumeValido).roundToInt().arrotondaA50m()
-        }.filterValues { it > 0 }
+        val quoteMetri = quoteBase.mapValues { (_, q) ->
+            q / sommaQuote * volumeValido
+        }
+        val defaticamento = maxOf(150, (volumeValido * 0.075).roundToInt().arrotondaA50m())
+        val massimoA1 = (volumeValido * 0.25).toInt() / 50 * 50
+        val a1MassimoPrimaDelDefaticamento = maxOf(0, massimoA1 - defaticamento)
+        val a1Prima = minOf(
+            (quoteMetri[CodiceAllenamento.A1] ?: 0.0).roundToInt().arrotondaA50m(),
+            a1MassimoPrimaDelDefaticamento
+        )
+        val codiciSerie = listOf(
+            CodiceAllenamento.A2, CodiceAllenamento.B1, CodiceAllenamento.B2,
+            CodiceAllenamento.C1, CodiceAllenamento.C2, CodiceAllenamento.C3,
+            CodiceAllenamento.D
+        ).filter { (quoteMetri[it] ?: 0.0) >= 100.0 }
+        val metriPerCodice = quoteMetri.filterKeys { it in codiciSerie }.toMutableMap()
+        val totaleSerie = volumeValido - defaticamento - a1Prima
+        val pesoSerie = metriPerCodice.values.sum().coerceAtLeast(1.0)
+        var assegnatiSerie = 0
+        codiciSerie.forEachIndexed { index, codice ->
+            val assegnati = if (index == codiciSerie.lastIndex) {
+                totaleSerie - assegnatiSerie
+            } else {
+                (totaleSerie * (metriPerCodice[codice] ?: 0.0) / pesoSerie)
+                    .roundToInt().arrotondaA50m().coerceAtMost(totaleSerie - assegnatiSerie)
+            }
+            metriPerCodice[codice] = assegnati.toDouble()
+            assegnatiSerie += assegnati
+        }
+        metriPerCodice[CodiceAllenamento.A1] = a1Prima.toDouble()
 
         // 5. Costruzione dei tratti
-        val tratti = costruisciTratti(metriPerCodice, spalla, tabellaRitmi, rnd)
+        val tratti = costruisciTratti(
+            metriPerCodice.mapValues { it.value.roundToInt() },
+            defaticamento,
+            spalla,
+            tabellaRitmi,
+            rnd
+        )
 
         // La ripartizione e il volume derivano dai tratti realmente inseriti
         val perCodice = tratti.groupBy { it.codice }.mapValues { (_, l) -> l.sumOf { it.metri } }
@@ -372,6 +405,7 @@ object GeneratoreSmartSeduta {
      */
     private fun costruisciTratti(
         metriCodice: Map<CodiceAllenamento, Int>,
+        defaticamento: Int,
         spalla: Boolean,
         tabella: TabellaRitmiAtleta?,
         rnd: Random
@@ -383,21 +417,24 @@ object GeneratoreSmartSeduta {
 
         // ---- A1: riscaldamento + tecnica + defaticamento
         val mA1 = metriCodice[CodiceAllenamento.A1] ?: 0
-        val mRisc = maxOf(200, (mA1 * 0.5).roundToInt().arrotondaA50m())
-        val mDefat = maxOf(100, (mA1 * 0.25).roundToInt().arrotondaA50m())
-        val mTecnica = (mA1 - mRisc - mDefat).coerceAtLeast(0).arrotondaA50m()
+        val mDefat = defaticamento
+        val mPrimaA1 = maxOf(0, mA1)
+        val mRisc = minOf(mPrimaA1, maxOf(100, (mPrimaA1 * 0.6).roundToInt().arrotondaA50m()))
+        val mTecnica = (mPrimaA1 - mRisc).coerceAtLeast(0)
 
-        tratti += TrattoSeduta(
-            sezione = "Riscaldamento",
-            codice = CodiceAllenamento.A1,
-            metri = mRisc,
-            ripetizioni = "1 x $mRisc m",
-            descrizione = WARMUP.random(rnd),
-            ripartenza = "Continuo",
-            notaSpecifica = notaRitmo(ritmoA1, "Ritmo sciolto e respirazione bilanciata.")
-        )
+        if (mRisc > 0) {
+            tratti += TrattoSeduta(
+                sezione = "Riscaldamento",
+                codice = CodiceAllenamento.A1,
+                metri = mRisc,
+                ripetizioni = "1 x $mRisc m",
+                descrizione = WARMUP.random(rnd),
+                ripartenza = "Continuo",
+                notaSpecifica = notaRitmo(ritmoA1, "Ritmo sciolto e respirazione bilanciata.")
+            )
+        }
 
-        if (mTecnica >= 100) {
+        if (mTecnica >= 50) {
             val n = mTecnica / 50
             val drill = (if (spalla) TECNICA_SPALLA else TECNICA).shuffled(rnd).take(2)
             tratti += TrattoSeduta(
@@ -413,8 +450,8 @@ object GeneratoreSmartSeduta {
 
         // ---- D: attivazione e velocità
         val mD = metriCodice[CodiceAllenamento.D] ?: 0
-        if (mD >= 50) {
-            val n = (mD / 50).coerceIn(2, 8)
+        if (mD >= 100) {
+            val n = mD / 50
             val ritmoD = tabella?.ritmi?.get(CodiceAllenamento.D)
             tratti += TrattoSeduta(
                 sezione = "Attivazione e Velocità",
@@ -433,19 +470,32 @@ object GeneratoreSmartSeduta {
             CodiceAllenamento.C1, CodiceAllenamento.C2, CodiceAllenamento.C3
         ).forEach { codice ->
             val m = metriCodice[codice] ?: 0
-            if (m < 50) return@forEach
+            if (m < 100) return@forEach
             val lista = VARIANTI.getValue(codice)
             val candidate = lista.filter { it.unita * 2 <= m }
                 .ifEmpty { lista.filter { it.unita <= m } }
                 .ifEmpty { listOf(lista.minBy { it.unita }) }
             val v = candidate.random(rnd)
-            val rip = (m / v.unita).coerceIn(1, v.maxRip)
+            val rip = m / v.unita
+            val numeroSerie = rip / v.maxRip
+            val ripResidue = rip % v.maxRip
             val ritmo = tabella?.ritmi?.get(codice)
             tratti += TrattoSeduta(
                 sezione = SEZIONI_SERIE.getValue(codice),
                 codice = codice,
-                metri = rip * v.unita,
-                ripetizioni = "$rip x ${v.unita}m",
+                metri = m,
+                ripetizioni = buildString {
+                    if (numeroSerie > 0) append("$numeroSerie serie da ${v.maxRip} x ${v.unita}m")
+                    if (ripResidue > 0) {
+                        if (isNotEmpty()) append(" + ")
+                        append("$ripResidue x ${v.unita}m")
+                    }
+                    val residuiMetri = m - rip * v.unita
+                    if (residuiMetri > 0) {
+                        if (isNotEmpty()) append(" + ")
+                        append("$residuiMetri m")
+                    }
+                },
                 descrizione = v.descrizione,
                 ripartenza = ritmo?.let { CalcoloRitmiRipartenze.ripartenzaPer(it, v.unita) }
                     ?: RIPARTENZA_BASE.getValue(codice),

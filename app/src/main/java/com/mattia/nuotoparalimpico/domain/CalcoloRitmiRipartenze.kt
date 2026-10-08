@@ -86,26 +86,31 @@ object CalcoloRitmiRipartenze {
         stile: Stile = Stile.STILE_LIBERO,
         vascaMetri: Int = 25
     ): TabellaRitmiAtleta {
+        require(vascaMetri == 25 || vascaMetri == 50) { "La vasca deve essere da 25 o 50 metri" }
         val base = tempo100mCentesimi.coerceAtLeast(4000) // minimo 40"
+        val passoCss = CalcoloScienzaNuoto.stimaCssDaPassoGara(base)
         val ritmiMap = mutableMapOf<CodiceAllenamento, RitmoCodice>()
 
         CodiceAllenamento.entries.forEach { codice ->
-            val (deltaPasso100Sec, deltaRipartenzaSec, pausaSec, nota) = when (codice) {
-                CodiceAllenamento.A1 -> Quadruple(16, 15, 15, "Nuoto rilassato e coordinato, frequenza cardiaca contenuta.")
-                CodiceAllenamento.A2 -> Quadruple(12, 10, 12, "Passo fondo costante, controllo del numero di bracciate.")
-                CodiceAllenamento.B1 -> Quadruple(6, 8, 10, "Passo Soglia Anaerobica: mantenere costante per tutta la serie.")
-                CodiceAllenamento.B2 -> Quadruple(3, 20, 20, "Passo VO2 Max: sforzo ad alta frequenza cardiaca.")
-                CodiceAllenamento.C1 -> Quadruple(0, 75, 75, "Passo Gara 100m: tolleranza all'acidosi con ampio recupero.")
-                CodiceAllenamento.C2 -> Quadruple(-2, 120, 120, "Sforzo Massimale: picco di potenza lattacida.")
-                CodiceAllenamento.C3 -> Quadruple(0, 90, 90, "Simulazione esatta passo gara prioritaria.")
-                CodiceAllenamento.D  -> Quadruple(-5, 60, 60, "Velocità pura alattacida sui primi 15m-25m.")
+            val zona = when (codice) {
+                CodiceAllenamento.A1 -> Triple(1.20, 0.15, "Nuoto rilassato e coordinato, frequenza cardiaca contenuta.")
+                CodiceAllenamento.A2 -> Triple(1.12, 0.12, "Passo fondo costante, controllo del numero di bracciate.")
+                CodiceAllenamento.B1 -> Triple(1.05, 0.10, "Passo soglia: mantenere costante per tutta la serie.")
+                CodiceAllenamento.B2 -> Triple(1.00, 0.20, "Passo VO2 Max: sforzo ad alta frequenza cardiaca.")
+                CodiceAllenamento.C1 -> Triple(1.05, 0.75, "Passo lattacido controllato, con ampio recupero.")
+                CodiceAllenamento.C2 -> Triple(1.02, 1.20, "Potenza lattacida al passo CSS, senza sovrastimare la velocità.")
+                CodiceAllenamento.C3 -> Triple(1.0, 0.90, "Simulazione al passo gara personale.")
+                CodiceAllenamento.D -> Triple(0.95, 0.75, "Velocità alattacida individuale sui primi 15m-25m.")
             }
 
-            val passoCentesimi = (base + deltaPasso100Sec * 100).coerceAtLeast(2500)
-            val ripartenzaSec = ((passoCentesimi / 100) + deltaRipartenzaSec)
-            // Arrotonda ripartenza e pausa a multipli di 5 secondi
-            val ripartenzaSecArrotondata = ((ripartenzaSec + 2) / 5) * 5
-            val pausaSecArrotondata = ((pausaSec + 2) / 5) * 5
+            val riferimentoCentesimi = if (codice == CodiceAllenamento.C3 || codice == CodiceAllenamento.D) {
+                base
+            } else {
+                passoCss
+            }
+            val passoCentesimi = (riferimentoCentesimi * zona.first).roundToInt().coerceAtLeast(2500)
+            val pausaSecArrotondata = ((passoCentesimi / 100.0 * zona.second) / 5.0).roundToInt() * 5
+            val ripartenzaSecArrotondata = (passoCentesimi / 100 + pausaSecArrotondata / 5 * 5)
 
             val minRip = ripartenzaSecArrotondata / 60
             val secRip = ripartenzaSecArrotondata % 60
@@ -119,7 +124,7 @@ object CalcoloRitmiRipartenze {
                 ripartenzaFormatted = strRipartenza,
                 pausaSecondi = pausaSecArrotondata,
                 pausaFormatted = "recupero $pausaSecArrotondata\"",
-                noteTecniche = nota
+                noteTecniche = zona.third
             )
         }
 
@@ -234,5 +239,3 @@ object CalcoloRitmiRipartenze {
         }
     }
 }
-
-private data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
