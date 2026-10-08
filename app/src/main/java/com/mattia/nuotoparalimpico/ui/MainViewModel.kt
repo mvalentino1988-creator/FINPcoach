@@ -9,23 +9,32 @@ import com.mattia.nuotoparalimpico.data.Atleta
 import com.mattia.nuotoparalimpico.data.Chiusura
 import com.mattia.nuotoparalimpico.data.CondizioneMedica
 import com.mattia.nuotoparalimpico.data.Gara
+import com.mattia.nuotoparalimpico.data.FaseMesociclo
 import com.mattia.nuotoparalimpico.data.LogSeduta
 import com.mattia.nuotoparalimpico.data.Macrociclo
 import com.mattia.nuotoparalimpico.data.Mesociclo
 import com.mattia.nuotoparalimpico.data.Microciclo
+import com.mattia.nuotoparalimpico.data.RankingAtleta
+import com.mattia.nuotoparalimpico.data.RegolamentiRepository
 import com.mattia.nuotoparalimpico.data.Stagione
+import com.mattia.nuotoparalimpico.data.StatoRegolamenti
 import com.mattia.nuotoparalimpico.data.Tempo
+import com.mattia.nuotoparalimpico.data.TipoMicrociclo
 import com.mattia.nuotoparalimpico.domain.Avviso
 import com.mattia.nuotoparalimpico.domain.Calendario
 import com.mattia.nuotoparalimpico.domain.Festivita
+import com.mattia.nuotoparalimpico.domain.GeneratoreSmartSeduta
 import com.mattia.nuotoparalimpico.domain.ParametriPiano
 import com.mattia.nuotoparalimpico.domain.PianoGenerator
 import com.mattia.nuotoparalimpico.domain.PianoValidator
+import com.mattia.nuotoparalimpico.domain.SchedaSeduta
 import java.time.LocalDate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -39,6 +48,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val db = AppDatabase.get(app)
     private val atletaDao = db.atletaDao()
     private val pianoDao = db.pianoDao()
+    private val rankingDao = db.rankingDao()
+    private val regolamentiRepo = RegolamentiRepository(app)
 
     private fun <T> stato(flow: Flow<T>, iniziale: T): StateFlow<T> =
         flow.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), iniziale)
@@ -56,6 +67,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val atleti: StateFlow<List<Atleta>> = stato(atletaDao.osservaAtleti(), emptyList())
     val condizioni: StateFlow<List<CondizioneMedica>> = stato(atletaDao.osservaCondizioni(), emptyList())
     val assenze: StateFlow<List<Assenza>> = stato(atletaDao.osservaAssenze(), emptyList())
+    val tuttiTempi: StateFlow<List<Tempo>> = stato(atletaDao.osservaTuttiTempi(), emptyList())
+    val tuttiLog: StateFlow<List<LogSeduta>> = stato(atletaDao.osservaTuttiLog(), emptyList())
+    val rankings: StateFlow<List<RankingAtleta>> = stato(rankingDao.osserva(), emptyList())
 
     fun aggiungiAtleta(a: Atleta) { viewModelScope.launch { atletaDao.inserisci(a) } }
     fun aggiornaAtleta(a: Atleta) { viewModelScope.launch { atletaDao.aggiorna(a) } }
@@ -65,9 +79,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun aggiungiAssenza(a: Assenza) { viewModelScope.launch { atletaDao.inserisciAssenza(a) } }
     fun eliminaAssenza(a: Assenza) { viewModelScope.launch { atletaDao.eliminaAssenza(a) } }
 
+    fun salvaRanking(r: RankingAtleta) { viewModelScope.launch { rankingDao.salva(r) } }
+    fun eliminaRanking(r: RankingAtleta) { viewModelScope.launch { rankingDao.elimina(r) } }
+
     // ---------- Tempi e Log ----------
-    // I Flow vengono creati una volta sola per atleta: se la UI ne chiedesse uno nuovo a ogni
-    // ricomposizione, collectAsStateWithLifecycle ripartirebbe da capo ogni volta.
     private val cacheTempi = mutableMapOf<Long, Flow<List<Tempo>>>()
     private val cacheLog = mutableMapOf<Long, Flow<List<LogSeduta>>>()
 
@@ -99,6 +114,36 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         },
         emptyList()
     )
+
+    private val _regolamenti = MutableStateFlow(StatoRegolamenti())
+    val regolamenti: StateFlow<StatoRegolamenti> = _regolamenti.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val cache = regolamentiRepo.leggiCache()
+            _regolamenti.value = StatoRegolamenti(
+                documenti = cache.first,
+                aggiornatoIl = cache.second
+            )
+        }
+    }
+
+    fun aggiornaRegolamenti(forza: Boolean = false) {
+        viewModelScope.launch {
+            val attuale = _regolamenti.value
+            val troppoVecchio = attuale.aggiornatoIl == null || (System.currentTimeMillis() - attuale.aggiornatoIl >= 24 * 60 * 60 * 1000)
+            if (!forza && !troppoVecchio && attuale.documenti.isNotEmpty()) return@launch
+
+            _regolamenti.value = attuale.copy(caricamento = true, errore = null)
+            val esito = regolamentiRepo.scarica()
+            _regolamenti.value = StatoRegolamenti(
+                documenti = esito.documenti,
+                caricamento = false,
+                errore = esito.errori.joinToString("\n").ifBlank { null },
+                aggiornatoIl = esito.timestamp
+            )
+        }
+    }
 
     fun creaStagione(nome: String, inizio: LocalDate, fine: LocalDate) {
         viewModelScope.launch {
@@ -138,6 +183,15 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun eliminaGara(g: Gara) { viewModelScope.launch { pianoDao.eliminaGara(g) } }
+
+    // ---------- Generazione scheda e piano ----------
+    fun generaScheda(data: LocalDate): SchedaSeduta =
+        GeneratoreSmartSeduta.genera(
+            data = data,
+            metriTarget = 1800,
+            fase = FaseMesociclo.PREPARAZIONE_SPECIFICA,
+            tipoMicro = TipoMicrociclo.CARICO
+        )
 
     /**
      * Rigenera il piano. Le settimane modificate a mano (bloccate) mantengono i valori scelti,

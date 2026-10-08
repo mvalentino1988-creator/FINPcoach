@@ -32,13 +32,55 @@ val MIGRAZIONE_2_3 = object : Migration(2, 3) {
     }
 }
 
+/** v4: aggiunge la tabella del ranking atleta. */
+val MIGRAZIONE_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS ranking_atleta (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "atletaId INTEGER NOT NULL, " +
+                "stile TEXT NOT NULL, " +
+                "distanzaMetri INTEGER NOT NULL, " +
+                "ambito TEXT NOT NULL, " +
+                "posizione INTEGER NOT NULL, " +
+                "aggiornatoIl INTEGER NOT NULL, " +
+                "FOREIGN KEY(atletaId) REFERENCES atleti(id) ON DELETE CASCADE)"
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_ranking_atleta_atletaId ON ranking_atleta(atletaId)")
+    }
+}
+
+/** v5: aggiunge sesso e limite di volume all'atleta e il livello gara, senza perdere dati. */
+val MIGRAZIONE_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        fun aggiungiColonnaSeAssente(tabella: String, colonna: String, definizione: String) {
+            val esiste = db.query("PRAGMA table_info($tabella)").use { cursor ->
+                val indiceNome = cursor.getColumnIndexOrThrow("name")
+                var trovata = false
+                while (cursor.moveToNext()) {
+                    if (cursor.getString(indiceNome) == colonna) {
+                        trovata = true
+                        break
+                    }
+                }
+                trovata
+            }
+            if (!esiste) db.execSQL("ALTER TABLE $tabella ADD COLUMN $colonna $definizione")
+        }
+
+        aggiungiColonnaSeAssente("atleti", "sesso", "TEXT")
+        aggiungiColonnaSeAssente("atleti", "metriMaxSeduta", "INTEGER")
+        aggiungiColonnaSeAssente("gare", "livello", "TEXT NOT NULL DEFAULT 'ALTRO'")
+    }
+}
+
 @Database(
     entities = [
         Atleta::class, CondizioneMedica::class, Assenza::class, AtletaAttributo::class,
         Stagione::class, Macrociclo::class, Mesociclo::class, Microciclo::class,
-        Chiusura::class, Gara::class, Tempo::class, LogSeduta::class
+        Chiusura::class, Gara::class, Tempo::class, LogSeduta::class, RankingAtleta::class
     ],
-    version = 3,
+    version = 5,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -46,6 +88,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun atletaDao(): AtletaDao
     abstract fun pianoDao(): PianoDao
     abstract fun registroDao(): RegistroDao
+    abstract fun rankingDao(): RankingDao
 
     companion object {
         @Volatile
@@ -57,7 +100,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "nuoto.db"
-                ).addMigrations(MIGRAZIONE_1_2, MIGRAZIONE_2_3).build().also { istanza = it }
+                ).addMigrations(MIGRAZIONE_1_2, MIGRAZIONE_2_3, MIGRAZIONE_3_4, MIGRAZIONE_4_5).build().also { istanza = it }
             }
     }
 }

@@ -103,6 +103,11 @@ npm run dev
 npm run build
 ```
 
+La build web aggiorna anche le risorse web incorporate nell'app Android (`app/src/main/assets/web`).
+L'app Android le mostra in una WebView locale, quindi l'interfaccia non dipende da un server remoto.
+Su Android i dati della nuova interfaccia sono salvati nello storage privato della WebView; eventuali dati
+del database Room della precedente interfaccia nativa restano sul dispositivo ma non sono mostrati qui.
+
 ---
 
 ## 🏊 Autore

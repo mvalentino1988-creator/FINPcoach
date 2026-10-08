@@ -174,6 +174,7 @@ object GeneratoreSmartSeduta {
         tempi: List<Tempo> = emptyList(),
         logSedute: List<LogSeduta> = emptyList(),
         mesocicloCorrente: Mesociclo? = null,
+        vascaMetri: Int = 25,
         variante: Int = 0
     ): SchedaSeduta {
         val volumeValido = metriTarget.coerceAtLeast(400).arrotondaA50m()
@@ -203,7 +204,7 @@ object GeneratoreSmartSeduta {
                 atletaId = atleta.id,
                 tempo100mCentesimi = tempoRiferimento.centesimi,
                 stile = tempoRiferimento.stile,
-                vascaMetri = 25
+                vascaMetri = vascaMetri
             )
         } else null
         if (tempoRiferimento != null && tabellaRitmi != null) {
@@ -254,7 +255,7 @@ object GeneratoreSmartSeduta {
                     quoteBase[CodiceAllenamento.A1] = (quoteBase[CodiceAllenamento.A1] ?: 0.3) + riduzioneB2
                     avvertenzeMediche += "⚠️ Condizione spalla/articolare (${c.descrizione}): evitate palette rigide nelle serie B2/C, esercizi tecnici scelti tra quelli di sensibilità e gambe."
                 }
-                desc.contains("affaticament") || desc.contains("neurolog") || desc.contains("spastic") || desc.contains("sclerosi") || desc.contains("midoll") || desc.contains("parapleg") || desc.contains("tetrapleg") -> {
+                desc.contains("affaticament") || desc.contains("neurolog") || desc.contains("spastic") || desc.contains("sclerosi") || desc.contains("midoll") || desc.contains("parapleg") -> {
                     val lattacidi = (quoteBase[CodiceAllenamento.C1] ?: 0.0) + (quoteBase[CodiceAllenamento.C2] ?: 0.0)
                     quoteBase[CodiceAllenamento.C1] = 0.0
                     quoteBase[CodiceAllenamento.C2] = 0.0
@@ -272,7 +273,7 @@ object GeneratoreSmartSeduta {
                     avvertenzeMediche += "👁️ Disabilità visiva (${c.descrizione}): garantire la presenza del tapper per gli arrivi C1/C2/D e conteggio costante bracciate."
                 }
                 else -> {
-                    avvertenzeMediche += "ℹ️ Adattamento Medico Personalizzato (${c.descrizione}): ${if (c.limitazioni.isNotBlank()) c.limitazioni else "Monitorare il recupero e regolare la resistenza."}"
+                    avvertenzeMediche += "ℹ️ Adattamento Medico Personalizzato (${c.descrizione}): ${if (c.limitazioni.isNotBlank()) c.limitazioni else "Monitorare il recupero e regolare la seduta in base alle risposte del nuotatore."}"
                 }
             }
         }
@@ -404,7 +405,7 @@ object GeneratoreSmartSeduta {
                 codice = CodiceAllenamento.A1,
                 metri = n * 50,
                 ripetizioni = "$n x 50m",
-                descrizione = "Alterna: ${drill.joinToString(" / ")}.",
+                descrizione = "Alterna: ${drill.joinToString(" / ") }.",
                 ripartenza = ritmoA1?.let { CalcoloRitmiRipartenze.ripartenzaPer(it, 50) } ?: "recupero 15\"",
                 notaSpecifica = "Per atleti senza gambata o con gambata limitata: sostituire gli esercizi di gambe con scivolamento, sensibilità o pull con boccaglio."
             )

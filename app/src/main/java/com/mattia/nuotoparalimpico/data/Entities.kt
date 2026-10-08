@@ -8,6 +8,10 @@ import androidx.room.PrimaryKey
 import java.time.LocalDate
 
 enum class StatoClassificazione { UFFICIALE, IN_ATTESA }
+enum class Sesso(val etichetta: String) { MASCHILE("Maschile"), FEMMINILE("Femminile") }
+enum class LivelloGara(val etichetta: String, val settimanePreGara: Int) {
+    ALTRO("Altra gara", 2)
+}
 
 enum class FaseMesociclo(val etichetta: String) {
     PREPARAZIONE_GENERALE("Preparazione generale"),
@@ -27,6 +31,10 @@ enum class TipoMicrociclo(val etichetta: String) {
 
 enum class Stile { STILE_LIBERO, DORSO, RANA, FARFALLA, MISTI }
 enum class ContestoTempo { GARA, ALLENAMENTO, TEST }
+enum class AmbitoRanking(val etichetta: String) {
+    ITALIA("Italia"),
+    MONDO("Mondo")
+}
 
 // ---------- ATLETI ----------
 
@@ -42,7 +50,10 @@ data class Atleta(
     val stato: StatoClassificazione = StatoClassificazione.IN_ATTESA,
     /** 1.0 = volume pieno di squadra; 0.8 = 80% ecc. Deciso dall'allenatore. */
     val fattoreVolume: Double = 1.0,
-    val note: String = ""
+    val volumeAuto: Boolean = true,
+    val note: String = "",
+    val sesso: Sesso? = null,
+    val metriMaxSeduta: Int? = null
 )
 
 @Entity(
@@ -167,7 +178,23 @@ data class Gara(
     val dal: LocalDate,
     val al: LocalDate,
     val luogo: String = "",
-    val prioritaria: Boolean = false
+    val prioritaria: Boolean = false,
+    val livello: LivelloGara = LivelloGara.ALTRO
+)
+
+@Entity(
+    tableName = "ranking_atleta",
+    foreignKeys = [ForeignKey(entity = Atleta::class, parentColumns = ["id"], childColumns = ["atletaId"], onDelete = ForeignKey.CASCADE)],
+    indices = [Index("atletaId")]
+)
+data class RankingAtleta(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val atletaId: Long,
+    val stile: Stile,
+    val distanzaMetri: Int,
+    val ambito: AmbitoRanking,
+    val posizione: Int,
+    val aggiornatoIl: LocalDate
 )
 
 // ---------- LOG E TEMPI ----------

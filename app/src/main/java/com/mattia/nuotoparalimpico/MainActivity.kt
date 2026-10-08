@@ -1,93 +1,161 @@
 package com.mattia.nuotoparalimpico
 
+import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.view.ViewGroup
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import com.mattia.nuotoparalimpico.ui.AtletiScreen
-import com.mattia.nuotoparalimpico.ui.MainViewModel
-import com.mattia.nuotoparalimpico.ui.PianoScreen
-import com.mattia.nuotoparalimpico.ui.RegistroScreen
-import com.mattia.nuotoparalimpico.ui.RegistroViewModel
-import com.mattia.nuotoparalimpico.ui.TempiRipartenzeScreen
-import com.mattia.nuotoparalimpico.ui.theme.NuotoParalimpicoTheme
+import androidx.activity.OnBackPressedCallback
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import java.io.ByteArrayInputStream
 
 class MainActivity : ComponentActivity() {
 
-    private val viewModel: MainViewModel by viewModels()
-    private val registroViewModel: RegistroViewModel by viewModels()
+    private lateinit var webView: WebView
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            NuotoParalimpicoTheme {
-                AppRoot(viewModel, registroViewModel)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        hideSystemBars()
+
+        webView = WebView(this).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            settings.allowFileAccess = false
+            settings.allowContentAccess = false
+            webViewClient = BundledAppWebViewClient()
+            webChromeClient = WebChromeClient()
+        }
+        setContentView(webView)
+
+        if (savedInstanceState == null || webView.restoreState(savedInstanceState) == null) {
+            webView.loadUrl(APP_URL)
+        }
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (webView.canGoBack()) {
+                    webView.goBack()
+                } else {
+                    finish()
+                }
             }
+        })
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        webView.saveState(outState)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onDestroy() {
+        webView.destroy()
+        super.onDestroy()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) hideSystemBars()
+    }
+
+    private fun hideSystemBars() {
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            systemBarsBehavior =
+                androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            hide(WindowInsetsCompat.Type.systemBars())
         }
     }
-}
 
-@Composable
-private fun AppRoot(vm: MainViewModel, rvm: RegistroViewModel) {
-    var tab by rememberSaveable { mutableIntStateOf(0) }
-    Scaffold(
-        bottomBar = {
-            NavigationBar {
-                NavigationBarItem(
-                    selected = tab == 0,
-                    onClick = { tab = 0 },
-                    icon = { Icon(Icons.Filled.Person, contentDescription = "Atleti") },
-                    label = { Text("Atleti") }
+    private inner class BundledAppWebViewClient : WebViewClient() {
+        override fun shouldInterceptRequest(
+            view: WebView,
+            request: WebResourceRequest
+        ): WebResourceResponse? {
+            val uri = request.url
+            if (uri.scheme != "https" || uri.host != ASSET_HOST) return null
+
+            val path = uri.path.orEmpty()
+            val assetPath = when {
+                path == "/" -> "web/index.html"
+                path.startsWith("/assets/") -> path.removePrefix("/assets/")
+                else -> "web/${path.removePrefix("/")}"
+            }
+            if (assetPath.split('/').any { it == "." || it == ".." }) {
+                return response404()
+            }
+
+            return try {
+                WebResourceResponse(
+                    mimeType(assetPath),
+                    if (assetPath.endsWith(".png") || assetPath.endsWith(".webp") || assetPath.endsWith(".ico")) null else "UTF-8",
+                    assets.open(assetPath)
                 )
-                NavigationBarItem(
-                    selected = tab == 1,
-                    onClick = { tab = 1 },
-                    icon = { Icon(Icons.Filled.DateRange, contentDescription = "Piano e schede") },
-                    label = { Text("Piano") }
-                )
-                NavigationBarItem(
-                    selected = tab == 2,
-                    onClick = { tab = 2 },
-                    icon = { Icon(Icons.Filled.Edit, contentDescription = "Tempi") },
-                    label = { Text("Tempi") }
-                )
-                NavigationBarItem(
-                    selected = tab == 3,
-                    onClick = { tab = 3 },
-                    icon = { Icon(Icons.Filled.CheckCircle, contentDescription = "Registro") },
-                    label = { Text("Registro") }
-                )
+            } catch (error: java.io.IOException) {
+                Log.e(TAG, "Unable to load bundled web asset: $assetPath", error)
+                response404()
             }
         }
-    ) { padding ->
-        Box(Modifier.padding(padding).statusBarsPadding()) {
-            when (tab) {
-                0 -> AtletiScreen(vm)
-                1 -> PianoScreen(vm)
-                2 -> TempiRipartenzeScreen(vm)
-                else -> RegistroScreen(vm, rvm)
+
+        override fun shouldOverrideUrlLoading(
+            view: WebView,
+            request: WebResourceRequest
+        ): Boolean {
+            val uri = request.url
+            if (uri.scheme == "https" && uri.host == ASSET_HOST) return false
+            startActivity(Intent(Intent.ACTION_VIEW, uri))
+            return true
+        }
+
+        override fun onReceivedError(
+            view: WebView,
+            request: WebResourceRequest,
+            error: android.webkit.WebResourceError
+        ) {
+            if (request.isForMainFrame) {
+                Log.e(TAG, "Web app failed to load: ${error.description}")
             }
         }
+
+        private fun response404() = WebResourceResponse(
+            "text/plain",
+            "UTF-8",
+            404,
+            "Not Found",
+            emptyMap(),
+            ByteArrayInputStream(ByteArray(0))
+        )
+
+        private fun mimeType(path: String): String = when (path.substringAfterLast('.', "")) {
+            "html" -> "text/html"
+            "css" -> "text/css"
+            "js", "mjs" -> "application/javascript"
+            "json" -> "application/json"
+            "svg" -> "image/svg+xml"
+            "png" -> "image/png"
+            "webp" -> "image/webp"
+            "ico" -> "image/x-icon"
+            "woff" -> "font/woff"
+            "woff2" -> "font/woff2"
+            else -> "application/octet-stream"
+        }
+    }
+
+    private companion object {
+        const val TAG = "FINPcoach"
+        const val ASSET_HOST = "appassets.androidplatform.net"
+        const val APP_URL = "https://$ASSET_HOST/assets/web/index.html"
     }
 }
