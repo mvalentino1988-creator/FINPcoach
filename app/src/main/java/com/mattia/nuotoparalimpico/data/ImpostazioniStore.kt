@@ -3,6 +3,7 @@ package com.mattia.nuotoparalimpico.data
 import android.content.Context
 import android.content.SharedPreferences
 import java.time.DayOfWeek
+import java.time.LocalDate
 
 /** Valori null = automatico. */
 data class ImpostazioniPiano(
@@ -41,6 +42,22 @@ class ImpostazioniStore(context: Context) {
             putOrRemove("macro", i.numeroMacrocicli)
             putOrRemove("ciclo", i.settimaneCicloCarico)
         }.apply()
+    }
+
+    fun durataSeduta(data: LocalDate): Int =
+        prefs.getInt("durata_${data}", 60).coerceIn(20, 300)
+
+    fun vascaGiorno(data: LocalDate, vascaStagione: Int): Int =
+        prefs.getInt("vasca_${data}", vascaStagione).takeIf { it == 25 || it == 50 } ?: vascaStagione
+
+    fun salvaDurataSeduta(data: LocalDate, minuti: Int) {
+        require(minuti in 20..300) { "La durata della seduta deve essere tra 20 e 300 minuti" }
+        prefs.edit().putInt("durata_${data}", minuti).apply()
+    }
+
+    fun salvaVascaGiorno(data: LocalDate, vascaMetri: Int) {
+        require(vascaMetri == 25 || vascaMetri == 50) { "La vasca deve essere da 25 o 50 metri" }
+        prefs.edit().putInt("vasca_${data}", vascaMetri).apply()
     }
 
     fun ultimaFirmaPiano(): Int? = if (prefs.contains("firma_piano")) prefs.getInt("firma_piano", 0) else null

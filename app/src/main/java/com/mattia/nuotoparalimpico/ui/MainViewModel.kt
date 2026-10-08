@@ -21,6 +21,7 @@ import com.mattia.nuotoparalimpico.data.StatoRegolamenti
 import com.mattia.nuotoparalimpico.data.Tempo
 import com.mattia.nuotoparalimpico.data.TipoMicrociclo
 import com.mattia.nuotoparalimpico.domain.Avviso
+import com.mattia.nuotoparalimpico.domain.AutoPianificatore
 import com.mattia.nuotoparalimpico.domain.Calendario
 import com.mattia.nuotoparalimpico.domain.Festivita
 import com.mattia.nuotoparalimpico.domain.GeneratoreSmartSeduta
@@ -50,6 +51,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val pianoDao = db.pianoDao()
     private val rankingDao = db.rankingDao()
     private val regolamentiRepo = RegolamentiRepository(app)
+    private val impostazioniStore = com.mattia.nuotoparalimpico.data.ImpostazioniStore(app)
 
     private fun <T> stato(flow: Flow<T>, iniziale: T): StateFlow<T> =
         flow.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), iniziale)
@@ -155,6 +157,19 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { stagioneCorrente()?.let { pianoDao.eliminaStagione(it) } }
     }
 
+    fun aggiornaVascaStagione(vascaMetri: Int) {
+        require(vascaMetri == 25 || vascaMetri == 50) { "La vasca deve essere da 25 o 50 metri" }
+        viewModelScope.launch {
+            stagioneCorrente()?.let { pianoDao.aggiornaStagione(it.copy(vascaMetri = vascaMetri)) }
+        }
+    }
+
+    fun durataSeduta(data: LocalDate): Int = impostazioniStore.durataSeduta(data)
+    fun vascaGiorno(data: LocalDate, vascaStagione: Int): Int =
+        impostazioniStore.vascaGiorno(data, vascaStagione)
+    fun salvaDurataSeduta(data: LocalDate, minuti: Int) = impostazioniStore.salvaDurataSeduta(data, minuti)
+    fun salvaVascaGiorno(data: LocalDate, vascaMetri: Int) = impostazioniStore.salvaVascaGiorno(data, vascaMetri)
+
     fun aggiungiChiusura(dal: LocalDate, al: LocalDate, motivo: String) {
         viewModelScope.launch {
             val s = stagioneCorrente() ?: return@launch
@@ -203,9 +218,20 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val s = stagioneCorrente() ?: return@launch
             val chiusureAttuali = pianoDao.leggiChiusure(s.id)
             val gareAttuali = pianoDao.leggiGare(s.id)
+            val parametriAutomatici = AutoPianificatore.parametriAuto(
+                atleti = atletaDao.osservaAtleti().first(),
+                log = atletaDao.osservaTuttiLog().first(),
+                stagione = s,
+                oggi = LocalDate.now()
+            )
             val bloccati = pianoDao.leggiMicro(s.id).filter { it.bloccato }.associateBy { it.inizio }
 
-            val piano = PianoGenerator.genera(s, chiusureAttuali, gareAttuali, parametri).map { macroGen ->
+            val piano = PianoGenerator.genera(
+                s,
+                chiusureAttuali,
+                gareAttuali,
+                parametri.copy(metriBaseSeduta = parametriAutomatici.metriBaseSeduta)
+            ).map { macroGen ->
                 macroGen.copy(
                     meso = macroGen.meso.map { mesoGen ->
                         mesoGen.copy(

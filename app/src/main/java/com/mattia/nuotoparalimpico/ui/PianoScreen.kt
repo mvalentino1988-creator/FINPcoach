@@ -279,6 +279,7 @@ private fun SezioneCalendario(
             vm = vm,
             g = Calendario.giorno(selezionato, s, micro, chiusure, gare),
             meso = meso,
+            vascaStagione = s.vascaMetri,
             onModifica = onModifica
         )
     }
@@ -321,6 +322,7 @@ private fun DettaglioGiorno(
     vm: MainViewModel,
     g: GiornoCalendario,
     meso: List<Mesociclo>,
+    vascaStagione: Int,
     onModifica: (Microciclo) -> Unit
 ) {
     val nomeGiorno = g.data.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ITALIAN).replaceFirstChar { it.uppercase() }
@@ -346,14 +348,14 @@ private fun DettaglioGiorno(
     }
 
     if (mi != null && g.seduta) {
-        SchedaDelGiorno(vm, g.data, mi, meso.firstOrNull { it.id == mi.mesocicloId })
+        SchedaDelGiorno(vm, g.data, mi, meso.firstOrNull { it.id == mi.mesocicloId }, vascaStagione)
     } else if (mi != null && g.chiusura == null && g.gare.isEmpty()) {
         Text("Nessuna seduta prevista in questo giorno.", style = MaterialTheme.typography.bodySmall)
     }
 }
 
 @Composable
-private fun SchedaDelGiorno(vm: MainViewModel, data: LocalDate, mi: Microciclo, me: Mesociclo?) {
+private fun SchedaDelGiorno(vm: MainViewModel, data: LocalDate, mi: Microciclo, me: Mesociclo?, vascaStagione: Int) {
     val atleti by vm.atleti.collectAsStateWithLifecycle()
     val condizioni by vm.condizioni.collectAsStateWithLifecycle()
     val assenze by vm.assenze.collectAsStateWithLifecycle()
@@ -362,6 +364,8 @@ private fun SchedaDelGiorno(vm: MainViewModel, data: LocalDate, mi: Microciclo, 
     var atletaSelId by rememberSaveable { mutableStateOf<Long?>(null) } // null = scheda di squadra
     var variante by remember(data) { mutableIntStateOf(0) }
     var copiato by remember(data, atletaSelId, variante) { mutableStateOf(false) }
+    var durataMin by remember(data) { mutableIntStateOf(vm.durataSeduta(data)) }
+    var vascaGiorno by remember(data, vascaStagione) { mutableIntStateOf(vm.vascaGiorno(data, vascaStagione)) }
 
     val atletaSel = atleti.firstOrNull { it.id == atletaSelId }
     val condAtleta = remember(condizioni, atletaSel) {
@@ -375,14 +379,14 @@ private fun SchedaDelGiorno(vm: MainViewModel, data: LocalDate, mi: Microciclo, 
     }
     val tempi by tempiFlow.collectAsStateWithLifecycle(initialValue = emptyList())
 
-    val metriSeduta = remember(mi, atletaSel, assenzeAtleta) {
+    val metriSeduta = remember(mi, atletaSel, assenzeAtleta, durataMin) {
         val volume = if (atletaSel != null) VolumeIndividuale.settimana(mi, atletaSel, assenzeAtleta).metri else mi.volumeTargetMetri
-        Calendario.metriSeduta(mi, volume)
+        (Calendario.metriSeduta(mi, volume) * durataMin / 60.0).toInt().coerceAtLeast(200)
     }
     val assente = atletaSel != null &&
             assenzeAtleta.any { !data.isBefore(it.dal) && !data.isAfter(it.al) }
 
-    val scheda = remember(data, metriSeduta, atletaSel, condAtleta, tempi, me, mi, variante) {
+    val scheda = remember(data, metriSeduta, atletaSel, condAtleta, tempi, me, mi, variante, vascaGiorno) {
         GeneratoreSmartSeduta.genera(
             data = data,
             metriTarget = metriSeduta,
@@ -392,10 +396,41 @@ private fun SchedaDelGiorno(vm: MainViewModel, data: LocalDate, mi: Microciclo, 
             condizioniMediche = condAtleta,
             tempi = tempi,
             mesocicloCorrente = me,
-            variante = variante
+            variante = variante,
+            vascaMetri = vascaGiorno
         )
     }
 
+    HorizontalDivider()
+    Text("Impostazioni della seduta", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Vasca")
+        listOf(25, 50).forEach { metri ->
+            FilterChip(
+                selected = vascaGiorno == metri,
+                onClick = {
+                    vascaGiorno = metri
+                    vm.salvaVascaGiorno(data, metri)
+                },
+                label = { Text("${metri} m") }
+            )
+        }
+        if (vascaGiorno != vascaStagione) Text("diversa dalla stagione", style = MaterialTheme.typography.labelSmall)
+    }
+    var durataTxt by remember(data) { mutableStateOf(durataMin.toString()) }
+    val durataInt = durataTxt.toIntOrNull()
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        CampoNumero(durataTxt, { durataTxt = it }, "Durata seduta (min)", Modifier.weight(1f), isError = durataInt == null || durataInt !in 20..300)
+        TextButton(
+            enabled = durataInt != null && durataInt in 20..300,
+            onClick = {
+                durataInt?.let {
+                    durataMin = it
+                    vm.salvaDurataSeduta(data, it)
+                }
+            }
+        ) { Text("Applica") }
+    }
     HorizontalDivider()
     Text("Destinatario della Scheda", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -617,7 +652,17 @@ private fun SezioneStagione(
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Stagione ${s.nome}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
-            Text("${s.inizio.formatta()} – ${s.fine.formatta()} · Vasca da ${s.vascaMetri} m", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            Text("${s.inizio.formatta()} – ${s.fine.formatta()}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Vasca stagione:", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                listOf(25, 50).forEach { metri ->
+                    FilterChip(
+                        selected = s.vascaMetri == metri,
+                        onClick = { vm.aggiornaVascaStagione(metri) },
+                        label = { Text("${metri} m") }
+                    )
+                }
+            }
             OutlinedButton(onClick = { confermaElimina = true }) { Text("Elimina stagione") }
         }
     }
@@ -735,7 +780,6 @@ private fun SezioneStagione(
     Titolo("Generazione Smart del Piano", Icons.Filled.Edit)
     var giorni by remember(s.giorniAllenamento) { mutableStateOf(Calendario.giorni(s.giorniAllenamento)) }
     var nMacro by remember { mutableStateOf("1") }
-    var metri by remember { mutableStateOf("1800") }
     var ciclo by remember { mutableStateOf("4") }
 
     Text("Giorni di Allenamento in Vasca", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
@@ -750,24 +794,19 @@ private fun SezioneStagione(
     }
 
     val nMacroInt = nMacro.toIntOrNull()
-    val metriInt = metri.toIntOrNull()
     val cicloInt = ciclo.toIntOrNull()
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        CampoNumero(nMacro, { nMacro = it }, "Macrocicli", Modifier.weight(1f), isError = nMacroInt == null || nMacroInt !in 1..3)
-        CampoNumero(metri, { metri = it }, "Metri base seduta", Modifier.weight(1f), isError = metriInt == null || metriInt !in 200..10_000)
-    }
+    CampoNumero(nMacro, { nMacro = it }, "Macrocicli", Modifier.fillMaxWidth(), isError = nMacroInt == null || nMacroInt !in 1..3)
     CampoNumero(ciclo, { ciclo = it }, "Un ciclo di scarico ogni N settimane", modifier = Modifier.fillMaxWidth(), isError = cicloInt == null || cicloInt !in 2..8)
 
     val parametriOk = giorni.isNotEmpty() &&
             nMacroInt != null && nMacroInt in 1..3 &&
-            metriInt != null && metriInt in 200..10_000 &&
             cicloInt != null && cicloInt in 2..8
 
     Button(
         enabled = parametriOk,
         onClick = {
-            if (nMacroInt != null && metriInt != null && cicloInt != null) {
-                vm.generaPiano(ParametriPiano(giorni, nMacroInt, metriInt, cicloInt))
+            if (nMacroInt != null && cicloInt != null) {
+                vm.generaPiano(ParametriPiano(giorni, nMacroInt, settimaneCicloCarico = cicloInt))
             }
         },
         modifier = Modifier.fillMaxWidth()

@@ -79,8 +79,8 @@ object PianoGenerator {
                     meso = Mesociclo(
                         macrocicloId = 0,
                         fase = fase,
-                        inizio = sett.first(),
-                        fine = sett.last().plusDays(6)
+                        inizio = maxOf(sett.first(), stagione.inizio),
+                        fine = minOf(sett.last().plusDays(6), fineEffettiva)
                     ),
                     micro = microcicli(sett, fase, settimane.first(), stagione, fineEffettiva, chiusure, gare, p, stato)
                 )
@@ -89,8 +89,8 @@ object PianoGenerator {
                 macro = Macrociclo(
                     stagioneId = 0,
                     nome = "Macrociclo ${indice + 1}",
-                    inizio = blocco.settimane.first().first,
-                    fine = blocco.settimane.last().first.plusDays(6),
+                    inizio = maxOf(blocco.settimane.first().first, stagione.inizio),
+                    fine = minOf(blocco.settimane.last().first.plusDays(6), fineEffettiva),
                     obiettivo = blocco.obiettivo
                 ),
                 meso = meso

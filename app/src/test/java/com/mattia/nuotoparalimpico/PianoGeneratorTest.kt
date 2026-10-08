@@ -53,4 +53,14 @@ class PianoGeneratorTest {
     fun laPrimaSettimanaEDiAdattamento() {
         assertEquals(TipoMicrociclo.ADATTAMENTO, micro(emptyList()).first().tipo)
     }
+
+    @Test
+    fun macroEMesoRestanoEntroLeDateDellaStagione() {
+        val macro = PianoGenerator.genera(stagione, emptyList(), emptyList(), ParametriPiano(numeroMacrocicli = 2))
+        assertEquals(2, macro.size)
+        assertTrue(macro.all { !it.macro.inizio.isBefore(stagione.inizio) && !it.macro.fine.isAfter(stagione.fine) })
+        assertTrue(macro.flatMap { it.meso }.all {
+            !it.meso.inizio.isBefore(stagione.inizio) && !it.meso.fine.isAfter(stagione.fine)
+        })
+    }
 }
