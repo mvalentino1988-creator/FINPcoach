@@ -16,10 +16,10 @@ class AppContainer(app: Application) {
 
     val atleti = AtletaRepository(db.atletaDao())
     val piano = PianoRepository(db.pianoDao())
-    val registro = RegistroRepository(db.registroDao(), db.atletaDao())
+    val registro = RegistroRepository(db.registroDao())
 
     val generaPiano = GeneraPianoUseCase(piano)
-    val generaSeduta = GeneraSedutaUseCase(atleti, piano)
+    val generaSeduta = GeneraSedutaUseCase(atleti, piano, registro)
     val salvaSeduta = SalvaSedutaUseCase(registro)
     val calcolaCarico = CalcolaCaricoAtletaUseCase()
     val importaTempi = ImportaTempiUseCase()

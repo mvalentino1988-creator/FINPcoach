@@ -222,7 +222,7 @@ object CalcoloRitmiRipartenze {
         )
         val datePattern = Regex("""\b\d{1,2}[./]\d{1,2}[./]\d{2,4}\b""")
         val clockPattern = Regex("""\b(?:[01]?\d|2[0-3]):[0-5]\d(?::[0-5]\d)?\b(?![.,]\d)""")
-        val tempoPattern = Regex("""(?<![\p{L}\p{N}])(?:\d{1,2}:\d{1,2}[.,]\d{1,2}|\d{1,3}[.,]\d{1,2}|\d{1,2})(?![\p{L}\p{N}])""")
+        val tempoPattern = Regex("""(?<![\p{L}\p{N}])(?:\d{1,2}:\d{1,2}(?:[.,]\d{1,2})?|\d{1,3}[.,]\d{1,2})(?![\p{L}\p{N}])""")
 
         var distanzaCorrente: Int? = null
         var stileCorrente: Stile? = null
@@ -270,9 +270,16 @@ object CalcoloRitmiRipartenze {
                 Regex("""\bgara\b""").containsMatchIn(normalizzata) -> contestoCorrente = ContestoTempo.GARA
             }
 
-            if (!cognomePattern.containsMatchIn(normalizzata) ||
-                (nomePattern != null && !nomePattern.containsMatchIn(normalizzata))
-            ) continue
+            val cognomeMatch = cognomePattern.find(normalizzata) ?: continue
+            if (nomePattern != null && !nomePattern.containsMatchIn(normalizzata)) {
+                val primaDelCognome = normalizzata.substring(0, cognomeMatch.range.first)
+                    .trim().substringAfterLast(' ').trimEnd('.')
+                val dopoIlCognome = normalizzata.substring(cognomeMatch.range.last + 1)
+                    .trim().substringBefore(' ').trimEnd('.')
+                val nomeCompletoEsplicito = listOf(primaDelCognome, dopoIlCognome)
+                    .firstOrNull { it.length > 1 && it.all(Char::isLetter) }
+                if (nomeCompletoEsplicito != null) continue
+            }
             val distanza = distanzaCorrente ?: continue
             val centesimi = estraiTempo(normalizzata, datePattern, clockPattern, tempoPattern) ?: continue
             val contestoRiga = when {
@@ -300,6 +307,7 @@ object CalcoloRitmiRipartenze {
         val senzaOrari = clockPattern.replace(senzaDate) { " ".repeat(it.value.length) }
         return tempoPattern.findAll(senzaOrari)
             .mapNotNull { parseTempo(it.value) }
+            .filter { it >= 1500 }
             .lastOrNull()
     }
 
@@ -314,9 +322,9 @@ object CalcoloRitmiRipartenze {
         atleta: Atleta,
         tempi: List<Tempo>,
         log: List<LogSeduta>,
-        mesocicloCorrente: Mesociclo?
+        mesocicloCorrente: Mesociclo?,
+        oggi: LocalDate
     ): FormCheckConsiglio {
-        val oggi = LocalDate.now()
         val tempiAtleta = tempi.filter { it.atletaId == atleta.id }
         val ultimoTempoData = tempiAtleta.maxOfOrNull { it.data }
 

@@ -49,6 +49,7 @@ fun TempiRipartenzeScreen(vm: MainViewModel) {
     val atleti by vm.atleti.collectAsStateWithLifecycle()
     val micro by vm.micro.collectAsStateWithLifecycle()
     val meso by vm.meso.collectAsStateWithLifecycle()
+    val tempiPerAtleta by vm.tempiPerAtleta.collectAsStateWithLifecycle()
     val oggi = remember { LocalDate.now() }
 
     var atletaSelId by remember { mutableStateOf<Long?>(null) }
@@ -87,8 +88,7 @@ fun TempiRipartenzeScreen(vm: MainViewModel) {
 
         HorizontalDivider()
 
-        val tempiAtletaFlow = vm.osservaTempi(atletaSel.id)
-        val tempiAtleta by tempiAtletaFlow.collectAsStateWithLifecycle(initialValue = emptyList())
+        val tempiAtleta = tempiPerAtleta?.get(atletaSel.id)
         val mesoCorrente = micro.firstOrNull { !it.inizio.isAfter(oggi) && !it.fine.isBefore(oggi) }?.let { mi ->
             meso.firstOrNull { it.id == mi.mesocicloId }
         }
@@ -97,6 +97,7 @@ fun TempiRipartenzeScreen(vm: MainViewModel) {
             atleta = atletaSel,
             tempi = tempiAtleta,
             mesoCorrente = mesoCorrente,
+            oggi = oggi,
             vm = vm
         )
     }
@@ -105,19 +106,28 @@ fun TempiRipartenzeScreen(vm: MainViewModel) {
 @Composable
 private fun ContenutoTempiAtleta(
     atleta: Atleta,
-    tempi: List<Tempo>,
+    tempi: List<Tempo>?,
     mesoCorrente: Mesociclo?,
+    oggi: LocalDate,
     vm: MainViewModel
 ) {
     var mostraImport by remember { mutableStateOf(false) }
     var testoImport by remember { mutableStateOf("") }
 
     // Form Check Alert
-    val formCheck = remember(atleta, tempi, mesoCorrente) {
-        CalcoloRitmiRipartenze.valutaNecessitaFormCheck(atleta, tempi, emptyList(), mesoCorrente)
+    val formCheck = remember(atleta, tempi, mesoCorrente, oggi) {
+        tempi?.let {
+            CalcoloRitmiRipartenze.valutaNecessitaFormCheck(
+                atleta,
+                it,
+                emptyList(),
+                mesoCorrente,
+                oggi
+            )
+        }
     }
 
-    if (formCheck.necessario) {
+    if (formCheck?.necessario == true) {
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
             shape = RoundedCornerShape(12.dp),
@@ -131,11 +141,20 @@ private fun ContenutoTempiAtleta(
         }
     }
 
-    val riferimento100 = remember(tempi) {
-        CalcoloRitmiRipartenze.tempoRiferimento100(tempi, stile = null, vascaMetri = null, oggi = LocalDate.now())
+    val tempiCaricati = tempi.orEmpty()
+    if (tempi == null) {
+        Text("Caricamento tempi…", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+    val riferimento100 = remember(tempiCaricati, oggi) {
+        CalcoloRitmiRipartenze.tempoRiferimento100(
+            tempiCaricati,
+            stile = null,
+            vascaMetri = null,
+            oggi = oggi
+        )
     }
     val tempo100 = riferimento100?.tempo
-    val tempo400 = tempo100?.let { CalcoloRitmiRipartenze.tempoRiferimento400(tempi, it) }
+    val tempo400 = tempo100?.let { CalcoloRitmiRipartenze.tempoRiferimento400(tempiCaricati, it) }
     val css = if (tempo100 != null && tempo400 != null) {
         remember(tempo100, tempo400) { CalcoloScienzaNuoto.calcolaCssRiferimenti(tempo100, tempo400) }
     } else null
@@ -245,7 +264,7 @@ private fun ContenutoTempiAtleta(
 
     // Primati Personali
     Titolo("Primati Personali Ufficiali (Gara)", Icons.Filled.List)
-    val primati = primatiPersonali(tempi)
+    val primati = primatiPersonali(tempiCaricati)
     if (primati.isEmpty()) {
         Text("Nessun tempo di gara registrato.", style = MaterialTheme.typography.bodySmall)
     } else {
@@ -279,7 +298,7 @@ private fun ContenutoTempiAtleta(
     if (mostraImport) {
         DialogImportaTempi(
             atleta = atleta,
-            tempiEsistenti = tempi,
+            tempiEsistenti = tempiCaricati,
             analizza = vm::analizzaTempiImportati,
             onImporta = { importati -> importati.forEach(vm::aggiungiTempo) },
             onChiudi = { mostraImport = false }

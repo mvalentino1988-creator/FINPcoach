@@ -37,7 +37,7 @@ private class RigaDashboard(
     val atleta: Atleta,
     val carico: CaricoAtleta,
     val assenteOggi: Boolean,
-    val formCheck: Boolean
+    val formCheck: Boolean?
 ) {
     val priorita: Int
         get() = when {
@@ -54,13 +54,13 @@ fun DashboardScreen(vm: MainViewModel, rvm: RegistroViewModel) {
     val micro by vm.micro.collectAsStateWithLifecycle()
     val meso by vm.meso.collectAsStateWithLifecycle()
     val log by rvm.log.collectAsStateWithLifecycle()
-    val tempi by rvm.tempi.collectAsStateWithLifecycle()
+    val tempiPerAtleta by vm.tempiPerAtleta.collectAsStateWithLifecycle()
 
     val oggi = remember { LocalDate.now() }
     val lunediOggi = remember { oggi.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)) }
     val calcolo = remember { CalcolaCaricoAtletaUseCase() }
 
-    val righe = remember(atleti, assenze, micro, meso, log, tempi) {
+    val righe = remember(atleti, assenze, micro, meso, log, tempiPerAtleta, oggi) {
         val mesoCorrente = micro.firstOrNull { !it.inizio.isAfter(oggi) && !it.fine.isBefore(oggi) }
             ?.let { mi -> meso.firstOrNull { it.id == mi.mesocicloId } }
         atleti.map { a ->
@@ -69,9 +69,15 @@ fun DashboardScreen(vm: MainViewModel, rvm: RegistroViewModel) {
                 atleta = a,
                 carico = calcolo.calcola(a, log.filter { it.atletaId == a.id }, micro, mieAssenze, oggi),
                 assenteOggi = mieAssenze.any { !oggi.isBefore(it.dal) && !oggi.isAfter(it.al) },
-                formCheck = CalcoloRitmiRipartenze
-                    .valutaNecessitaFormCheck(a, tempi.filter { it.atletaId == a.id }, emptyList(), mesoCorrente)
-                    .necessario
+                formCheck = tempiPerAtleta?.let { tempi ->
+                    CalcoloRitmiRipartenze.valutaNecessitaFormCheck(
+                        a,
+                        tempi[a.id].orEmpty(),
+                        emptyList(),
+                        mesoCorrente,
+                        oggi
+                    ).necessario
+                }
             )
         }.sortedWith(compareByDescending<RigaDashboard> { it.priorita }.thenBy { it.atleta.cognome })
     }
@@ -99,7 +105,7 @@ fun DashboardScreen(vm: MainViewModel, rvm: RegistroViewModel) {
                 Riepilogo("Atleti", righe.size)
                 Riepilogo("Carico a rischio", righe.count { it.priorita == 2 })
                 Riepilogo("Assenti oggi", righe.count { it.assenteOggi })
-                Riepilogo("Form check", righe.count { it.formCheck })
+                if (tempiPerAtleta != null) Riepilogo("Form check", righe.count { it.formCheck == true })
             }
         }
 
@@ -140,7 +146,7 @@ fun DashboardScreen(vm: MainViewModel, rvm: RegistroViewModel) {
                     if (r.carico.affidabile && r.priorita > 0) {
                         Text(r.carico.messaggio, style = MaterialTheme.typography.bodySmall)
                     }
-                    if (r.formCheck) {
+                    if (r.formCheck == true) {
                         Text("Form check consigliato", style = MaterialTheme.typography.labelSmall)
                     }
                 }

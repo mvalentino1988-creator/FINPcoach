@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mattia.nuotoparalimpico.domain.SchedaSeduta
 import com.mattia.nuotoparalimpico.domain.formattaTempo
+import com.mattia.nuotoparalimpico.domain.testoCondivisibile
 
 @Composable
 fun DialogSchedaSedutaSmart(
@@ -44,29 +45,7 @@ fun DialogSchedaSedutaSmart(
     val clipboardManager = LocalClipboardManager.current
     var copiato by remember { mutableStateOf(false) }
 
-    val testoCopiabile = remember(scheda) {
-        buildString {
-            appendLine("🏊‍♂️ ${scheda.titolo}")
-            if (scheda.data != null) appendLine("📅 Data: ${scheda.data.formatta()}")
-            appendLine("📊 Volume Totale: ${scheda.volumeTotaleMetri} m")
-            appendLine("🎯 Fase: ${scheda.faseStagione.etichetta} (${scheda.tipoMicrociclo.etichetta})")
-            if (scheda.categoriaEta != null) appendLine("👤 Categoria: ${scheda.categoriaEta}")
-            appendLine()
-            if (scheda.avvertenzeMediche.isNotEmpty()) {
-                appendLine("⚠️ ADATTAMENTI MEDICI:")
-                scheda.avvertenzeMediche.forEach { appendLine("- $it") }
-                appendLine()
-            }
-            appendLine("📋 SERIE D'ALLENAMENTO BORDO VASCA:")
-            scheda.tratti.forEachIndexed { i, t ->
-                appendLine("${i + 1}. [${t.codice.codice}] ${t.sezione} - ${t.ripetizioni} (${t.metri}m)")
-                appendLine("   ${t.descrizione}")
-                if (t.ripartenza != null) appendLine("   ⏱️ Ripartenza: ${t.ripartenza}")
-                if (t.notaSpecifica != null) appendLine("   • Focus: ${t.notaSpecifica}")
-                appendLine()
-            }
-        }
-    }
+    val testoCopiabile = remember(scheda) { scheda.testoCondivisibile() }
 
     AlertDialog(
         onDismissRequest = onChiudi,
@@ -124,6 +103,19 @@ fun DialogSchedaSedutaSmart(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(if (copiato) "Copiato negli Appunti! ✅" else "Copia Scheda per WhatsApp/Bordo Vasca 📋")
+                }
+
+                if (scheda.istruzioniNeutre.isNotEmpty()) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("Istruzioni operative", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+                            scheda.istruzioniNeutre.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
+                        }
+                    }
                 }
 
                 // Avvertenze Mediche

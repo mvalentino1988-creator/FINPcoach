@@ -1,0 +1,1001 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 4,
+    "identityHash": "c512ff7f9d0586b88a4c04fb586839c0",
+    "entities": [
+      {
+        "tableName": "atleti",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `nome` TEXT NOT NULL, `cognome` TEXT NOT NULL, `dataNascita` INTEGER, `sesso` TEXT, `classeS` INTEGER, `classeSB` INTEGER, `classeSM` INTEGER, `stato` TEXT NOT NULL, `fattoreVolume` REAL NOT NULL, `metriMaxSeduta` INTEGER, `note` TEXT NOT NULL, `volumeAuto` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nome",
+            "columnName": "nome",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cognome",
+            "columnName": "cognome",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dataNascita",
+            "columnName": "dataNascita",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "sesso",
+            "columnName": "sesso",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "classeS",
+            "columnName": "classeS",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "classeSB",
+            "columnName": "classeSB",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "classeSM",
+            "columnName": "classeSM",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "stato",
+            "columnName": "stato",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fattoreVolume",
+            "columnName": "fattoreVolume",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "metriMaxSeduta",
+            "columnName": "metriMaxSeduta",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "volumeAuto",
+            "columnName": "volumeAuto",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "condizioni_mediche",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `atletaId` INTEGER NOT NULL, `descrizione` TEXT NOT NULL, `limitazioni` TEXT NOT NULL, `attiva` INTEGER NOT NULL, FOREIGN KEY(`atletaId`) REFERENCES `atleti`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "atletaId",
+            "columnName": "atletaId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "descrizione",
+            "columnName": "descrizione",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "limitazioni",
+            "columnName": "limitazioni",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attiva",
+            "columnName": "attiva",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_condizioni_mediche_atletaId",
+            "unique": false,
+            "columnNames": [
+              "atletaId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_condizioni_mediche_atletaId` ON `${TABLE_NAME}` (`atletaId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "atleti",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "atletaId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "assenze",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `atletaId` INTEGER NOT NULL, `dal` INTEGER NOT NULL, `al` INTEGER NOT NULL, `motivo` TEXT NOT NULL, FOREIGN KEY(`atletaId`) REFERENCES `atleti`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "atletaId",
+            "columnName": "atletaId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dal",
+            "columnName": "dal",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "al",
+            "columnName": "al",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "motivo",
+            "columnName": "motivo",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_assenze_atletaId",
+            "unique": false,
+            "columnNames": [
+              "atletaId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_assenze_atletaId` ON `${TABLE_NAME}` (`atletaId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "atleti",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "atletaId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "atleta_attributi",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `atletaId` INTEGER NOT NULL, `chiave` TEXT NOT NULL, `valore` TEXT NOT NULL, FOREIGN KEY(`atletaId`) REFERENCES `atleti`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "atletaId",
+            "columnName": "atletaId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chiave",
+            "columnName": "chiave",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "valore",
+            "columnName": "valore",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_atleta_attributi_atletaId",
+            "unique": false,
+            "columnNames": [
+              "atletaId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_atleta_attributi_atletaId` ON `${TABLE_NAME}` (`atletaId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "atleti",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "atletaId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "stagioni",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `nome` TEXT NOT NULL, `inizio` INTEGER NOT NULL, `fine` INTEGER NOT NULL, `vascaMetri` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nome",
+            "columnName": "nome",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "inizio",
+            "columnName": "inizio",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fine",
+            "columnName": "fine",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "vascaMetri",
+            "columnName": "vascaMetri",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "macrocicli",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `stagioneId` INTEGER NOT NULL, `nome` TEXT NOT NULL, `inizio` INTEGER NOT NULL, `fine` INTEGER NOT NULL, `obiettivo` TEXT NOT NULL, FOREIGN KEY(`stagioneId`) REFERENCES `stagioni`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stagioneId",
+            "columnName": "stagioneId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nome",
+            "columnName": "nome",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "inizio",
+            "columnName": "inizio",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fine",
+            "columnName": "fine",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "obiettivo",
+            "columnName": "obiettivo",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_macrocicli_stagioneId",
+            "unique": false,
+            "columnNames": [
+              "stagioneId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_macrocicli_stagioneId` ON `${TABLE_NAME}` (`stagioneId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "stagioni",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "stagioneId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "mesocicli",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `macrocicloId` INTEGER NOT NULL, `fase` TEXT NOT NULL, `inizio` INTEGER NOT NULL, `fine` INTEGER NOT NULL, FOREIGN KEY(`macrocicloId`) REFERENCES `macrocicli`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "macrocicloId",
+            "columnName": "macrocicloId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fase",
+            "columnName": "fase",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "inizio",
+            "columnName": "inizio",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fine",
+            "columnName": "fine",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_mesocicli_macrocicloId",
+            "unique": false,
+            "columnNames": [
+              "macrocicloId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_mesocicli_macrocicloId` ON `${TABLE_NAME}` (`macrocicloId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "macrocicli",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "macrocicloId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "microcicli",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `mesocicloId` INTEGER NOT NULL, `inizio` INTEGER NOT NULL, `fine` INTEGER NOT NULL, `tipo` TEXT NOT NULL, `sedutePreviste` INTEGER NOT NULL, `volumeTargetMetri` INTEGER NOT NULL, `note` TEXT NOT NULL, `bloccato` INTEGER NOT NULL DEFAULT 0, FOREIGN KEY(`mesocicloId`) REFERENCES `mesocicli`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mesocicloId",
+            "columnName": "mesocicloId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "inizio",
+            "columnName": "inizio",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fine",
+            "columnName": "fine",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sedutePreviste",
+            "columnName": "sedutePreviste",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "volumeTargetMetri",
+            "columnName": "volumeTargetMetri",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bloccato",
+            "columnName": "bloccato",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_microcicli_mesocicloId",
+            "unique": false,
+            "columnNames": [
+              "mesocicloId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_microcicli_mesocicloId` ON `${TABLE_NAME}` (`mesocicloId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "mesocicli",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "mesocicloId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "chiusure",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `stagioneId` INTEGER NOT NULL, `dal` INTEGER NOT NULL, `al` INTEGER NOT NULL, `motivo` TEXT NOT NULL, FOREIGN KEY(`stagioneId`) REFERENCES `stagioni`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stagioneId",
+            "columnName": "stagioneId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dal",
+            "columnName": "dal",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "al",
+            "columnName": "al",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "motivo",
+            "columnName": "motivo",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_chiusure_stagioneId",
+            "unique": false,
+            "columnNames": [
+              "stagioneId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_chiusure_stagioneId` ON `${TABLE_NAME}` (`stagioneId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "stagioni",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "stagioneId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "gare",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `stagioneId` INTEGER NOT NULL, `nome` TEXT NOT NULL, `dal` INTEGER NOT NULL, `al` INTEGER NOT NULL, `luogo` TEXT NOT NULL, `prioritaria` INTEGER NOT NULL, `livello` TEXT NOT NULL DEFAULT 'ALTRO', `distanze` TEXT NOT NULL DEFAULT '', FOREIGN KEY(`stagioneId`) REFERENCES `stagioni`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stagioneId",
+            "columnName": "stagioneId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nome",
+            "columnName": "nome",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dal",
+            "columnName": "dal",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "al",
+            "columnName": "al",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "luogo",
+            "columnName": "luogo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "prioritaria",
+            "columnName": "prioritaria",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "livello",
+            "columnName": "livello",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'ALTRO'"
+          },
+          {
+            "fieldPath": "distanze",
+            "columnName": "distanze",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_gare_stagioneId",
+            "unique": false,
+            "columnNames": [
+              "stagioneId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_gare_stagioneId` ON `${TABLE_NAME}` (`stagioneId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "stagioni",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "stagioneId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "tempi",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `atletaId` INTEGER NOT NULL, `data` INTEGER NOT NULL, `stile` TEXT NOT NULL, `distanzaMetri` INTEGER NOT NULL, `centesimi` INTEGER NOT NULL, `contesto` TEXT NOT NULL, `vascaMetri` INTEGER NOT NULL, `note` TEXT NOT NULL, FOREIGN KEY(`atletaId`) REFERENCES `atleti`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "atletaId",
+            "columnName": "atletaId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "data",
+            "columnName": "data",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stile",
+            "columnName": "stile",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "distanzaMetri",
+            "columnName": "distanzaMetri",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "centesimi",
+            "columnName": "centesimi",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contesto",
+            "columnName": "contesto",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "vascaMetri",
+            "columnName": "vascaMetri",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_tempi_atletaId_data",
+            "unique": false,
+            "columnNames": [
+              "atletaId",
+              "data"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_tempi_atletaId_data` ON `${TABLE_NAME}` (`atletaId`, `data`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "atleti",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "atletaId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "log_sedute",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `atletaId` INTEGER NOT NULL, `data` INTEGER NOT NULL, `presente` INTEGER NOT NULL, `durataMin` INTEGER NOT NULL, `metriEffettivi` INTEGER NOT NULL, `rpe` INTEGER, `note` TEXT NOT NULL, FOREIGN KEY(`atletaId`) REFERENCES `atleti`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "atletaId",
+            "columnName": "atletaId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "data",
+            "columnName": "data",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "presente",
+            "columnName": "presente",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "durataMin",
+            "columnName": "durataMin",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "metriEffettivi",
+            "columnName": "metriEffettivi",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rpe",
+            "columnName": "rpe",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_log_sedute_atletaId_data",
+            "unique": true,
+            "columnNames": [
+              "atletaId",
+              "data"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_log_sedute_atletaId_data` ON `${TABLE_NAME}` (`atletaId`, `data`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "atleti",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "atletaId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "ranking_atleta",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `atletaId` INTEGER NOT NULL, `stile` TEXT NOT NULL, `distanzaMetri` INTEGER NOT NULL, `ambito` TEXT NOT NULL, `posizione` INTEGER NOT NULL, `vascaMetri` INTEGER NOT NULL, `tempoCentesimi` INTEGER, `note` TEXT NOT NULL, `aggiornatoIl` INTEGER NOT NULL, FOREIGN KEY(`atletaId`) REFERENCES `atleti`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "atletaId",
+            "columnName": "atletaId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stile",
+            "columnName": "stile",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "distanzaMetri",
+            "columnName": "distanzaMetri",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ambito",
+            "columnName": "ambito",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "posizione",
+            "columnName": "posizione",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "vascaMetri",
+            "columnName": "vascaMetri",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tempoCentesimi",
+            "columnName": "tempoCentesimi",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "aggiornatoIl",
+            "columnName": "aggiornatoIl",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_ranking_atleta_atletaId",
+            "unique": false,
+            "columnNames": [
+              "atletaId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ranking_atleta_atletaId` ON `${TABLE_NAME}` (`atletaId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "atleti",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "atletaId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c512ff7f9d0586b88a4c04fb586839c0')"
+    ]
+  }
+}

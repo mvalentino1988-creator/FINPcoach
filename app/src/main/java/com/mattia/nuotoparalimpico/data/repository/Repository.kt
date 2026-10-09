@@ -43,16 +43,6 @@ class AtletaRepository(private val dao: AtletaDao) {
     suspend fun aggiornaAttributo(a: AtletaAttributo) = dao.aggiornaAttributo(a)
     suspend fun eliminaAttributo(a: AtletaAttributo) = dao.eliminaAttributo(a)
 
-    fun osservaTempi(atletaId: Long): Flow<List<Tempo>> = dao.osservaTempi(atletaId)
-    suspend fun leggiTempi(atletaId: Long): List<Tempo> = dao.leggiTempi(atletaId)
-    suspend fun aggiungiTempo(t: Tempo) = dao.inserisciTempo(t)
-    suspend fun eliminaTempo(t: Tempo) = dao.eliminaTempo(t)
-
-    fun osservaLog(atletaId: Long): Flow<List<LogSeduta>> = dao.osservaLogSedute(atletaId)
-    suspend fun leggiLog(atletaId: Long): List<LogSeduta> = dao.leggiLogSedute(atletaId)
-    /** Una riga per atleta e giorno: a parità di data sostituisce. */
-    suspend fun salvaLog(log: LogSeduta) = dao.inserisciLogSeduta(log)
-    suspend fun aggiornaLog(log: LogSeduta) = dao.aggiornaLogSeduta(log)
 }
 
 class PianoRepository(private val dao: PianoDao) {
@@ -83,11 +73,20 @@ class PianoRepository(private val dao: PianoDao) {
     suspend fun salvaPiano(stagioneId: Long, piano: List<MacroGen>) = dao.salvaPiano(stagioneId, piano)
 }
 
-class RegistroRepository(private val dao: RegistroDao, private val atletaDao: AtletaDao) {
+class RegistroRepository(private val dao: RegistroDao) {
     val tempi: Flow<List<Tempo>> = dao.osservaTempi()
     val log: Flow<List<LogSeduta>> = dao.osservaLog()
 
-    suspend fun aggiungiTempo(t: Tempo) = atletaDao.inserisciTempo(t)
-    suspend fun eliminaTempo(t: Tempo) = atletaDao.eliminaTempo(t)
+    fun osservaTempi(atletaId: Long): Flow<List<Tempo>> = dao.osservaTempi(atletaId)
+    suspend fun leggiTempi(atletaId: Long): List<Tempo> = dao.leggiTempi(atletaId)
+    suspend fun aggiungiTempo(t: Tempo) = dao.inserisciTempo(t)
+    suspend fun eliminaTempo(t: Tempo) = dao.eliminaTempo(t)
+
+    fun osservaLog(atletaId: Long): Flow<List<LogSeduta>> = dao.osservaLog(atletaId)
+    suspend fun leggiLog(atletaId: Long): List<LogSeduta> = dao.leggiLog(atletaId)
+    suspend fun salvaLog(log: LogSeduta) = dao.inserisciLog(log)
+    suspend fun aggiornaLog(log: LogSeduta) = dao.aggiornaLog(log)
+
+    /** Una seduta per atleta e giorno; salvare la data sostituisce tutte le righe del giorno. */
     suspend fun salvaSeduta(data: LocalDate, righe: List<LogSeduta>) = dao.salvaSeduta(data, righe)
 }

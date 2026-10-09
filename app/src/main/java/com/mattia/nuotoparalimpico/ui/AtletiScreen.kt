@@ -92,7 +92,7 @@ fun AtletiScreen(vm: MainViewModel) {
     val assenze by vm.assenze.collectAsStateWithLifecycle()
     val meso by vm.meso.collectAsStateWithLifecycle()
     val micro by vm.micro.collectAsStateWithLifecycle()
-    val tuttiTempi by vm.tuttiTempi.collectAsStateWithLifecycle()
+    val tempiPerAtleta by vm.tempiPerAtleta.collectAsStateWithLifecycle()
     var nuovo by remember { mutableStateOf(false) }
     var selezionatoId by remember { mutableStateOf<Long?>(null) }
     val oggi = remember { LocalDate.now() }
@@ -119,11 +119,19 @@ fun AtletiScreen(vm: MainViewModel) {
                 oggi
             )
             val condAttive = condizioni.count { it.atletaId == a.id && it.attiva }
-            val tempiAtleta = tuttiTempi.filter { it.atletaId == a.id }
+            val tempiAtleta = tempiPerAtleta?.get(a.id).orEmpty()
             val mesoCorrente = micro.firstOrNull { !it.inizio.isAfter(oggi) && !it.fine.isBefore(oggi) }?.let { mi ->
                 meso.firstOrNull { it.id == mi.mesocicloId }
             }
-            val formCheck = CalcoloRitmiRipartenze.valutaNecessitaFormCheck(a, tempiAtleta, emptyList(), mesoCorrente)
+            val formCheck = tempiPerAtleta?.let {
+                CalcoloRitmiRipartenze.valutaNecessitaFormCheck(
+                    a,
+                    tempiAtleta,
+                    emptyList(),
+                    mesoCorrente,
+                    oggi
+                )
+            }
 
             Card(
                 shape = RoundedCornerShape(12.dp),
@@ -151,7 +159,7 @@ fun AtletiScreen(vm: MainViewModel) {
                                     )
                                 }
                             }
-                            if (formCheck.necessario) {
+                            if (formCheck?.necessario == true) {
                                 Surface(
                                     color = MaterialTheme.colorScheme.tertiaryContainer,
                                     shape = RoundedCornerShape(6.dp)
@@ -175,8 +183,8 @@ fun AtletiScreen(vm: MainViewModel) {
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
-                    if (formCheck.necessario) {
-                        Text("⚡ ${formCheck.titoloTest}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
+                    formCheck?.takeIf { it.necessario }?.let {
+                        Text("⚡ ${it.titoloTest}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
                     }
                     ElencoAvvisi(avvisi)
                 }
@@ -355,9 +363,9 @@ private fun DialogDettaglio(
     var schedaSmartAtleta by remember { mutableStateOf<SchedaSeduta?>(null) }
     var mostraGestioneTempi by remember { mutableStateOf(false) }
 
-    val tuttiTempi by vm.tuttiTempi.collectAsStateWithLifecycle()
+    val tempiPerAtleta by vm.tempiPerAtleta.collectAsStateWithLifecycle()
     val tuttiLog by vm.tuttiLog.collectAsStateWithLifecycle()
-    val tempi = remember(tuttiTempi, atleta.id) { tuttiTempi.filter { it.atletaId == atleta.id } }
+    val tempi = tempiPerAtleta?.get(atleta.id)
     val logSedute = remember(tuttiLog, atleta.id) { tuttiLog.filter { it.atletaId == atleta.id } }
 
     val dalData = parseData(dal)
@@ -391,7 +399,7 @@ private fun DialogDettaglio(
                             tipoMicro = microCorrente?.tipo ?: TipoMicrociclo.CARICO,
                             atleta = atleta,
                             condizioniMediche = condizioni,
-                            tempi = tempi,
+                            tempi = tempi.orEmpty(),
                             logSedute = logSedute,
                             mesocicloCorrente = mesoCorrente
                         )
@@ -603,7 +611,7 @@ private fun DialogDettaglio(
 @Composable
 private fun DialogGestioneTempi(
     atleta: Atleta,
-    tempi: List<Tempo>,
+    tempi: List<Tempo>?,
     mesoCorrente: Mesociclo?,
     analizzaTempi: (String, String, String?) -> List<TempoImportato>,
     onChiudi: () -> Unit,
@@ -622,8 +630,17 @@ private fun DialogGestioneTempi(
         },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                val formCheck = CalcoloRitmiRipartenze.valutaNecessitaFormCheck(atleta, tempi, emptyList(), mesoCorrente)
-                if (formCheck.necessario) {
+                val oggi = remember { LocalDate.now() }
+                val formCheck = tempi?.let {
+                    CalcoloRitmiRipartenze.valutaNecessitaFormCheck(
+                        atleta,
+                        it,
+                        emptyList(),
+                        mesoCorrente,
+                        oggi
+                    )
+                }
+                if (formCheck?.necessario == true) {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
                         shape = RoundedCornerShape(10.dp),
@@ -649,7 +666,9 @@ private fun DialogGestioneTempi(
                 HorizontalDivider()
 
                 Text("Tempi Registrati", fontWeight = FontWeight.Bold)
-                if (tempi.isEmpty()) {
+                if (tempi == null) {
+                    Text("Caricamento tempi…", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else if (tempi.isEmpty()) {
                     Text("Nessun tempo registrato", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else {
                     tempi.forEach { t ->
@@ -687,7 +706,7 @@ private fun DialogGestioneTempi(
     if (mostraImport) {
         DialogImportaTempi(
             atleta = atleta,
-            tempiEsistenti = tempi,
+            tempiEsistenti = tempi.orEmpty(),
             analizza = analizzaTempi,
             onImporta = { importati -> importati.forEach(onAggiungiTempo) },
             onChiudi = { mostraImport = false }

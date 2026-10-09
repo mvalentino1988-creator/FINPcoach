@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -53,6 +54,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val atletaDao = db.atletaDao()
     private val pianoDao = db.pianoDao()
     private val rankingDao = db.rankingDao()
+    private val registro = (app as NuotoParalimpicoApp).container.registro
     private val regolamentiRepo = RegolamentiRepository(app)
     private val impostazioniStore = com.mattia.nuotoparalimpico.data.ImpostazioniStore(app)
 
@@ -72,8 +74,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val atleti: StateFlow<List<Atleta>> = stato(atletaDao.osservaAtleti(), emptyList())
     val condizioni: StateFlow<List<CondizioneMedica>> = stato(atletaDao.osservaCondizioni(), emptyList())
     val assenze: StateFlow<List<Assenza>> = stato(atletaDao.osservaAssenze(), emptyList())
-    val tuttiTempi: StateFlow<List<Tempo>> = stato(atletaDao.osservaTuttiTempi(), emptyList())
-    val tuttiLog: StateFlow<List<LogSeduta>> = stato(atletaDao.osservaTuttiLog(), emptyList())
+    val tempiPerAtleta: StateFlow<Map<Long, List<Tempo>>?> = registro.tempi
+        .map { tempi -> tempi.groupBy { it.atletaId } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    val tuttiLog: StateFlow<List<LogSeduta>> = stato(registro.log, emptyList())
     val rankings: StateFlow<List<RankingAtleta>> = stato(rankingDao.osserva(), emptyList())
 
     fun aggiungiAtleta(a: Atleta) { viewModelScope.launch { atletaDao.inserisci(a) } }
@@ -92,18 +96,18 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val cacheLog = mutableMapOf<Long, Flow<List<LogSeduta>>>()
 
     fun osservaTempi(atletaId: Long): Flow<List<Tempo>> =
-        cacheTempi.getOrPut(atletaId) { atletaDao.osservaTempi(atletaId) }
+        cacheTempi.getOrPut(atletaId) { registro.osservaTempi(atletaId) }
 
     fun osservaLogSedute(atletaId: Long): Flow<List<LogSeduta>> =
-        cacheLog.getOrPut(atletaId) { atletaDao.osservaLogSedute(atletaId) }
+        cacheLog.getOrPut(atletaId) { registro.osservaLog(atletaId) }
 
-    fun aggiungiTempo(tempo: Tempo) { viewModelScope.launch { atletaDao.inserisciTempo(tempo) } }
-    fun eliminaTempo(tempo: Tempo) { viewModelScope.launch { atletaDao.eliminaTempo(tempo) } }
-    fun inserisciLogSeduta(log: LogSeduta) { viewModelScope.launch { atletaDao.inserisciLogSeduta(log) } }
-    fun aggiornaLogSeduta(log: LogSeduta) { viewModelScope.launch { atletaDao.aggiornaLogSeduta(log) } }
+    fun aggiungiTempo(tempo: Tempo) { viewModelScope.launch { registro.aggiungiTempo(tempo) } }
+    fun eliminaTempo(tempo: Tempo) { viewModelScope.launch { registro.eliminaTempo(tempo) } }
+    fun inserisciLogSeduta(log: LogSeduta) { viewModelScope.launch { registro.salvaLog(log) } }
+    fun aggiornaLogSeduta(log: LogSeduta) { viewModelScope.launch { registro.aggiornaLog(log) } }
 
-    suspend fun leggiTempi(atletaId: Long): List<Tempo> = atletaDao.leggiTempi(atletaId)
-    suspend fun leggiLogSedute(atletaId: Long): List<LogSeduta> = atletaDao.leggiLogSedute(atletaId)
+    suspend fun leggiTempi(atletaId: Long): List<Tempo> = registro.leggiTempi(atletaId)
+    suspend fun leggiLogSedute(atletaId: Long): List<LogSeduta> = registro.leggiLog(atletaId)
     fun analizzaTempiImportati(testo: String, cognome: String, nome: String? = null): List<TempoImportato> =
         (getApplication<NuotoParalimpicoApp>().container).importaTempi(testo, cognome, nome)
 
@@ -238,7 +242,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val chiusureAttuali = pianoDao.leggiChiusure(s.id)
             val parametriAutomatici = AutoPianificatore.parametriAuto(
                 atleti = atletaDao.osservaAtleti().first(),
-                log = atletaDao.osservaTuttiLog().first(),
+                log = registro.log.first(),
                 stagione = s,
                 oggi = LocalDate.now()
             )

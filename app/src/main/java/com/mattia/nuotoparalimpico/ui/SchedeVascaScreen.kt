@@ -41,6 +41,19 @@ fun VisualizzatoreSchedaVasca(scheda: SchedaSeduta) {
         }
 
         // Note Mediche e Adattamenti
+        if (scheda.istruzioniNeutre.isNotEmpty()) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Istruzioni operative", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+                    scheda.istruzioniNeutre.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
+                }
+            }
+        }
+
         if (scheda.avvertenzeMediche.isNotEmpty()) {
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),

@@ -75,6 +75,7 @@ import com.mattia.nuotoparalimpico.domain.GiornoCalendario
 import com.mattia.nuotoparalimpico.domain.ParametriPiano
 import com.mattia.nuotoparalimpico.domain.SchedaSeduta
 import com.mattia.nuotoparalimpico.domain.VolumeIndividuale
+import com.mattia.nuotoparalimpico.domain.testoCondivisibile
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -457,35 +458,12 @@ private fun SchedaDelGiorno(vm: MainViewModel, data: LocalDate, mi: Microciclo, 
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedButton(onClick = { variante++ }) { Text("🔀 Altra variante") }
         Button(onClick = {
-            clipboard.setText(AnnotatedString(scheda.comeTesto()))
+            clipboard.setText(AnnotatedString(scheda.testoCondivisibile()))
             copiato = true
         }) { Text(if (copiato) "Copiato ✅" else "Copia 📋") }
     }
 
     VisualizzatoreSchedaVasca(scheda)
-}
-
-/** Testo pronto da incollare su WhatsApp / stampare per il bordo vasca. */
-private fun SchedaSeduta.comeTesto(): String = buildString {
-    appendLine("🏊‍♂️ $titolo")
-    data?.let { appendLine("📅 ${it.formatta()}") }
-    appendLine("📊 Volume totale: $volumeTotaleMetri m")
-    appendLine("🎯 Fase: ${faseStagione.etichetta} (${tipoMicrociclo.etichetta})")
-    categoriaEta?.let { appendLine("👤 Categoria: $it") }
-    appendLine()
-    if (avvertenzeMediche.isNotEmpty()) {
-        appendLine("⚠️ ADATTAMENTI MEDICI:")
-        avvertenzeMediche.forEach { appendLine("- $it") }
-        appendLine()
-    }
-    appendLine("📋 SERIE BORDO VASCA:")
-    tratti.forEachIndexed { i, t ->
-        appendLine("${i + 1}. [${t.codice.codice}] ${t.sezione} - ${t.ripetizioni} (${t.metri}m)")
-        appendLine("   ${t.descrizione}")
-        t.ripartenza?.let { appendLine("   ⏱️ $it") }
-        t.notaSpecifica?.let { appendLine("   • $it") }
-        appendLine()
-    }
 }
 
 // ================================================================ PROGRAMMA

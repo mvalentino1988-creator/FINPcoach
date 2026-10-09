@@ -1,6 +1,7 @@
 package com.mattia.nuotoparalimpico.domain
 
 import com.mattia.nuotoparalimpico.data.ContestoTempo
+import com.mattia.nuotoparalimpico.data.Atleta
 import com.mattia.nuotoparalimpico.data.Stile
 import com.mattia.nuotoparalimpico.data.Tempo
 import java.time.LocalDate
@@ -139,6 +140,31 @@ class CalcoloRitmiRipartenzeTest {
     }
 
     @Test
+    fun parserAccettaSoloTempiFormattatiDiAlmeno15SecondiEIlNomePuoEssereUnIniziale() {
+        val testo = """
+            100 m Stile Libero
+            Rossi Marco 1:05.50
+            ROSSI L. 62.35 28,40 14.99
+            ROSSI M. 100
+        """.trimIndent()
+
+        val importati = CalcoloRitmiRipartenze.parseImportaTempi(testo, "Rossi", "Luca")
+
+        assertEquals(listOf(2840), importati.map { it.centesimi })
+        assertEquals("ROSSI L. 62.35 28,40 14.99", importati.single().rigaOriginale)
+        assertTrue(CalcoloRitmiRipartenze.parseImportaTempi(
+            "100 m Stile Libero\nROSSI M. 100",
+            "Rossi"
+        ).isEmpty())
+        val cognomeEIniziale = CalcoloRitmiRipartenze.parseImportaTempi(
+            "100 m Stile Libero\nROSSI M. 1:05.50",
+            "Rossi",
+            "Marco"
+        )
+        assertEquals(6550, cognomeEIniziale.single().centesimi)
+    }
+
+    @Test
     fun riferimento100PreferisceStilePoiIlMiglioreRecenteEIgnoraAllenamentoEVascaDiversa() {
             val oggi = LocalDate.of(2026, 6, 1)
             val tempi = listOf(
@@ -187,6 +213,30 @@ class CalcoloRitmiRipartenzeTest {
                     tempo(1, data, Stile.STILE_LIBERO, 400, 27000, vasca = 50)
                 )
             )
+    }
+
+    @Test
+    fun formCheckConTempiVuotiCaricatiEnecessarioMaConTempoRecenteNo() {
+        val oggi = LocalDate.of(2026, 6, 1)
+        val atleta = Atleta(id = 7, nome = "Luca", cognome = "Rossi")
+
+        val senzaTempi = CalcoloRitmiRipartenze.valutaNecessitaFormCheck(
+            atleta,
+            emptyList(),
+            emptyList(),
+            null,
+            oggi
+        )
+        val conTempoRecente = CalcoloRitmiRipartenze.valutaNecessitaFormCheck(
+            atleta,
+            listOf(tempo(7, oggi.minusDays(5), Stile.STILE_LIBERO, 100, 6000)),
+            emptyList(),
+            null,
+            oggi
+        )
+
+        assertTrue(senzaTempi.necessario)
+        assertFalse(conTempoRecente.necessario)
     }
 
     @Test

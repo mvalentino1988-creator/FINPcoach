@@ -5,6 +5,7 @@ import com.mattia.nuotoparalimpico.data.CondizioneMedica
 import com.mattia.nuotoparalimpico.data.FaseMesociclo
 import com.mattia.nuotoparalimpico.data.LogSeduta
 import com.mattia.nuotoparalimpico.data.Mesociclo
+import com.mattia.nuotoparalimpico.data.Stile
 import com.mattia.nuotoparalimpico.data.Tempo
 import com.mattia.nuotoparalimpico.data.TipoMicrociclo
 import java.time.LocalDate
@@ -39,8 +40,29 @@ data class SchedaSeduta(
     val adattamentiEta: List<String>,
     val avvertenzeMediche: List<String>,
     val tempiUtilizzati: List<Tempo> = emptyList(),
-    val noteCalibrazione: List<String> = emptyList()
+    val noteCalibrazione: List<String> = emptyList(),
+    val istruzioniNeutre: List<String> = emptyList(),
+    val riferimentoTempoFallback: Boolean = false
 )
+
+fun SchedaSeduta.testoCondivisibile(): String = buildString {
+    appendLine(if (nomeAtleta == null) "🏊 Scheda di squadra" else "🏊 Scheda individuale")
+    data?.let { appendLine("📅 Data: $it") }
+    appendLine("📊 Volume totale: $volumeTotaleMetri m")
+    appendLine("🎯 Fase: ${faseStagione.etichetta}")
+    appendLine()
+    appendLine("📋 SERIE:")
+    tratti.forEachIndexed { index, tratto ->
+        append("${index + 1}. [${tratto.codice.codice}] ${tratto.sezione} - ${tratto.ripetizioni} (${tratto.metri}m)")
+        tratto.ripartenza?.let { append(" · Ripartenza: $it") }
+        appendLine()
+    }
+    if (istruzioniNeutre.isNotEmpty()) {
+        appendLine()
+        appendLine("📌 ISTRUZIONI:")
+        istruzioniNeutre.forEach { appendLine("- $it") }
+    }
+}
 
 // ------------------------------------------------------------------ ARCHIVIO ESERCIZI
 
@@ -195,20 +217,31 @@ object GeneratoreSmartSeduta {
         val adattamentiEta = mutableListOf<String>()
         val avvertenzeMediche = mutableListOf<String>()
         val noteCalibrazione = mutableListOf<String>()
+        val istruzioniNeutre = mutableListOf<String>()
 
         // 0. Tempo di riferimento: serve solo a calcolare passi e ripartenze.
         // Il volume NON viene modificato qui: le fasi lo hanno già ridotto nel piano.
-        val tempoRiferimento = CalcoloRitmiRipartenze.tempoRiferimento100(tempi, oggi)
+        val riferimentoStileLibero = CalcoloRitmiRipartenze.tempoRiferimento100(
+            tempi,
+            stile = Stile.STILE_LIBERO,
+            vascaMetri = null,
+            oggi = oggi
+        )
+        val tempoRiferimento = riferimentoStileLibero?.tempo
+        val riferimentoFallback = tempoRiferimento != null && tempoRiferimento.stile != Stile.STILE_LIBERO
         val tabellaRitmi = if (tempoRiferimento != null && atleta != null) {
             CalcoloRitmiRipartenze.calcolaTabellaRitmi(
                 atletaId = atleta.id,
                 tempo100mCentesimi = tempoRiferimento.centesimi,
                 stile = tempoRiferimento.stile,
-                vascaMetri = vascaMetri
+                vascaMetri = tempoRiferimento.vascaMetri
             )
         } else null
         if (tempoRiferimento != null && tabellaRitmi != null) {
             noteCalibrazione += "Ritmi e ripartenze calcolati sul miglior 100m ${tempoRiferimento.stile.name.replace("_", " ").lowercase()}: ${formattaTempo(tempoRiferimento.centesimi)}"
+            if (riferimentoFallback) {
+                noteCalibrazione += "Nessun 100m stile libero disponibile: usato il miglior 100m di un altro stile."
+            }
         }
 
         // 1. Quote percentuali per codice
@@ -250,12 +283,14 @@ object GeneratoreSmartSeduta {
             when {
                 desc.contains("spalla") || desc.contains("articolare") || desc.contains("cuffia") || desc.contains("rotator") -> {
                     spalla = true
+                    istruzioniNeutre += "Evitare palette rigide"
                     val riduzioneB2 = (quoteBase[CodiceAllenamento.B2] ?: 0.0) * 0.4
                     quoteBase[CodiceAllenamento.B2] = (quoteBase[CodiceAllenamento.B2] ?: 0.0) - riduzioneB2
                     quoteBase[CodiceAllenamento.A1] = (quoteBase[CodiceAllenamento.A1] ?: 0.3) + riduzioneB2
                     avvertenzeMediche += "⚠️ Condizione spalla/articolare (${c.descrizione}): evitate palette rigide nelle serie B2/C, esercizi tecnici scelti tra quelli di sensibilità e gambe."
                 }
                 desc.contains("affaticament") || desc.contains("neurolog") || desc.contains("spastic") || desc.contains("sclerosi") || desc.contains("midoll") || desc.contains("parapleg") -> {
+                    istruzioniNeutre += "Nessuna serie lattacide (C1/C2)"
                     val lattacidi = (quoteBase[CodiceAllenamento.C1] ?: 0.0) + (quoteBase[CodiceAllenamento.C2] ?: 0.0)
                     quoteBase[CodiceAllenamento.C1] = 0.0
                     quoteBase[CodiceAllenamento.C2] = 0.0
@@ -264,15 +299,18 @@ object GeneratoreSmartSeduta {
                     avvertenzeMediche += "⚠️ Condizione neurologica/funzionale (${c.descrizione}): azzerate le serie C1/C2 per prevenire blocchi muscolari e fatica centrale."
                 }
                 desc.contains("cardio") || desc.contains("cuore") || desc.contains("pressione") || desc.contains("iperten") -> {
+                    istruzioniNeutre += "Ritmo costante A2/B1"
                     quoteBase[CodiceAllenamento.C2] = 0.0
                     quoteBase[CodiceAllenamento.B2] = (quoteBase[CodiceAllenamento.B2] ?: 0.0) * 0.3
                     quoteBase[CodiceAllenamento.A2] = (quoteBase[CodiceAllenamento.A2] ?: 0.3) + 0.15
                     avvertenzeMediche += "⚠️ Attenzione cardiovascolare (${c.descrizione}): evitate apnee prolungate e picchi C2, ritmo costante A2/B1."
                 }
                 desc.contains("visiv") || desc.contains("cecit") || desc.contains("vedent") -> {
+                    istruzioniNeutre += "Prevedere assistenza al bordo vasca per partenze e arrivi"
                     avvertenzeMediche += "👁️ Disabilità visiva (${c.descrizione}): garantire la presenza del tapper per gli arrivi C1/C2/D e conteggio costante bracciate."
                 }
                 else -> {
+                    istruzioniNeutre += "Adattare il carico alle risposte dell'atleta"
                     avvertenzeMediche += "ℹ️ Adattamento Medico Personalizzato (${c.descrizione}): ${if (c.limitazioni.isNotBlank()) c.limitazioni else "Monitorare il recupero e regolare la seduta in base alle risposte del nuotatore."}"
                 }
             }
@@ -341,7 +379,9 @@ object GeneratoreSmartSeduta {
             adattamentiEta = adattamentiEta,
             avvertenzeMediche = avvertenzeMediche,
             tempiUtilizzati = if (tabellaRitmi != null && tempoRiferimento != null) listOf(tempoRiferimento) else emptyList(),
-            noteCalibrazione = noteCalibrazione
+            noteCalibrazione = noteCalibrazione,
+            istruzioniNeutre = istruzioniNeutre.distinct(),
+            riferimentoTempoFallback = riferimentoFallback
         )
     }
 

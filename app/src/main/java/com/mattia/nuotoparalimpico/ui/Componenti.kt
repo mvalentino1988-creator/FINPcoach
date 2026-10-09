@@ -255,7 +255,7 @@ fun DialogImportaTempi(
                 Modifier.heightIn(max = 540.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Saranno considerate solo le righe di ${atleta.cognome} ${atleta.nome}.", style = MaterialTheme.typography.bodySmall)
+                Text("Saranno considerate le righe di ${atleta.cognome}; il nome, se presente, distingue gli omonimi.", style = MaterialTheme.typography.bodySmall)
                 OutlinedTextField(
                     value = testo,
                     onValueChange = { testo = it },
@@ -265,7 +265,7 @@ fun DialogImportaTempi(
                 )
                 Button(
                     onClick = {
-                        risultati = analizza(testo, atleta.cognome, null)
+                        risultati = analizza(testo, atleta.cognome, atleta.nome)
                         selezionati.clear()
                         stiliScelti.clear()
                         risultati.indices.forEach { selezionati[it] = true }

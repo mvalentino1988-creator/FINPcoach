@@ -66,7 +66,8 @@ class GeneraPianoUseCase(private val piano: PianoRepository) {
  */
 class GeneraSedutaUseCase(
     private val atleti: AtletaRepository,
-    private val piano: PianoRepository
+    private val piano: PianoRepository,
+    private val registro: RegistroRepository
 ) {
     suspend operator fun invoke(
         data: LocalDate,
@@ -97,8 +98,8 @@ class GeneraSedutaUseCase(
             tipoMicro = mc?.tipo ?: TipoMicrociclo.CARICO,
             atleta = atleta,
             condizioniMediche = atleta?.let { atleti.leggiCondizioni(it.id) }.orEmpty(),
-            tempi = atleta?.let { atleti.leggiTempi(it.id) }.orEmpty(),
-            logSedute = atleta?.let { atleti.leggiLog(it.id) }.orEmpty(),
+            tempi = atleta?.let { registro.leggiTempi(it.id) }.orEmpty(),
+            logSedute = atleta?.let { registro.leggiLog(it.id) }.orEmpty(),
             mesocicloCorrente = mesoC,
             vascaMetri = stagione?.vascaMetri ?: 25
         )
