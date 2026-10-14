@@ -1,0 +1,153 @@
+{
+  "meta": {
+    "fonte": "FINP - Federazione Italiana Nuoto Paralimpico",
+    "url": "https://www.finp.it/campionati-nazionali",
+    "aggiornato": "2026",
+    "nota": "Calendario nazionale FINP 2026 (snapshot). Le date possono variare: verificare sempre il calendario ufficiale FINP prima di iscrivere gli atleti."
+  },
+  "eventi": [
+    {
+      "id": "finp-2026-assoluti-invernali",
+      "titolo": "Campionati Italiani Assoluti Invernali",
+      "dal": "2026-03-12",
+      "al": "2026-03-15",
+      "luogo": "Lignano Sabbiadoro",
+      "regione": "Friuli-Venezia Giulia",
+      "tipologia": "Campionati Nazionali",
+      "disciplina": "Nuoto",
+      "prioritaria": true
+    },
+    {
+      "id": "finp-2026-giovanili",
+      "titolo": "Campionati Italiani Giovanili",
+      "dal": "2026-04-18",
+      "al": "2026-04-18",
+      "luogo": "Cervia",
+      "regione": "Emilia-Romagna",
+      "tipologia": "Campionati Nazionali",
+      "disciplina": "Nuoto",
+      "prioritaria": true
+    },
+    {
+      "id": "finp-2026-master-nota-chi-nuota",
+      "titolo": "Campionato Italiano Master FINP - 10° Trofeo Nota Chi Nuota",
+      "dal": "2026-05-10",
+      "al": "2026-05-10",
+      "luogo": "Roma",
+      "regione": "Lazio",
+      "tipologia": "Campionati Nazionali",
+      "disciplina": "Nuoto",
+      "prioritaria": false
+    },
+    {
+      "id": "finp-2026-societa-assoluti-estivi",
+      "titolo": "Campionato Italiano di Società - Campionati Assoluti Estivi",
+      "dal": "2026-06-05",
+      "al": "2026-06-07",
+      "luogo": "Brescia",
+      "regione": "Lombardia",
+      "tipologia": "Campionati Nazionali",
+      "disciplina": "Nuoto",
+      "prioritaria": true
+    },
+    {
+      "id": "finp-2026-riccione-water-beach",
+      "titolo": "Trofeo Riccione Water Beach",
+      "dal": "2026-06-13",
+      "al": "2026-06-13",
+      "luogo": "Riccione",
+      "regione": "Emilia-Romagna",
+      "tipologia": "Campionati Nazionali",
+      "disciplina": "Nuoto",
+      "prioritaria": false
+    },
+    {
+      "id": "finp-2026-acque-libere",
+      "titolo": "XIII Campionato Italiano in Acque Libere",
+      "dal": "2026-09-19",
+      "al": "2026-09-19",
+      "luogo": "Sardegna",
+      "regione": "Sardegna",
+      "tipologia": "Campionati Nazionali",
+      "disciplina": "Fondo",
+      "prioritaria": true
+    },
+    {
+      "id": "finp-2026-assoluti-vasca-corta",
+      "titolo": "VIII Campionati Italiani Assoluti in Vasca Corta",
+      "dal": "2026-11-28",
+      "al": "2026-11-29",
+      "luogo": "Lanciano",
+      "regione": "Abruzzo",
+      "tipologia": "Campionati Nazionali",
+      "disciplina": "Nuoto",
+      "prioritaria": true
+    },
+    {
+      "id": "finp-2026-pallanuoto-gold-andata",
+      "titolo": "Pallanuoto Paralimpica Serie A Gold (Andata)",
+      "dal": "2026-04-11",
+      "al": "2026-04-12",
+      "luogo": "Cuneo",
+      "regione": "Piemonte",
+      "tipologia": "Campionati Nazionali",
+      "disciplina": "Pallanuoto",
+      "prioritaria": false
+    },
+    {
+      "id": "finp-2026-pallanuoto-silver-andata",
+      "titolo": "Pallanuoto Paralimpica Serie A Silver (Andata)",
+      "dal": "2026-04-11",
+      "al": "2026-04-12",
+      "luogo": "Cuneo",
+      "regione": "Piemonte",
+      "tipologia": "Campionati Nazionali",
+      "disciplina": "Pallanuoto",
+      "prioritaria": false
+    },
+    {
+      "id": "finp-2026-pallanuoto-gold-ritorno",
+      "titolo": "Pallanuoto Paralimpica Serie A Gold (Ritorno)",
+      "dal": "2026-05-09",
+      "al": "2026-05-10",
+      "luogo": "Ronco Scrivia (GE)",
+      "regione": "Liguria",
+      "tipologia": "Campionati Nazionali",
+      "disciplina": "Pallanuoto",
+      "prioritaria": false
+    },
+    {
+      "id": "finp-2026-pallanuoto-silver-ritorno",
+      "titolo": "Pallanuoto Paralimpica Serie A Silver (Ritorno)",
+      "dal": "2026-05-22",
+      "al": "2026-05-24",
+      "luogo": "Trapani",
+      "regione": "Sicilia",
+      "tipologia": "Campionati Nazionali",
+      "disciplina": "Pallanuoto",
+      "prioritaria": false
+    },
+    {
+      "id": "finp-2026-pallanuoto-final-four-gold",
+      "titolo": "Pallanuoto Paralimpica Serie A Final Four Gold",
+      "dal": "2026-06-20",
+      "al": "2026-06-21",
+      "luogo": "Napoli",
+      "regione": "Campania",
+      "tipologia": "Campionati Nazionali",
+      "disciplina": "Pallanuoto",
+      "prioritaria": false
+    },
+    {
+      "id": "finp-2026-pallanuoto-final-four-silver",
+      "titolo": "Pallanuoto Paralimpica Serie A Final Four Silver",
+      "dal": "2026-06-20",
+      "al": "2026-06-21",
+      "luogo": "Napoli",
+      "regione": "Campania",
+      "tipologia": "Campionati Nazionali",
+      "disciplina": "Pallanuoto",
+      "prioritaria": false
+    }
+  ]
+}

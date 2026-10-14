@@ -7,6 +7,9 @@ import { CalcoloRitmiRipartenze } from '../domain/calcoloRitmiRipartenze';
 import { CalcoloScienzaNuoto } from '../domain/calcoloCSS';
 import { BadgeCodice } from './BadgeCodice';
 import { CODICI_KEYS } from '../domain/codici';
+import { ImageOcrUpload } from './ImageOcrUpload';
+import { parseTempo as nlpParseTempo, formattaTempoDisplay, STILE_ETICHETTE } from '../domain/nlpParser';
+import { RisultatoParsing } from '../domain/nlpParser';
 import {
   AlertTriangle,
   Award,
@@ -20,7 +23,8 @@ import {
   Trash2,
   Upload,
   User,
-  X
+  X,
+  Bot
 } from 'lucide-react';
 
 export const TempiRipartenzeScreen: React.FC = () => {
@@ -41,6 +45,11 @@ export const TempiRipartenzeScreen: React.FC = () => {
   const [contesto, setContesto] = useState<ContestoTempo>('GARA');
   const [vasca, setVasca] = useState<number>(25);
   const [note, setNote] = useState('');
+
+  // Natural language input
+  const [inputNaturale, setInputNaturale] = useState(false);
+  const [testoNaturale, setTestoNaturale] = useState('');
+  const [messaggioParsing, setMessaggioParsing] = useState<string | null>(null);
 
   const oggi = todayISO();
   const dataParsed = parseData(dataTesto);
@@ -266,6 +275,91 @@ export const TempiRipartenzeScreen: React.FC = () => {
           <Plus size={16} className="text-[#006874]" />
           <span>Aggiungi Nuovo Tempo Gara / Test per {atletaSel.nome}</span>
         </h3>
+
+        {/* Input mode toggle */}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setInputNaturale(false)}
+            className={`flex-1 px-3 py-2 rounded-xl font-semibold transition text-xs ${
+              !inputNaturale ? 'bg-[#006874] text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            Inserimento manuale
+          </button>
+          <button
+            type="button"
+            onClick={() => setInputNaturale(true)}
+            className={`flex-1 px-3 py-2 rounded-xl font-semibold transition text-xs ${
+              inputNaturale ? 'bg-[#006874] text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            <Bot size={14} className="inline mr-1" />
+            Scrivi in linguaggio naturale
+          </button>
+        </div>
+
+        {/* OCR Upload */}
+        <ImageOcrUpload
+          onResult={(result: RisultatoParsing) => {
+            if (result.successo && result.dati) {
+              const d = result.dati;
+              setStile((d.stile || 'STILE_LIBERO') as Stile);
+              setDistanza(d.distanzaMetri?.toString() || '100');
+              setVasca(d.vascaMetri);
+              setContesto((d.contesto || 'GARA') as ContestoTempo);
+              setNote(d.note);
+              setTempoTesto(d.centesimi ? formattaTempoDisplay(d.centesimi) : '');
+              setMessaggioParsing(result.messaggio);
+              setInputNaturale(false);
+            } else {
+              setMessaggioParsing(result.messaggio);
+            }
+          }}
+        />
+
+        {/* Natural language input */}
+        {inputNaturale && (
+          <div className="space-y-2">
+            <label className="block font-semibold text-slate-600 mb-1">
+              Scrivi liberamente (es. "100 stile libero 1:02.35 gara vasca 25m")
+            </label>
+            <textarea
+              value={testoNaturale}
+              onChange={e => { setTestoNaturale(e.target.value); setMessaggioParsing(null); }}
+              placeholder="Es: 100 stile libero 1:02.35 gara vasca 25m"
+              rows={3}
+              className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const result = nlpParseTempo(testoNaturale);
+                if (result.successo && result.dati) {
+                  const d = result.dati;
+                  setStile((d.stile || 'STILE_LIBERO') as Stile);
+                  setDistanza(d.distanzaMetri?.toString() || '100');
+                  setVasca(d.vascaMetri);
+                  setContesto((d.contesto || 'GARA') as ContestoTempo);
+                  setNote(d.note);
+                  setTempoTesto(d.centesimi ? formattaTempoDisplay(d.centesimi) : '');
+                  setMessaggioParsing(result.messaggio);
+                  setInputNaturale(false);
+                } else {
+                  setMessaggioParsing(result.messaggio);
+                }
+              }}
+              className="w-full px-3 py-2 bg-[#006874] hover:bg-[#005c73] text-white rounded-xl font-bold text-xs transition"
+            >
+              Analizza testo
+            </button>
+            {messaggioParsing && (
+              <p className={`text-xs ${messaggioParsing.startsWith('Ho capito') ? 'text-green-600' : 'text-red-600'}`}>
+                {messaggioParsing}
+              </p>
+            )}
+          </div>
+        )}
 
         <form onSubmit={handleSalvaTempo} className="space-y-3 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
