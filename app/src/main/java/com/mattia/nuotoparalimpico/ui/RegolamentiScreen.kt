@@ -47,6 +47,25 @@ fun RegolamentiScreen(vm: MainViewModel) {
     // Rete solo qui, e solo se la copia salvata ha più di 24 ore
     LaunchedEffect(Unit) { vm.aggiornaRegolamenti(forza = false) }
 
+    var filtroFonte by remember { mutableStateOf<FonteRegolamento?>(null) }
+    var filtroSezione by remember { mutableStateOf<String?>(null) }
+    var espandiInfo by remember { mutableStateOf(false) }
+
+    val docsFiltrati = remember(stato.documenti, filtroFonte, filtroSezione) {
+        var lista = stato.documenti
+        if (filtroFonte != null) lista = lista.filter { it.fonte == filtroFonte }
+        if (filtroSezione != null) lista = lista.filter { it.sezione == filtroSezione }
+        lista.sortedByDescending { it.principale }
+    }
+
+    val sezioniDisponibili = remember(stato.documenti, filtroFonte) {
+        stato.documenti
+            .filter { filtroFonte == null || it.fonte == filtroFonte }
+            .map { it.sezione }
+            .distinct()
+            .sorted()
+    }
+
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -91,17 +110,57 @@ fun RegolamentiScreen(vm: MainViewModel) {
             }
         }
 
-        FonteRegolamento.entries.forEach { fonte ->
-            val docs = stato.documenti.filter { it.fonte == fonte }
-            if (docs.isNotEmpty()) {
-                Titolo(fonte.etichetta, Icons.Filled.Info)
-                docs.groupBy { it.sezione }.forEach { (sezione, lista) ->
-                    Text(sezione, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-                    lista.sortedByDescending { it.principale }.forEach { d -> CardDocumento(d) { runCatching { uri.openUri(d.url) } } }
+        // Filtri
+        if (stato.documenti.isNotEmpty()) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Filtri", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        FilterChip(
+                            selected = filtroFonte == null,
+                            onClick = { filtroFonte = null; filtroSezione = null },
+                            label = { Text("Tutte le fonti") }
+                        )
+                        FonteRegolamento.entries.forEach { fonte ->
+                            FilterChip(
+                                selected = filtroFonte == fonte,
+                                onClick = { filtroFonte = fonte; filtroSezione = null },
+                                label = { Text(fonte.etichetta) }
+                            )
+                        }
+                    }
+                    if (filtroFonte != null && sezioniDisponibili.isNotEmpty()) {
+                        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            FilterChip(
+                                selected = filtroSezione == null,
+                                onClick = { filtroSezione = null },
+                                label = { Text("Tutte le sezioni") }
+                            )
+                            sezioniDisponibili.forEach { sezione ->
+                                FilterChip(
+                                    selected = filtroSezione == sezione,
+                                    onClick = { filtroSezione = sezione },
+                                    label = { Text(sezione) }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
 
+        // Documenti filtrati
+        if (docsFiltrati.isEmpty() && stato.documenti.isNotEmpty()) {
+            Text("Nessun documento corrisponde ai filtri selezionati.", style = MaterialTheme.typography.bodySmall)
+        } else {
+            docsFiltrati.forEach { d -> CardDocumento(d) { runCatching { uri.openUri(d.url) } } }
+        }
+
+        // Ranking e risultati - sempre visibili
         Titolo("Ranking, record e risultati", Icons.Filled.Info)
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             LinkRiga("Ranking mondiale World Para Swimming", RegolamentiRepository.LINK_RANKING_MONDO) { runCatching { uri.openUri(it) } }
@@ -111,20 +170,32 @@ fun RegolamentiScreen(vm: MainViewModel) {
             LinkRiga("Tabella punti FINP", RegolamentiRepository.LINK_TABELLA_PUNTI) { runCatching { uri.openUri(it) } }
         }
 
+        // Info card - collassabile
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Come usa l'app i regolamenti", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSecondaryContainer)
-                Text(
-                    "Le gare consigliate nella scheda atleta seguono il programma standard WPS/Paralimpico per classe. " +
-                        "L'app non legge il testo dei PDF: controlla qui che il programma della stagione non sia cambiato, " +
-                        "soprattutto per le gare solo nazionali.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Come usa l'app i regolamenti", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                    TextButton(onClick = { espandiInfo = !espandiInfo }) {
+                        Text(if (espandiInfo) "Mostra meno" else "Mostra di più")
+                    }
+                }
+                if (espandiInfo) {
+                    Text(
+                        "Le gare consigliate nella scheda atleta seguono il programma standard WPS/Paralimpico per classe. " +
+                            "L'app non legge il testo dei PDF: controlla qui che il programma della stagione non sia cambiato, " +
+                            "soprattutto per le gare solo nazionali.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
             }
         }
     }

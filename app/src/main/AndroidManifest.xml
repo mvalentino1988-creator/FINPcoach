@@ -7,6 +7,11 @@
     -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Per OCR da immagini -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+
     <application
         android:name=".NuotoParalimpicoApp"
         android:allowBackup="false"

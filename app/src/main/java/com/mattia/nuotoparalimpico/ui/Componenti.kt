@@ -1,5 +1,7 @@
 package com.mattia.nuotoparalimpico.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -43,7 +45,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -159,6 +163,43 @@ fun FormNuovoTempo(
     var contesto by remember { mutableStateOf(ContestoTempo.GARA) }
     var note by remember { mutableStateOf("") }
 
+    // Modalità input naturale
+    var inputNaturale by remember { mutableStateOf(false) }
+    var testoNaturale by remember { mutableStateOf("") }
+    var messaggioParsing by remember { mutableStateOf<String?>(null) }
+
+    // OCR
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var ocrInCorso by remember { mutableStateOf(false) }
+
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: String? ->
+        if (uri != null) {
+            ocrInCorso = true
+            scope.launch {
+                val risultato = com.mattia.nuotoparalimpico.domain.OCRHelper.parseTempoDaImmagine(
+                    context,
+                    android.net.Uri.parse(uri)
+                )
+                ocrInCorso = false
+                if (risultato.successo && risultato.dati != null) {
+                    val d = risultato.dati
+                    stile = d.stile ?: Stile.STILE_LIBERO
+                    distanza = d.distanzaMetri
+                    vasca = d.vascaMetri
+                    contesto = d.contesto
+                    note = d.note
+                    tempoTesto = if (d.centesimi != null) com.mattia.nuotoparalimpico.domain.NLPParser.formattaTempoDisplay(d.centesimi) else ""
+                    messaggioParsing = risultato.messaggio
+                } else {
+                    messaggioParsing = risultato.messaggio
+                }
+            }
+        }
+    }
+
     val data = parseData(dataTesto)
     val centesimi = parseTempo(tempoTesto)
     val distanzaValida = distanza
@@ -166,43 +207,111 @@ fun FormNuovoTempo(
     val valido = data != null && distanzaValida != null && vascaValida != null && centesimi != null
 
     Titolo(titolo)
-    CampoData(dataTesto, { dataTesto = it }, "Data", Modifier.fillMaxWidth())
-    Text("Stile", style = MaterialTheme.typography.labelSmall)
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Stile.entries.forEach { opzione ->
-            FilterChip(opzione == stile, { stile = opzione }, label = { Text(opzione.etichetta) })
-        }
+
+    // Toggle modalità input
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilterChip(
+            selected = !inputNaturale,
+            onClick = { inputNaturale = false },
+            label = { Text("Inserimento manuale") }
+        )
+        FilterChip(
+            selected = inputNaturale,
+            onClick = { inputNaturale = true },
+            label = { Text("Scrivi in linguaggio naturale 🤖") }
+        )
     }
-    Text("Distanza", style = MaterialTheme.typography.labelSmall)
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        listOf(50, 100, 200, 400, 800, 1500).forEach { opzione ->
-            FilterChip(distanza == opzione, { distanza = opzione }, label = { Text("$opzione m") })
-        }
-    }
-    Text("Vasca (obbligatoria)", style = MaterialTheme.typography.labelSmall)
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        listOf(25, 50).forEach { opzione ->
-            FilterChip(vasca == opzione, { vasca = opzione }, label = { Text("Vasca $opzione m") })
-        }
-    }
-    OutlinedTextField(
-        value = tempoTesto,
-        onValueChange = { tempoTesto = it },
-        label = { Text("Tempo (es. 1:02.35 o 28,40)") },
-        singleLine = true,
-        isError = tempoTesto.isNotBlank() && centesimi == null,
+
+    // Pulsante OCR
+    OutlinedButton(
+        onClick = { imagePicker.launch("image/*") },
+        enabled = !ocrInCorso,
         modifier = Modifier.fillMaxWidth()
-    )
-    if (tempoTesto.isNotBlank() && centesimi == null) {
-        Text("Inserisci un tempo valido, ad esempio 1:02.35 o 28,40.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-    }
-    Text("Contesto", style = MaterialTheme.typography.labelSmall)
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        ContestoTempo.entries.forEach { opzione ->
-            FilterChip(opzione == contesto, { contesto = opzione }, label = { Text(opzione.etichetta) })
+    ) {
+        if (ocrInCorso) {
+            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+            Spacer(Modifier.width(8.dp))
+            Text("Analisi immagine in corso...")
+        } else {
+            Text("📷 Carica immagine (screenshot)")
         }
     }
-    OutlinedTextField(note, { note = it }, label = { Text("Note (opzionali)") }, modifier = Modifier.fillMaxWidth())
+
+    if (inputNaturale) {
+        OutlinedTextField(
+            value = testoNaturale,
+            onValueChange = { testoNaturale = it; messaggioParsing = null },
+            label = { Text("Scrivi liberamente (es. \"100 stile libero 1:02.35 gara vasca 25m\")") },
+            singleLine = false,
+            minLines = 3,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Button(
+            onClick = {
+                val risultato = com.mattia.nuotoparalimpico.domain.NLPParser.parseTempo(testoNaturale)
+                if (risultato.successo && risultato.dati != null) {
+                    val d = risultato.dati
+                    stile = d.stile ?: Stile.STILE_LIBERO
+                    distanza = d.distanzaMetri
+                    vasca = d.vascaMetri
+                    contesto = d.contesto
+                    note = d.note
+                    tempoTesto = if (d.centesimi != null) com.mattia.nuotoparalimpico.domain.NLPParser.formattaTempoDisplay(d.centesimi) else ""
+                    messaggioParsing = risultato.messaggio
+                    inputNaturale = false
+                } else {
+                    messaggioParsing = risultato.messaggio
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Analizza testo") }
+        messaggioParsing?.let {
+            Text(
+                it,
+                color = if (it.startsWith("Ho capito")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+    } else {
+        CampoData(dataTesto, { dataTesto = it }, "Data", Modifier.fillMaxWidth())
+        Text("Stile", style = MaterialTheme.typography.labelSmall)
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Stile.entries.forEach { opzione ->
+                FilterChip(opzione == stile, { stile = opzione }, label = { Text(opzione.etichetta) })
+            }
+        }
+        Text("Distanza", style = MaterialTheme.typography.labelSmall)
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf(50, 100, 200, 400, 800, 1500).forEach { opzione ->
+                FilterChip(distanza == opzione, { distanza = opzione }, label = { Text("$opzione m") })
+            }
+        }
+        Text("Vasca (obbligatoria)", style = MaterialTheme.typography.labelSmall)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf(25, 50).forEach { opzione ->
+                FilterChip(vasca == opzione, { vasca = opzione }, label = { Text("Vasca $opzione m") })
+            }
+        }
+        OutlinedTextField(
+            value = tempoTesto,
+            onValueChange = { tempoTesto = it },
+            label = { Text("Tempo (es. 1:02.35 o 28,40)") },
+            singleLine = true,
+            isError = tempoTesto.isNotBlank() && centesimi == null,
+            modifier = Modifier.fillMaxWidth()
+        )
+        if (tempoTesto.isNotBlank() && centesimi == null) {
+            Text("Inserisci un tempo valido, ad esempio 1:02.35 o 28,40.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        }
+        Text("Contesto", style = MaterialTheme.typography.labelSmall)
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            ContestoTempo.entries.forEach { opzione ->
+                FilterChip(opzione == contesto, { contesto = opzione }, label = { Text(opzione.etichetta) })
+            }
+        }
+        OutlinedTextField(note, { note = it }, label = { Text("Note (opzionali)") }, modifier = Modifier.fillMaxWidth())
+    }
+
     Button(
         enabled = valido,
         onClick = {

@@ -199,6 +199,7 @@ private fun SezioneCalendario(
     }
     var meseEpoch by rememberSaveable { mutableLongStateOf(iniziale.withDayOfMonth(1).toEpochDay()) }
     var selEpoch by rememberSaveable { mutableStateOf<Long?>(null) }
+    var mostraSoloVasca by rememberSaveable { mutableStateOf(true) }
     val mese = YearMonth.from(LocalDate.ofEpochDay(meseEpoch))
     val selezionato = selEpoch?.let { LocalDate.ofEpochDay(it) }
 
@@ -207,6 +208,20 @@ private fun SezioneCalendario(
             "Nessun piano generato: vai in «Stagione» e premi Genera Piano Agonistico per popolare il calendario.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error
+        )
+    }
+
+    // Filtro per tipo di evento
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilterChip(
+            selected = mostraSoloVasca,
+            onClick = { mostraSoloVasca = true },
+            label = { Text("Solo nuoto in vasca") }
+        )
+        FilterChip(
+            selected = !mostraSoloVasca,
+            onClick = { mostraSoloVasca = false },
+            label = { Text("Tutti gli eventi") }
         )
     }
 
@@ -254,13 +269,20 @@ private fun SezioneCalendario(
                         Spacer(Modifier.weight(1f).height(56.dp))
                     } else {
                         val d = mese.atDay(n)
-                        CellaGiorno(
-                            g = Calendario.giorno(d, s, micro, chiusure, gare),
-                            selezionato = d == selezionato,
-                            oggi = d == oggi,
-                            modifier = Modifier.weight(1f),
-                            onClick = { selEpoch = d.toEpochDay() }
-                        )
+                        val giornoCal = Calendario.giorno(d, s, micro, chiusure, gare)
+                        // Se filtro attivo, mostra solo giorni con seduta in vasca
+                        val visibile = !mostraSoloVasca || giornoCal.seduta
+                        if (visibile) {
+                            CellaGiorno(
+                                g = giornoCal,
+                                selezionato = d == selezionato,
+                                oggi = d == oggi,
+                                modifier = Modifier.weight(1f),
+                                onClick = { selEpoch = d.toEpochDay() }
+                            )
+                        } else {
+                            Spacer(Modifier.weight(1f).height(56.dp))
+                        }
                     }
                 }
             }

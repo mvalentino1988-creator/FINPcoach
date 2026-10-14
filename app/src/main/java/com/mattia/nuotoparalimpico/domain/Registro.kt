@@ -41,6 +41,9 @@ fun formattaTempo(centesimi: Int): String {
     else String.format(Locale.ROOT, "%d.%02d", secondi, cent)
 }
 
+/** 6235 -> "1:02.35"; 2840 -> "28.40" - versione per display UI */
+fun formattaTempoDisplay(centesimi: Int): String = formattaTempo(centesimi)
+
 data class Primato(
     val stile: Stile,
     val distanzaMetri: Int,
