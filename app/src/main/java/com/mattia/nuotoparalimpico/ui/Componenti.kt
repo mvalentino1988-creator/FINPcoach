@@ -638,3 +638,71 @@ fun ElencoAvvisi(avvisi: List<Avviso>) {
         }
     }
 }
+
+@Composable
+fun CollapsibleSection(
+    title: String,
+    modifier: Modifier = Modifier,
+    initialExpanded: Boolean = false,
+    badgeText: String? = null,
+    content: @Composable () -> Unit
+) {
+    var expanded by remember { mutableStateOf(initialExpanded) }
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded }
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    if (badgeText != null) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer
+                        ) {
+                            Text(
+                                text = badgeText,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                }
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = if (expanded) "Comprimi" else "Espandi",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            androidx.compose.animation.AnimatedVisibility(visible = expanded) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                ) {
+                    content()
+                }
+            }
+        }
+    }
+}
