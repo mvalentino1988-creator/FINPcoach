@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "workspace": {
+    "name": "OpenWork Chat",
+    "createdAt": 1791963984546,
+    "preset": "starter"
+  },
+  "authorizedRoots": [
+    "C:\\Users\\matti\\OpenWork Chat"
+  ],
+  "reload": null
+}

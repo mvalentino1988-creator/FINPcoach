@@ -7,7 +7,9 @@ import { CalcoloRitmiRipartenze } from '../domain/calcoloRitmiRipartenze';
 import { CalcoloScienzaNuoto } from '../domain/calcoloCSS';
 import { BadgeCodice } from './BadgeCodice';
 import { CODICI_KEYS } from '../domain/codici';
-import { ImageOcrUpload } from './ImageOcrUpload';
+import { OcrWeb } from '../domain/ocrWeb';
+import { OcrGaraModal } from './OcrGaraModal';
+import { TempoEstrattoOcr } from '../domain/ocrGaraParser';
 import { parseTempo as nlpParseTempo, formattaTempoDisplay, STILE_ETICHETTE } from '../domain/nlpParser';
 import { RisultatoParsing } from '../domain/nlpParser';
 import {
@@ -23,6 +25,8 @@ import {
   Trash2,
   Upload,
   User,
+  Camera,
+  Loader2,
   X,
   Bot
 } from 'lucide-react';
@@ -36,6 +40,10 @@ export const TempiRipartenzeScreen: React.FC = () => {
   // OCR modal
   const [mostraImport, setMostraImport] = useState(false);
   const [testoImport, setTestoImport] = useState('');
+
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrGaraModalOpen, setOcrGaraModalOpen] = useState(false);
+  const [ocrRawText, setOcrRawText] = useState('');
 
   // Manual entry form
   const [dataTesto, setDataTesto] = useState<string>(formattaData(todayISO()));
@@ -300,23 +308,32 @@ export const TempiRipartenzeScreen: React.FC = () => {
         </div>
 
         {/* OCR Upload */}
-        <ImageOcrUpload
-          onResult={(result: RisultatoParsing) => {
-            if (result.successo && result.dati) {
-              const d = result.dati;
-              setStile((d.stile || 'STILE_LIBERO') as Stile);
-              setDistanza(d.distanzaMetri?.toString() || '100');
-              setVasca(d.vascaMetri);
-              setContesto((d.contesto || 'GARA') as ContestoTempo);
-              setNote(d.note);
-              setTempoTesto(d.centesimi ? formattaTempoDisplay(d.centesimi) : '');
-              setMessaggioParsing(result.messaggio);
-              setInputNaturale(false);
-            } else {
-              setMessaggioParsing(result.messaggio);
-            }
-          }}
-        />
+        <div className="flex items-center justify-between p-3 bg-cyan-50/70 border border-cyan-200 rounded-xl">
+          <div className="text-xs font-bold text-[#006874] flex items-center gap-1.5">
+            {ocrLoading ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
+            <span>{ocrLoading ? 'Lettura OCR in corso...' : 'Carica Screenshot Gara o Tabella Tempi (OCR)'}</span>
+          </div>
+          <label className={`px-3 py-1.5 bg-[#006874] hover:bg-[#005a63] text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs ${ocrLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+            <span>{ocrLoading ? 'Attendere...' : 'Scegli Immagine'}</span>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={ocrLoading}
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setOcrLoading(true);
+                const testoOcr = await OcrWeb.riconosciTestoDaImmagine(file);
+                setOcrLoading(false);
+                if (testoOcr) {
+                  setOcrRawText(testoOcr);
+                  setOcrGaraModalOpen(true);
+                }
+              }}
+            />
+          </label>
+        </div>
 
         {/* Natural language input */}
         {inputNaturale && (
@@ -360,6 +377,66 @@ export const TempiRipartenzeScreen: React.FC = () => {
             )}
           </div>
         )}
+
+        <div className="mb-3 flex items-center justify-between">
+          <span className="font-bold text-slate-700 text-xs">Inserimento Tempo</span>
+          <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-[#006874] rounded-lg text-xs font-bold cursor-pointer transition border border-cyan-200">
+            <Camera size={14} />
+            <span>Carica Screenshot Gara (OCR)</span>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const testoOcr = await OcrWeb.riconosciTestoDaImmagine(file);
+                if (testoOcr) {
+                  const result = nlpParseTempo(testoOcr);
+                  if (result.successo && result.dati) {
+                    const d = result.dati;
+                    if (d.stile) setStile(d.stile);
+                    if (d.distanzaMetri) setDistanza(d.distanzaMetri.toString());
+                    if (d.vascaMetri) setVasca(d.vascaMetri);
+                    if (d.contesto) setContesto(d.contesto);
+                    if (d.centesimi) setTempoTesto(formattaTempoDisplay(d.centesimi));
+                    setMessaggioParsing(result.messaggio);
+                  }
+                }
+              }}
+            />
+          </label>
+        </div>
+
+        <div className="mb-3 flex items-center justify-between">
+          <span className="font-bold text-slate-700 text-xs">Inserimento Tempo</span>
+          <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-[#006874] rounded-lg text-xs font-bold cursor-pointer transition border border-cyan-200">
+            <Camera size={14} />
+            <span>Carica Screenshot Gara (OCR)</span>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const testoOcr = await OcrWeb.riconosciTestoDaImmagine(file);
+                if (testoOcr) {
+                  const result = nlpParseTempo(testoOcr);
+                  if (result.successo && result.dati) {
+                    const d = result.dati;
+                    if (d.stile) setStile(d.stile);
+                    if (d.distanzaMetri) setDistanza(d.distanzaMetri.toString());
+                    if (d.vascaMetri) setVasca(d.vascaMetri);
+                    if (d.contesto) setContesto(d.contesto);
+                    if (d.centesimi) setTempoTesto(formattaTempoDisplay(d.centesimi));
+                    setMessaggioParsing(result.messaggio);
+                  }
+                }
+              }}
+            />
+          </label>
+        </div>
 
         <form onSubmit={handleSalvaTempo} className="space-y-3 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -592,6 +669,29 @@ export const TempiRipartenzeScreen: React.FC = () => {
           </div>
         </div>
       )}
+
+      <OcrGaraModal
+        isOpen={ocrGaraModalOpen}
+        initialRawText={ocrRawText}
+        onConfirm={(tempiEstratti) => {
+          if (atletaSel) {
+            for (const t of tempiEstratti) {
+              aggiungiTempo({
+                atletaId: atletaSel.id,
+                data: t.data,
+                stile: t.stile,
+                distanzaMetri: t.distanzaMetri,
+                centesimi: t.centesimi,
+                contesto: t.contesto,
+                vascaMetri: t.vascaMetri,
+                note: `OCR: ${t.luogo}`
+              });
+            }
+          }
+          setOcrGaraModalOpen(false);
+        }}
+        onCancel={() => setOcrGaraModalOpen(false)}
+      />
     </div>
   );
 };

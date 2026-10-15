@@ -54,7 +54,7 @@ interface AppContextType {
   aggiungiChiusura: (dal: string, al: string, motivo: string) => void;
   eliminaChiusura: (id: number) => void;
   aggiungiFestivitaNazionali: () => void;
-  aggiungiGara: (nome: string, dal: string, al: string, prioritaria: boolean) => void;
+  aggiungiGara: (nome: string, dal: string, al: string, prioritaria: boolean, luogo?: string) => void;
   eliminaGara: (id: number) => void;
   salvaImpostazioni: (imp: ImpostazioniPiano) => void;
   rigeneraPianoCompleto: () => void;
@@ -370,10 +370,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTimeout(() => rigeneraPianoInterno(true), 50);
   };
 
-  const aggiungiGara = (nome: string, dal: string, al: string, prioritaria: boolean) => {
+  const aggiungiGara = (nome: string, dal: string, al: string, prioritaria: boolean, luogo = '') => {
     if (!stagione) return;
     const nextId = gare.length > 0 ? Math.max(...gare.map(it => it.id)) + 1 : 1;
-    setGare(prev => [...prev, { id: nextId, stagioneId: stagione.id, nome, dal, al, luogo: '', prioritaria }]);
+    setGare(prev => [...prev, { id: nextId, stagioneId: stagione.id, nome, dal, al, luogo, prioritaria }]);
     setTimeout(() => rigeneraPianoInterno(true), 50);
   };
 

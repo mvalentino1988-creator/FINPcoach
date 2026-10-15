@@ -14,6 +14,8 @@ import {
   addDays
 } from '../domain/dateUtils';
 import { GeneratoreSmartSeduta } from '../domain/generatoreSmartSeduta';
+import { FINPStorage } from '../data/storage';
+import { ParserScheda } from '../domain/parserScheda';
 import { IndicatoreCodici } from './IndicatoreCodici';
 import { BadgeCodice } from './BadgeCodice';
 import {
@@ -106,6 +108,49 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
 
   // Generate today's workout
   const schedaOggi: SchedaSeduta = useMemo(() => {
+    const dataOggiFormatted = formattaData(oggi);
+    const customList = FINPStorage.getCustomWorkouts();
+    const manualeOggi = customList.find(w => {
+      const matchData = w.data === dataOggiFormatted || w.data === oggi;
+      const matchDest = atletaSel ? w.atletaId === atletaSel.id : w.atletaId === null;
+      return matchData && matchDest;
+    });
+
+    if (manualeOggi) {
+      const serie = ParserScheda.parseSerie(manualeOggi.testo);
+      const volumeTotale = manualeOggi.metriTotali || ParserScheda.calcolaMetriDaTesto(manualeOggi.testo);
+      const analisi = ParserScheda.analisiQualitativa(manualeOggi.testo);
+      const tratti = serie.map((s, idx) => ({
+        sezione: s.descrizione.split(' ')[0] || `Serie ${idx + 1}`,
+        codice: s.codice as any,
+        ripetizioni: s.ripetizioni > 1 ? `${s.ripetizioni}x` : '1x',
+        metri: s.metriTotali,
+        descrizione: s.descrizione,
+        attrezzi: s.attrezzi
+      }));
+      const ripartizioneCodici: Partial<Record<any, number>> = {};
+      for (const t of tratti) {
+        ripartizioneCodici[t.codice] = (ripartizioneCodici[t.codice] ?? 0) + t.metri;
+      }
+      return {
+        titolo: `Allenamento Manuale Inserito · del ${manualeOggi.data}`,
+        data: manualeOggi.data,
+        nomeAtleta: atletaSel ? `${atletaSel.cognome} ${atletaSel.nome}` : null,
+        etaAtleta: null,
+        categoriaEta: null,
+        faseStagione: 'PREPARAZIONE_SPECIFICA',
+        tipoMicrociclo: 'CARICO',
+        volumeTotaleMetri: volumeTotale,
+        ripartizioneCodici,
+        tratti,
+        adattamentiEta: [],
+        avvertenzeMediche: [],
+        tempiUtilizzati: [],
+        noteCalibrazione: [`Scheda inserita manualmente dall'allenatore (sostituisce quella smart). Attrezzi: ${analisi.attrezzi.join(', ') || 'Nessuno'}`],
+        tipoSeduta: 'Allenamento Manuale'
+      };
+    }
+
     const fase = mesoCorrente?.fase ?? 'PREPARAZIONE_GENERALE';
     const tipo = microCorrente?.tipo ?? 'CARICO';
     const condiz = atletaSel ? condizioni.filter(c => c.atletaId === atletaSel.id && c.attiva) : [];

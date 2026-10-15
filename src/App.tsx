@@ -8,6 +8,7 @@ import { SchedeVascaScreen } from './components/SchedeVascaScreen';
 import { TempiRipartenzeScreen } from './components/TempiRipartenzeScreen';
 import { RegistroScreen } from './components/RegistroScreen';
 import { DatiScreen } from './components/DatiScreen';
+import { FontiScreen } from './components/FontiScreen';
 
 export const AppContent: React.FC = () => {
   const [tab, setTab] = useState<TabKey>('oggi');
@@ -21,6 +22,7 @@ export const AppContent: React.FC = () => {
         {tab === 'piano' && <PianoScreen />}
         {tab === 'atleti' && <AtletiScreen />}
         {tab === 'dati' && <DatiScreen />}
+        {tab === 'fonti' && <FontiScreen />}
       </main>
     </div>
   );

@@ -14,64 +14,56 @@ export const CalendarioScreen: React.FC = () => {
   const { gare, stagione, aggiungiGara, eliminaGara } = useApp();
   const meta = CalendarioService.meta();
   const oggi = todayISO();
-
   const [soloProssimi, setSoloProssimi] = useState(true);
 
-  // Solo nuoto in vasca: fondo/acque libere e pallanuoto non rientrano nel piano piscina.
   const eventi = useMemo(() => {
-    let list = CalendarioService.nuotoVasca();
-    if (soloProssimi) list = list.filter(e => e.al >= oggi);
-    return list;
+    const lista = CalendarioService.eventi();
+    return soloProssimi ? lista.filter(e => e.al >= oggi) : lista;
   }, [soloProssimi, oggi]);
 
   const gruppi = useMemo(() => {
-    const map = new Map<string, EventoCalendario[]>();
-    for (const e of eventi) {
-      const chiave = CalendarioService.meseChiave(e.dal);
-      const arr = map.get(chiave) ?? [];
-      arr.push(e);
-      map.set(chiave, arr);
+    const mappa = new Map<string, EventoCalendario[]>();
+    for (const evento of eventi) {
+      const chiave = CalendarioService.meseChiave(evento.dal);
+      const lista = mappa.get(chiave) ?? [];
+      lista.push(evento);
+      mappa.set(chiave, lista);
     }
-    return [...map.entries()];
+    return [...mappa.entries()];
   }, [eventi]);
 
-  const giaInStagione = (e: EventoCalendario) =>
-    gare.some(g => g.nome === e.titolo && g.dal === e.dal);
+  const giaInStagione = (evento: EventoCalendario) =>
+    gare.some(g => g.nome === evento.titolo && g.dal === evento.dal);
 
-  const aggiungi = (e: EventoCalendario) => {
+  const aggiungi = (evento: EventoCalendario) => {
     if (!stagione) return;
-    const periodo = CalendarioService.formattaPeriodo(e);
-    const ok = window.confirm(
-      `Aggiungere questa gara alla stagione?\n\n${e.titolo}\n${periodo} — ${e.luogo}\n\n` +
+    const periodo = CalendarioService.formattaPeriodo(evento);
+    const confermato = window.confirm(
+      `Aggiungere questa gara alla stagione?\n\n${evento.titolo}\n${periodo} — ${evento.luogo}\n\n` +
         `Il piano verrà rigenerato per tenere conto della gara` +
-        (e.prioritaria ? ' (indicata come prioritaria: attiva picco e scarico pre-gara).' : '.')
+        (evento.prioritaria ? ' (indicata come prioritaria: attiva picco e scarico pre-gara).' : '.')
     );
-    if (!ok) return;
-    aggiungiGara(e.titolo, e.dal, e.al, e.prioritaria, e.luogo);
+    if (confermato) aggiungiGara(evento.titolo, evento.dal, evento.al, evento.prioritaria, evento.luogo);
   };
 
-  const rimuovi = (e: EventoCalendario) => {
-    const gara = gare.find(g => g.nome === e.titolo && g.dal === e.dal);
-    if (!gara) return;
-    if (window.confirm(`Rimuovere "${e.titolo}" dalla stagione?`)) eliminaGara(gara.id);
+  const rimuovi = (evento: EventoCalendario) => {
+    const gara = gare.find(g => g.nome === evento.titolo && g.dal === evento.dal);
+    if (gara && window.confirm(`Rimuovere "${evento.titolo}" dalla stagione?`)) eliminaGara(gara.id);
   };
 
   return (
     <div className="space-y-5">
-      {/* Title */}
       <div>
         <h2 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
           <CalendarDays size={22} className="text-[#006874]" />
-          <span>Calendario Gare in Vasca {meta.aggiornato}</span>
+          <span>Calendario gare FINP {meta.aggiornato}</span>
         </h2>
         <p className="text-xs text-slate-500 mt-0.5">
-          Solo gare di nuoto in vasca del calendario nazionale FINP. Aggiungi una gara alla stagione per farla
-          considerare dal piano (picco e scarico pre-gara). Fonte: {meta.fonte}.
+          Eventi nazionali di nuoto, fondo e pallanuoto. Aggiungi una gara alla stagione per farla considerare dal piano.
         </p>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-3 shadow-xs space-y-3">
+      <div className="bg-white rounded-2xl border border-slate-200 p-3 shadow-xs">
         <label className="flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer select-none">
           <input
             type="checkbox"
@@ -83,130 +75,87 @@ export const CalendarioScreen: React.FC = () => {
         </label>
       </div>
 
-      {/* Season hint */}
       {!stagione && (
         <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-start gap-2">
           <Info size={14} className="mt-0.5 shrink-0" />
-          <span>Nessuna stagione attiva. Crea prima una stagione in Piano per poter aggiungere le gare.</span>
+          <span>Nessuna stagione attiva. Crea prima una stagione in Piano per poter aggiungere gare.</span>
         </div>
       )}
 
-      {/* Events grouped by month */}
       {gruppi.length === 0 ? (
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-500 flex items-start gap-2">
-          <Info size={14} className="mt-0.5 shrink-0 text-slate-400" />
-          <span>Nessuna gara da mostrare con i filtri selezionati.</span>
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-500">
+          Nessuna gara da mostrare con i filtri selezionati.
         </div>
       ) : (
         <div className="space-y-5">
           {gruppi.map(([chiave, lista]) => (
-            <div key={chiave} className="space-y-2">
+            <section key={chiave} className="space-y-2">
               <h3 className="text-xs font-black text-slate-500 uppercase tracking-wider">
                 {CalendarioService.meseLabel(lista[0].dal)}
               </h3>
               <div className="space-y-2">
-                {lista.map(e => {
-                  const inStagione = giaInStagione(e);
-                  const passata = e.al < oggi;
+                {lista.map(evento => {
+                  const inStagione = giaInStagione(evento);
+                  const passata = evento.al < oggi;
                   return (
-                    <div
-                      key={e.id}
-                      className={`bg-white rounded-2xl border p-4 shadow-xs space-y-2 ${
-                        passata ? 'border-slate-200 opacity-70' : 'border-slate-200'
-                      }`}
-                    >
+                    <article key={evento.id} className={`bg-white rounded-2xl border p-4 shadow-xs space-y-2 ${passata ? 'opacity-70' : ''}`}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <h4 className="font-bold text-slate-800 text-sm leading-snug flex items-center gap-1.5">
-                            {e.prioritaria && <Star size={13} className="text-amber-500 shrink-0" />}
-                            <span>{e.titolo}</span>
+                            {evento.prioritaria && <Star size={13} className="text-amber-500 shrink-0" />}
+                            <span>{evento.titolo}</span>
                           </h4>
                           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[11px] text-slate-500">
-                            <span className="flex items-center gap-1">
-                              <CalendarDays size={12} />
-                              {CalendarioService.formattaPeriodo(e)}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <MapPin size={12} />
-                              {e.luogo} ({e.regione})
-                            </span>
+                            <span className="flex items-center gap-1"><CalendarDays size={12} />{CalendarioService.formattaPeriodo(evento)}</span>
+                            <span className="flex items-center gap-1"><MapPin size={12} />{evento.luogo} ({evento.regione})</span>
                           </div>
                         </div>
-                        <span
-                          className={`text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5 border shrink-0 ${
-                            DISCIPLINA_COLORE[e.disciplina] ?? 'bg-slate-50 text-slate-600 border-slate-200'
-                          }`}
-                        >
-                          {e.disciplina}
+                        <span className={`text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5 border shrink-0 ${DISCIPLINA_COLORE[evento.disciplina] ?? 'bg-slate-50 text-slate-600 border-slate-200'}`}>
+                          {evento.disciplina}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2 pt-1">
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
                         {inStagione ? (
                           <>
-                            <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-                              <Check size={13} />
-                              Già in stagione
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => rimuovi(e)}
-                              className="text-[11px] font-semibold text-rose-500 hover:text-rose-700 flex items-center gap-1"
-                            >
-                              <Trash2 size={12} />
-                              Rimuovi
+                            <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600"><Check size={13} />Già in stagione</span>
+                            <button type="button" onClick={() => rimuovi(evento)} className="text-[11px] font-semibold text-rose-500 hover:text-rose-700 flex items-center gap-1">
+                              <Trash2 size={12} />Rimuovi
                             </button>
                           </>
                         ) : (
                           <button
                             type="button"
-                            onClick={() => aggiungi(e)}
+                            onClick={() => aggiungi(evento)}
                             disabled={!stagione}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold transition ${
-                              stagione
-                                ? 'bg-[#006874] text-white hover:bg-[#005a63] shadow-xs'
-                                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                            }`}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold transition ${stagione ? 'bg-[#006874] text-white hover:bg-[#005a63] shadow-xs' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
                           >
-                            <Plus size={13} />
-                            Aggiungi alla stagione
+                            <Plus size={13} />Aggiungi alla stagione
                           </button>
                         )}
-                        {e.prioritaria && (
-                          <span className="text-[10px] font-semibold text-amber-600 flex items-center gap-1">
-                            <Star size={11} />
-                            prioritaria
-                          </span>
-                        )}
+                        {evento.prioritaria && <span className="text-[10px] font-semibold text-amber-600 flex items-center gap-1"><Star size={11} />prioritaria</span>}
                       </div>
-                    </div>
+                    </article>
                   );
                 })}
               </div>
-            </div>
+            </section>
           ))}
         </div>
       )}
 
-      {/* Source note */}
       <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500 flex items-start gap-2">
         <Info size={14} className="mt-0.5 shrink-0 text-slate-400" />
         <span>
-          {meta.nota} Calendario consultabile offline (snapshot). Per gli aggiornamenti ufficiali:{' '}
+          {meta.nota} Snapshot consultabile offline. Verifica sempre il calendario ufficiale:{' '}
           <a href={meta.url} target="_blank" rel="noreferrer" className="text-[#006874] font-semibold underline inline-flex items-center gap-0.5">
-            {meta.url}
-            <ExternalLink size={11} />
+            {meta.url}<ExternalLink size={11} />
           </a>
         </span>
       </div>
-
-      {/* Legend */}
       <div className="p-3 rounded-2xl bg-white border border-slate-200 text-[11px] text-slate-500 flex items-start gap-2">
         <Waves size={14} className="mt-0.5 shrink-0 text-[#006874]" />
-        <span>
-          Le gare marcate con <Star size={11} className="inline text-amber-500" /> sono suggerite come prioritarie
-          (A-Race): il piano attiva picco e scarico in vista dell'evento. Puoi comunque modificarle in Piano.
-        </span>
+        <span>Le gare prioritarie (A-Race) attivano picco e scarico pre-gara; puoi modificarle nel Piano.</span>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 /**
  * Parser universale per schede di allenamento in linguaggio naturale.
- * Riconosce perfettamente NxM (es. 8x50, 12x50) e distanze singole (200 misti, 400 sciolti) senza mai perdere cifre.
+ * Supporta serie composte e annidate (es. "(3x100 b1 + 2x50 forte) X2"), NxM, e distanze singole.
  */
 
 export interface SeriaParsata {
@@ -13,17 +13,11 @@ export interface SeriaParsata {
 }
 
 export class ParserScheda {
-  /**
-   * Calcola i metri totali da qualsiasi testo inserito
-   */
   static calcolaMetriDaTesto(testo: string): number {
     const serie = this.parseSerie(testo);
     return serie.reduce((sum, s) => sum + s.metriTotali, 0);
   }
 
-  /**
-   * Analizza tutte le righe estraendo metri, ripetizioni, attrezzi e zona energetica
-   */
   static parseSerie(testo: string): SeriaParsata[] {
     const serie: SeriaParsata[] = [];
     if (!testo) return serie;
@@ -37,31 +31,71 @@ export class ParserScheda {
 
       let ripetizioni = 1;
       let distanza = 0;
+      let metriTotali = 0;
 
-      // 1. Cerca pattern "NxM" o "N x M" (es. 8x50, 12x50, 10x25)
-      const matchNxM = cleanRiga.match(/(\d+)\s*[xX]\s*(\d+)/);
-      if (matchNxM) {
-        ripetizioni = parseInt(matchNxM[1], 10);
-        distanza = parseInt(matchNxM[2], 10);
+      // 1. Cerca pattern composto con parentesi e moltiplicatore esterno (es. "(3x100 b1 + 2x50 forte) X2")
+      const matchParentesiMul = cleanRiga.match(/\(([^)]+)\)\s*[xX](\d+)/i);
+      if (matchParentesiMul) {
+        const innerText = matchParentesiMul[1];
+        const outerMultiplier = parseInt(matchParentesiMul[2], 10);
+
+        const parti = innerText.split('+');
+        let innerMetri = 0;
+        for (const parte of parti) {
+          const mSub = parte.match(/(\d+)\s*[xX]\s*(\d+)/);
+          if (mSub) {
+            innerMetri += parseInt(mSub[1], 10) * parseInt(mSub[2], 10);
+          } else {
+            const mNum = parte.match(/^(\d+)\b/);
+            if (mNum) {
+              const val = parseInt(mNum[1], 10);
+              if (val >= 25) innerMetri += val;
+            }
+          }
+        }
+        metriTotali = innerMetri * outerMultiplier;
+        distanza = Math.round(metriTotali / outerMultiplier);
+        ripetizioni = outerMultiplier;
       } else {
-        // 2. Cerca un numero all'inizio seguito da parola (es. "200 misti", "400 sciolti")
-        const matchNumeroInizio = cleanRiga.match(/^(\d+)\b/);
-        if (matchNumeroInizio) {
-          distanza = parseInt(matchNumeroInizio[1], 10);
-          ripetizioni = 1;
+        // 2. Cerca pattern standard "NxM" o "N x M" (es. 8x50, 12x50, 10x25)
+        const matchNxM = cleanRiga.match(/(\d+)\s*[xX]\s*(\d+)/);
+        if (matchNxM) {
+          ripetizioni = parseInt(matchNxM[1], 10);
+          distanza = parseInt(matchNxM[2], 10);
+          metriTotali = ripetizioni * distanza;
         } else {
-          distanza = 0;
-          ripetizioni = 1;
+          // 3. Cerca un numero all'inizio (es. "200", "300 gambe", "6 sciolte")
+          const matchNumeroInizio = cleanRiga.match(/^(\d+)\b/);
+          if (matchNumeroInizio) {
+            const val = parseInt(matchNumeroInizio[1], 10);
+            if (val < 25 && cleanRiga.toLowerCase().includes('sciolt')) {
+              // Es. "6 sciolte" -> 6 vasche da 25m = 150m
+              ripetizioni = val;
+              distanza = 25;
+              metriTotali = ripetizioni * distanza;
+            } else if (val >= 25) {
+              distanza = val;
+              ripetizioni = 1;
+              metriTotali = distanza;
+            } else {
+              distanza = 0;
+              ripetizioni = 1;
+              metriTotali = 0;
+            }
+          } else {
+            distanza = 0;
+            ripetizioni = 1;
+            metriTotali = 0;
+          }
         }
       }
 
-      const metriTotali = ripetizioni * distanza;
       const attrezzi = this.estraiAttrezzi(cleanRiga);
-      const codice = this.stimaCodiceSet(distanza, ripetizioni, cleanRiga.toLowerCase());
+      const codice = this.stimaCodiceSet(distanza || 100, ripetizioni, cleanRiga.toLowerCase());
 
       serie.push({
         ripetizioni,
-        distanza,
+        distanza: distanza || metriTotali,
         descrizione: cleanRiga,
         metriTotali,
         codice,
@@ -72,9 +106,6 @@ export class ParserScheda {
     return serie;
   }
 
-  /**
-   * Estrae gli attrezzi menzionati
-   */
   static estraiAttrezzi(testoLower: string): string[] {
     const t = testoLower.toLowerCase();
     const attrezziSet = new Set<string>();
@@ -89,10 +120,11 @@ export class ParserScheda {
     return Array.from(attrezziSet);
   }
 
-  /**
-   * Stima intelligente della zona energetica (A1-D)
-   */
   static stimaCodiceSet(distanza: number, ripetizioni: number, desc: string): string {
+    if (desc.includes('b1') || desc.includes('soglia')) return 'B1';
+    if (desc.includes('b2')) return 'B2';
+    if (desc.includes('a2')) return 'A2';
+
     if (
       desc.includes('sciolt') ||
       desc.includes('riscald') ||
@@ -129,9 +161,6 @@ export class ParserScheda {
     return 'A1';
   }
 
-  /**
-   * Analisi qualitativa complessiva
-   */
   static analisiQualitativa(testo: string): {
     attrezzi: string[];
     tipiLavoro: string[];
@@ -157,9 +186,6 @@ export class ParserScheda {
     };
   }
 
-  /**
-   * Stima il codice di allenamento globale
-   */
   static stimaCodiceDaSerie(serie: SeriaParsata[]): string {
     if (serie.length === 0) return 'A1';
     

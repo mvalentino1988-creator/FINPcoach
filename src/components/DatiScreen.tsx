@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ClipboardList, Timer, CheckCircle2, Edit2, Save, X, Trash2, Calendar, Users, User, HelpCircle, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
+import { ClipboardList, Timer, CheckCircle2, Edit2, Save, X, Trash2, Calendar, Users, User, HelpCircle, ChevronLeft, ChevronRight, Layers, Camera, Loader2 } from 'lucide-react';
+import { OcrWeb } from '../domain/ocrWeb';
+import { OcrPreviewModal } from './OcrPreviewModal';
 import { SchedeVascaScreen } from './SchedeVascaScreen';
 import { TempiRipartenzeScreen } from './TempiRipartenzeScreen';
 import { RegistroScreen } from './RegistroScreen';
@@ -10,6 +12,7 @@ import { useApp } from '../data/AppContext';
 import { ParserScheda } from '../domain/parserScheda';
 import { ParserApprendimento } from '../domain/parserApprendimento';
 import { FINPStorage } from '../data/storage';
+import { OcrWorkoutStandardizer } from '../domain/ocrWorkoutStandardizer';
 
 type DatiTab = 'schede' | 'tempi' | 'registro';
 
@@ -47,6 +50,10 @@ export const DatiScreen: React.FC = () => {
   const [showDialog, setShowDialog] = useState(false);
   const [rigaNonCompresa, setRigaNonCompresa] = useState<string>('');
   const [suggerimento, setSuggerimento] = useState<ReturnType<typeof ParserApprendimento.suggerisciInterpretazione> | null>(null);
+
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrModalOpen, setOcrModalOpen] = useState(false);
+  const [ocrRawText, setOcrRawText] = useState('');
 
   // Carica allenamenti salvati
   useEffect(() => {
@@ -248,6 +255,54 @@ export const DatiScreen: React.FC = () => {
                     </button>
                   ))}
                 </div>
+              </div>
+              <div className="mb-2 flex items-center justify-between">
+                <label className="block text-xs font-semibold text-slate-700">Testo Allenamento / Serie</label>
+                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-[#006874] rounded-lg text-xs font-bold cursor-pointer transition border border-cyan-200">
+                  {ocrLoading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                  <span>{ocrLoading ? 'Lettura OCR in corso...' : 'Carica Screenshot (OCR)'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={ocrLoading}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setOcrLoading(true);
+                      const testoOcr = await OcrWeb.riconosciTestoDaImmagine(file);
+                      setOcrLoading(false);
+                      if (testoOcr) {
+                        setOcrRawText(testoOcr);
+                        setOcrModalOpen(true);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+              <div className="mb-2 flex items-center justify-between">
+                <label className="block text-xs font-semibold text-slate-700">Testo Allenamento / Serie</label>
+                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-[#006874] rounded-lg text-xs font-bold cursor-pointer transition border border-cyan-200">
+                  {ocrLoading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                  <span>{ocrLoading ? 'Lettura OCR in corso...' : 'Carica Screenshot (OCR)'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={ocrLoading}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setOcrLoading(true);
+                      const testoOcr = await OcrWeb.riconosciTestoDaImmagine(file);
+                      setOcrLoading(false);
+                      if (testoOcr) {
+                        setOcrRawText(testoOcr);
+                        setOcrModalOpen(true);
+                      }
+                    }}
+                  />
+                </label>
               </div>
               <textarea
                 value={customWorkout}
@@ -696,6 +751,31 @@ export const DatiScreen: React.FC = () => {
           {tab === 'registro' && <RegistroScreen />}
         </div>
       )}
+
+      <OcrPreviewModal
+        isOpen={ocrModalOpen}
+        initialText={ocrRawText}
+        onConfirm={(finalText) => {
+          const list = OcrWorkoutStandardizer.standardizzaEsepara(finalText, atleti);
+          const nuoviWorkouts: CustomWorkout[] = list.map(item => ({
+            id: (Date.now() + Math.random()).toString(),
+            data: workoutDate,
+            testo: item.testo,
+            creatoIl: new Date().toISOString(),
+            atletaId: item.atletaId,
+            metriTotali: ParserScheda.calcolaMetriDaTesto(item.testo)
+          }));
+
+          const updated = [...nuoviWorkouts, ...customWorkouts];
+          setCustomWorkouts(updated);
+          FINPStorage.saveCustomWorkouts(updated);
+          if (nuoviWorkouts.length > 0) {
+            setSelectedWorkoutId(nuoviWorkouts[0].id);
+          }
+          setOcrModalOpen(false);
+        }}
+        onCancel={() => setOcrModalOpen(false)}
+      />
 
 
     </div>

@@ -79,6 +79,18 @@ Piattaforma gestionale e tecnica all'avanguardia per allenatori della **FINP (Fe
 
 ---
 
+### 6. 📚 Fonti: Record, Regolamenti e Calendario
+
+Il tab **Fonti** raccoglie snapshot locali consultabili anche offline:
+
+- **Record FINP**: record italiani per categoria e record europei/mondiali, filtrabili per evento, classe, genere e vasca; confronto opzionale con i tempi registrati dell'atleta. Dati aggiornati al **26/07/2026** secondo il dataset importato; verificare la fonte ufficiale per eventuali aggiornamenti.
+- **Regolamenti FINP e World Para Swimming**: consultazione per capitoli e articoli, collegamenti alle fonti e ricerca locale per parole chiave (ranking BM25, senza backend o richiesta Internet).
+- **Calendario nazionale FINP 2026**: 13 eventi di nuoto, fondo e pallanuoto, filtrabili per date future e raggruppati per mese. Le gare possono essere aggiunte/rimosse dalla stagione con conferma; le prioritarie sono considerate dal piano per il picco e lo scarico pre-gara.
+
+I dataset sono snapshot e non si aggiornano automaticamente: controllare sempre i regolamenti, i record e le date sul sito ufficiale FINP/WPS prima di prendere decisioni sportive o iscrivere atleti.
+
+---
+
 ## 💻 Stack Tecnologico
 
 - **Framework**: React 18 SPA con TypeScript
