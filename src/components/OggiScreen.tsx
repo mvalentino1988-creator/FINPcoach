@@ -18,6 +18,7 @@ import { FINPStorage } from '../data/storage';
 import { ParserScheda } from '../domain/parserScheda';
 import { IndicatoreCodici } from './IndicatoreCodici';
 import { BadgeCodice } from './BadgeCodice';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import {
   Calendar,
   Check,
@@ -28,6 +29,7 @@ import {
   Maximize2,
   Minimize2,
   Printer,
+  RefreshCw,
   Sparkles,
   User,
   Users,
@@ -246,8 +248,17 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
   // Should we show the workout?
   const visualizzaSeduta = isGiornoAllenamento || mostraSedutaStraordinaria;
 
+  // Pull to refresh
+  const pullToRefresh = usePullToRefresh({
+    onRefresh: async () => {
+      // Reload data from context
+      window.location.reload();
+    },
+    threshold: 100
+  });
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 relative">
       {/* Top Banner: Date & Status */}
       <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -277,22 +288,22 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
         {/* Status Pill */}
         <div className="flex items-center gap-2 self-start sm:self-center">
           {chiusuraOggi ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">
+            <span className="inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">
               <AlertTriangle size={15} className="text-amber-600" />
               <span>Chiusura: {chiusuraOggi.motivo}</span>
             </span>
           ) : garaOggi ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-white shadow-xs">
+            <span className="inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-bold bg-amber-500 text-white shadow-xs">
               <Zap size={15} />
               <span>Gara: {garaOggi.nome}</span>
             </span>
           ) : isGiornoAllenamento ? (
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black bg-emerald-600 text-white shadow-xs">
+            <span className="inline-flex items-center gap-1.5 px-3.5 h-12 rounded-xl text-xs font-black bg-emerald-600 text-white shadow-xs">
               <Sparkles size={15} className="text-emerald-200" />
               <span>Giorno di Allenamento Fissato</span>
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+            <span className="inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
               <Coffee size={15} className="text-slate-500" />
               <span>Giorno di Riposo / Recupero</span>
             </span>
@@ -340,7 +351,7 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               onClick={() => setMostraSedutaStraordinaria(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#006874] hover:bg-[#004f58] text-white text-xs font-bold rounded-xl transition shadow-xs"
+              className="inline-flex items-center gap-2 px-4 h-12 bg-[#006874] hover:bg-[#004f58] text-white text-xs font-bold rounded-xl transition shadow-xs"
             >
               <Zap size={15} />
               <span>Genera Seduta Straordinaria per Oggi</span>
@@ -348,7 +359,7 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
 
             <button
               onClick={() => onNavigateTab('piano')}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition"
+              className="inline-flex items-center gap-2 px-4 h-12 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition"
             >
               <Calendar size={15} />
               <span>Modifica Giorni nel Piano</span>
@@ -357,9 +368,20 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
         </div>
       )}
 
+      {/* Pull to Refresh Indicator */}
+      {pullToRefresh.isPulling && (
+        <div className="flex items-center justify-center py-2 text-xs text-slate-500">
+          <RefreshCw 
+            size={16} 
+            className={`mr-2 ${pullToRefresh.isRefreshing ? 'animate-spin' : ''}`} 
+          />
+          {pullToRefresh.isRefreshing ? 'Aggiornamento...' : 'Rilascia per aggiornare'}
+        </div>
+      )}
+
       {/* TODAY'S WORKOUT CARD */}
       {visualizzaSeduta && (
-        <div className={`print-area space-y-4 ${maxiDeck ? 'bg-slate-900 text-white p-5 rounded-3xl' : ''}`}>
+        <div className={`print-area space-y-4 pb-20 sm:pb-4 ${maxiDeck ? 'bg-slate-900 text-white p-5 rounded-3xl' : ''}`}>
           {/* Controls Bar */}
           <div className="no-print bg-white p-3 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
             {/* Athlete selector */}
@@ -371,7 +393,7 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
               <select
                 value={atletaSelId ?? ''}
                 onChange={e => setAtletaSelId(e.target.value ? Number(e.target.value) : null)}
-                className="bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:border-[#006874]"
+                className="bg-slate-50 border border-slate-300 rounded-xl px-2.5 h-12 font-bold text-slate-800 text-xs focus:border-[#006874]"
               >
                 <option value="">Tutta la Squadra (100% - {volumeSquadra}m)</option>
                 {atleti.map(a => (
@@ -596,6 +618,18 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
               </div>
             </div>
           )}
+
+          {/* Sticky Bottom Button for Mobile - Copy WhatsApp */}
+          <div className="no-print sm:hidden fixed bottom-14 left-0 right-0 z-40 bg-white border-t border-slate-200 p-3 shadow-lg">
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="w-full h-12 bg-[#006874] hover:bg-[#004f58] text-white rounded-xl font-bold flex items-center justify-center gap-2 transition shadow-sm"
+            >
+              {copiato ? <Check size={18} className="text-emerald-300" /> : <Copy size={18} />}
+              <span>{copiato ? 'Copiato!' : 'Copia su WhatsApp'}</span>
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -173,7 +173,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
             <button
               key={a.id}
               onClick={() => setAtletaSelId(a.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`px-3 h-12 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                 atletaSel.id === a.id
                   ? 'bg-[#006874] text-white shadow-xs'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -289,7 +289,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => setInputNaturale(false)}
-            className={`flex-1 px-3 py-2 rounded-xl font-semibold transition text-xs ${
+            className={`flex-1 px-3 h-12 rounded-xl font-semibold transition text-xs ${
               !inputNaturale ? 'bg-[#006874] text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -298,7 +298,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => setInputNaturale(true)}
-            className={`flex-1 px-3 py-2 rounded-xl font-semibold transition text-xs ${
+            className={`flex-1 px-3 h-12 rounded-xl font-semibold transition text-xs ${
               inputNaturale ? 'bg-[#006874] text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -313,7 +313,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
             {ocrLoading ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
             <span>{ocrLoading ? 'Lettura OCR in corso...' : 'Carica Screenshot Gara o Tabella Tempi (OCR)'}</span>
           </div>
-          <label className={`px-3 py-1.5 bg-[#006874] hover:bg-[#005a63] text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs ${ocrLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+          <label className={`px-3 h-12 bg-[#006874] hover:bg-[#005a63] text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs ${ocrLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
             <span>{ocrLoading ? 'Attendere...' : 'Scegli Immagine'}</span>
             <input
               type="file"
@@ -346,7 +346,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
               onChange={e => { setTestoNaturale(e.target.value); setMessaggioParsing(null); }}
               placeholder="Es: 100 stile libero 1:02.35 gara vasca 25m"
               rows={3}
-              className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs"
+              className="w-full px-3 h-12 border border-slate-300 rounded-xl text-xs"
             />
             <button
               type="button"
@@ -366,7 +366,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
                   setMessaggioParsing(result.messaggio);
                 }
               }}
-              className="w-full px-3 py-2 bg-[#006874] hover:bg-[#005c73] text-white rounded-xl font-bold text-xs transition"
+              className="w-full px-3 h-12 bg-[#006874] hover:bg-[#005c73] text-white rounded-xl font-bold text-xs transition"
             >
               Analizza testo
             </button>
@@ -380,7 +380,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
 
         <div className="mb-3 flex items-center justify-between">
           <span className="font-bold text-slate-700 text-xs">Inserimento Tempo</span>
-          <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-[#006874] rounded-lg text-xs font-bold cursor-pointer transition border border-cyan-200">
+          <label className="inline-flex items-center gap-1.5 px-3 h-12 bg-cyan-50 hover:bg-cyan-100 text-[#006874] rounded-lg text-xs font-bold cursor-pointer transition border border-cyan-200">
             <Camera size={14} />
             <span>Carica Screenshot Gara (OCR)</span>
             <input
@@ -410,7 +410,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
 
         <div className="mb-3 flex items-center justify-between">
           <span className="font-bold text-slate-700 text-xs">Inserimento Tempo</span>
-          <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-[#006874] rounded-lg text-xs font-bold cursor-pointer transition border border-cyan-200">
+          <label className="inline-flex items-center gap-1.5 px-3 h-12 bg-cyan-50 hover:bg-cyan-100 text-[#006874] rounded-lg text-xs font-bold cursor-pointer transition border border-cyan-200">
             <Camera size={14} />
             <span>Carica Screenshot Gara (OCR)</span>
             <input
@@ -446,7 +446,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
                 type="text"
                 value={dataTesto}
                 onChange={e => setDataTesto(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-xl"
+                className="w-full px-3 h-12 border border-slate-300 rounded-xl"
               />
             </div>
 
@@ -456,7 +456,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
                 type="number"
                 value={distanza}
                 onChange={e => setDistanza(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-xl font-bold"
+                className="w-full px-3 h-12 border border-slate-300 rounded-xl font-bold"
               />
             </div>
 
@@ -467,7 +467,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
                 placeholder="es. 1:04.20"
                 value={tempoTesto}
                 onChange={e => setTempoTesto(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-xl font-black text-sm text-[#006874]"
+                className="w-full px-3 h-12 border border-slate-300 rounded-xl font-black text-sm text-[#006874]"
               />
             </div>
           </div>
@@ -481,7 +481,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
                   key={s}
                   type="button"
                   onClick={() => setStile(s)}
-                  className={`px-3 py-1.5 rounded-xl font-semibold transition ${
+                  className={`px-3 h-12 rounded-xl font-semibold transition ${
                     stile === s ? 'bg-[#006874] text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
@@ -501,7 +501,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
                     key={c}
                     type="button"
                     onClick={() => setContesto(c)}
-                    className={`px-3 py-1.5 rounded-xl font-semibold transition ${
+                    className={`px-3 h-12 rounded-xl font-semibold transition ${
                       contesto === c ? 'bg-[#006874] text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
@@ -519,7 +519,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
                     key={v}
                     type="button"
                     onClick={() => setVasca(v)}
-                    className={`px-3 py-1.5 rounded-xl font-semibold transition ${
+                    className={`px-3 h-12 rounded-xl font-semibold transition ${
                       vasca === v ? 'bg-[#006874] text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
@@ -537,14 +537,14 @@ export const TempiRipartenzeScreen: React.FC = () => {
               placeholder="es. Campionati Italiani, finale pomeridiana..."
               value={note}
               onChange={e => setNote(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-xl"
+              className="w-full px-3 h-12 border border-slate-300 rounded-xl"
             />
           </div>
 
           <button
             type="submit"
             disabled={!formValido}
-            className="w-full py-2.5 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
+            className="w-full h-12.5 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
           >
             Salva Tempo
           </button>
@@ -653,7 +653,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setMostraImport(false)}
-                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-semibold text-xs"
+                className="px-4 h-12 text-slate-600 hover:bg-slate-100 rounded-xl font-semibold text-xs"
               >
                 Annulla
               </button>
@@ -661,7 +661,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
                 type="button"
                 disabled={!testoImport.trim()}
                 onClick={handleImportOCR}
-                className="px-5 py-2 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white rounded-xl font-bold text-xs shadow-xs"
+                className="px-5 h-12 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white rounded-xl font-bold text-xs shadow-xs"
               >
                 Analizza e Importa
               </button>

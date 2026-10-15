@@ -137,7 +137,7 @@ export const RegistroScreen: React.FC = () => {
         <button
           type="button"
           onClick={() => setSezione('seduta')}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl transition ${
+          className={`flex-1 h-12 text-xs font-bold rounded-xl transition ${
             sezione === 'seduta' ? 'bg-white text-[#006874] shadow-xs' : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -146,7 +146,7 @@ export const RegistroScreen: React.FC = () => {
         <button
           type="button"
           onClick={() => setSezione('tempi')}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl transition ${
+          className={`flex-1 h-12 text-xs font-bold rounded-xl transition ${
             sezione === 'tempi' ? 'bg-white text-[#006874] shadow-xs' : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -155,7 +155,7 @@ export const RegistroScreen: React.FC = () => {
         <button
           type="button"
           onClick={() => setSezione('storico')}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl transition ${
+          className={`flex-1 h-12 text-xs font-bold rounded-xl transition ${
             sezione === 'storico' ? 'bg-white text-[#006874] shadow-xs' : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -179,7 +179,7 @@ export const RegistroScreen: React.FC = () => {
                   type="text"
                   value={dataTesto}
                   onChange={e => setDataTesto(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl"
+                  className="w-full px-3 h-12 border border-slate-300 rounded-xl"
                 />
               </div>
 
@@ -189,7 +189,7 @@ export const RegistroScreen: React.FC = () => {
                   type="number"
                   value={durata}
                   onChange={e => setDurata(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl font-bold"
+                  className="w-full px-3 h-12 border border-slate-300 rounded-xl font-bold"
                 />
               </div>
             </div>
@@ -282,7 +282,7 @@ export const RegistroScreen: React.FC = () => {
                               [a.id]: { ...r, metri: e.target.value }
                             }));
                           }}
-                          className="w-24 px-2.5 py-1.5 border border-slate-300 rounded-lg text-center font-bold text-xs"
+                          className="w-24 px-2.5 h-12 border border-slate-300 rounded-lg text-center font-bold text-xs"
                         />
                         <span className="text-slate-500">m</span>
                       </div>
@@ -299,7 +299,7 @@ export const RegistroScreen: React.FC = () => {
                               [a.id]: { ...r, rpe: e.target.value }
                             }));
                           }}
-                          className="w-16 px-2.5 py-1.5 border border-slate-300 rounded-lg text-center font-bold text-xs text-[#006874]"
+                          className="w-16 px-2.5 h-12 border border-slate-300 rounded-lg text-center font-bold text-xs text-[#006874]"
                         />
                         <span className="text-[10px] text-slate-400">/10</span>
                       </div>
@@ -321,7 +321,7 @@ export const RegistroScreen: React.FC = () => {
             <button
               onClick={handleSalvaSeduta}
               disabled={!dataParsed || isNaN(durataInt) || durataInt <= 0}
-              className="w-full mt-3 py-2.5 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
+              className="w-full mt-3 h-12.5 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
             >
               {giaRegistrata ? 'Aggiorna Seduta nel Registro' : 'Salva Seduta nel Registro'}
             </button>
@@ -342,7 +342,7 @@ export const RegistroScreen: React.FC = () => {
                 <button
                   key={a.id}
                   onClick={() => setAtletaSelId(a.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                  className={`px-3 h-12 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                     atletaSel.id === a.id
                       ? 'bg-[#006874] text-white shadow-xs'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -377,7 +377,7 @@ export const RegistroScreen: React.FC = () => {
                 <button
                   key={a.id}
                   onClick={() => setAtletaSelId(a.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                  className={`px-3 h-12 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                     atletaSel.id === a.id
                       ? 'bg-[#006874] text-white shadow-xs'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -474,7 +474,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
                 type="text"
                 value={dataTesto}
                 onChange={e => setDataTesto(e.target.value)}
-                className="w-full px-3 py-1.5 border border-slate-300 rounded-lg"
+                className="w-full px-3 h-12 border border-slate-300 rounded-lg"
               />
             </div>
             <div>
@@ -483,7 +483,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
                 type="number"
                 value={distanza}
                 onChange={e => setDistanza(e.target.value)}
-                className="w-full px-3 py-1.5 border border-slate-300 rounded-lg font-bold"
+                className="w-full px-3 h-12 border border-slate-300 rounded-lg font-bold"
               />
             </div>
             <div>
@@ -493,7 +493,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
                 placeholder="es. 1:02.35"
                 value={tempoTesto}
                 onChange={e => setTempoTesto(e.target.value)}
-                className="w-full px-3 py-1.5 border border-slate-300 rounded-lg font-black text-sm text-[#006874]"
+                className="w-full px-3 h-12 border border-slate-300 rounded-lg font-black text-sm text-[#006874]"
               />
             </div>
           </div>
@@ -550,13 +550,13 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
             placeholder="Note sul tempo (opzionale)"
             value={note}
             onChange={e => setNote(e.target.value)}
-            className="w-full px-3 py-1.5 border border-slate-300 rounded-lg"
+            className="w-full px-3 h-12 border border-slate-300 rounded-lg"
           />
 
           <button
             type="submit"
             disabled={!valido}
-            className="w-full py-2 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
+            className="w-full h-12 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
           >
             Aggiungi Tempo
           </button>

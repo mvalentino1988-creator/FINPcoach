@@ -17,6 +17,7 @@ import { IndicatoreCodici } from './IndicatoreCodici';
 import { ElencoAvvisi } from './ElencoAvvisi';
 import { SchedaSedutaModal } from './SchedaSedutaModal';
 import { Sezione } from './Sezione';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import {
   AlertCircle,
   Calendar,
@@ -138,7 +139,7 @@ export const PianoScreen: React.FC = () => {
               type="text"
               value={inizioStagione}
               onChange={e => setInizioStagione(e.target.value)}
-              className="w-full px-3 py-2 border rounded-xl border-slate-300"
+              className="w-full px-3 h-12 border rounded-xl border-slate-300"
             />
           </div>
 
@@ -149,7 +150,7 @@ export const PianoScreen: React.FC = () => {
               placeholder={fineSuggerita ? formattaData(fineSuggerita) : 'gg/mm/aaaa'}
               value={fineStagione}
               onChange={e => setFineStagione(e.target.value)}
-              className="w-full px-3 py-2 border rounded-xl border-slate-300"
+              className="w-full px-3 h-12 border rounded-xl border-slate-300"
             />
           </div>
 
@@ -160,7 +161,7 @@ export const PianoScreen: React.FC = () => {
               placeholder={nomeAuto}
               value={nomeStagione}
               onChange={e => setNomeStagione(e.target.value)}
-              className="w-full px-3 py-2 border rounded-xl border-slate-300 font-semibold"
+              className="w-full px-3 h-12 border rounded-xl border-slate-300 font-semibold"
             />
           </div>
 
@@ -171,7 +172,7 @@ export const PianoScreen: React.FC = () => {
               }
             }}
             disabled={!inizioParsed || !fineEffettiva || inizioParsed >= fineEffettiva}
-            className="w-full py-2.5 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-sm transition shadow-sm mt-2"
+            className="w-full h-12.5 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-sm transition shadow-sm mt-2"
           >
             Crea Stagione e Genera Piano
           </button>
@@ -182,8 +183,16 @@ export const PianoScreen: React.FC = () => {
 
   const volumeMax = micro.length > 0 ? Math.max(...micro.map(m => m.volumeTargetMetri)) : 0;
 
+  // Pull to refresh
+  const pullToRefresh = usePullToRefresh({
+    onRefresh: async () => {
+      window.location.reload();
+    },
+    threshold: 100
+  });
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 relative">
       {/* Header Banner */}
       <div className="p-4 sm:p-5 bg-gradient-to-r from-[#006874] to-[#004f58] text-white rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -204,7 +213,7 @@ export const PianoScreen: React.FC = () => {
               setModError(null);
               setModificaDateOpen(true);
             }}
-            className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white border border-white/30 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+            className="px-3 h-12 bg-white/20 hover:bg-white/30 text-white border border-white/30 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
           >
             <Edit2 size={13} />
             <span>Modifica Date Stagione</span>
@@ -216,12 +225,23 @@ export const PianoScreen: React.FC = () => {
                 eliminaStagione();
               }
             }}
-            className="px-3 py-1.5 bg-white/10 hover:bg-rose-500/80 text-white/90 hover:text-white border border-white/20 rounded-xl text-xs font-semibold transition"
+            className="px-3 h-12 bg-white/10 hover:bg-rose-500/80 text-white/90 hover:text-white border border-white/20 rounded-xl text-xs font-semibold transition"
           >
             Elimina stagione
           </button>
         </div>
       </div>
+
+      {/* Pull to Refresh Indicator */}
+      {pullToRefresh.isPulling && (
+        <div className="flex items-center justify-center py-2 text-xs text-slate-500">
+          <RefreshCw 
+            size={16} 
+            className={`mr-2 ${pullToRefresh.isRefreshing ? 'animate-spin' : ''}`} 
+          />
+          {pullToRefresh.isRefreshing ? 'Aggiornamento...' : 'Rilascia per aggiornare'}
+        </div>
+      )}
 
       {/* Modal Modifica Date Stagione */}
       {modificaDateOpen && (
@@ -267,7 +287,7 @@ export const PianoScreen: React.FC = () => {
                     value={modInizio}
                     onChange={e => setModInizio(e.target.value)}
                     placeholder="es. 01/09/2026"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 focus:bg-white focus:border-[#006874]"
+                    className="w-full px-3 h-12 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 focus:bg-white focus:border-[#006874]"
                   />
                 </div>
 
@@ -280,7 +300,7 @@ export const PianoScreen: React.FC = () => {
                     value={modFine}
                     onChange={e => setModFine(e.target.value)}
                     placeholder="es. 30/06/2027"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 focus:bg-white focus:border-[#006874]"
+                    className="w-full px-3 h-12 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 focus:bg-white focus:border-[#006874]"
                   />
                 </div>
               </div>
@@ -290,7 +310,7 @@ export const PianoScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setModificaDateOpen(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 rounded-xl"
+                className="px-4 h-12 text-xs font-semibold text-slate-600 hover:text-slate-800 rounded-xl"
               >
                 Annulla
               </button>
@@ -314,7 +334,7 @@ export const PianoScreen: React.FC = () => {
                   modificaDateStagione(pInizio, pFine);
                   setModificaDateOpen(false);
                 }}
-                className="px-4 py-2 text-xs font-bold bg-[#006874] hover:bg-[#004f58] text-white rounded-xl shadow-xs transition"
+                className="px-4 h-12 text-xs font-bold bg-[#006874] hover:bg-[#004f58] text-white rounded-xl shadow-xs transition"
               >
                 Salva e Ricalcola Piano
               </button>
@@ -330,7 +350,7 @@ export const PianoScreen: React.FC = () => {
             <button
               type="button"
               onClick={aggiungiFestivitaNazionali}
-              className="px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-[#006874] border border-cyan-200 rounded-lg font-bold"
+              className="px-3 h-12 bg-cyan-50 hover:bg-cyan-100 text-[#006874] border border-cyan-200 rounded-lg font-bold"
             >
               + Aggiungi Festività Nazionali Italiane
             </button>
@@ -364,14 +384,14 @@ export const PianoScreen: React.FC = () => {
                 placeholder="Dal (gg/mm/aaaa)"
                 value={cDal}
                 onChange={e => setCDal(e.target.value)}
-                className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
+                className="px-3 h-12 bg-white border border-slate-300 rounded-lg"
               />
               <input
                 type="text"
                 placeholder="Al (gg/mm/aaaa)"
                 value={cAl}
                 onChange={e => setCAl(e.target.value)}
-                className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
+                className="px-3 h-12 bg-white border border-slate-300 rounded-lg"
               />
             </div>
             <input
@@ -379,7 +399,7 @@ export const PianoScreen: React.FC = () => {
               placeholder="Motivo (es. Chiusura natalizia impianto, festa patronale...)"
               value={cMotivo}
               onChange={e => setCMotivo(e.target.value)}
-              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
+              className="w-full px-3 h-12 bg-white border border-slate-300 rounded-lg"
             />
             <button
               type="button"
@@ -393,7 +413,7 @@ export const PianoScreen: React.FC = () => {
                   setCMotivo('');
                 }
               }}
-              className="w-full py-1.5 bg-[#006874] hover:bg-[#004f58] text-white rounded-lg font-bold"
+              className="w-full h-12 bg-[#006874] hover:bg-[#004f58] text-white rounded-lg font-bold"
             >
               Aggiungi Chiusura Vasca
             </button>
@@ -442,7 +462,7 @@ export const PianoScreen: React.FC = () => {
               placeholder="Nome gara (es. Campionati Italiani Assoluti FINP...)"
               value={gNome}
               onChange={e => setGNome(e.target.value)}
-              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
+              className="w-full px-3 h-12 bg-white border border-slate-300 rounded-lg"
             />
             <div className="grid grid-cols-2 gap-2">
               <input
@@ -450,14 +470,14 @@ export const PianoScreen: React.FC = () => {
                 placeholder="Inizio (gg/mm/aaaa)"
                 value={gDal}
                 onChange={e => setGDal(e.target.value)}
-                className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
+                className="px-3 h-12 bg-white border border-slate-300 rounded-lg"
               />
               <input
                 type="text"
                 placeholder="Fine (opzionale)"
                 value={gAl}
                 onChange={e => setGAl(e.target.value)}
-                className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
+                className="px-3 h-12 bg-white border border-slate-300 rounded-lg"
               />
             </div>
             <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700 select-none">
@@ -483,7 +503,7 @@ export const PianoScreen: React.FC = () => {
                   setGPrioManuale(null);
                 }
               }}
-              className="w-full py-1.5 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white rounded-lg font-bold"
+              className="w-full h-12 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white rounded-lg font-bold"
             >
               Aggiungi Gara
             </button>
@@ -564,7 +584,7 @@ export const PianoScreen: React.FC = () => {
                 placeholder={`Auto: ${parametriEffettivi.metriBaseSeduta}`}
                 value={metriTxt}
                 onChange={e => setMetriTxt(e.target.value)}
-                className="w-full px-3 py-1.5 border border-slate-300 rounded-lg font-bold"
+                className="w-full px-3 h-12 border border-slate-300 rounded-lg font-bold"
               />
             </div>
 
@@ -577,7 +597,7 @@ export const PianoScreen: React.FC = () => {
                 placeholder={`Auto: ${parametriEffettivi.numeroMacrocicli}`}
                 value={macroTxt}
                 onChange={e => setMacroTxt(e.target.value)}
-                className="w-full px-3 py-1.5 border border-slate-300 rounded-lg font-bold"
+                className="w-full px-3 h-12 border border-slate-300 rounded-lg font-bold"
               />
             </div>
 
@@ -590,7 +610,7 @@ export const PianoScreen: React.FC = () => {
                 placeholder={`Auto: ${parametriEffettivi.settimaneCicloCarico}`}
                 value={cicloTxt}
                 onChange={e => setCicloTxt(e.target.value)}
-                className="w-full px-3 py-1.5 border border-slate-300 rounded-lg font-bold"
+                className="w-full px-3 h-12 border border-slate-300 rounded-lg font-bold"
               />
             </div>
           </div>
@@ -606,14 +626,14 @@ export const PianoScreen: React.FC = () => {
                   settimaneCicloCarico: cicloTxt.trim() ? parseInt(cicloTxt, 10) : undefined
                 });
               }}
-              className="px-4 py-2 bg-[#006874] hover:bg-[#004f58] text-white font-bold rounded-xl text-xs transition"
+              className="px-4 h-12 bg-[#006874] hover:bg-[#004f58] text-white font-bold rounded-xl text-xs transition"
             >
               Salva Impostazioni
             </button>
             <button
               type="button"
               onClick={rigeneraPianoCompleto}
-              className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition"
+              className="flex items-center gap-1.5 px-4 h-12 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition"
             >
               <RefreshCw size={14} />
               Rigenera Piano
@@ -647,7 +667,7 @@ export const PianoScreen: React.FC = () => {
                 }
                 setEspandiTutti(false);
               }}
-              className="px-3 py-1.5 rounded-xl bg-cyan-50 hover:bg-cyan-100 text-[#006874] border border-cyan-200 text-xs font-bold transition flex items-center gap-1.5"
+              className="px-3 h-12 rounded-xl bg-cyan-50 hover:bg-cyan-100 text-[#006874] border border-cyan-200 text-xs font-bold transition flex items-center gap-1.5"
             >
               <Sparkles size={14} />
               <span>Vai a Settimana di Oggi</span>
@@ -657,7 +677,7 @@ export const PianoScreen: React.FC = () => {
             <button
               type="button"
               onClick={() => setEspandiTutti(!espandiTutti)}
-              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition"
+              className="px-3 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition"
             >
               {espandiTutti ? 'Menu Cliccabile' : 'Tutti a Vista'}
             </button>
@@ -686,7 +706,7 @@ export const PianoScreen: React.FC = () => {
                         const firstMeso = meso.find(me => me.macrocicloId === ma.id);
                         if (firstMeso) setSelectedMesoId(firstMeso.id);
                       }}
-                      className={`px-3.5 py-2.5 rounded-xl text-xs font-bold transition shrink-0 border text-left flex flex-col gap-0.5 ${
+                      className={`px-3.5 h-12.5 rounded-xl text-xs font-bold transition shrink-0 border text-left flex flex-col gap-0.5 ${
                         isSelected
                           ? 'bg-[#006874] text-white border-[#006874] shadow-sm'
                           : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
@@ -737,7 +757,7 @@ export const PianoScreen: React.FC = () => {
                             key={me.id}
                             type="button"
                             onClick={() => setSelectedMesoId(me.id)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition border flex items-center gap-1.5 ${
+                            className={`px-3 h-12 rounded-xl text-xs font-bold transition border flex items-center gap-1.5 ${
                               isSelected
                                 ? 'bg-cyan-700 text-white border-cyan-700 shadow-xs'
                                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
@@ -1139,7 +1159,7 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
                 max="14"
                 value={sedute}
                 onChange={e => setSedute(e.target.value)}
-                className="w-full px-3 py-1.5 border border-slate-300 rounded-lg font-bold"
+                className="w-full px-3 h-12 border border-slate-300 rounded-lg font-bold"
               />
             </div>
             <div>
@@ -1149,7 +1169,7 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
                 step="50"
                 value={metri}
                 onChange={e => setMetri(e.target.value)}
-                className="w-full px-3 py-1.5 border border-slate-300 rounded-lg font-bold"
+                className="w-full px-3 h-12 border border-slate-300 rounded-lg font-bold"
               />
             </div>
           </div>
@@ -1160,7 +1180,7 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
               type="text"
               value={note}
               onChange={e => setNote(e.target.value)}
-              className="w-full px-3 py-1.5 border border-slate-300 rounded-lg"
+              className="w-full px-3 h-12 border border-slate-300 rounded-lg"
             />
           </div>
 
@@ -1175,7 +1195,7 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
               <button
                 type="button"
                 onClick={() => onSblocca(micro)}
-                className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl text-xs font-bold transition"
+                className="inline-flex items-center gap-1 px-3 h-12 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl text-xs font-bold transition"
               >
                 <Unlock size={14} />
                 <span>Sblocca</span>
@@ -1187,7 +1207,7 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
             <button
               type="button"
               onClick={onChiudi}
-              className="px-4 py-1.5 text-slate-600 hover:bg-slate-100 font-semibold rounded-xl text-xs"
+              className="px-4 h-12 text-slate-600 hover:bg-slate-100 font-semibold rounded-xl text-xs"
             >
               Annulla
             </button>
@@ -1203,7 +1223,7 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
                   note: note.trim()
                 });
               }}
-              className="px-4 py-1.5 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
+              className="px-4 h-12 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
             >
               Salva
             </button>

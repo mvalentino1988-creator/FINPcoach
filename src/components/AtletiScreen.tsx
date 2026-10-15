@@ -11,6 +11,8 @@ import { CalcoloRitmiRipartenze } from '../domain/calcoloRitmiRipartenze';
 import { formattaTempo, parseTempo } from '../domain/tempoUtils';
 import { ElencoAvvisi } from './ElencoAvvisi';
 import { SchedaSedutaModal } from './SchedaSedutaModal';
+import { Sezione } from './Sezione';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import {
   AlertTriangle,
   Calendar,
@@ -22,6 +24,7 @@ import {
   HeartPulse,
   Info,
   Plus,
+  RefreshCw,
   Search,
   Sparkles,
   Timer,
@@ -84,8 +87,16 @@ export const AtletiScreen: React.FC = () => {
     return list.length > 0 ? list.join(' · ') : 'Classi non indicate';
   };
 
+  // Pull to refresh
+  const pullToRefresh = usePullToRefresh({
+    onRefresh: async () => {
+      window.location.reload();
+    },
+    threshold: 100
+  });
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 relative">
       {/* Top Action */}
       <div className="flex items-center justify-between">
         <div>
@@ -96,7 +107,7 @@ export const AtletiScreen: React.FC = () => {
         </div>
         <button
           onClick={() => setNuovoOpen(true)}
-          className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#006874] hover:bg-[#004f58] text-white rounded-xl text-xs font-bold transition shadow-sm"
+          className="inline-flex items-center gap-2 px-3.5 h-12 bg-[#006874] hover:bg-[#004f58] text-white rounded-xl text-xs font-bold transition shadow-sm"
         >
           <UserPlus size={16} />
           <span>Nuovo Atleta</span>
@@ -113,7 +124,7 @@ export const AtletiScreen: React.FC = () => {
               placeholder="Cerca per cognome o nome..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 focus:bg-white focus:border-[#006874] transition"
+              className="w-full pl-9 pr-3 h-12 bg-slate-50 border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 focus:bg-white focus:border-[#006874] transition"
             />
           </div>
 
@@ -158,6 +169,17 @@ export const AtletiScreen: React.FC = () => {
         </div>
       )}
 
+      {/* Pull to Refresh Indicator */}
+      {pullToRefresh.isPulling && (
+        <div className="flex items-center justify-center py-2 text-xs text-slate-500">
+          <RefreshCw 
+            size={16} 
+            className={`mr-2 ${pullToRefresh.isRefreshing ? 'animate-spin' : ''}`} 
+          />
+          {pullToRefresh.isRefreshing ? 'Aggiornamento...' : 'Rilascia per aggiornare'}
+        </div>
+      )}
+
       {/* Athletes List */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {atletiFiltrati.map(a => {
@@ -181,23 +203,25 @@ export const AtletiScreen: React.FC = () => {
               className="bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl p-4 transition shadow-xs cursor-pointer flex flex-col justify-between group"
             >
               <div className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                  <div className="flex-1">
                     <h3 className="font-bold text-base text-slate-900 group-hover:text-[#006874] transition flex items-center gap-1.5">
                       {a.cognome} {a.nome}
                     </h3>
-                    <div className="text-xs text-slate-500 font-medium">
+                    <div className="text-xs text-slate-500 font-medium mt-1">
                       {formatClassi(a)}
-                      {eta != null && ` · ${eta} anni`}
+                    </div>
+                    <div className="text-xs text-slate-500 font-medium">
+                      {eta != null && `${eta} anni`}
                       {a.stato === 'IN_ATTESA' && (
-                        <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px] bg-amber-100 text-amber-800 font-semibold">
+                        <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] bg-amber-100 text-amber-800 font-semibold">
                           in attesa
                         </span>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex flex-wrap items-center gap-1.5 shrink-0 mt-2 sm:mt-0">
                     {condAttive > 0 && (
                       <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">
                         {condAttive} cond.
@@ -356,7 +380,7 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
                 required
                 value={nome}
                 onChange={e => setNome(e.target.value)}
-                className="w-full px-3 py-2 border rounded-xl border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-[#006874]"
+                className="w-full px-3 h-12 border rounded-xl border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-[#006874]"
               />
             </div>
             <div>
@@ -366,7 +390,7 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
                 required
                 value={cognome}
                 onChange={e => setCognome(e.target.value)}
-                className="w-full px-3 py-2 border rounded-xl border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-[#006874]"
+                className="w-full px-3 h-12 border rounded-xl border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-[#006874]"
               />
             </div>
           </div>
@@ -380,7 +404,7 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
               placeholder="es. 15/04/2004"
               value={nascita}
               onChange={e => setNascita(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-xl ${!nascitaOk ? 'border-rose-400 bg-rose-50' : 'border-slate-300'}`}
+              className={`w-full px-3 h-12 border rounded-xl ${!nascitaOk ? 'border-rose-400 bg-rose-50' : 'border-slate-300'}`}
             />
           </div>
 
@@ -394,21 +418,21 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
                 placeholder="Classe S"
                 value={s}
                 onChange={e => setS(e.target.value)}
-                className="px-3 py-2 border rounded-xl border-slate-300 text-center"
+                className="px-3 h-12 border rounded-xl border-slate-300 text-center"
               />
               <input
                 type="number"
                 placeholder="SB (no 10)"
                 value={sb}
                 onChange={e => setSb(e.target.value)}
-                className="px-3 py-2 border rounded-xl border-slate-300 text-center"
+                className="px-3 h-12 border rounded-xl border-slate-300 text-center"
               />
               <input
                 type="number"
                 placeholder="Classe SM"
                 value={sm}
                 onChange={e => setSm(e.target.value)}
-                className="px-3 py-2 border rounded-xl border-slate-300 text-center"
+                className="px-3 h-12 border rounded-xl border-slate-300 text-center"
               />
             </div>
             {errori.map((err, i) => (
@@ -454,7 +478,7 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
                   max="100"
                   value={fattore}
                   onChange={e => setFattore(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-xl border-slate-300 text-center font-bold"
+                  className="w-full px-3 h-12 border rounded-xl border-slate-300 text-center font-bold"
                 />
               </div>
             )}
@@ -467,7 +491,7 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
               value={note}
               onChange={e => setNote(e.target.value)}
               placeholder="es. Amputazione transtibiale arto inferiore sinistro..."
-              className="w-full px-3 py-2 border rounded-xl border-slate-300 text-xs"
+              className="w-full px-3 h-12 border rounded-xl border-slate-300 text-xs"
             />
           </div>
 
@@ -475,14 +499,14 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
             <button
               type="button"
               onClick={onAnnulla}
-              className="px-4 py-2 text-slate-600 hover:bg-slate-100 font-semibold rounded-xl text-xs transition"
+              className="px-4 h-12 text-slate-600 hover:bg-slate-100 font-semibold rounded-xl text-xs transition"
             >
               Annulla
             </button>
             <button
               type="submit"
               disabled={!valido}
-              className="px-5 py-2 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
+              className="px-5 h-12 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
             >
               Salva Atleta
             </button>
@@ -637,12 +661,13 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
           </div>
 
           {/* FINP Hydrodynamic Analysis & Class Estimation */}
-          <div className="p-4 bg-cyan-50/70 border border-cyan-100 rounded-2xl space-y-3">
-            <div className="flex items-center gap-2 text-[#006874] font-bold text-xs uppercase tracking-wider">
-              <Sparkles size={16} />
-              <span>Analisi Idrodinamica & Stima Classi FINP</span>
-            </div>
-
+          <Sezione 
+            titolo="Analisi Idrodinamica & Stima Classi FINP" 
+            icon={<Sparkles size={16} />}
+            riepilogoChiuso={condizioni.filter(c => c.attiva).length > 0 ? `${condizioni.filter(c => c.attiva).length} condizioni analizzate` : 'Nessuna condizione'}
+            storageKey="atleta_analisi"
+            defaultAperto={false}
+          >
             {condizioni.filter(c => c.attiva).length === 0 ? (
               <p className="text-xs text-slate-500">
                 Nessuna condizione medica registrata: aggiungine una di seguito per ottenere l'analisi biomeccanica
@@ -699,14 +724,16 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                 })}
               </div>
             )}
-          </div>
+          </Sezione>
 
           {/* Volume Target delle prossime 4 settimane */}
-          <div className="space-y-2">
-            <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
-              <Calendar size={15} className="text-[#006874]" />
-              Volume Previsto Prossime Settimane
-            </h4>
+          <Sezione 
+            titolo="Volume Previsto Prossime Settimane" 
+            icon={<Calendar size={15} />}
+            riepilogoChiuso="Prossime 4 settimane"
+            storageKey="atleta_volume"
+            defaultAperto={false}
+          >
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {micro.filter((m: any) => !isBefore(m.fine, oggi)).slice(0, 4).map((m: any) => {
                 const v = VolumeIndividuale.settimana(m, atleta, assenze);
@@ -719,17 +746,17 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                 );
               })}
             </div>
-          </div>
+          </Sezione>
 
           {/* Condizioni Mediche Management */}
-          <div className="space-y-3 pt-3 border-t border-slate-100">
-            <div className="flex items-center justify-between">
-              <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                <HeartPulse size={15} className="text-rose-600" />
-                Condizioni Mediche & Limitazioni
-              </h4>
-            </div>
-
+          <Sezione 
+            titolo="Condizioni Mediche & Limitazioni" 
+            icon={<HeartPulse size={15} />}
+            badge={condizioni.length}
+            riepilogoChiuso={`${condizioni.length} registrate`}
+            storageKey="atleta_condizioni"
+            defaultAperto={false}
+          >
             <div className="space-y-2">
               {condizioni.map(c => (
                 <div
@@ -758,14 +785,14 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                   placeholder="Diagnosi / Condizione medica (es. Paraplegia T6, Acondroplasia...)"
                   value={nuovaCond}
                   onChange={e => setNuovaCond(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                  className="w-full h-12 px-3 h-12 bg-white border border-slate-300 rounded-lg text-xs"
                 />
                 <input
                   type="text"
                   placeholder="Limitazioni fisiche per l'allenamento in vasca..."
                   value={nuovaLimitaz}
                   onChange={e => setNuovaLimitaz(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                  className="w-full h-12 px-3 h-12 bg-white border border-slate-300 rounded-lg text-xs"
                 />
                 <button
                   type="button"
@@ -780,21 +807,23 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                     setNuovaCond('');
                     setNuovaLimitaz('');
                   }}
-                  className="w-full py-1.5 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white rounded-lg text-xs font-bold transition"
+                  className="w-full h-12 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white rounded-lg text-xs font-bold transition"
                 >
                   Aggiungi Condizione Medica
                 </button>
               </div>
             </div>
-          </div>
+          </Sezione>
 
           {/* Assenze Programmate Management */}
-          <div className="space-y-3 pt-3 border-t border-slate-100">
-            <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
-              <Calendar size={15} className="text-amber-600" />
-              Assenze Programmate
-            </h4>
-
+          <Sezione 
+            titolo="Assenze Programmate" 
+            icon={<Calendar size={15} />}
+            badge={assenze.length}
+            riepilogoChiuso={`${assenze.length} programmate`}
+            storageKey="atleta_assenze"
+            defaultAperto={false}
+          >
             <div className="space-y-2">
               {assenze.map(a => (
                 <div
@@ -824,14 +853,14 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                     placeholder="Dal (gg/mm/aaaa)"
                     value={assDal}
                     onChange={e => setAssDal(e.target.value)}
-                    className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
+                    className="h-12 px-3 h-12 bg-white border border-slate-300 rounded-lg"
                   />
                   <input
                     type="text"
                     placeholder="Al (gg/mm/aaaa)"
                     value={assAl}
                     onChange={e => setAssAl(e.target.value)}
-                    className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
+                    className="h-12 px-3 h-12 bg-white border border-slate-300 rounded-lg"
                   />
                 </div>
                 <input
@@ -839,7 +868,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                   placeholder="Motivo (es. Convalescenza, Esami universitari...)"
                   value={assMotivo}
                   onChange={e => setAssMotivo(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
+                  className="w-full h-12 px-3 h-12 bg-white border border-slate-300 rounded-lg"
                 />
                 <button
                   type="button"
@@ -857,13 +886,13 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                       setAssMotivo('');
                     }
                   }}
-                  className="w-full py-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white rounded-lg font-bold transition"
+                  className="w-full h-12 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white rounded-lg font-bold transition"
                 >
                   Registra Assenza
                 </button>
               </div>
             </div>
-          </div>
+          </Sezione>
         </div>
 
         {/* Footer Actions */}
@@ -871,7 +900,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
           <div className="flex gap-2">
             <button
               onClick={() => setModificaOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition"
+              className="inline-flex items-center gap-1.5 px-3 h-12 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition"
             >
               <Edit2 size={14} />
               <span>Modifica</span>
@@ -882,7 +911,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                   onEliminaAtleta(atleta.id);
                 }
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 font-semibold rounded-xl text-xs transition"
+              className="inline-flex items-center gap-1.5 px-3 h-12 bg-rose-100 hover:bg-rose-200 text-rose-800 font-semibold rounded-xl text-xs transition"
             >
               <Trash2 size={14} />
               <span>Elimina</span>
@@ -891,7 +920,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
 
           <button
             onClick={onChiudi}
-            className="px-5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition"
+            className="px-5 h-12 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition"
           >
             Chiudi
           </button>
@@ -996,14 +1025,14 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
                 placeholder="Data (gg/mm/aaaa)"
                 value={dataTesto}
                 onChange={e => setDataTesto(e.target.value)}
-                className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                className="px-3 h-12 bg-white border border-slate-300 rounded-lg text-xs"
               />
               <input
                 type="number"
                 placeholder="Distanza metri"
                 value={distanza}
                 onChange={e => setDistanza(e.target.value)}
-                className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                className="px-3 h-12 bg-white border border-slate-300 rounded-lg text-xs"
               />
             </div>
 
@@ -1011,7 +1040,7 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
               <select
                 value={stile}
                 onChange={e => setStile(e.target.value)}
-                className="px-2 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                className="px-2 h-12 bg-white border border-slate-300 rounded-lg text-xs"
               >
                 <option value="STILE_LIBERO">Stile libero</option>
                 <option value="DORSO">Dorso</option>
@@ -1023,7 +1052,7 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
               <select
                 value={contesto}
                 onChange={e => setContesto(e.target.value)}
-                className="px-2 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                className="px-2 h-12 bg-white border border-slate-300 rounded-lg text-xs"
               >
                 <option value="GARA">Gara ufficiale</option>
                 <option value="ALLENAMENTO">Allenamento</option>
@@ -1036,13 +1065,13 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
               placeholder="Tempo (es. 1:04.20 o 28.50)"
               value={tempoTesto}
               onChange={e => setTempoTesto(e.target.value)}
-              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold"
+              className="w-full px-3 h-12 bg-white border border-slate-300 rounded-lg text-xs font-bold"
             />
 
             <button
               type="submit"
               disabled={!valido}
-              className="w-full py-2 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white rounded-lg font-bold transition shadow-xs"
+              className="w-full h-12 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white rounded-lg font-bold transition shadow-xs"
             >
               Aggiungi Tempo
             </button>
@@ -1082,7 +1111,7 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
         <div className="pt-3 border-t border-slate-100 flex justify-end">
           <button
             onClick={onChiudi}
-            className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs"
+            className="px-4 h-12 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs"
           >
             Chiudi
           </button>

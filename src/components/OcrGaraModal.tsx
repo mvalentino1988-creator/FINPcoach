@@ -74,14 +74,14 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
             <button
               type="button"
               onClick={() => setModoTesto(false)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${!modoTesto ? 'bg-[#006874] text-white' : 'bg-slate-100 text-slate-700'}`}
+              className={`px-3 h-12 rounded-lg text-xs font-bold transition ${!modoTesto ? 'bg-[#006874] text-white' : 'bg-slate-100 text-slate-700'}`}
             >
               Tabella Tempi Rilevati ({righe.length})
             </button>
             <button
               type="button"
               onClick={() => setModoTesto(true)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${modoTesto ? 'bg-[#006874] text-white' : 'bg-slate-100 text-slate-700'}`}
+              className={`px-3 h-12 rounded-lg text-xs font-bold transition ${modoTesto ? 'bg-[#006874] text-white' : 'bg-slate-100 text-slate-700'}`}
             >
               Testo OCR Grezzo
             </button>
@@ -90,7 +90,7 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
             <button
               type="button"
               onClick={handleRicalcolaDaTesto}
-              className="px-3 py-1.5 bg-cyan-50 text-[#006874] rounded-lg text-xs font-bold hover:bg-cyan-100 transition"
+              className="px-3 h-12 bg-cyan-50 text-[#006874] rounded-lg text-xs font-bold hover:bg-cyan-100 transition"
             >
               Ricalcola Tabella da Testo
             </button>
@@ -192,7 +192,7 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
           <button
             type="button"
             onClick={handleConferma}
-            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#006874] hover:bg-[#005a63] text-white rounded-xl text-sm font-bold transition shadow-xs"
+            className="flex-1 flex items-center justify-center gap-1.5 px-4 h-12.5 bg-[#006874] hover:bg-[#005a63] text-white rounded-xl text-sm font-bold transition shadow-xs"
           >
             <Check size={16} />
             <span>Importa Tempi Selezionati ({righe.filter(r => r.selezionato).length})</span>
@@ -200,7 +200,7 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition"
+            className="px-4 h-12.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition"
           >
             Annulla
           </button>

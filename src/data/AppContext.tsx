@@ -21,6 +21,7 @@ import { PianoGenerator } from '../domain/pianoGenerator';
 import { PianoValidator } from '../domain/validatori';
 import { todayISO } from '../domain/dateUtils';
 import { FINPStorage } from './storage';
+import { FirebaseSync, SyncData } from './firebaseSync';
 
 interface AppContextType {
   atleti: Atleta[];
@@ -94,6 +95,104 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => { FINPStorage.saveGare(gare); }, [gare]);
   useEffect(() => { FINPStorage.savePiano(macro, meso, micro); }, [macro, meso, micro]);
   useEffect(() => { FINPStorage.saveImpostazioni(impostazioni); }, [impostazioni]);
+
+  // Firebase Cloud Sync
+  useEffect(() => {
+    const syncEnabled = localStorage.getItem('finp_sync_enabled') === 'true';
+    if (!syncEnabled) return;
+
+    const user = FirebaseSync.getCurrentUser();
+    if (!user) return;
+
+    // Load from cloud on mount
+    const localData: SyncData = {
+      version: '1.0',
+      lastSync: localStorage.getItem('finp_last_sync') || '1970-01-01T00:00:00.000Z',
+      atleti,
+      condizioni,
+      assenze,
+      tempi,
+      logSedute: log,
+      stagione,
+      chiusure,
+      gare,
+      macrocicli: macro,
+      mesocicli: meso,
+      microcicli: micro,
+      impostazioni
+    };
+
+    FirebaseSync.loadFromCloud(localData).then(cloudData => {
+      if (cloudData) {
+        // Merge cloud data with local (cloud wins on conflict)
+        if (cloudData.atleti) setAtleti(cloudData.atleti);
+        if (cloudData.condizioni) setCondizioni(cloudData.condizioni);
+        if (cloudData.assenze) setAssenze(cloudData.assenze);
+        if (cloudData.tempi) setTempi(cloudData.tempi);
+        if (cloudData.logSedute) setLog(cloudData.logSedute);
+        if (cloudData.stagione !== undefined) setStagione(cloudData.stagione);
+        if (cloudData.chiusure) setChiusure(cloudData.chiusure);
+        if (cloudData.gare) setGare(cloudData.gare);
+        if (cloudData.macrocicli) setMacro(cloudData.macrocicli);
+        if (cloudData.mesocicli) setMeso(cloudData.mesocicli);
+        if (cloudData.microcicli) setMicro(cloudData.microcicli);
+        if (cloudData.impostazioni) setImpostazioni(cloudData.impostazioni);
+      }
+    });
+
+    // Subscribe to real-time updates
+    const unsubscribe = FirebaseSync.subscribeToUpdates((cloudData) => {
+      if (cloudData) {
+        if (cloudData.atleti) setAtleti(cloudData.atleti);
+        if (cloudData.condizioni) setCondizioni(cloudData.condizioni);
+        if (cloudData.assenze) setAssenze(cloudData.assenze);
+        if (cloudData.tempi) setTempi(cloudData.tempi);
+        if (cloudData.logSedute) setLog(cloudData.logSedute);
+        if (cloudData.stagione !== undefined) setStagione(cloudData.stagione);
+        if (cloudData.chiusure) setChiusure(cloudData.chiusure);
+        if (cloudData.gare) setGare(cloudData.gare);
+        if (cloudData.macrocicli) setMacro(cloudData.macrocicli);
+        if (cloudData.mesocicli) setMeso(cloudData.mesocicli);
+        if (cloudData.microcicli) setMicro(cloudData.microcicli);
+        if (cloudData.impostazioni) setImpostazioni(cloudData.impostazioni);
+      }
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
+  // Auto-sync to cloud when data changes (debounced)
+  useEffect(() => {
+    const syncEnabled = localStorage.getItem('finp_sync_enabled') === 'true';
+    if (!syncEnabled) return;
+
+    const user = FirebaseSync.getCurrentUser();
+    if (!user) return;
+
+    const timeoutId = setTimeout(() => {
+      const data: SyncData = {
+        version: '1.0',
+        lastSync: new Date().toISOString(),
+        atleti,
+        condizioni,
+        assenze,
+        tempi,
+        logSedute: log,
+        stagione,
+        chiusure,
+        gare,
+        macrocicli: macro,
+        mesocicli: meso,
+        microcicli: micro,
+        impostazioni
+      };
+      FirebaseSync.saveToCloud(data);
+    }, 2000); // 2 secondi di debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, macro, meso, micro, impostazioni]);
 
   // Compute effective planning parameters
   const parametriEffettivi = useMemo<ParametriPiano>(() => {

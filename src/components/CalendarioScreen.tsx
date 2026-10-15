@@ -128,7 +128,7 @@ export const CalendarioScreen: React.FC = () => {
                             type="button"
                             onClick={() => aggiungi(evento)}
                             disabled={!stagione}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold transition ${stagione ? 'bg-[#006874] text-white hover:bg-[#005a63] shadow-xs' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
+                            className={`flex items-center gap-1.5 px-3 h-12 rounded-xl text-[11px] font-bold transition ${stagione ? 'bg-[#006874] text-white hover:bg-[#005a63] shadow-xs' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
                           >
                             <Plus size={13} />Aggiungi alla stagione
                           </button>

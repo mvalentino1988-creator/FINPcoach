@@ -130,7 +130,7 @@ export const RecordScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => setAtletaSelId(null)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+            className={`px-3 h-12 rounded-xl text-xs font-bold transition ${
               atletaSelId === null ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -141,7 +141,7 @@ export const RecordScreen: React.FC = () => {
               key={a.id}
               type="button"
               onClick={() => setAtletaSelId(a.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`px-3 h-12 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                 atletaSelId === a.id ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -160,7 +160,7 @@ export const RecordScreen: React.FC = () => {
               key={v}
               type="button"
               onClick={() => cambiaVasca(v)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+              className={`px-3 h-12 rounded-xl text-xs font-bold transition ${
                 vasca === v ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -174,7 +174,7 @@ export const RecordScreen: React.FC = () => {
               key={g}
               type="button"
               onClick={() => cambiaGenere(g)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+              className={`px-3 h-12 rounded-xl text-xs font-bold transition ${
                 genereEffettivo === g ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -193,7 +193,7 @@ export const RecordScreen: React.FC = () => {
               key={ev}
               type="button"
               onClick={() => cambiaEvento(ev)}
-              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition ${
+              className={`px-2.5 h-12 rounded-lg text-[11px] font-semibold transition ${
                 eventoEffettivo === ev ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -212,7 +212,7 @@ export const RecordScreen: React.FC = () => {
               key={cl}
               type="button"
               onClick={() => setClasse(cl)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+              className={`px-3 h-12 rounded-lg text-xs font-bold transition ${
                 classeEffettiva === cl ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >

@@ -128,7 +128,7 @@ export const SchedeVascaScreen: React.FC = () => {
             <button
               type="button"
               onClick={() => setAtletaSelId(null)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+              className={`inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-bold transition ${
                 atletaSelId === null
                   ? 'bg-[#006874] text-white shadow-xs'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -143,7 +143,7 @@ export const SchedeVascaScreen: React.FC = () => {
                 key={a.id}
                 type="button"
                 onClick={() => setAtletaSelId(a.id)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                className={`inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-semibold transition ${
                   atletaSelId === a.id
                     ? 'bg-[#006874] text-white font-bold shadow-xs'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -164,7 +164,7 @@ export const SchedeVascaScreen: React.FC = () => {
               type="text"
               value={dataTesto}
               onChange={e => setDataTesto(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-xl font-medium"
+              className="w-full px-3 h-12 border border-slate-300 rounded-xl font-medium"
             />
           </div>
 
@@ -175,7 +175,7 @@ export const SchedeVascaScreen: React.FC = () => {
                 : 'Metri Target Squadra (m)'}
             </label>
             {atletaSel ? (
-              <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-black text-[#006874] text-sm">
+              <div className="px-3 h-12 bg-slate-50 border border-slate-200 rounded-xl font-black text-[#006874] text-sm">
                 {volumeCalcolato} m
               </div>
             ) : (
@@ -184,7 +184,7 @@ export const SchedeVascaScreen: React.FC = () => {
                 step="50"
                 value={metriManual}
                 onChange={e => setMetriManual(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-xl font-black text-[#006874] text-sm"
+                className="w-full px-3 h-12 border border-slate-300 rounded-xl font-black text-[#006874] text-sm"
               />
             )}
           </div>
@@ -213,13 +213,13 @@ export const SchedeVascaScreen: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowDetails(!showDetails)}
-              className="self-start sm:self-center inline-flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+              className="self-start sm:self-center inline-flex items-center gap-2 px-3 h-12 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
             >
               {showDetails ? 'Semplifica' : 'Dettagli'}
             </button>
             <button
               onClick={handleCopy}
-              className="self-start sm:self-center inline-flex items-center gap-2 px-4 py-2 bg-[#006874] hover:bg-[#004f58] text-white rounded-xl text-xs font-bold transition shadow-xs"
+              className="self-start sm:self-center inline-flex items-center gap-2 px-4 h-12 bg-[#006874] hover:bg-[#004f58] text-white rounded-xl text-xs font-bold transition shadow-xs"
             >
               {copiato ? <Check size={16} className="text-emerald-300" /> : <Copy size={16} />}
               <span>{copiato ? 'Copiato!' : 'Copia'}</span>

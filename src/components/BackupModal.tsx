@@ -1,6 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FINPStorage } from '../data/storage';
-import { Download, Upload, RefreshCw, X, CheckCircle, AlertTriangle, ShieldCheck, Database } from 'lucide-react';
+import { FirebaseSync, SyncStatus } from '../data/firebaseSync';
+import { isFirebaseConfigured } from '../data/firebaseConfig';
+import { LoginScreen } from './LoginScreen';
+import { Download, Upload, RefreshCw, X, CheckCircle, AlertTriangle, ShieldCheck, Database, Cloud, CloudOff, LogOut, Loader2 } from 'lucide-react';
 
 interface Props {
   onClose: () => void;
@@ -10,6 +13,106 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Firebase sync state
+  const [syncEnabled, setSyncEnabled] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('disconnected');
+  const [lastSync, setLastSync] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const isConfigured = isFirebaseConfigured();
+
+  // Load sync settings
+  useEffect(() => {
+    const syncSettings = localStorage.getItem('finp_sync_enabled');
+    setSyncEnabled(syncSettings === 'true');
+    
+    const syncState = FirebaseSync.getState();
+    setSyncStatus(syncState.status);
+    setLastSync(syncState.lastSync);
+  }, []);
+
+  // Toggle sync
+  const handleToggleSync = async () => {
+    if (!isConfigured) {
+      setErrorMsg('Firebase non configurato. Controlla il file .env');
+      return;
+    }
+
+    if (!syncEnabled) {
+      // Enable sync
+      setSyncEnabled(true);
+      localStorage.setItem('finp_sync_enabled', 'true');
+      if (!FirebaseSync.getCurrentUser()) {
+        setShowLogin(true);
+      } else {
+        setSuccessMsg('Sincronizzazione cloud abilitata.');
+      }
+    } else {
+      // Disable sync
+      setSyncEnabled(false);
+      localStorage.setItem('finp_sync_enabled', 'false');
+      await FirebaseSync.logout();
+      setSyncStatus('disconnected');
+      setLastSync(null);
+      setSuccessMsg('Sincronizzazione cloud disabilitata.');
+    }
+    setTimeout(() => setSuccessMsg(null), 3000);
+  };
+
+  // Manual sync
+  const handleManualSync = async () => {
+    if (!syncEnabled || !FirebaseSync.getCurrentUser()) {
+      setErrorMsg('Effettua prima il login per sincronizzare');
+      return;
+    }
+
+    setSyncing(true);
+    try {
+      // Export local data
+      const data = {
+        version: '1.0',
+        lastSync: new Date().toISOString(),
+        atleti: FINPStorage.getAtleti(),
+        condizioni: FINPStorage.getCondizioni(),
+        assenze: FINPStorage.getAssenze(),
+        tempi: FINPStorage.getTempi(),
+        logSedute: FINPStorage.getLogSedute(),
+        stagione: FINPStorage.getStagione(),
+        chiusure: FINPStorage.getChiusure(),
+        gare: FINPStorage.getGare(),
+        macrocicli: FINPStorage.getMacrocicli(),
+        mesocicli: FINPStorage.getMesocicli(),
+        microcicli: FINPStorage.getMicrocicli(),
+        impostazioni: FINPStorage.getImpostazioni()
+      };
+
+      const success = await FirebaseSync.saveToCloud(data);
+      if (success) {
+        const state = FirebaseSync.getState();
+        setLastSync(state.lastSync);
+        setSuccessMsg('Dati sincronizzati con successo!');
+      } else {
+        setErrorMsg('Errore durante la sincronizzazione');
+      }
+    } catch (err) {
+      setErrorMsg('Errore durante la sincronizzazione');
+    }
+    setSyncing(false);
+    setTimeout(() => setSuccessMsg(null), 3000);
+    setTimeout(() => setErrorMsg(null), 3000);
+  };
+
+  // Logout
+  const handleLogout = async () => {
+    if (confirm('Vuoi effettuare il logout? I dati rimarranno disponibili offline.')) {
+      await FirebaseSync.logout();
+      setSyncStatus('disconnected');
+      setLastSync(null);
+      setSuccessMsg('Logout effettuato con successo');
+      setTimeout(() => setSuccessMsg(null), 3000);
+    }
+  };
 
   const handleDownload = () => {
     try {
@@ -65,6 +168,20 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
     }
   };
 
+  if (showLogin) {
+    return (
+      <LoginScreen
+        onLoginSuccess={() => {
+          setShowLogin(false);
+          setSyncStatus(FirebaseSync.getState().status);
+          setSuccessMsg('Accesso effettuato. Sincronizzazione attiva.');
+          setTimeout(() => setSuccessMsg(null), 3000);
+        }}
+        onSkip={() => setShowLogin(false)}
+      />
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden">
@@ -113,6 +230,79 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
               Tutti i dati della squadra, visite mediche, programmazione e presenze sono memorizzati localmente nel tuo browser con persistenza crittografica sul dispositivo.
             </p>
           </div>
+
+          {/* Firebase Sync Section */}
+          {isConfigured && (
+            <div className="p-3 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl border border-cyan-200">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  {syncEnabled ? (
+                    <Cloud size={18} className="text-[#006874]" />
+                  ) : (
+                    <CloudOff size={18} className="text-slate-400" />
+                  )}
+                  <span className="font-bold text-slate-700 text-xs">Sincronizzazione Cloud</span>
+                </div>
+                <button
+                  onClick={handleToggleSync}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    syncEnabled ? 'bg-[#006874]' : 'bg-slate-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      syncEnabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {syncEnabled && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-slate-500">
+                      {syncStatus === 'synced' && lastSync ? `Ultimo sync: ${new Date(lastSync).toLocaleString('it-IT')}` : 'Non sincronizzato'}
+                    </span>
+                    {FirebaseSync.getCurrentUser() && (
+                      <button
+                        onClick={handleLogout}
+                        className="text-rose-600 hover:text-rose-700 font-medium flex items-center gap-1"
+                      >
+                        <LogOut size={12} />
+                        Logout
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (!FirebaseSync.getCurrentUser()) {
+                        setShowLogin(true);
+                        return;
+                      }
+                      handleManualSync();
+                    }}
+                    disabled={syncing}
+                    className="w-full h-10 bg-[#006874] hover:bg-[#004f58] text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {syncing ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" />
+                        Sincronizzazione...
+                      </>
+                    ) : FirebaseSync.getCurrentUser() ? (
+                      <>
+                        <RefreshCw size={14} />
+                        Sincronizza Ora
+                      </>
+                    ) : (
+                      'Accedi per sincronizzare'
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="space-y-2.5 pt-1">
             {/* Download Backup */}
@@ -173,7 +363,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
         <div className="p-3 bg-slate-50 border-t border-slate-100 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-200 transition"
+            className="px-4 h-12 text-xs font-bold text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-200 transition"
           >
             Chiudi
           </button>

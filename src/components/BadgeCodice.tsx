@@ -62,7 +62,7 @@ export const BadgeCodice: React.FC<Props> = ({ codice, className = '' }) => {
 
             <button
               onClick={() => setModalOpen(false)}
-              className="w-full py-2 bg-slate-100 hover:bg-slate-200 font-semibold text-slate-700 rounded-xl text-sm transition"
+              className="w-full h-12 bg-slate-100 hover:bg-slate-200 font-semibold text-slate-700 rounded-xl text-sm transition"
             >
               Chiudi
             </button>

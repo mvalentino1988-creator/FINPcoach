@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ClipboardList, Timer, CheckCircle2, Edit2, Save, X, Trash2, Calendar, Users, User, HelpCircle, ChevronLeft, ChevronRight, Layers, Camera, Loader2 } from 'lucide-react';
+import { ClipboardList, Timer, CheckCircle2, Edit2, Save, X, Trash2, Calendar, Users, User, HelpCircle, ChevronLeft, ChevronRight, Layers, Camera, Loader2, RefreshCw } from 'lucide-react';
 import { OcrWeb } from '../domain/ocrWeb';
 import { OcrPreviewModal } from './OcrPreviewModal';
 import { SchedeVascaScreen } from './SchedeVascaScreen';
@@ -14,6 +14,7 @@ import { ParserApprendimento } from '../domain/parserApprendimento';
 import { FINPStorage } from '../data/storage';
 import { OcrWorkoutStandardizer } from '../domain/ocrWorkoutStandardizer';
 import { Sezione } from './Sezione';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 
 type DatiTab = 'schede' | 'tempi' | 'registro';
 
@@ -142,16 +143,27 @@ export const DatiScreen: React.FC = () => {
 
   const selectedWorkout = customWorkouts.find(w => w.id === selectedWorkoutId);
 
+  const pullToRefresh = usePullToRefresh({
+    onRefresh: async () => { window.location.reload(); },
+    threshold: 100
+  });
+
   return (
     <div className="space-y-4">
-      {/* Tab Navigation */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2">
+      {pullToRefresh.isPulling && (
+        <div className="flex items-center justify-center py-2 text-xs text-slate-500">
+          <RefreshCw size={16} className={`mr-2 ${pullToRefresh.isRefreshing ? 'animate-spin' : ''}`} />
+          {pullToRefresh.isRefreshing ? 'Aggiornamento...' : 'Rilascia per aggiornare'}
+        </div>
+      )}
+      {/* Tab Navigation - Vertical on mobile, horizontal on desktop */}
+      <div className="flex sm:flex-row flex-col gap-2">
         {tabs.map(t => (
           <button
             key={t.key}
             type="button"
             onClick={() => setTab(t.key)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition whitespace-nowrap ${
+            className={`flex items-center gap-2 px-4 h-12 rounded-lg text-sm font-semibold transition ${
               tab === t.key
                 ? 'bg-[#006874] text-white shadow-sm'
                 : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
@@ -166,7 +178,7 @@ export const DatiScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => setEditMode(!editMode)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition whitespace-nowrap ml-auto ${
+            className={`flex items-center gap-1.5 px-4 h-12 rounded-lg text-sm font-semibold transition whitespace-nowrap ml-auto ${
               editMode
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
@@ -190,7 +202,7 @@ export const DatiScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setModalitaEditor('testuale')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                className={`px-3 h-12 rounded-lg text-xs font-semibold transition ${
                   modalitaEditor === 'testuale'
                     ? 'bg-[#006874] text-white'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -201,7 +213,7 @@ export const DatiScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setModalitaEditor('strutturato')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                className={`px-3 h-12 rounded-lg text-xs font-semibold transition ${
                   modalitaEditor === 'strutturato'
                     ? 'bg-[#006874] text-white'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -222,7 +234,7 @@ export const DatiScreen: React.FC = () => {
                   value={workoutDate}
                   onChange={(e) => setWorkoutDate(e.target.value)}
                   placeholder="es. 05/10/2026"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#006874] focus:border-transparent"
+                  className="w-full px-3 h-12 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#006874] focus:border-transparent"
                 />
               </div>
               <div className="mb-3">
@@ -231,7 +243,7 @@ export const DatiScreen: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setSelectedAtletaId(null)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                    className={`inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-semibold transition ${
                       selectedAtletaId === null
                         ? 'bg-[#006874] text-white shadow-xs'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -245,7 +257,7 @@ export const DatiScreen: React.FC = () => {
                       key={a.id}
                       type="button"
                       onClick={() => setSelectedAtletaId(a.id)}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                      className={`inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-semibold transition ${
                         selectedAtletaId === a.id
                           ? 'bg-[#006874] text-white font-bold shadow-xs'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -259,7 +271,7 @@ export const DatiScreen: React.FC = () => {
               </div>
               <div className="mb-2 flex items-center justify-between">
                 <label className="block text-xs font-semibold text-slate-700">Testo Allenamento / Serie</label>
-                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-[#006874] rounded-lg text-xs font-bold cursor-pointer transition border border-cyan-200">
+                <label className="inline-flex items-center gap-1.5 px-3 h-12 bg-cyan-50 hover:bg-cyan-100 text-[#006874] rounded-lg text-xs font-bold cursor-pointer transition border border-cyan-200">
                   {ocrLoading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
                   <span>{ocrLoading ? 'Lettura OCR in corso...' : 'Carica Screenshot (OCR)'}</span>
                   <input
@@ -283,7 +295,7 @@ export const DatiScreen: React.FC = () => {
               </div>
               <div className="mb-2 flex items-center justify-between">
                 <label className="block text-xs font-semibold text-slate-700">Testo Allenamento / Serie</label>
-                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-[#006874] rounded-lg text-xs font-bold cursor-pointer transition border border-cyan-200">
+                <label className="inline-flex items-center gap-1.5 px-3 h-12 bg-cyan-50 hover:bg-cyan-100 text-[#006874] rounded-lg text-xs font-bold cursor-pointer transition border border-cyan-200">
                   {ocrLoading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
                   <span>{ocrLoading ? 'Lettura OCR in corso...' : 'Carica Screenshot (OCR)'}</span>
                   <input
@@ -320,7 +332,7 @@ export const DatiScreen: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleSave}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-[#006874] text-white rounded-lg text-sm font-semibold hover:bg-[#005663] transition"
+                  className="flex items-center gap-1.5 px-4 h-12 bg-[#006874] text-white rounded-lg text-sm font-semibold hover:bg-[#005663] transition"
                 >
                   <Save size={16} />
                   Salva
@@ -328,7 +340,7 @@ export const DatiScreen: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setEditMode(false)}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-200 transition"
+                  className="flex items-center gap-1.5 px-4 h-12 bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-200 transition"
                 >
                   <X size={16} />
                   Annulla
@@ -350,7 +362,7 @@ export const DatiScreen: React.FC = () => {
                   value={workoutDate}
                   onChange={(e) => setWorkoutDate(e.target.value)}
                   placeholder="es. 05/10/2026"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#006874] focus:border-transparent"
+                  className="w-full px-3 h-12 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#006874] focus:border-transparent"
                 />
               </div>
               <div className="mb-3">
@@ -359,7 +371,7 @@ export const DatiScreen: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setSelectedAtletaId(null)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                    className={`inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-semibold transition ${
                       selectedAtletaId === null
                         ? 'bg-[#006874] text-white shadow-xs'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -373,7 +385,7 @@ export const DatiScreen: React.FC = () => {
                       key={a.id}
                       type="button"
                       onClick={() => setSelectedAtletaId(a.id)}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                      className={`inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-semibold transition ${
                         selectedAtletaId === a.id
                           ? 'bg-[#006874] text-white font-bold shadow-xs'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -453,7 +465,7 @@ export const DatiScreen: React.FC = () => {
             <button
               type="button"
               onClick={() => setVistaSchede('calendario')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              className={`px-3 h-12 rounded-lg text-xs font-semibold transition ${
                 vistaSchede === 'calendario'
                   ? 'bg-[#006874] text-white'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -464,7 +476,7 @@ export const DatiScreen: React.FC = () => {
             <button
               type="button"
               onClick={() => setVistaSchede('lista')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              className={`px-3 h-12 rounded-lg text-xs font-semibold transition ${
                 vistaSchede === 'lista'
                   ? 'bg-[#006874] text-white'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -476,7 +488,7 @@ export const DatiScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => setEditMode(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#006874] text-white rounded-lg text-xs font-semibold hover:bg-[#005663] transition"
+            className="flex items-center gap-1.5 px-3 h-12 bg-[#006874] text-white rounded-lg text-xs font-semibold hover:bg-[#005663] transition"
           >
             <Layers size={14} />
             Nuovo Allenamento
@@ -520,7 +532,7 @@ export const DatiScreen: React.FC = () => {
           {/* Grid dei giorni */}
           <div className="grid grid-cols-7 gap-2 mb-2">
             {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(giorno => (
-              <div key={giorno} className="text-center text-xs font-semibold text-slate-500 py-2">
+              <div key={giorno} className="text-center text-xs font-semibold text-slate-500 h-12">
                 {giorno}
               </div>
             ))}

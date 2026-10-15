@@ -49,7 +49,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange }) => {
                   key={tab.key}
                   type="button"
                   onClick={() => onTabChange(tab.key)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                  className={`flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-bold transition ${
                     currentTab === tab.key
                       ? 'bg-white text-[#006874] shadow-xs'
                       : 'text-white/80 hover:text-white hover:bg-white/10'
@@ -66,7 +66,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange }) => {
               type="button"
               onClick={() => setBackupOpen(true)}
               title="Gestione Dati & Backup"
-              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1.5 transition ml-1"
+              className="p-1.5 sm:px-2.5 sm:h-12 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1.5 transition ml-1"
             >
               <Database size={16} className="text-cyan-200" />
               <span className="hidden md:inline">Backup</span>

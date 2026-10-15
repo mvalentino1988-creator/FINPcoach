@@ -113,7 +113,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
           <button
             type="button"
             onClick={() => setMostraTemplate(!mostraTemplate)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-200 transition"
+            className="flex items-center gap-1.5 px-3 h-12 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-200 transition"
           >
             <Star size={14} />
             Template
@@ -121,7 +121,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
           <button
             type="button"
             onClick={aggiungiEsercizio}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#006874] text-white rounded-lg text-xs font-semibold hover:bg-[#005663] transition"
+            className="flex items-center gap-1.5 px-3 h-12 bg-[#006874] text-white rounded-lg text-xs font-semibold hover:bg-[#005663] transition"
           >
             <Plus size={14} />
             Aggiungi
@@ -224,7 +224,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
                     <select
                       value={es.distanza}
                       onChange={(e) => modificaEsercizio(es.id, 'distanza', parseInt(e.target.value))}
-                      className="w-full px-2 py-1.5 text-sm border border-slate-300 rounded appearance-none focus:outline-none focus:ring-1 focus:ring-[#006874]"
+                      className="w-full px-2 h-12 text-sm border border-slate-300 rounded appearance-none focus:outline-none focus:ring-1 focus:ring-[#006874]"
                     >
                       {DISTANZE.map(d => (
                         <option key={d} value={d}>{d}m</option>
@@ -241,7 +241,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
                     <select
                       value={es.stile}
                       onChange={(e) => modificaEsercizio(es.id, 'stile', e.target.value)}
-                      className="w-full px-2 py-1.5 text-sm border border-slate-300 rounded appearance-none focus:outline-none focus:ring-1 focus:ring-[#006874]"
+                      className="w-full px-2 h-12 text-sm border border-slate-300 rounded appearance-none focus:outline-none focus:ring-1 focus:ring-[#006874]"
                     >
                       {STILI.map(s => (
                         <option key={s} value={s}>{s}</option>
@@ -260,7 +260,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
                   min="1"
                   value={es.ripetizioni}
                   onChange={(e) => modificaEsercizio(es.id, 'ripetizioni', parseInt(e.target.value) || 1)}
-                  className="w-full px-2 py-1.5 text-sm border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#006874]"
+                  className="w-full px-2 h-12 text-sm border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#006874]"
                 />
               </div>
 
@@ -272,7 +272,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
                   value={es.tempo || ''}
                   onChange={(e) => modificaEsercizio(es.id, 'tempo', e.target.value)}
                   placeholder="es. 1'30&quot;"
-                  className="w-full px-2 py-1.5 text-sm border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#006874]"
+                  className="w-full px-2 h-12 text-sm border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#006874]"
                 />
               </div>
 
@@ -305,7 +305,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
                   value={es.descrizione || ''}
                   onChange={(e) => modificaEsercizio(es.id, 'descrizione', e.target.value)}
                   placeholder="es. 3 bracciate forti"
-                  className="w-full px-2 py-1.5 text-sm border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#006874]"
+                  className="w-full px-2 h-12 text-sm border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#006874]"
                 />
               </div>
 
@@ -317,7 +317,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
                   value={es.note || ''}
                   onChange={(e) => modificaEsercizio(es.id, 'note', e.target.value)}
                   placeholder="es. focus tecnico"
-                  className="w-full px-2 py-1.5 text-sm border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#006874]"
+                  className="w-full px-2 h-12 text-sm border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#006874]"
                 />
               </div>
             </div>
@@ -344,7 +344,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
           type="button"
           onClick={handleSalva}
           disabled={esercizi.length === 0}
-          className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 bg-[#006874] text-white rounded-lg text-sm font-semibold hover:bg-[#005663] transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 flex items-center justify-center gap-1.5 px-4 h-12 bg-[#006874] text-white rounded-lg text-sm font-semibold hover:bg-[#005663] transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Save size={16} />
           Salva Allenamento
@@ -352,7 +352,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
         <button
           type="button"
           onClick={onAnnulla}
-          className="flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-200 transition"
+          className="flex items-center justify-center gap-1.5 px-4 h-12 bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-200 transition"
         >
           <X size={16} />
           Annulla

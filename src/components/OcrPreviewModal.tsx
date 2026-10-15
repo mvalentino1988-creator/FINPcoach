@@ -75,7 +75,7 @@ export const OcrPreviewModal: React.FC<Props> = ({ isOpen, initialText, onConfir
           <button
             type="button"
             onClick={() => onConfirm(text)}
-            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#006874] hover:bg-[#005a63] text-white rounded-xl text-sm font-bold transition shadow-xs"
+            className="flex-1 flex items-center justify-center gap-1.5 px-4 h-12.5 bg-[#006874] hover:bg-[#005a63] text-white rounded-xl text-sm font-bold transition shadow-xs"
           >
             <Check size={16} />
             <span>Conferma e Inserisci</span>
@@ -83,7 +83,7 @@ export const OcrPreviewModal: React.FC<Props> = ({ isOpen, initialText, onConfir
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition"
+            className="px-4 h-12.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition"
           >
             Annulla
           </button>

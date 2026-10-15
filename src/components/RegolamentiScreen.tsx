@@ -165,7 +165,7 @@ export const RegolamentiScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => toggleSezione(chiave)}
-            className="w-full flex items-start gap-2 px-3 py-2.5 text-left hover:bg-slate-50 transition"
+            className="w-full flex items-start gap-2 px-3 h-12.5 text-left hover:bg-slate-50 transition"
           >
             <span className="mt-0.5 text-slate-300 shrink-0">
               {aperta ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
@@ -246,7 +246,7 @@ export const RegolamentiScreen: React.FC = () => {
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Cerca nei regolamenti (es. categorie età, partenze, staffette, classificazione…)"
-            className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#006874]/30 focus:border-[#006874]"
+            className="w-full pl-9 pr-9 h-12.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#006874]/30 focus:border-[#006874]"
           />
           {query && (
             <button
@@ -265,7 +265,7 @@ export const RegolamentiScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => setDocFiltro('tutti')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+            className={`px-3 h-12 rounded-xl text-xs font-bold transition ${
               docFiltro === 'tutti' ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -276,7 +276,7 @@ export const RegolamentiScreen: React.FC = () => {
               key={d.id}
               type="button"
               onClick={() => setDocFiltro(d.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+              className={`px-3 h-12 rounded-xl text-xs font-bold transition ${
                 docFiltro === d.id ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -365,7 +365,7 @@ export const RegolamentiScreen: React.FC = () => {
             <button
               type="button"
               onClick={() => setIndiceAperto(v => !v)}
-              className="text-[11px] font-bold text-slate-600 hover:text-slate-800 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 transition"
+              className="text-[11px] font-bold text-slate-600 hover:text-slate-800 flex items-center gap-1.5 px-2.5 h-12 rounded-lg bg-slate-100 hover:bg-slate-200 transition"
             >
               <ListTree size={13} />
               Indice dei capitoli
@@ -375,14 +375,14 @@ export const RegolamentiScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={espandiTutto}
-                className="text-[11px] font-semibold text-slate-500 hover:text-slate-700 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition"
+                className="text-[11px] font-semibold text-slate-500 hover:text-slate-700 px-2 h-12 rounded-lg hover:bg-slate-100 transition"
               >
                 Espandi tutto
               </button>
               <button
                 type="button"
                 onClick={comprimiTutto}
-                className="text-[11px] font-semibold text-slate-500 hover:text-slate-700 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition"
+                className="text-[11px] font-semibold text-slate-500 hover:text-slate-700 px-2 h-12 rounded-lg hover:bg-slate-100 transition"
               >
                 Comprimi tutto
               </button>

@@ -23,7 +23,7 @@ export const FontiScreen: React.FC = () => {
             key={t.key}
             type="button"
             onClick={() => setTab(t.key)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition whitespace-nowrap ${
+            className={`flex items-center gap-1.5 px-4 h-12 rounded-lg text-sm font-semibold transition whitespace-nowrap ${
               tab === t.key
                 ? 'bg-[#006874] text-white shadow-sm'
                 : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
