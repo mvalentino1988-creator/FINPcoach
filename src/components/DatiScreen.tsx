@@ -13,6 +13,7 @@ import { ParserScheda } from '../domain/parserScheda';
 import { ParserApprendimento } from '../domain/parserApprendimento';
 import { FINPStorage } from '../data/storage';
 import { OcrWorkoutStandardizer } from '../domain/ocrWorkoutStandardizer';
+import { Sezione } from './Sezione';
 
 type DatiTab = 'schede' | 'tempi' | 'registro';
 
@@ -586,23 +587,19 @@ export const DatiScreen: React.FC = () => {
 
       {/* Lista allenamenti salvati */}
       {tab === 'schede' && !editMode && vistaSchede === 'lista' && !selectedWorkout && customWorkouts.length > 0 && (
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
-          <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-            <ClipboardList size={18} className="text-[#006874]" />
-            Allenamenti salvati
-          </h3>
-          <div className="space-y-2">
+        <Sezione titolo="Allenamenti Salvati" icon={<ClipboardList size={18} />} badge={customWorkouts.length} riepilogoChiuso={`${customWorkouts.length} schede salvate`} storageKey="dati_allenamenti_salvati" defaultAperto={false}>
+          <div className="space-y-2 pt-1">
             {customWorkouts.map(workout => (
               <div
                 key={workout.id}
-                className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+                className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100 transition cursor-pointer"
                 onClick={() => setSelectedWorkoutId(workout.id)}
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-slate-800">{workout.data}</span>
+                    <span className="font-semibold text-slate-800 text-xs">{workout.data}</span>
                     {workout.atletaId && (
-                      <span className="text-xs bg-[#006874] text-white px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] bg-[#006874] text-white px-2 py-0.5 rounded-full font-bold">
                         Personale
                       </span>
                     )}
@@ -636,7 +633,9 @@ export const DatiScreen: React.FC = () => {
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDelete(workout.id);
+                      const updated = customWorkouts.filter(w => w.id !== workout.id);
+                      setCustomWorkouts(updated);
+                      FINPStorage.saveCustomWorkouts(updated);
                     }}
                     className="p-2 text-slate-400 hover:text-red-500 transition"
                     title="Elimina allenamento"
@@ -647,7 +646,7 @@ export const DatiScreen: React.FC = () => {
               </div>
             ))}
           </div>
-        </div>
+        </Sezione>
       )}
 
       {/* Content */}

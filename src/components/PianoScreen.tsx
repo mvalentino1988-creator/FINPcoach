@@ -16,6 +16,7 @@ import { GeneratoreSmartSeduta } from '../domain/generatoreSmartSeduta';
 import { IndicatoreCodici } from './IndicatoreCodici';
 import { ElencoAvvisi } from './ElencoAvvisi';
 import { SchedaSedutaModal } from './SchedaSedutaModal';
+import { Sezione } from './Sezione';
 import {
   AlertCircle,
   Calendar,
@@ -322,363 +323,318 @@ export const PianoScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Expandable Chiusure & Festività */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 transition shadow-xs">
-        <button
-          type="button"
-          onClick={() => setChiusureEspanso(!chiusureEspanso)}
-          className="w-full flex items-center justify-between font-bold text-slate-800 text-sm"
-        >
-          <div className="flex items-center gap-2">
-            <Calendar size={16} className="text-[#006874]" />
-            <span>Chiusure e Festività ({chiusure.length} registrate)</span>
+      {/* Chiusure e Festività */}
+      <Sezione titolo="Chiusure e Festività" icon={<Calendar size={16} />} badge={chiusure.length} riepilogoChiuso={`${chiusure.length} registrate`} storageKey="piano_chiusure" defaultAperto={false}>
+        <div className="space-y-3 text-xs pt-1">
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={aggiungiFestivitaNazionali}
+              className="px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-[#006874] border border-cyan-200 rounded-lg font-bold"
+            >
+              + Aggiungi Festività Nazionali Italiane
+            </button>
           </div>
-          {chiusureEspanso ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-        </button>
 
-        {chiusureEspanso && (
-          <div className="pt-4 mt-3 border-t border-slate-100 space-y-3 text-xs">
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={aggiungiFestivitaNazionali}
-                className="px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-[#006874] border border-cyan-200 rounded-lg font-bold"
+          <div className="space-y-1.5 max-h-48 overflow-y-auto">
+            {chiusure.map(c => (
+              <div
+                key={c.id}
+                className="p-2 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between"
               >
-                + Aggiungi Festività Nazionali Italiane
-              </button>
-            </div>
-
-            <div className="space-y-1.5 max-h-48 overflow-y-auto">
-              {chiusure.map(c => (
-                <div
-                  key={c.id}
-                  className="p-2 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between"
+                <span>
+                  {c.dal === c.al ? formattaData(c.dal) : `${formattaData(c.dal)} – ${formattaData(c.al)}`}:{' '}
+                  <strong className="text-slate-800">{c.motivo}</strong>
+                </span>
+                <button
+                  onClick={() => eliminaChiusura(c.id)}
+                  className="text-slate-400 hover:text-rose-600 p-1"
                 >
-                  <span>
-                    {c.dal === c.al ? formattaData(c.dal) : `${formattaData(c.dal)} – ${formattaData(c.al)}`}:{' '}
-                    <strong className="text-slate-800">{c.motivo}</strong>
-                  </span>
-                  <button
-                    onClick={() => eliminaChiusura(c.id)}
-                    className="text-slate-400 hover:text-rose-600 p-1"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            {/* Add Custom Closure */}
-            <div className="p-3 bg-slate-50 border border-dashed border-slate-300 rounded-xl space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  placeholder="Dal (gg/mm/aaaa)"
-                  value={cDal}
-                  onChange={e => setCDal(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
-                />
-                <input
-                  type="text"
-                  placeholder="Al (gg/mm/aaaa)"
-                  value={cAl}
-                  onChange={e => setCAl(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
-                />
+                  <Trash2 size={14} />
+                </button>
               </div>
+            ))}
+          </div>
+
+          {/* Add Custom Closure */}
+          <div className="p-3 bg-slate-50 border border-dashed border-slate-300 rounded-xl space-y-2">
+            <div className="grid grid-cols-2 gap-2">
               <input
                 type="text"
-                placeholder="Motivo (es. Chiusura natalizia impianto, festa patronale...)"
-                value={cMotivo}
-                onChange={e => setCMotivo(e.target.value)}
-                className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
+                placeholder="Dal (gg/mm/aaaa)"
+                value={cDal}
+                onChange={e => setCDal(e.target.value)}
+                className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
               />
-              <button
-                type="button"
-                onClick={() => {
-                  const d1 = parseData(cDal);
-                  const d2 = parseData(cAl) ?? d1;
-                  if (d1 && d2 && cMotivo.trim()) {
-                    aggiungiChiusura(d1, d2, cMotivo.trim());
-                    setCDal('');
-                    setCAl('');
-                    setCMotivo('');
-                  }
-                }}
-                className="w-full py-1.5 bg-[#006874] hover:bg-[#004f58] text-white rounded-lg font-bold"
-              >
-                Aggiungi Chiusura Vasca
-              </button>
+              <input
+                type="text"
+                placeholder="Al (gg/mm/aaaa)"
+                value={cAl}
+                onChange={e => setCAl(e.target.value)}
+                className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
+              />
             </div>
+            <input
+              type="text"
+              placeholder="Motivo (es. Chiusura natalizia impianto, festa patronale...)"
+              value={cMotivo}
+              onChange={e => setCMotivo(e.target.value)}
+              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const d1 = parseData(cDal);
+                const d2 = parseData(cAl) ?? d1;
+                if (d1 && d2 && cMotivo.trim()) {
+                  aggiungiChiusura(d1, d2, cMotivo.trim());
+                  setCDal('');
+                  setCAl('');
+                  setCMotivo('');
+                }
+              }}
+              className="w-full py-1.5 bg-[#006874] hover:bg-[#004f58] text-white rounded-lg font-bold"
+            >
+              Aggiungi Chiusura Vasca
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      </Sezione>
 
       {/* Gare Agonistiche */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 transition shadow-xs">
-        <button
-          type="button"
-          onClick={() => setGareEspanso(!gareEspanso)}
-          className="w-full flex items-center justify-between font-bold text-slate-800 text-sm"
-        >
-          <div className="flex items-center gap-2">
-            <Trophy size={16} className="text-amber-500" />
-            <span>Gare Agonistiche ({gare.length} registrate)</span>
-          </div>
-          {gareEspanso ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-        </button>
-
-        {gareEspanso && (
-          <div className="pt-4 mt-3 border-t border-slate-100 space-y-3">
-            <div className="space-y-1.5">
-              {gare.length === 0 ? (
-                <p className="text-xs text-slate-400">Nessuna gara inserita nel calendario.</p>
-              ) : (
-                gare.map(g => (
-                  <div
-                    key={g.id}
-                    className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs"
-                  >
-                    <div className="flex items-center gap-2">
-                      {g.prioritaria && <Star size={16} className="text-amber-500 fill-amber-500 shrink-0" />}
-                      <div>
-                        <span className="font-bold text-slate-800 block">
-                          {g.nome} {g.prioritaria && <span className="text-amber-700 font-semibold">(A-Race Prioritaria)</span>}
-                        </span>
-                        <span className="text-slate-500 text-[11px]">
-                          {formattaData(g.dal)}{g.al && g.al !== g.dal ? ` – ${formattaData(g.al)}` : ''}
-                        </span>
-                      </div>
+      <Sezione titolo="Gare Agonistiche" icon={<Trophy size={16} />} badge={gare.length} riepilogoChiuso={`${gare.length} programmate`} storageKey="piano_gare" defaultAperto={false}>
+        <div className="space-y-3 pt-1 text-xs">
+          <div className="space-y-1.5">
+            {gare.length === 0 ? (
+              <p className="text-xs text-slate-400">Nessuna gara inserita nel calendario.</p>
+            ) : (
+              gare.map(g => (
+                <div
+                  key={g.id}
+                  className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs"
+                >
+                  <div className="flex items-center gap-2">
+                    {g.prioritaria && <Star size={16} className="text-amber-500 fill-amber-500 shrink-0" />}
+                    <div>
+                      <span className="font-bold text-slate-800 block">
+                        {g.nome} {g.prioritaria && <span className="text-amber-700 font-semibold">(A-Race Prioritaria)</span>}
+                      </span>
+                      <span className="text-slate-500 text-[11px]">
+                        {formattaData(g.dal)}{g.al && g.al !== g.dal ? ` – ${formattaData(g.al)}` : ''}
+                      </span>
                     </div>
-                    <button
-                      onClick={() => eliminaGara(g.id)}
-                      className="p-1 text-slate-400 hover:text-rose-600 rounded"
-                    >
-                      <Trash2 size={15} />
-                    </button>
                   </div>
-                ))
-              )}
-            </div>
+                  <button
+                    onClick={() => eliminaGara(g.id)}
+                    className="p-1 text-slate-400 hover:text-rose-600 rounded"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
 
-            {/* Form add race */}
-            <div className="p-3 bg-slate-50 border border-dashed border-slate-300 rounded-xl space-y-2 text-xs">
+          {/* Form add race */}
+          <div className="p-3 bg-slate-50 border border-dashed border-slate-300 rounded-xl space-y-2 text-xs">
+            <input
+              type="text"
+              placeholder="Nome gara (es. Campionati Italiani Assoluti FINP...)"
+              value={gNome}
+              onChange={e => setGNome(e.target.value)}
+              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
+            />
+            <div className="grid grid-cols-2 gap-2">
               <input
                 type="text"
-                placeholder="Nome gara (es. Campionati Italiani Assoluti FINP...)"
-                value={gNome}
-                onChange={e => setGNome(e.target.value)}
-                className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
+                placeholder="Inizio (gg/mm/aaaa)"
+                value={gDal}
+                onChange={e => setGDal(e.target.value)}
+                className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
               />
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  placeholder="Inizio (gg/mm/aaaa)"
-                  value={gDal}
-                  onChange={e => setGDal(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
-                />
-                <input
-                  type="text"
-                  placeholder="Fine (opzionale)"
-                  value={gAl}
-                  onChange={e => setGAl(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
-                />
-              </div>
-              <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700 select-none">
-                <input
-                  type="checkbox"
-                  checked={gPrioritaria}
-                  onChange={e => setGPrioManuale(e.target.checked)}
-                  className="w-4 h-4 accent-[#006874] rounded"
-                />
-                <span>Gara prioritaria (A-Race: attiva picco e scarico pre-gara)</span>
-              </label>
-              <button
-                type="button"
-                disabled={!gNome.trim() || !parseData(gDal)}
-                onClick={() => {
-                  const d1 = parseData(gDal);
-                  const d2 = parseData(gAl) ?? d1;
-                  if (d1 && d2) {
-                    aggiungiGara(gNome.trim(), d1, d2, gPrioritaria);
-                    setGNome('');
-                    setGDal('');
-                    setGAl('');
-                    setGPrioManuale(null);
-                  }
-                }}
-                className="w-full py-1.5 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white rounded-lg font-bold"
-              >
-                Aggiungi Gara
-              </button>
+              <input
+                type="text"
+                placeholder="Fine (opzionale)"
+                value={gAl}
+                onChange={e => setGAl(e.target.value)}
+                className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg"
+              />
             </div>
+            <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700 select-none">
+              <input
+                type="checkbox"
+                checked={gPrioritaria}
+                onChange={e => setGPrioManuale(e.target.checked)}
+                className="w-4 h-4 accent-[#006874] rounded"
+              />
+              <span>Gara prioritaria (A-Race: attiva picco e scarico pre-gara)</span>
+            </label>
+            <button
+              type="button"
+              disabled={!gNome.trim() || !parseData(gDal)}
+              onClick={() => {
+                const d1 = parseData(gDal);
+                const d2 = parseData(gAl) ?? d1;
+                if (d1 && d2) {
+                  aggiungiGara(gNome.trim(), d1, d2, gPrioritaria);
+                  setGNome('');
+                  setGDal('');
+                  setGAl('');
+                  setGPrioManuale(null);
+                }
+              }}
+              className="w-full py-1.5 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white rounded-lg font-bold"
+            >
+              Aggiungi Gara
+            </button>
           </div>
-        )}
-      </div>
-
-      {/* Piano Automatico Settings */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 transition shadow-xs">
-        <button
-          type="button"
-          onClick={() => setParametriEspanso(!parametriEspanso)}
-          className="w-full flex items-center justify-between font-bold text-slate-800 text-sm"
-        >
-          <div className="flex items-center gap-2">
-            <Sparkles size={16} className="text-[#006874]" />
-            <span>Parametri Auto-Pianificatore & Cicli di Carico</span>
-          </div>
-          {parametriEspanso ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-        </button>
-
-        {parametriEspanso && (
-          <div className="pt-4 mt-3 border-t border-slate-100 space-y-4">
-            <p className="text-xs text-slate-500">
-              Il piano si adatta automaticamente all'età media, ai dati storici di carico e alle gare.
-              I campi lasciati vuoti usano il calcolo intelligente.
-            </p>
-
-            {/* Days of week selector */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-700">
-                Giorni di Allenamento Settimanali{' '}
-                <span className="font-normal text-slate-500">
-                  {impostazioni.giorni == null ? '(attualmente automatici)' : '(impostati a mano)'}
-                </span>
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => salvaImpostazioni({ ...impostazioni, giorni: undefined })}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
-                    impostazioni.giorni == null
-                      ? 'bg-[#006874] text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  Auto
-                </button>
-                {([1, 2, 3, 4, 5, 6, 7] as DayOfWeekNum[]).map(dow => {
-                  const active = parametriEffettivi.giorniAllenamento.includes(dow);
-                  return (
-                    <button
-                      key={dow}
-                      type="button"
-                      onClick={() => {
-                        const current = parametriEffettivi.giorniAllenamento;
-                        const next = active ? current.filter(d => d !== dow) : [...current, dow];
-                        salvaImpostazioni({
-                          ...impostazioni,
-                          giorni: next.length > 0 ? (next.sort((a, b) => a - b) as DayOfWeekNum[]) : undefined
-                        });
-                      }}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
-                        active ? 'bg-cyan-100 text-cyan-900 border border-cyan-300 font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      {DAY_OF_WEEK_NAMES[dow]}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Metric inputs */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Metri base seduta (auto {parametriEffettivi.metriBaseSeduta}m)
-                </label>
-                <input
-                  type="number"
-                  placeholder={`Auto: ${parametriEffettivi.metriBaseSeduta}`}
-                  value={metriTxt}
-                  onChange={e => setMetriTxt(e.target.value)}
-                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Macrocicli (auto {parametriEffettivi.numeroMacrocicli})
-                </label>
-                <input
-                  type="number"
-                  placeholder={`Auto: ${parametriEffettivi.numeroMacrocicli}`}
-                  value={macroTxt}
-                  onChange={e => setMacroTxt(e.target.value)}
-                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Scarico ogni N sett. (auto {parametriEffettivi.settimaneCicloCarico})
-                </label>
-                <input
-                  type="number"
-                  placeholder={`Auto: ${parametriEffettivi.settimaneCicloCarico}`}
-                  value={cicloTxt}
-                  onChange={e => setCicloTxt(e.target.value)}
-                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg font-bold"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => {
-                  salvaImpostazioni({
-                    ...impostazioni,
-                    metriBaseSeduta: metriTxt.trim() ? parseInt(metriTxt, 10) : undefined,
-                    numeroMacrocicli: macroTxt.trim() ? parseInt(macroTxt, 10) : undefined,
-                    settimaneCicloCarico: cicloTxt.trim() ? parseInt(cicloTxt, 10) : undefined
-                  });
-                }}
-                className="px-4 py-2 bg-[#006874] hover:bg-[#004f58] text-white font-bold rounded-xl text-xs transition"
-              >
-                Salva Impostazioni
-              </button>
-              <button
-                type="button"
-                onClick={rigeneraPianoCompleto}
-                className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition"
-              >
-                <RefreshCw size={14} />
-                Rigenera Piano
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Plan Warnings */}
-      {avvisiPiano.length > 0 && (
-        <div className="space-y-1.5">
-          <h3 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
-            Controlli sul Piano di Carico
-          </h3>
-          <ElencoAvvisi avvisi={avvisiPiano} />
         </div>
-      )}
+      </Sezione>
 
-      {/* Programmazione Cicli: Menu Cliccabile */}
-      <div className="space-y-4">
-        {/* Navigation & Controls Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-200">
-          <div>
-            <h3 className="font-black text-slate-800 text-base tracking-tight flex items-center gap-2">
-              <Calendar size={18} className="text-[#006874]" />
-              <span>Programmazione & Cicli di Carico</span>
-            </h3>
-            <span className="text-xs text-slate-500 font-medium">
-              {macro.length} macrocicli · {meso.length} mesocicli · {micro.length} settimane totali
-            </span>
+      {/* Parametri Auto-Pianificatore & Controlli */}
+      <Sezione titolo="Parametri Auto-Pianificatore & Controlli sul Piano" icon={<Sparkles size={16} />} badge={avvisiPiano.length > 0 ? avvisiPiano.length : undefined} riepilogoChiuso={avvisiPiano.length > 0 ? `${avvisiPiano.length} avvisi sul carico` : "Configurazione e controlli"} storageKey="piano_parametri" defaultAperto={false}>
+        <div className="space-y-4 pt-1 text-xs">
+          {avvisiPiano.length > 0 && (
+            <div className="space-y-1.5 pb-3 border-b border-slate-100">
+              <h4 className="font-bold text-amber-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                <span>⚠️ Controlli e Avvisi sul Piano di Carico</span>
+              </h4>
+              <ElencoAvvisi avvisi={avvisiPiano} />
+            </div>
+          )}
+
+          <p className="text-xs text-slate-500">
+            Il piano si adatta automaticamente all'età media, ai dati storici di carico e alle gare.
+            I campi lasciati vuoti usano il calcolo intelligente.
+          </p>
+
+          {/* Days of week selector */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">
+              Giorni di Allenamento Settimanali{' '}
+              <span className="font-normal text-slate-500">
+                {impostazioni.giorni == null ? '(attualmente automatici)' : '(impostati a mano)'}
+              </span>
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => salvaImpostazioni({ ...impostazioni, giorni: undefined })}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+                  impostazioni.giorni == null
+                    ? 'bg-[#006874] text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                Auto
+              </button>
+              {([1, 2, 3, 4, 5, 6, 7] as DayOfWeekNum[]).map(dow => {
+                const active = parametriEffettivi.giorniAllenamento.includes(dow);
+                return (
+                  <button
+                    key={dow}
+                    type="button"
+                    onClick={() => {
+                      const current = parametriEffettivi.giorniAllenamento;
+                      const next = active ? current.filter(d => d !== dow) : [...current, dow];
+                      salvaImpostazioni({
+                        ...impostazioni,
+                        giorni: next.length > 0 ? (next.sort((a, b) => a - b) as DayOfWeekNum[]) : undefined
+                      });
+                    }}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
+                      active ? 'bg-cyan-100 text-cyan-900 border border-cyan-300 font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {DAY_OF_WEEK_NAMES[dow]}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-center">
+          {/* Metric inputs */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Metri base seduta (auto {parametriEffettivi.metriBaseSeduta}m)
+              </label>
+              <input
+                type="number"
+                placeholder={`Auto: ${parametriEffettivi.metriBaseSeduta}`}
+                value={metriTxt}
+                onChange={e => setMetriTxt(e.target.value)}
+                className="w-full px-3 py-1.5 border border-slate-300 rounded-lg font-bold"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Macrocicli (auto {parametriEffettivi.numeroMacrocicli})
+              </label>
+              <input
+                type="number"
+                placeholder={`Auto: ${parametriEffettivi.numeroMacrocicli}`}
+                value={macroTxt}
+                onChange={e => setMacroTxt(e.target.value)}
+                className="w-full px-3 py-1.5 border border-slate-300 rounded-lg font-bold"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Scarico ogni N sett. (auto {parametriEffettivi.settimaneCicloCarico})
+              </label>
+              <input
+                type="number"
+                placeholder={`Auto: ${parametriEffettivi.settimaneCicloCarico}`}
+                value={cicloTxt}
+                onChange={e => setCicloTxt(e.target.value)}
+                className="w-full px-3 py-1.5 border border-slate-300 rounded-lg font-bold"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-2 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => {
+                salvaImpostazioni({
+                  ...impostazioni,
+                  metriBaseSeduta: metriTxt.trim() ? parseInt(metriTxt, 10) : undefined,
+                  numeroMacrocicli: macroTxt.trim() ? parseInt(macroTxt, 10) : undefined,
+                  settimaneCicloCarico: cicloTxt.trim() ? parseInt(cicloTxt, 10) : undefined
+                });
+              }}
+              className="px-4 py-2 bg-[#006874] hover:bg-[#004f58] text-white font-bold rounded-xl text-xs transition"
+            >
+              Salva Impostazioni
+            </button>
+            <button
+              type="button"
+              onClick={rigeneraPianoCompleto}
+              className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition"
+            >
+              <RefreshCw size={14} />
+              Rigenera Piano
+            </button>
+          </div>
+        </div>
+      </Sezione>
+
+
+
+      <Sezione titolo="Programmazione & Cicli di Carico" icon={<Calendar size={18} />} badge={`${micro.length} sett.`} riepilogoChiuso={`${macro.length} macrocicli · ${meso.length} mesocicli`} storageKey="piano_programmazione" defaultAperto={true}>
+        <div className="space-y-4 pt-1">
+          {/* Navigation & Controls Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-200">
+            <div>
+              <span className="text-xs text-slate-500 font-medium">
+                {macro.length} macrocicli · {meso.length} mesocicli · {micro.length} settimane totali
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 self-start sm:self-center">
             {/* Jump to current week */}
             <button
               type="button"
@@ -1089,6 +1045,7 @@ export const PianoScreen: React.FC = () => {
           </div>
         )}
       </div>
+      </Sezione>
 
       {/* Edit Microcycle Modal */}
       {microSelezionato && (
