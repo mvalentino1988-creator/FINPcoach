@@ -2,9 +2,11 @@ package com.mattia.nuotoparalimpico
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
+import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -19,6 +21,8 @@ import java.io.ByteArrayInputStream
 class MainActivity : ComponentActivity() {
 
     private lateinit var webView: WebView
+    private var uploadMessage: ValueCallback<Array<Uri>>? = null
+    private val PICK_FILE_REQUEST = 1001
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,10 +38,31 @@ class MainActivity : ComponentActivity() {
             )
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
-            settings.allowFileAccess = false
-            settings.allowContentAccess = false
+            settings.allowFileAccess = true
+            settings.allowContentAccess = true
             webViewClient = BundledAppWebViewClient()
-            webChromeClient = WebChromeClient()
+            webChromeClient = object : WebChromeClient() {
+                override fun onShowFileChooser(
+                    webView: WebView?,
+                    filePathCallback: ValueCallback<Array<Uri>>?,
+                    fileChooserParams: FileChooserParams?
+                ): Boolean {
+                    uploadMessage?.onReceiveValue(null)
+                    uploadMessage = filePathCallback
+                    val intent = fileChooserParams?.createIntent()
+                    if (intent == null) {
+                        uploadMessage = null
+                        return false
+                    }
+                    try {
+                        startActivityForResult(intent, PICK_FILE_REQUEST)
+                    } catch (e: Exception) {
+                        uploadMessage = null
+                        return false
+                    }
+                    return true
+                }
+            }
         }
         setContentView(webView)
 
@@ -54,6 +79,17 @@ class MainActivity : ComponentActivity() {
                 }
             }
         })
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == PICK_FILE_REQUEST) {
+            if (uploadMessage == null) return
+            val results = WebChromeClient.FileChooserParams.parseResult(resultCode, data)
+            uploadMessage?.onReceiveValue(results)
+            uploadMessage = null
+        } else {
+            super.onActivityResult(requestCode, resultCode, data)
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

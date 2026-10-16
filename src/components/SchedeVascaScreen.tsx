@@ -21,7 +21,19 @@ import {
 } from 'lucide-react';
 
 export const SchedeVascaScreen: React.FC = () => {
-  const { atleti, condizioni, assenze, meso, micro, tempi, log } = useApp();
+  const { atleti, stagione, condizioni, assenze, meso, micro, tempi, log } = useApp();
+
+  if (!stagione || atleti.length === 0) {
+    return (
+      <div className="p-8 text-center bg-white rounded-2xl border border-dashed border-slate-300 space-y-3">
+        <Waves size={36} className="mx-auto text-slate-300" />
+        <h3 className="font-bold text-slate-700">Nessuna stagione o atleta configurato</h3>
+        <p className="text-xs text-slate-500 max-w-sm mx-auto">
+          Per generare e visualizzare le schede di vasca, imposta prima una stagione nella scheda <strong>Piano</strong> e aggiungi almeno un atleta nella scheda <strong>Atleti</strong>.
+        </p>
+      </div>
+    );
+  }
 
   const [atletaSelId, setAtletaSelId] = useState<number | null>(null); // null = Tutta la Squadra
   const [dataTesto, setDataTesto] = useState<string>(formattaData(todayISO()));

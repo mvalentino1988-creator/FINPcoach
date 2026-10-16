@@ -110,6 +110,7 @@ export const PianoScreen: React.FC = () => {
   const [cMotivo, setCMotivo] = useState('');
 
   // Form nuova gara
+  const [modalGaraOpen, setModalGaraOpen] = useState(false);
   const [gNome, setGNome] = useState('');
   const [gDal, setGDal] = useState('');
   const [gAl, setGAl] = useState('');
@@ -424,9 +425,21 @@ export const PianoScreen: React.FC = () => {
       {/* Gare Agonistiche */}
       <Sezione titolo="Gare Agonistiche" icon={<Trophy size={16} />} badge={gare.length} riepilogoChiuso={`${gare.length} programmate`} storageKey="piano_gare" defaultAperto={false}>
         <div className="space-y-3 pt-1 text-xs">
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-slate-700">Calendario Gare</span>
+            <button
+              type="button"
+              onClick={() => setModalGaraOpen(true)}
+              className="px-3 py-2 bg-[#006874] hover:bg-[#004f58] text-white rounded-xl font-bold transition shadow-xs flex items-center gap-1.5"
+            >
+              <Plus size={14} />
+              <span>Aggiungi Nuova Gara 🏆</span>
+            </button>
+          </div>
+
           <div className="space-y-1.5">
             {gare.length === 0 ? (
-              <p className="text-xs text-slate-400">Nessuna gara inserita nel calendario.</p>
+              <p className="text-xs text-slate-400 py-1">Nessuna gara inserita nel calendario.</p>
             ) : (
               gare.map(g => (
                 <div
@@ -454,62 +467,103 @@ export const PianoScreen: React.FC = () => {
               ))
             )}
           </div>
-
-          {/* Form add race */}
-          <div className="p-3 bg-slate-50 border border-dashed border-slate-300 rounded-xl space-y-2 text-xs">
-            <input
-              type="text"
-              placeholder="Nome gara (es. Campionati Italiani Assoluti FINP...)"
-              value={gNome}
-              onChange={e => setGNome(e.target.value)}
-              className="w-full px-3 h-12 bg-white border border-slate-300 rounded-lg"
-            />
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                type="text"
-                placeholder="Inizio (gg/mm/aaaa)"
-                value={gDal}
-                onChange={e => setGDal(e.target.value)}
-                className="px-3 h-12 bg-white border border-slate-300 rounded-lg"
-              />
-              <input
-                type="text"
-                placeholder="Fine (opzionale)"
-                value={gAl}
-                onChange={e => setGAl(e.target.value)}
-                className="px-3 h-12 bg-white border border-slate-300 rounded-lg"
-              />
-            </div>
-            <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700 select-none">
-              <input
-                type="checkbox"
-                checked={gPrioritaria}
-                onChange={e => setGPrioManuale(e.target.checked)}
-                className="w-4 h-4 accent-[#006874] rounded"
-              />
-              <span>Gara prioritaria (A-Race: attiva picco e scarico pre-gara)</span>
-            </label>
-            <button
-              type="button"
-              disabled={!gNome.trim() || !parseData(gDal)}
-              onClick={() => {
-                const d1 = parseData(gDal);
-                const d2 = parseData(gAl) ?? d1;
-                if (d1 && d2) {
-                  aggiungiGara(gNome.trim(), d1, d2, gPrioritaria);
-                  setGNome('');
-                  setGDal('');
-                  setGAl('');
-                  setGPrioManuale(null);
-                }
-              }}
-              className="w-full h-12 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white rounded-lg font-bold"
-            >
-              Aggiungi Gara
-            </button>
-          </div>
         </div>
       </Sezione>
+
+      {/* Modal Nuova Gara Ad Hoc */}
+      {modalGaraOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
+                <Trophy size={18} className="text-amber-500" />
+                <span>Inserisci Nuova Gara Agonistica</span>
+              </h3>
+              <button onClick={() => setModalGaraOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 rounded">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Nome Gara / Manifestazione *</label>
+                <input
+                  type="text"
+                  placeholder="es. Campionati Italiani Assoluti FINP..."
+                  value={gNome}
+                  onChange={e => setGNome(e.target.value)}
+                  className="w-full px-3 h-12 bg-slate-50 border border-slate-300 rounded-xl"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Data Inizio *</label>
+                  <input
+                    type="text"
+                    placeholder="gg/mm/aaaa"
+                    value={gDal}
+                    onChange={e => setGDal(e.target.value)}
+                    className="w-full px-3 h-12 bg-slate-50 border border-slate-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Data Fine (opz.)</label>
+                  <input
+                    type="text"
+                    placeholder="gg/mm/aaaa"
+                    value={gAl}
+                    onChange={e => setGAl(e.target.value)}
+                    className="w-full px-3 h-12 bg-slate-50 border border-slate-300 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2.5 p-3 bg-amber-50/50 border border-amber-200 rounded-xl cursor-pointer font-medium text-slate-800 select-none">
+                <input
+                  type="checkbox"
+                  checked={gPrioritaria}
+                  onChange={e => setGPrioManuale(e.target.checked)}
+                  className="w-4 h-4 accent-amber-600 rounded"
+                />
+                <div>
+                  <span className="block font-bold">Gara Prioritaria (A-Race)</span>
+                  <span className="text-[11px] text-slate-500">Attiva picco di forma, scarico e tapering pre-gara.</span>
+                </div>
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setModalGaraOpen(false)}
+                className="px-4 h-12 text-slate-600 hover:bg-slate-100 rounded-xl font-semibold text-xs"
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                disabled={!gNome.trim() || !parseData(gDal)}
+                onClick={() => {
+                  const d1 = parseData(gDal);
+                  const d2 = parseData(gAl) ?? d1;
+                  if (d1 && d2) {
+                    aggiungiGara(gNome.trim(), d1, d2, gPrioritaria);
+                    setGNome('');
+                    setGDal('');
+                    setGAl('');
+                    setGPrioManuale(null);
+                    setModalGaraOpen(false);
+                  }
+                }}
+                className="px-5 h-12 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white rounded-xl font-bold text-xs shadow-xs"
+              >
+                Salva Gara
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Parametri Auto-Pianificatore & Controlli */}
       <Sezione titolo="Parametri Auto-Pianificatore & Controlli sul Piano" icon={<Sparkles size={16} />} badge={avvisiPiano.length > 0 ? avvisiPiano.length : undefined} riepilogoChiuso={avvisiPiano.length > 0 ? `${avvisiPiano.length} avvisi sul carico` : "Configurazione e controlli"} storageKey="piano_parametri" defaultAperto={false}>

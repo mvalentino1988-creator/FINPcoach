@@ -156,36 +156,29 @@ export const DatiScreen: React.FC = () => {
           {pullToRefresh.isRefreshing ? 'Aggiornamento...' : 'Rilascia per aggiornare'}
         </div>
       )}
-      {/* Tab Navigation - Vertical on mobile, horizontal on desktop */}
-      <div className="flex sm:flex-row flex-col gap-2">
-        {tabs.map(t => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            className={`flex items-center gap-2 px-4 h-12 rounded-lg text-sm font-semibold transition ${
-              tab === t.key
-                ? 'bg-[#006874] text-white shadow-sm'
-                : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
-            }`}
-          >
-            {t.icon}
-            <span>{t.label}</span>
-          </button>
-        ))}
+      {/* Selettore Sezione (Menu a tendina) */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-3 shadow-xs flex items-center justify-between gap-3">
+        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider shrink-0">
+          Sezione Dati:
+        </span>
+        <select
+          value={tab}
+          onChange={(e) => setTab(e.target.value as DatiTab)}
+          className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 text-xs"
+        >
+          <option value="schede">🏊‍♂️ Schede Vasca</option>
+          <option value="tempi">⏱️ Tempi & Ripartenze</option>
+          <option value="registro">📋 Registro Presenze & Carico</option>
+        </select>
 
         {tab === 'schede' && (
           <button
             type="button"
             onClick={() => setEditMode(!editMode)}
-            className={`flex items-center gap-1.5 px-4 h-12 rounded-lg text-sm font-semibold transition whitespace-nowrap ml-auto ${
-              editMode
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
-            }`}
+            className="flex items-center gap-1.5 px-3 py-2 bg-[#006874] hover:bg-[#004f58] text-white rounded-xl text-xs font-bold transition shrink-0 shadow-xs"
           >
-            {editMode ? <X size={16} /> : <Edit2 size={16} />}
-            <span>{editMode ? 'Annulla' : 'Scrivi Allenamento'}</span>
+            {editMode ? <X size={15} /> : <Edit2 size={15} />}
+            <span>{editMode ? 'Annulla' : 'Scrivi'}</span>
           </button>
         )}
       </div>
@@ -268,30 +261,6 @@ export const DatiScreen: React.FC = () => {
                     </button>
                   ))}
                 </div>
-              </div>
-              <div className="mb-2 flex items-center justify-between">
-                <label className="block text-xs font-semibold text-slate-700">Testo Allenamento / Serie</label>
-                <label className="inline-flex items-center gap-1.5 px-3 h-12 bg-cyan-50 hover:bg-cyan-100 text-[#006874] rounded-lg text-xs font-bold cursor-pointer transition border border-cyan-200">
-                  {ocrLoading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
-                  <span>{ocrLoading ? 'Lettura OCR in corso...' : 'Carica Screenshot (OCR)'}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    disabled={ocrLoading}
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      setOcrLoading(true);
-                      const testoOcr = await OcrWeb.riconosciTestoDaImmagine(file);
-                      setOcrLoading(false);
-                      if (testoOcr) {
-                        setOcrRawText(testoOcr);
-                        setOcrModalOpen(true);
-                      }
-                    }}
-                  />
-                </label>
               </div>
               <div className="mb-2 flex items-center justify-between">
                 <label className="block text-xs font-semibold text-slate-700">Testo Allenamento / Serie</label>

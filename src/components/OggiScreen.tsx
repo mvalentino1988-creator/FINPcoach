@@ -59,6 +59,26 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
     parametriEffettivi
   } = useApp();
 
+  if (!stagione || atleti.length === 0) {
+    return (
+      <div className="space-y-4">
+        <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-xs text-center space-y-4">
+          <div className="w-16 h-16 rounded-full bg-cyan-50 text-[#006874] mx-auto flex items-center justify-center">
+            <Waves size={32} />
+          </div>
+          <div className="max-w-md mx-auto space-y-2">
+            <h3 className="text-lg font-black text-slate-800">
+              Benvenuto in FINPcoach · Squadra Vuota e Pulita
+            </h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              L'applicazione è attualmente vuota come richiesto. Per iniziare la programmazione della squadra, imposta prima la <strong>Stagione</strong> nella scheda <span className="text-[#006874] font-bold">Piano</span> e aggiungi almeno un atleta nella scheda <span className="text-[#006874] font-bold">Atleti</span>.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const oggi = todayISO();
   const dow = getDayOfWeek(oggi);
   const dowNome = DAY_OF_WEEK_FULL_NAMES[dow];

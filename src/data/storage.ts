@@ -14,7 +14,9 @@ import {
 } from '../types';
 import { AutoPianificatore } from '../domain/autoPianificatore';
 import { Festivita } from '../domain/festivita';
-import { PianoGenerator } from '../domain/pianoGenerator';
+import { todayISO } from '../domain/dateUtils';
+
+const MODE_KEY = 'finp_mode';
 
 const STORAGE_KEYS = {
   ATLETI: 'finp_atleti',
@@ -53,6 +55,71 @@ function save<T>(key: string, value: T): void {
 }
 
 export class FINPStorage {
+  static getMode(): 'demo' | 'live' | null {
+    const m = localStorage.getItem(MODE_KEY);
+    if (m === 'demo') return 'demo';
+    if (m === 'live') return 'live';
+
+    const raw = localStorage.getItem(STORAGE_KEYS.ATLETI);
+    if (raw) {
+      try {
+        const list = JSON.parse(raw) as Atleta[];
+        const isDemoData = list.some(a => a.nome === 'Marco' && a.cognome === 'Rossi');
+        if (isDemoData) {
+          this.startLiveSquad();
+          return 'live';
+        }
+      } catch (e) {}
+    }
+
+    this.startLiveSquad();
+    return 'live';
+  }
+
+  static setMode(mode: 'demo' | 'live') {
+    localStorage.setItem(MODE_KEY, mode);
+  }
+
+  static isDemo(): boolean {
+    return this.getMode() === 'demo';
+  }
+
+  static applyDemoSeed(): void {
+    this.setMode('demo');
+    const atleti = this.createSeedAtleti();
+    save(STORAGE_KEYS.ATLETI, atleti);
+    save(STORAGE_KEYS.CONDIZIONI, this.createSeedCondizioni());
+    save(STORAGE_KEYS.ASSENZE, []);
+    save(STORAGE_KEYS.TEMPI, this.createSeedTempi());
+    save(STORAGE_KEYS.LOG_SEDUTE, this.createSeedLog());
+    const stagione = this.createSeedStagione();
+    save(STORAGE_KEYS.STAGIONE, stagione);
+    save(STORAGE_KEYS.CHIUSURE, Festivita.perStagione(stagione).map((c, i) => ({ ...c, id: i + 1 })));
+    save(STORAGE_KEYS.GARE, this.createSeedGare());
+    save(STORAGE_KEYS.MACROCICLI, []);
+    save(STORAGE_KEYS.MESOCICLI, []);
+    save(STORAGE_KEYS.MICROCICLI, []);
+    save(STORAGE_KEYS.IMPOSTAZIONI, {});
+    save(STORAGE_KEYS.CUSTOM_WORKOUTS, []);
+  }
+
+  static startLiveSquad(): void {
+    this.setMode('live');
+    save(STORAGE_KEYS.ATLETI, []);
+    save(STORAGE_KEYS.CONDIZIONI, []);
+    save(STORAGE_KEYS.ASSENZE, []);
+    save(STORAGE_KEYS.TEMPI, []);
+    save(STORAGE_KEYS.LOG_SEDUTE, []);
+    save(STORAGE_KEYS.STAGIONE, null);
+    save(STORAGE_KEYS.CHIUSURE, []);
+    save(STORAGE_KEYS.GARE, []);
+    save(STORAGE_KEYS.MACROCICLI, []);
+    save(STORAGE_KEYS.MESOCICLI, []);
+    save(STORAGE_KEYS.MICROCICLI, []);
+    save(STORAGE_KEYS.IMPOSTAZIONI, {});
+    save(STORAGE_KEYS.CUSTOM_WORKOUTS, []);
+  }
+
   static getCustomWorkouts(): any[] {
     return load<any[]>(STORAGE_KEYS.CUSTOM_WORKOUTS, []);
   }
@@ -62,13 +129,7 @@ export class FINPStorage {
   }
 
   static getAtleti(): Atleta[] {
-    const list = load<Atleta[]>(STORAGE_KEYS.ATLETI, []);
-    if (list.length === 0) {
-      const initial = this.createSeedAtleti();
-      save(STORAGE_KEYS.ATLETI, initial);
-      return initial;
-    }
-    return list;
+    return load<Atleta[]>(STORAGE_KEYS.ATLETI, []);
   }
 
   static saveAtleti(atleti: Atleta[]) {
@@ -76,13 +137,7 @@ export class FINPStorage {
   }
 
   static getCondizioni(): CondizioneMedica[] {
-    const list = load<CondizioneMedica[]>(STORAGE_KEYS.CONDIZIONI, []);
-    if (list.length === 0) {
-      const initial = this.createSeedCondizioni();
-      save(STORAGE_KEYS.CONDIZIONI, initial);
-      return initial;
-    }
-    return list;
+    return load<CondizioneMedica[]>(STORAGE_KEYS.CONDIZIONI, []);
   }
 
   static saveCondizioni(cond: CondizioneMedica[]) {
@@ -98,13 +153,7 @@ export class FINPStorage {
   }
 
   static getTempi(): Tempo[] {
-    const list = load<Tempo[]>(STORAGE_KEYS.TEMPI, []);
-    if (list.length === 0) {
-      const initial = this.createSeedTempi();
-      save(STORAGE_KEYS.TEMPI, initial);
-      return initial;
-    }
-    return list;
+    return load<Tempo[]>(STORAGE_KEYS.TEMPI, []);
   }
 
   static saveTempi(tempi: Tempo[]) {
@@ -112,13 +161,7 @@ export class FINPStorage {
   }
 
   static getLogSedute(): LogSeduta[] {
-    const list = load<LogSeduta[]>(STORAGE_KEYS.LOG_SEDUTE, []);
-    if (list.length === 0) {
-      const initial = this.createSeedLog();
-      save(STORAGE_KEYS.LOG_SEDUTE, initial);
-      return initial;
-    }
-    return list;
+    return load<LogSeduta[]>(STORAGE_KEYS.LOG_SEDUTE, []);
   }
 
   static saveLogSedute(log: LogSeduta[]) {
@@ -126,13 +169,7 @@ export class FINPStorage {
   }
 
   static getStagione(): Stagione | null {
-    const s = load<Stagione | null>(STORAGE_KEYS.STAGIONE, null);
-    if (!s) {
-      const initial = this.createSeedStagione();
-      save(STORAGE_KEYS.STAGIONE, initial);
-      return initial;
-    }
-    return s;
+    return load<Stagione | null>(STORAGE_KEYS.STAGIONE, null);
   }
 
   static saveStagione(stagione: Stagione | null) {
@@ -140,16 +177,7 @@ export class FINPStorage {
   }
 
   static getChiusure(): Chiusura[] {
-    const list = load<Chiusura[]>(STORAGE_KEYS.CHIUSURE, []);
-    if (list.length === 0) {
-      const s = this.getStagione();
-      if (s) {
-        const initial = Festivita.perStagione(s).map((c, i) => ({ ...c, id: i + 1 }));
-        save(STORAGE_KEYS.CHIUSURE, initial);
-        return initial;
-      }
-    }
-    return list;
+    return load<Chiusura[]>(STORAGE_KEYS.CHIUSURE, []);
   }
 
   static saveChiusure(chiusure: Chiusura[]) {
@@ -157,13 +185,7 @@ export class FINPStorage {
   }
 
   static getGare(): Gara[] {
-    const list = load<Gara[]>(STORAGE_KEYS.GARE, []);
-    if (list.length === 0) {
-      const initial = this.createSeedGare();
-      save(STORAGE_KEYS.GARE, initial);
-      return initial;
-    }
-    return list;
+    return load<Gara[]>(STORAGE_KEYS.GARE, []);
   }
 
   static saveGare(gare: Gara[]) {
@@ -230,7 +252,9 @@ export class FINPStorage {
       macrocicli: this.getMacrocicli(),
       mesocicli: this.getMesocicli(),
       microcicli: this.getMicrocicli(),
-      impostazioni: this.getImpostazioni()
+      impostazioni: this.getImpostazioni(),
+      customWorkouts: this.getCustomWorkouts(),
+      mode: this.getMode()
     };
     return JSON.stringify(data, null, 2);
   }
@@ -250,6 +274,8 @@ export class FINPStorage {
       if (data.mesocicli) save(STORAGE_KEYS.MESOCICLI, data.mesocicli);
       if (data.microcicli) save(STORAGE_KEYS.MICROCICLI, data.microcicli);
       if (data.impostazioni) save(STORAGE_KEYS.IMPOSTAZIONI, data.impostazioni);
+      if (data.customWorkouts) save(STORAGE_KEYS.CUSTOM_WORKOUTS, data.customWorkouts);
+      if (data.mode === 'demo' || data.mode === 'live') this.setMode(data.mode);
       return true;
     } catch (e) {
       console.error('Import error:', e);
@@ -259,6 +285,7 @@ export class FINPStorage {
 
   static resetToDefault(): void {
     Object.values(STORAGE_KEYS).forEach(k => localStorage.removeItem(k));
+    this.applyDemoSeed();
   }
 
   // ---------------- Seed data for authentic FINP paralympic experience

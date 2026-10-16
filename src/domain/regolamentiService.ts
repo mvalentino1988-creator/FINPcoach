@@ -338,11 +338,13 @@ export class RegolamentiService {
 
       if (punteggio > 0) {
         const documento = this.documento(doc.documentoId)!;
+        const encodedTerm = encodeURIComponent(termini[0] || doc.sezione.titolo);
+        const urlPuntato = `${documento.url}#search=${encodedTerm}`;
         risultati.push({
           documentoId: doc.documentoId,
           documentoTitolo: documento.titolo,
           fonte: documento.fonte,
-          url: documento.url,
+          url: urlPuntato,
           indice: doc.indice,
           sezione: doc.sezione,
           punteggio,

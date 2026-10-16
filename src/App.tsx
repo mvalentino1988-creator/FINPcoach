@@ -8,14 +8,23 @@ import { AtletiScreen } from './components/AtletiScreen';
 import { PianoScreen } from './components/PianoScreen';
 import { DatiScreen } from './components/DatiScreen';
 import { FontiScreen } from './components/FontiScreen';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { WelcomeScreen } from './components/WelcomeScreen';
+import { FINPStorage } from './data/storage';
 
 export const AppContent: React.FC = () => {
-  const [tab, setTab] = useState<TabKey>('oggi');
+  const [tab, setTab] = useState<TabKey>(() => {
+    return (sessionStorage.getItem('finp_active_tab') as TabKey) || 'oggi';
+  });
   const [showLogin, setShowLogin] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [mode, setMode] = useState<'demo' | 'live' | null>(() => FINPStorage.getMode());
 
   useEffect(() => {
-    // Check if sync is enabled and user is logged in
+    sessionStorage.setItem('finp_active_tab', tab);
+  }, [tab]);
+
+  useEffect(() => {
     const syncEnabled = localStorage.getItem('finp_sync_enabled') === 'true';
     const user = FirebaseSync.getCurrentUser();
     
@@ -26,6 +35,10 @@ export const AppContent: React.FC = () => {
       setShowLogin(false);
     }
   }, []);
+
+  if (!mode) {
+    return <WelcomeScreen onReady={() => setMode(FINPStorage.getMode())} />;
+  }
 
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
@@ -57,8 +70,10 @@ export const AppContent: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
+    </ErrorBoundary>
   );
 };

@@ -9,9 +9,7 @@ import { BadgeCodice } from './BadgeCodice';
 import { CODICI_KEYS } from '../domain/codici';
 import { OcrWeb } from '../domain/ocrWeb';
 import { OcrGaraModal } from './OcrGaraModal';
-import { TempoEstrattoOcr } from '../domain/ocrGaraParser';
-import { parseTempo as nlpParseTempo, formattaTempoDisplay, STILE_ETICHETTE } from '../domain/nlpParser';
-import { RisultatoParsing } from '../domain/nlpParser';
+import { Sezione } from './Sezione';
 import {
   AlertTriangle,
   Award,
@@ -40,7 +38,6 @@ export const TempiRipartenzeScreen: React.FC = () => {
   // OCR modal
   const [mostraImport, setMostraImport] = useState(false);
   const [testoImport, setTestoImport] = useState('');
-
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrGaraModalOpen, setOcrGaraModalOpen] = useState(false);
   const [ocrRawText, setOcrRawText] = useState('');
@@ -53,11 +50,6 @@ export const TempiRipartenzeScreen: React.FC = () => {
   const [contesto, setContesto] = useState<ContestoTempo>('GARA');
   const [vasca, setVasca] = useState<number>(25);
   const [note, setNote] = useState('');
-
-  // Natural language input
-  const [inputNaturale, setInputNaturale] = useState(false);
-  const [testoNaturale, setTestoNaturale] = useState('');
-  const [messaggioParsing, setMessaggioParsing] = useState<string | null>(null);
 
   const oggi = todayISO();
   const dataParsed = parseData(dataTesto);
@@ -74,13 +66,11 @@ export const TempiRipartenzeScreen: React.FC = () => {
     return mi ? meso.find(me => me.id === mi.mesocicloId) : null;
   }, [micro, meso, oggi]);
 
-  // Form check assessment
   const formCheck = useMemo(() => {
     if (!atletaSel) return null;
     return CalcoloRitmiRipartenze.valutaNecessitaFormCheck(atletaSel, tempiAtleta, mesoCorrente);
   }, [atletaSel, tempiAtleta, mesoCorrente]);
 
-  // CSS Critical Swim Speed calculation (using 400m and 100m)
   const cssResult = useMemo(() => {
     const t400 = tempiAtleta.filter(t => t.distanzaMetri === 400).sort((a, b) => b.data.localeCompare(a.data))[0];
     const t100 = tempiAtleta.filter(t => t.distanzaMetri === 100).sort((a, b) => b.data.localeCompare(a.data))[0];
@@ -90,7 +80,6 @@ export const TempiRipartenzeScreen: React.FC = () => {
     return null;
   }, [tempiAtleta]);
 
-  // Sendoff table for A1-D
   const tabellaRitmi = useMemo(() => {
     if (!atletaSel) return null;
     const t100 = tempiAtleta.filter(t => t.distanzaMetri === 100).sort((a, b) => b.data.localeCompare(a.data))[0];
@@ -150,7 +139,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Title */}
       <div>
         <h2 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
@@ -158,163 +147,125 @@ export const TempiRipartenzeScreen: React.FC = () => {
           <span>Tempi Gara & Calcolo Ripartenze</span>
         </h2>
         <p className="text-xs text-slate-500 mt-0.5">
-          Carica tempi passati (o da screenshot/OCR) per calcolare automaticamente la velocità critica CSS,
-          le tabelle di andatura e le ripartenze a 5 secondi per ogni codice A1–D.
+          Gestione cronometrica, tabelle di andatura e ripartenze A1–D.
         </p>
       </div>
 
-      {/* Athlete selector */}
-      <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2 overflow-x-auto">
-        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider shrink-0 pl-1">
+      {/* Athlete Dropdown Selector */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-3 shadow-xs flex items-center gap-3">
+        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider shrink-0">
           Atleta:
         </span>
-        <div className="flex gap-1.5 shrink-0">
+        <select
+          value={atletaSel.id}
+          onChange={(e) => setAtletaSelId(Number(e.target.value))}
+          className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 text-xs"
+        >
           {atleti.map(a => (
-            <button
-              key={a.id}
-              onClick={() => setAtletaSelId(a.id)}
-              className={`px-3 h-12 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                atletaSel.id === a.id
-                  ? 'bg-[#006874] text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              <User size={13} />
-              <span>{a.cognome} {a.nome}</span>
-            </button>
+            <option key={a.id} value={a.id}>{a.cognome} {a.nome} (S{a.classeS ?? '?'})</option>
           ))}
-        </div>
+        </select>
       </div>
 
       {/* Form Check Alert Card */}
       {formCheck && formCheck.necessario && (
-        <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-1.5 text-xs text-amber-950">
+        <div className="p-3.5 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-1 text-xs text-amber-950">
           <div className="flex items-center gap-2 font-bold text-amber-900 text-sm">
-            <Timer size={18} className="text-amber-600" />
+            <Timer size={16} className="text-amber-600" />
             <span>{formCheck.titoloTest}</span>
           </div>
           <p className="text-amber-900">{formCheck.motivazione}</p>
-          <div className="p-2.5 bg-white/80 rounded-xl border border-amber-200 text-amber-950 font-medium">
-            <strong>Istruzioni in Vasca: </strong>{formCheck.istruzioniVasca}
-          </div>
         </div>
       )}
 
       {/* CSS Critical Swim Speed Card */}
       {cssResult && (
-        <div className="p-4 sm:p-5 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-2xl shadow-xs space-y-2 text-xs">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[#006874] font-black text-sm uppercase tracking-wider">
-              <Flame size={18} className="text-[#006874]" />
-              <span>Calcolo Scientifico CSS (Velocità Critica / Soglia B1)</span>
+        <div className="p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-2xl shadow-xs flex items-center justify-between gap-3 text-xs">
+          <div>
+            <div className="flex items-center gap-1.5 text-[#006874] font-black uppercase tracking-wider">
+              <Flame size={15} className="text-[#006874]" />
+              <span>Velocità Critica CSS (B1)</span>
             </div>
-            <span className="px-2 py-0.5 rounded-md bg-[#006874] text-white font-bold text-xs">
-              {cssResult.passo100mFormatted} / 100m
-            </span>
+            <p className="text-slate-600 text-[11px] mt-0.5">{cssResult.spiegazioneMetodologica}</p>
           </div>
-          <p className="text-slate-700 leading-relaxed">{cssResult.spiegazioneMetodologica}</p>
+          <span className="px-3 py-1.5 rounded-xl bg-[#006874] text-white font-black text-xs shrink-0">
+            {cssResult.passo100mFormatted} /100m
+          </span>
         </div>
       )}
 
-      {/* Tabella Ritmi & Ripartenze a 5 secondi */}
-      {tabellaRitmi ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-3 border-b border-slate-100">
-            <div>
-              <h3 className="font-bold text-slate-800 text-base">
-                Tabella Ritmi & Ripartenze a 5 Secondi · {atletaSel.nome}
-              </h3>
-              <p className="text-xs text-[#006874] font-semibold">
-                Calcolata sul tempo base 100m ({tabellaRitmi.stileRiferimento.replace('_', ' ')}):{' '}
-                {formattaTempo(tabellaRitmi.tempoRiferimento100mCentesimi)}
-              </p>
-            </div>
+      {/* Tabella Ritmi & Ripartenze a 5 secondi (Compatta senza note) */}
+      {tabellaRitmi && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <h3 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
+              Tabella Ritmi A1–D · Passo 100m & Ripartenze
+            </h3>
+            <span className="text-xs text-[#006874] font-bold">
+              Base 100m: {formattaTempo(tabellaRitmi.tempoRiferimento100mCentesimi)}
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {CODICI_KEYS.map(k => {
               const r = tabellaRitmi.ritmi[k];
               if (!r) return null;
               return (
                 <div
                   key={k}
-                  className="p-3 rounded-xl border border-slate-200 bg-slate-50/50 flex items-center justify-between gap-3 text-xs"
+                  className="p-2.5 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between text-xs space-y-1"
                 >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <BadgeCodice codice={k} />
-                      <span className="font-bold text-slate-800">{r.passo100mFormatted} / 100m</span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 line-clamp-1">{r.noteTecniche}</p>
+                  <div className="flex items-center justify-between">
+                    <BadgeCodice codice={k} />
+                    <span className="font-bold text-slate-800 text-[11px]">{r.passo100mFormatted}</span>
                   </div>
-
-                  <div className="text-right shrink-0">
-                    <span className="inline-block px-2.5 py-1 rounded-lg bg-cyan-100 text-[#006874] font-black text-xs">
-                      {r.ripartenzaFormatted}
-                    </span>
-                    <span className="block text-[10px] text-amber-700 font-semibold mt-0.5">
-                      {r.pausaFormatted}
-                    </span>
+                  <div className="pt-1 border-t border-slate-200/60 flex items-center justify-between text-[11px]">
+                    <span className="text-slate-500 font-medium">Rip:</span>
+                    <span className="font-black text-[#006874]">{r.ripartenzaFormatted}</span>
                   </div>
                 </div>
               );
             })}
           </div>
         </div>
-      ) : (
-        <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-500">
-          Nessun tempo di riferimento sui 100m registrato per {atletaSel.nome}.
-          Inserisci un tempo nei 100m stile libero di seguito o importa da testo per calcolare la tabella delle ripartenze.
-        </div>
       )}
 
-      {/* Button Open OCR Import */}
-      <button
-        onClick={() => setMostraImport(true)}
-        className="w-full flex items-center justify-center gap-2 p-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 rounded-2xl text-xs font-bold transition shadow-xs"
-      >
-        <Upload size={16} className="text-[#006874]" />
-        <span>Importa Tempi da Screenshot / Testo OCR 📄</span>
-      </button>
-
-      {/* Add New Time Form */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs space-y-4">
-        <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-          <Plus size={16} className="text-[#006874]" />
-          <span>Aggiungi Nuovo Tempo Gara / Test per {atletaSel.nome}</span>
-        </h3>
-
-        {/* Input mode toggle */}
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setInputNaturale(false)}
-            className={`flex-1 px-3 h-12 rounded-xl font-semibold transition text-xs ${
-              !inputNaturale ? 'bg-[#006874] text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            Inserimento manuale
-          </button>
-          <button
-            type="button"
-            onClick={() => setInputNaturale(true)}
-            className={`flex-1 px-3 h-12 rounded-xl font-semibold transition text-xs ${
-              inputNaturale ? 'bg-[#006874] text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            <Bot size={14} className="inline mr-1" />
-            Scrivi in linguaggio naturale
-          </button>
-        </div>
-
-        {/* OCR Upload */}
-        <div className="flex items-center justify-between p-3 bg-cyan-50/70 border border-cyan-200 rounded-xl">
-          <div className="text-xs font-bold text-[#006874] flex items-center gap-1.5">
-            {ocrLoading ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
-            <span>{ocrLoading ? 'Lettura OCR in corso...' : 'Carica Screenshot Gara o Tabella Tempi (OCR)'}</span>
+      {/* Official Personal Bests (1 per gara e distanza) */}
+      <Sezione titolo="Primati Personali in Gara" icon={<Award size={15} className="text-amber-500" />} badge={primati.length} riepilogoChiuso={`${primati.length} primati registrati`} storageKey="tempi_primati" defaultAperto={false}>
+        {primati.length === 0 ? (
+          <p className="text-xs text-slate-400 py-2">Nessun primato di gara registrato.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            {primati.map((p, i) => (
+              <div
+                key={i}
+                className="p-3 bg-amber-50/40 border border-amber-200 rounded-xl flex items-center justify-between text-xs"
+              >
+                <div>
+                  <span className="font-bold text-slate-900 block">
+                    {p.stile.replace('_', ' ')} {p.distanzaMetri} m ({p.vascaMetri}m)
+                  </span>
+                  <span className="text-[10px] text-slate-500">{formattaData(p.data)}</span>
+                </div>
+                <span className="font-black text-[#006874] text-sm">
+                  {formattaTempo(p.centesimi)}
+                </span>
+              </div>
+            ))}
           </div>
-          <label className={`px-3 h-12 bg-[#006874] hover:bg-[#005a63] text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs ${ocrLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
-            <span>{ocrLoading ? 'Attendere...' : 'Scegli Immagine'}</span>
+        )}
+      </Sezione>
+
+      {/* Add New Time Form (Compact with unified OCR button) */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-2">
+            <Plus size={15} className="text-[#006874]" />
+            <span>Registra Nuovo Tempo / Test</span>
+          </h3>
+          <label className="px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-[#006874] border border-cyan-200 rounded-xl text-xs font-bold cursor-pointer transition flex items-center gap-1.5">
+            {ocrLoading ? <Loader2 size={13} className="animate-spin" /> : <Camera size={13} />}
+            <span>{ocrLoading ? 'OCR in corso...' : 'Carica Screenshot'}</span>
             <input
               type="file"
               accept="image/*"
@@ -335,264 +286,98 @@ export const TempiRipartenzeScreen: React.FC = () => {
           </label>
         </div>
 
-        {/* Natural language input */}
-        {inputNaturale && (
-          <div className="space-y-2">
-            <label className="block font-semibold text-slate-600 mb-1">
-              Scrivi liberamente (es. "100 stile libero 1:02.35 gara vasca 25m")
-            </label>
-            <textarea
-              value={testoNaturale}
-              onChange={e => { setTestoNaturale(e.target.value); setMessaggioParsing(null); }}
-              placeholder="Es: 100 stile libero 1:02.35 gara vasca 25m"
-              rows={3}
-              className="w-full px-3 h-12 border border-slate-300 rounded-xl text-xs"
-            />
-            <button
-              type="button"
-              onClick={() => {
-                const result = nlpParseTempo(testoNaturale);
-                if (result.successo && result.dati) {
-                  const d = result.dati;
-                  setStile((d.stile || 'STILE_LIBERO') as Stile);
-                  setDistanza(d.distanzaMetri?.toString() || '100');
-                  setVasca(d.vascaMetri);
-                  setContesto((d.contesto || 'GARA') as ContestoTempo);
-                  setNote(d.note);
-                  setTempoTesto(d.centesimi ? formattaTempoDisplay(d.centesimi) : '');
-                  setMessaggioParsing(result.messaggio);
-                  setInputNaturale(false);
-                } else {
-                  setMessaggioParsing(result.messaggio);
-                }
-              }}
-              className="w-full px-3 h-12 bg-[#006874] hover:bg-[#005c73] text-white rounded-xl font-bold text-xs transition"
-            >
-              Analizza testo
-            </button>
-            {messaggioParsing && (
-              <p className={`text-xs ${messaggioParsing.startsWith('Ho capito') ? 'text-green-600' : 'text-red-600'}`}>
-                {messaggioParsing}
-              </p>
-            )}
-          </div>
-        )}
-
-        <div className="mb-3 flex items-center justify-between">
-          <span className="font-bold text-slate-700 text-xs">Inserimento Tempo</span>
-          <label className="inline-flex items-center gap-1.5 px-3 h-12 bg-cyan-50 hover:bg-cyan-100 text-[#006874] rounded-lg text-xs font-bold cursor-pointer transition border border-cyan-200">
-            <Camera size={14} />
-            <span>Carica Screenshot Gara (OCR)</span>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const testoOcr = await OcrWeb.riconosciTestoDaImmagine(file);
-                if (testoOcr) {
-                  const result = nlpParseTempo(testoOcr);
-                  if (result.successo && result.dati) {
-                    const d = result.dati;
-                    if (d.stile) setStile(d.stile);
-                    if (d.distanzaMetri) setDistanza(d.distanzaMetri.toString());
-                    if (d.vascaMetri) setVasca(d.vascaMetri);
-                    if (d.contesto) setContesto(d.contesto);
-                    if (d.centesimi) setTempoTesto(formattaTempoDisplay(d.centesimi));
-                    setMessaggioParsing(result.messaggio);
-                  }
-                }
-              }}
-            />
-          </label>
-        </div>
-
-        <div className="mb-3 flex items-center justify-between">
-          <span className="font-bold text-slate-700 text-xs">Inserimento Tempo</span>
-          <label className="inline-flex items-center gap-1.5 px-3 h-12 bg-cyan-50 hover:bg-cyan-100 text-[#006874] rounded-lg text-xs font-bold cursor-pointer transition border border-cyan-200">
-            <Camera size={14} />
-            <span>Carica Screenshot Gara (OCR)</span>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const testoOcr = await OcrWeb.riconosciTestoDaImmagine(file);
-                if (testoOcr) {
-                  const result = nlpParseTempo(testoOcr);
-                  if (result.successo && result.dati) {
-                    const d = result.dati;
-                    if (d.stile) setStile(d.stile);
-                    if (d.distanzaMetri) setDistanza(d.distanzaMetri.toString());
-                    if (d.vascaMetri) setVasca(d.vascaMetri);
-                    if (d.contesto) setContesto(d.contesto);
-                    if (d.centesimi) setTempoTesto(formattaTempoDisplay(d.centesimi));
-                    setMessaggioParsing(result.messaggio);
-                  }
-                }
-              }}
-            />
-          </label>
-        </div>
-
-        <form onSubmit={handleSalvaTempo} className="space-y-3 text-xs">
+        <form onSubmit={handleSalvaTempo} className="space-y-3 text-xs pt-1">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Data (gg/mm/aaaa) *</label>
+              <label className="block font-semibold text-slate-600 mb-1">Data</label>
               <input
                 type="text"
                 value={dataTesto}
                 onChange={e => setDataTesto(e.target.value)}
-                className="w-full px-3 h-12 border border-slate-300 rounded-xl"
+                className="w-full px-3 h-11 border border-slate-300 rounded-xl"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Distanza (metri) *</label>
+              <label className="block font-semibold text-slate-600 mb-1">Distanza (m)</label>
               <input
                 type="number"
                 value={distanza}
                 onChange={e => setDistanza(e.target.value)}
-                className="w-full px-3 h-12 border border-slate-300 rounded-xl font-bold"
+                className="w-full px-3 h-11 border border-slate-300 rounded-xl font-bold"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Tempo (es. 1:04.20 o 29.10) *</label>
+              <label className="block font-semibold text-slate-600 mb-1">Tempo (es. 1:04.20)</label>
               <input
                 type="text"
                 placeholder="es. 1:04.20"
                 value={tempoTesto}
                 onChange={e => setTempoTesto(e.target.value)}
-                className="w-full px-3 h-12 border border-slate-300 rounded-xl font-black text-sm text-[#006874]"
+                className="w-full px-3 h-11 border border-slate-300 rounded-xl font-black text-sm text-[#006874]"
               />
             </div>
           </div>
 
-          {/* Stili Chips */}
-          <div>
-            <label className="block font-semibold text-slate-600 mb-1">Stile</label>
-            <div className="flex flex-wrap gap-1.5">
-              {(['STILE_LIBERO', 'DORSO', 'RANA', 'FARFALLA', 'MISTI'] as Stile[]).map(s => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setStile(s)}
-                  className={`px-3 h-12 rounded-xl font-semibold transition ${
-                    stile === s ? 'bg-[#006874] text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  {s.replace('_', ' ')}
-                </button>
-              ))}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div>
+              <label className="block font-semibold text-slate-600 mb-1">Stile</label>
+              <select
+                value={stile}
+                onChange={e => setStile(e.target.value as Stile)}
+                className="w-full px-3 h-11 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+              >
+                <option value="STILE_LIBERO">Stile libero</option>
+                <option value="DORSO">Dorso</option>
+                <option value="RANA">Rana</option>
+                <option value="FARFALLA">Farfalla</option>
+                <option value="MISTI">Misti</option>
+              </select>
             </div>
-          </div>
 
-          {/* Contesto e Vasca */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <div>
               <label className="block font-semibold text-slate-600 mb-1">Contesto</label>
-              <div className="flex gap-1.5">
-                {(['GARA', 'ALLENAMENTO', 'TEST'] as ContestoTempo[]).map(c => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setContesto(c)}
-                    className={`px-3 h-12 rounded-xl font-semibold transition ${
-                      contesto === c ? 'bg-[#006874] text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    }`}
-                  >
-                    {c.toLowerCase()}
-                  </button>
-                ))}
-              </div>
+              <select
+                value={contesto}
+                onChange={e => setContesto(e.target.value as ContestoTempo)}
+                className="w-full px-3 h-11 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+              >
+                <option value="GARA">Gara</option>
+                <option value="ALLENAMENTO">Allenamento</option>
+                <option value="TEST">Test</option>
+              </select>
             </div>
 
             <div>
               <label className="block font-semibold text-slate-600 mb-1">Vasca</label>
-              <div className="flex gap-1.5">
-                {[25, 50].map(v => (
-                  <button
-                    key={v}
-                    type="button"
-                    onClick={() => setVasca(v)}
-                    className={`px-3 h-12 rounded-xl font-semibold transition ${
-                      vasca === v ? 'bg-[#006874] text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    }`}
-                  >
-                    Vasca {v}m
-                  </button>
-                ))}
-              </div>
+              <select
+                value={vasca}
+                onChange={e => setVasca(Number(e.target.value))}
+                className="w-full px-3 h-11 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+              >
+                <option value={25}>Vasca 25m</option>
+                <option value={50}>Vasca 50m</option>
+              </select>
             </div>
-          </div>
-
-          <div>
-            <label className="block font-semibold text-slate-600 mb-1">Note (opzionale)</label>
-            <input
-              type="text"
-              placeholder="es. Campionati Italiani, finale pomeridiana..."
-              value={note}
-              onChange={e => setNote(e.target.value)}
-              className="w-full px-3 h-12 border border-slate-300 rounded-xl"
-            />
           </div>
 
           <button
             type="submit"
             disabled={!formValido}
-            className="w-full h-12.5 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
+            className="w-full h-11 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
           >
-            Salva Tempo
+            Registra Tempo
           </button>
         </form>
       </div>
 
-      {/* Official Personal Bests */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs space-y-3">
-        <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-          <Award size={18} className="text-amber-500" />
-          <span>Primati Personali Ufficiali in Gara ({primati.length})</span>
-        </h3>
-
-        {primati.length === 0 ? (
-          <p className="text-xs text-slate-400">Nessun tempo di gara registrato.</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {primati.map((p, i) => (
-              <div
-                key={i}
-                className="p-3 bg-amber-50/40 border border-amber-200 rounded-xl flex items-center justify-between text-xs"
-              >
-                <div>
-                  <span className="font-bold text-slate-900 block">
-                    {p.stile.replace('_', ' ')} {p.distanzaMetri} m (vasca {p.vascaMetri}m)
-                  </span>
-                  <span className="text-[10px] text-slate-500">{formattaData(p.data)}</span>
-                </div>
-                <span className="font-black text-[#006874] text-sm">
-                  {formattaTempo(p.centesimi)}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* All Recorded Times */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs space-y-3">
-        <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-          <Clock size={16} className="text-slate-600" />
-          <span>Storico Tutti i Tempi Registrati ({tempiAtleta.length})</span>
-        </h3>
-
+      {/* Storico Completo (Apribile a richiesta tramite Sezione) */}
+      <Sezione titolo="Storico Tutti i Tempi Registrati" icon={<Clock size={16} />} badge={tempiAtleta.length} riepilogoChiuso={`${tempiAtleta.length} tempi in archivio`} storageKey="tempi_storico_completo" defaultAperto={false}>
         {tempiAtleta.length === 0 ? (
-          <p className="text-xs text-slate-400">Nessun tempo registrato per questo atleta.</p>
+          <p className="text-xs text-slate-400 py-2">Nessun tempo registrato per questo atleta.</p>
         ) : (
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 pt-1">
             {tempiAtleta.map(t => (
               <div
                 key={t.id}
@@ -621,54 +406,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
             ))}
           </div>
         )}
-      </div>
-
-      {/* Modal OCR Import */}
-      {mostraImport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-5 border border-slate-200 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="font-bold text-slate-800 text-base">
-                Importa Tempi da Screenshot / Testo OCR
-              </h3>
-              <button onClick={() => setMostraImport(false)} className="p-1 text-slate-400 hover:text-slate-600 rounded">
-                <X size={18} />
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Incolla qui il testo estratto dal report della gara, dal tabellone o dallo screenshot del cronometro.
-              L'algoritmo riconoscerà automaticamente tempi, distanze (50, 100, 200, 400m) e stili.
-            </p>
-
-            <textarea
-              rows={6}
-              value={testoImport}
-              onChange={e => setTestoImport(e.target.value)}
-              placeholder="es. 100 Stile Libero 1:04.35 finale&#10;50 Dorso gara 29.80"
-              className="w-full p-3 border border-slate-300 rounded-xl text-xs font-mono"
-            />
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setMostraImport(false)}
-                className="px-4 h-12 text-slate-600 hover:bg-slate-100 rounded-xl font-semibold text-xs"
-              >
-                Annulla
-              </button>
-              <button
-                type="button"
-                disabled={!testoImport.trim()}
-                onClick={handleImportOCR}
-                className="px-5 h-12 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white rounded-xl font-bold text-xs shadow-xs"
-              >
-                Analizza e Importa
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </Sezione>
 
       <OcrGaraModal
         isOpen={ocrGaraModalOpen}

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Assenza,
   Atleta,
@@ -96,100 +96,88 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => { FINPStorage.savePiano(macro, meso, micro); }, [macro, meso, micro]);
   useEffect(() => { FINPStorage.saveImpostazioni(impostazioni); }, [impostazioni]);
 
-  // Firebase Cloud Sync
-  useEffect(() => {
-    const syncEnabled = localStorage.getItem('finp_sync_enabled') === 'true';
-    if (!syncEnabled) return;
+  const applyingCloud = useRef(false);
+  const hydrated = useRef(localStorage.getItem('finp_sync_enabled') !== 'true');
+  const latestRef = useRef({ atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, macro, meso, micro, impostazioni });
+  latestRef.current = { atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, macro, meso, micro, impostazioni };
 
-    const user = FirebaseSync.getCurrentUser();
-    if (!user) return;
-
-    // Load from cloud on mount
-    const localData: SyncData = {
+  const buildSyncPayload = (): SyncData => {
+    const s = latestRef.current;
+    return {
       version: '1.0',
       lastSync: localStorage.getItem('finp_last_sync') || '1970-01-01T00:00:00.000Z',
-      atleti,
-      condizioni,
-      assenze,
-      tempi,
-      logSedute: log,
-      stagione,
-      chiusure,
-      gare,
-      macrocicli: macro,
-      mesocicli: meso,
-      microcicli: micro,
-      impostazioni
+      atleti: s.atleti,
+      condizioni: s.condizioni,
+      assenze: s.assenze,
+      tempi: s.tempi,
+      logSedute: s.log,
+      stagione: s.stagione,
+      chiusure: s.chiusure,
+      gare: s.gare,
+      macrocicli: s.macro,
+      mesocicli: s.meso,
+      microcicli: s.micro,
+      impostazioni: s.impostazioni,
+      customWorkouts: FINPStorage.getCustomWorkouts()
     };
+  };
 
-    FirebaseSync.loadFromCloud(localData).then(cloudData => {
-      if (cloudData) {
-        // Merge cloud data with local (cloud wins on conflict)
-        if (cloudData.atleti) setAtleti(cloudData.atleti);
-        if (cloudData.condizioni) setCondizioni(cloudData.condizioni);
-        if (cloudData.assenze) setAssenze(cloudData.assenze);
-        if (cloudData.tempi) setTempi(cloudData.tempi);
-        if (cloudData.logSedute) setLog(cloudData.logSedute);
-        if (cloudData.stagione !== undefined) setStagione(cloudData.stagione);
-        if (cloudData.chiusure) setChiusure(cloudData.chiusure);
-        if (cloudData.gare) setGare(cloudData.gare);
-        if (cloudData.macrocicli) setMacro(cloudData.macrocicli);
-        if (cloudData.mesocicli) setMeso(cloudData.mesocicli);
-        if (cloudData.microcicli) setMicro(cloudData.microcicli);
-        if (cloudData.impostazioni) setImpostazioni(cloudData.impostazioni);
+  const applyCloud = (cloudData: SyncData) => {
+    applyingCloud.current = true;
+    if (cloudData.atleti) setAtleti(cloudData.atleti);
+    if (cloudData.condizioni) setCondizioni(cloudData.condizioni);
+    if (cloudData.assenze) setAssenze(cloudData.assenze);
+    if (cloudData.tempi) setTempi(cloudData.tempi);
+    if (cloudData.logSedute) setLog(cloudData.logSedute);
+    if (cloudData.stagione !== undefined) setStagione(cloudData.stagione);
+    if (cloudData.chiusure) setChiusure(cloudData.chiusure);
+    if (cloudData.gare) setGare(cloudData.gare);
+    if (cloudData.macrocicli) setMacro(cloudData.macrocicli);
+    if (cloudData.mesocicli) setMeso(cloudData.mesocicli);
+    if (cloudData.microcicli) setMicro(cloudData.microcicli);
+    if (cloudData.impostazioni) setImpostazioni(cloudData.impostazioni);
+    if (cloudData.customWorkouts) FINPStorage.saveCustomWorkouts(cloudData.customWorkouts as any[]);
+    if (cloudData.lastSync) localStorage.setItem('finp_last_sync', cloudData.lastSync);
+    setTimeout(() => { applyingCloud.current = false; }, 500);
+  };
+
+  useEffect(() => {
+    let unsubSnap: (() => void) | undefined;
+    const unsubAuth = FirebaseSync.onAuthStateChange(async (user) => {
+      const syncEnabled = localStorage.getItem('finp_sync_enabled') === 'true';
+      if (!syncEnabled || !user) {
+        hydrated.current = true;
+        return;
       }
-    });
-
-    // Subscribe to real-time updates
-    const unsubscribe = FirebaseSync.subscribeToUpdates((cloudData) => {
-      if (cloudData) {
-        if (cloudData.atleti) setAtleti(cloudData.atleti);
-        if (cloudData.condizioni) setCondizioni(cloudData.condizioni);
-        if (cloudData.assenze) setAssenze(cloudData.assenze);
-        if (cloudData.tempi) setTempi(cloudData.tempi);
-        if (cloudData.logSedute) setLog(cloudData.logSedute);
-        if (cloudData.stagione !== undefined) setStagione(cloudData.stagione);
-        if (cloudData.chiusure) setChiusure(cloudData.chiusure);
-        if (cloudData.gare) setGare(cloudData.gare);
-        if (cloudData.macrocicli) setMacro(cloudData.macrocicli);
-        if (cloudData.mesocicli) setMeso(cloudData.mesocicli);
-        if (cloudData.microcicli) setMicro(cloudData.microcicli);
-        if (cloudData.impostazioni) setImpostazioni(cloudData.impostazioni);
+      const loaded = await FirebaseSync.loadFromCloud(buildSyncPayload());
+      const localTs = localStorage.getItem('finp_last_sync') || '1970-01-01T00:00:00.000Z';
+      if (loaded && loaded.lastSync && loaded.lastSync > localTs) {
+        applyCloud(loaded);
+      } else if (loaded && loaded.lastSync === undefined && loaded.atleti) {
+        applyCloud(loaded);
       }
+      hydrated.current = true;
+      unsubSnap = FirebaseSync.subscribeToUpdates((cloudData) => {
+        if (!cloudData?.lastSync) return;
+        const ts = localStorage.getItem('finp_last_sync') || '';
+        if (cloudData.lastSync > ts) applyCloud(cloudData);
+      });
     });
-
     return () => {
-      if (unsubscribe) unsubscribe();
+      unsubAuth();
+      unsubSnap?.();
     };
   }, []);
 
-  // Auto-sync to cloud when data changes (debounced)
   useEffect(() => {
-    const syncEnabled = localStorage.getItem('finp_sync_enabled') === 'true';
-    if (!syncEnabled) return;
-
-    const user = FirebaseSync.getCurrentUser();
-    if (!user) return;
+    if (!hydrated.current || applyingCloud.current) return;
+    if (localStorage.getItem('finp_sync_enabled') !== 'true') return;
+    if (!FirebaseSync.getCurrentUser()) return;
 
     const timeoutId = setTimeout(() => {
-      const data: SyncData = {
-        version: '1.0',
-        lastSync: new Date().toISOString(),
-        atleti,
-        condizioni,
-        assenze,
-        tempi,
-        logSedute: log,
-        stagione,
-        chiusure,
-        gare,
-        macrocicli: macro,
-        mesocicli: meso,
-        microcicli: micro,
-        impostazioni
-      };
-      FirebaseSync.saveToCloud(data);
-    }, 2000); // 2 secondi di debounce
+      if (applyingCloud.current) return;
+      FirebaseSync.saveToCloud(buildSyncPayload());
+    }, 2000);
 
     return () => clearTimeout(timeoutId);
   }, [atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, macro, meso, micro, impostazioni]);

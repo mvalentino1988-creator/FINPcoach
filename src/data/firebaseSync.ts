@@ -54,6 +54,7 @@ export interface SyncData {
   mesocicli: Mesociclo[];
   microcicli: Microciclo[];
   impostazioni: ImpostazioniPiano;
+  customWorkouts?: unknown[];
 }
 
 export type SyncStatus = 'disconnected' | 'connecting' | 'syncing' | 'synced' | 'error';
@@ -233,11 +234,11 @@ export class FirebaseSync {
       this.state.status = 'syncing';
       const docRef = doc(this.db, 'users', userId);
       
-      const dataWithTimestamp: SyncData = {
+      const dataWithTimestamp: SyncData = JSON.parse(JSON.stringify({
         ...data,
         version: '1.0',
         lastSync: new Date().toISOString()
-      };
+      }));
 
       await setDoc(docRef, dataWithTimestamp);
       this.state.lastSync = dataWithTimestamp.lastSync;

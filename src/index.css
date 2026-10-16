@@ -15,6 +15,14 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Ensure all buttons have fully legible text without ellipsis/dots */
+button, a[role="button"], input[type="button"], input[type="submit"] {
+  white-space: normal !important;
+  word-break: break-word;
+  line-height: 1.25;
+  text-align: center;
+}
+
 /* Custom scrollbars for clean deck look */
 ::-webkit-scrollbar {
   width: 6px;

@@ -31,7 +31,6 @@ export const RecordScreen: React.FC = () => {
   const generi = useMemo(() => RecordService.generi(vasca, evento), [vasca, evento]);
   const classi = useMemo(() => RecordService.classi(vasca, evento, genere), [vasca, evento, genere]);
 
-  // Keep selections valid when the event/course/gender changes.
   const eventoEffettivo = eventi.includes(evento) ? evento : eventi[0] ?? '';
   const genereEffettivo = generi.includes(genere) ? genere : generi[0] ?? 'M';
   const classeEffettiva = classi.includes(classe) ? classe : classi[0] ?? '';
@@ -109,7 +108,7 @@ export const RecordScreen: React.FC = () => {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Title */}
       <div>
         <h2 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
@@ -121,104 +120,82 @@ export const RecordScreen: React.FC = () => {
         </p>
       </div>
 
-      {/* Athlete selector (optional, for comparison) */}
-      <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2 overflow-x-auto">
-        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider shrink-0 pl-1">
-          Confronta:
-        </span>
-        <div className="flex gap-1.5 shrink-0">
-          <button
-            type="button"
-            onClick={() => setAtletaSelId(null)}
-            className={`px-3 h-12 rounded-xl text-xs font-bold transition ${
-              atletaSelId === null ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            Nessuno
-          </button>
-          {atleti.map(a => (
-            <button
-              key={a.id}
-              type="button"
-              onClick={() => setAtletaSelId(a.id)}
-              className={`px-3 h-12 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                atletaSelId === a.id ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
+      {/* Filtri & Selezione Compatta (A 1 Schermo) */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          {/* Atleta di confronto */}
+          <div>
+            <label className="block font-bold text-slate-700 mb-1">Atleta di Confronto</label>
+            <select
+              value={atletaSelId ?? ''}
+              onChange={(e) => setAtletaSelId(e.target.value ? Number(e.target.value) : null)}
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
             >
-              <User size={13} />
-              <span>{a.cognome} {a.nome}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+              <option value="">Nessun atleta (solo record)</option>
+              {atleti.map(a => (
+                <option key={a.id} value={a.id}>{a.cognome} {a.nome} (S{a.classeS ?? '?'})</option>
+              ))}
+            </select>
+          </div>
 
-      {/* Course + Gender */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex gap-1.5">
-          {[25, 50].map(v => (
-            <button
-              key={v}
-              type="button"
-              onClick={() => cambiaVasca(v)}
-              className={`px-3 h-12 rounded-xl text-xs font-bold transition ${
-                vasca === v ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
+          {/* Evento */}
+          <div>
+            <label className="block font-bold text-slate-700 mb-1">Evento</label>
+            <select
+              value={eventoEffettivo}
+              onChange={(e) => cambiaEvento(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
             >
-              Vasca {v}m
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-1.5">
-          {generi.map(g => (
-            <button
-              key={g}
-              type="button"
-              onClick={() => cambiaGenere(g)}
-              className={`px-3 h-12 rounded-xl text-xs font-bold transition ${
-                genereEffettivo === g ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              {g === 'M' ? 'Maschile' : g === 'F' ? 'Femminile' : 'Mista'}
-            </button>
-          ))}
-        </div>
-      </div>
+              {eventi.map(ev => <option key={ev} value={ev}>{ev}</option>)}
+            </select>
+          </div>
 
-      {/* Event selector */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-3 shadow-xs space-y-2">
-        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">Evento</span>
-        <div className="flex flex-wrap gap-1.5">
-          {eventi.map(ev => (
-            <button
-              key={ev}
-              type="button"
-              onClick={() => cambiaEvento(ev)}
-              className={`px-2.5 h-12 rounded-lg text-[11px] font-semibold transition ${
-                eventoEffettivo === ev ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
+          {/* Classe */}
+          <div>
+            <label className="block font-bold text-slate-700 mb-1">Classe</label>
+            <select
+              value={classeEffettiva}
+              onChange={(e) => setClasse(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
             >
-              {ev}
-            </button>
-          ))}
+              {classi.map(cl => <option key={cl} value={cl}>{cl}</option>)}
+            </select>
+          </div>
         </div>
-      </div>
 
-      {/* Class selector */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-3 shadow-xs space-y-2">
-        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">Classe</span>
-        <div className="flex flex-wrap gap-1.5">
-          {classi.map(cl => (
-            <button
-              key={cl}
-              type="button"
-              onClick={() => setClasse(cl)}
-              className={`px-3 h-12 rounded-lg text-xs font-bold transition ${
-                classeEffettiva === cl ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              {cl}
-            </button>
-          ))}
+        {/* Vasca & Genere (Pillole rapide) */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
+          <div className="flex items-center gap-1.5">
+            <span className="font-bold text-slate-600 mr-1">Vasca:</span>
+            {[25, 50].map(v => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => cambiaVasca(v)}
+                className={`px-3 py-1.5 rounded-xl font-bold transition ${
+                  vasca === v ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                {v}m
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <span className="font-bold text-slate-600 mr-1">Genere:</span>
+            {generi.map(g => (
+              <button
+                key={g}
+                type="button"
+                onClick={() => cambiaGenere(g)}
+                className={`px-3 py-1.5 rounded-xl font-bold transition ${
+                  genereEffettivo === g ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                {g === 'M' ? 'Maschile' : g === 'F' ? 'Femminile' : 'Mista'}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
