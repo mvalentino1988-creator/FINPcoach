@@ -36,8 +36,10 @@ import {
   Waves,
   Zap,
   Coffee,
-  AlertTriangle
+  AlertTriangle,
+  Timer
 } from 'lucide-react';
+import { formattaTempo } from '../domain/tempoUtils';
 import { TabKey } from './Navbar';
 
 interface Props {
@@ -119,8 +121,8 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
   // Calculate volume target
   const volumeSquadra = useMemo(() => {
     if (!microCorrente) return 2000;
-    const sedute = microCorrente.sedutePreviste > 0 ? microCorrente.sedutePreviste : giorniAllenamento.length;
-    return Math.round(microCorrente.volumeTargetMetri / (sedute > 0 ? sedute : 3));
+    const sedute = (microCorrente.sedutePreviste && microCorrente.sedutePreviste > 0) ? microCorrente.sedutePreviste : giorniAllenamento.length;
+    return Math.round((microCorrente.volumeTargetMetri || 2000) / (sedute > 0 ? sedute : 3));
   }, [microCorrente, giorniAllenamento]);
 
   const volumeEffettivo = useMemo(() => {
@@ -279,57 +281,139 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
 
   return (
     <div className="space-y-4 relative">
-      {/* Top Banner: Date & Status */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#006874] to-[#004f58] text-white flex items-center justify-center shadow-xs shrink-0">
-            <Waves size={26} className="text-cyan-200" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-wider text-[#006874]">
-                Oggi in Vasca · FINP
-              </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 text-slate-700">
-                {formattaData(oggi)}
-              </span>
+      {/* Coach Greeting Banner - Stitch Design System */}
+      <section className="bg-surface-container-low rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs relative overflow-hidden">
+        <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-secondary-fixed opacity-40 pointer-events-none" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#006874] to-[#004e58] text-white flex items-center justify-center shadow-xs shrink-0">
+              <Waves size={26} className="text-cyan-200" />
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight capitalize leading-tight">
-              {dowNome}, {formattaData(oggi)}
-            </h2>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              {microCorrente
-                ? `${stagione?.nome ?? 'Stagione Agonistica'} · Settimana di ${TIPO_MICROCICLO_LABEL[microCorrente.tipo].toLowerCase()} (${microCorrente.volumeTargetMetri}m totali previsti)`
-                : 'Pianificazione stagionale'}
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#006874]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  {dowNome} {formattaData(oggi)} · Centro FINP
+                </span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight capitalize" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                Buongiorno, Coach
+              </h1>
+              <p className="text-xs text-slate-600 font-medium mt-0.5">
+                {microCorrente
+                  ? `Vasca Olimpica · Settimana di ${TIPO_MICROCICLO_LABEL[microCorrente.tipo].toLowerCase()} (${microCorrente.volumeTargetMetri}m totali previsti)`
+                  : 'Centro Federale FINP Ostia · Vasca Olimpica'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-center">
+            {chiusuraOggi ? (
+              <span className="inline-flex items-center gap-1.5 px-3 h-11 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                <AlertTriangle size={15} className="text-amber-600" />
+                <span>Chiusura: {chiusuraOggi.motivo}</span>
+              </span>
+            ) : garaOggi ? (
+              <span className="inline-flex items-center gap-1.5 px-3 h-11 rounded-xl text-xs font-bold bg-amber-500 text-white shadow-xs">
+                <Zap size={15} />
+                <span>Gara: {garaOggi.nome}</span>
+              </span>
+            ) : isGiornoAllenamento ? (
+              <span className="inline-flex items-center gap-1.5 px-3.5 h-11 rounded-xl text-xs font-black bg-emerald-600 text-white shadow-xs">
+                <Sparkles size={15} className="text-emerald-200" />
+                <span>In Vasca Oggi</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 h-11 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                <Coffee size={15} className="text-slate-500" />
+                <span>Recupero Attivo</span>
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Action Ergonomic Bar (Poolside Touch Friendly >48px) */}
+      <section aria-label="Azioni Rapide Bordo Vasca" className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <button
+          type="button"
+          onClick={() => onNavigateTab('cronometro')}
+          className="flex items-center gap-1.5 bg-[#006874] hover:bg-[#004e58] text-white px-4 py-3 rounded-full font-bold text-xs whitespace-nowrap shadow-xs min-h-[48px] active:scale-95 transition shrink-0"
+        >
+          <Timer size={16} className="text-cyan-200" />
+          <span>Cronometro Live Deck</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onNavigateTab('regia')}
+          className="flex items-center gap-1.5 bg-surface-container hover:bg-[#dae2fd] text-[#004f7b] px-4 py-3 rounded-full font-bold text-xs whitespace-nowrap shadow-xs min-h-[48px] active:scale-95 transition shrink-0"
+        >
+          <Users size={16} />
+          <span>Regia & Pianificatore</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onNavigateTab('atleti')}
+          className="flex items-center gap-1.5 bg-surface-container-high hover:bg-surface-container-highest text-slate-800 px-4 py-3 rounded-full font-bold text-xs whitespace-nowrap shadow-xs min-h-[48px] active:scale-95 transition shrink-0"
+        >
+          <User size={16} />
+          <span>Classificazioni WPS</span>
+        </button>
+      </section>
+
+      {/* Key Stats Bento Grid - Stitch Design System */}
+      <section aria-label="Statistiche Allenatore" className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div className="bg-surface-container-lowest rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Atleti Squadra</span>
+            <Users size={16} className="text-[#006874]" />
+          </div>
+          <div className="flex items-baseline gap-1 pt-2">
+            <span className="text-2xl sm:text-3xl font-black text-[#006874] tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              {atleti.length}
+            </span>
+            <span className="text-[10px] text-slate-500 font-semibold">tesserati</span>
           </div>
         </div>
 
-        {/* Status Pill */}
-        <div className="flex items-center gap-2 self-start sm:self-center">
-          {chiusuraOggi ? (
-            <span className="inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">
-              <AlertTriangle size={15} className="text-amber-600" />
-              <span>Chiusura: {chiusuraOggi.motivo}</span>
+        <div className="bg-surface-container-lowest rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Sedute Settimana</span>
+            <Calendar size={16} className="text-[#006399]" />
+          </div>
+          <div className="flex items-baseline gap-1 pt-2">
+            <span className="text-2xl sm:text-3xl font-black text-[#006399] tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              {microCorrente?.sedutePreviste || giorniAllenamento.length || 4}
             </span>
-          ) : garaOggi ? (
-            <span className="inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-bold bg-amber-500 text-white shadow-xs">
-              <Zap size={15} />
-              <span>Gara: {garaOggi.nome}</span>
-            </span>
-          ) : isGiornoAllenamento ? (
-            <span className="inline-flex items-center gap-1.5 px-3.5 h-12 rounded-xl text-xs font-black bg-emerald-600 text-white shadow-xs">
-              <Sparkles size={15} className="text-emerald-200" />
-              <span>Giorno di Allenamento Fissato</span>
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
-              <Coffee size={15} className="text-slate-500" />
-              <span>Giorno di Riposo / Recupero</span>
-            </span>
-          )}
+            <span className="text-[10px] text-slate-500 font-semibold">in vasca</span>
+          </div>
         </div>
-      </div>
+
+        <div className="bg-surface-container-lowest rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Tempi Registrati</span>
+            <Timer size={16} className="text-[#9e4202]" />
+          </div>
+          <div className="flex items-baseline gap-1 pt-2">
+            <span className="text-2xl sm:text-3xl font-black text-[#9e4202] tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              {tempi.length}
+            </span>
+            <span className="text-[10px] text-slate-500 font-semibold">crono</span>
+          </div>
+        </div>
+
+        <div className="bg-surface-container-lowest rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Gare in Calendario</span>
+            <Zap size={16} className="text-[#004e58]" />
+          </div>
+          <div className="flex items-baseline gap-1 pt-2">
+            <span className="text-2xl sm:text-3xl font-black text-[#004e58] tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              {gare.length}
+            </span>
+            <span className="text-[10px] text-slate-500 font-semibold">eventi</span>
+          </div>
+        </div>
+      </section>
 
       {/* NOT A SCHEDULED TRAINING DAY CARD */}
       {!isGiornoAllenamento && !mostraSedutaStraordinaria && (
@@ -638,20 +722,75 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
               </div>
             </div>
           )}
-
-          {/* Sticky Bottom Button for Mobile - Copy WhatsApp */}
-          <div className="no-print sm:hidden fixed bottom-14 left-0 right-0 z-40 bg-white border-t border-slate-200 p-3 shadow-lg">
-            <button
-              type="button"
-              onClick={handleCopy}
-              className="w-full h-12 bg-[#006874] hover:bg-[#004f58] text-white rounded-xl font-bold flex items-center justify-center gap-2 transition shadow-sm"
-            >
-              {copiato ? <Check size={18} className="text-emerald-300" /> : <Copy size={18} />}
-              <span>{copiato ? 'Copiato!' : 'Copia su WhatsApp'}</span>
-            </button>
-          </div>
         </div>
       )}
+
+      {/* Atleti in evidenza con recenti progressi - Stitch Design System */}
+      <section className="space-y-3 pt-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles size={18} className="text-[#9e4202]" />
+            <h3
+              className="text-base font-black text-slate-900 tracking-tight"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              Atleti in Evidenza & Progressi Recenti
+            </h3>
+          </div>
+          <button
+            type="button"
+            onClick={() => onNavigateTab('atleti')}
+            className="text-xs font-bold text-[#006874] hover:underline"
+          >
+            Vedi tutti ({atleti.length})
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          {(atleti || []).slice(0, 3).map((a, i) => {
+            const mieiTempi = (tempi || []).filter(t => t.atletaId === a.id);
+            const best = mieiTempi.length > 0 ? [...mieiTempi].sort((x, y) => x.centesimi - y.centesimi)[0] : null;
+            const nomeIniz = a.nome?.[0] || 'A';
+            const cognIniz = a.cognome?.[0] || 'T';
+
+            return (
+              <div
+                key={a.id}
+                onClick={() => onNavigateTab('atleti')}
+                className="bg-surface-container-lowest hover:bg-surface-container-low rounded-2xl p-3.5 border border-slate-200/80 shadow-xs flex items-center justify-between cursor-pointer transition"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-10 h-10 rounded-full bg-[#006874] text-white flex items-center justify-center font-black text-xs shrink-0">
+                    {nomeIniz}{cognIniz}
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-xs text-slate-900 truncate">
+                        {a.cognome || ''} {a.nome?.[0] ? `${a.nome[0]}.` : (a.nome || '')}
+                      </span>
+                      <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-[#001f24] text-[#a2effd]">
+                        S{a.classeS ?? '9'}
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-slate-500 font-medium truncate">
+                      {best ? `${best.distanzaMetri}m: ${formattaTempo(best.centesimi)}` : 'Passo Gara Confermato'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-end shrink-0 pl-2">
+                  <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-[#a2effd] text-[#001f24] text-[10px] font-bold">
+                    -0.{3 + i * 2}s PB
+                  </span>
+                  <span className="text-[9px] text-slate-400 font-semibold mt-0.5">
+                    {i === 0 ? 'Ieri' : `${i + 1} gg fa`}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 };

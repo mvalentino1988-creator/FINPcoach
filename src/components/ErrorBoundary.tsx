@@ -36,15 +36,33 @@ export class ErrorBoundary extends Component<Props, State> {
               <p className="text-xs text-slate-500 mt-1">
                 L'applicazione ha riscontrato un errore di rendering. I tuoi dati locali sono al sicuro nello storage.
               </p>
+              {this.state.error && (
+                <div className="mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-left text-xs font-mono text-rose-800 break-words max-h-48 overflow-y-auto">
+                  <div className="font-bold">{this.state.error.name}: {this.state.error.message}</div>
+                  <pre className="text-[10px] text-slate-600 mt-1 whitespace-pre-wrap">{this.state.error.stack}</pre>
+                </div>
+              )}
             </div>
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="w-full py-2.5 bg-[#006874] hover:bg-[#004f58] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs"
-            >
-              <RefreshCw size={16} />
-              <span>Ricarica Applicazione</span>
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  sessionStorage.removeItem('finp_active_tab');
+                  window.location.reload();
+                }}
+                className="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition"
+              >
+                Reset Tab
+              </button>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="flex-1 py-2.5 bg-[#006874] hover:bg-[#004f58] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs"
+              >
+                <RefreshCw size={16} />
+                <span>Ricarica</span>
+              </button>
+            </div>
           </div>
         </div>
       );

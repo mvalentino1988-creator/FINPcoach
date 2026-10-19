@@ -15,8 +15,9 @@ import { FINPStorage } from '../data/storage';
 import { OcrWorkoutStandardizer } from '../domain/ocrWorkoutStandardizer';
 import { Sezione } from './Sezione';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { ParaSwimmingAnalyticsView } from './ParaSwimmingAnalyticsView';
 
-type DatiTab = 'schede' | 'tempi' | 'registro';
+type DatiTab = 'schede' | 'tempi' | 'registro' | 'biomeccanica';
 
 type LivelloAtleta = 'PRINCIPIANTE' | 'INTERMEDIO' | 'AVANZATO';
 
@@ -169,6 +170,7 @@ export const DatiScreen: React.FC = () => {
           <option value="schede">🏊‍♂️ Schede Vasca</option>
           <option value="tempi">⏱️ Tempi & Ripartenze</option>
           <option value="registro">📋 Registro Presenze & Carico</option>
+          <option value="biomeccanica">📈 Analisi Biomeccanica C(v)</option>
         </select>
 
         {tab === 'schede' && (
@@ -729,6 +731,7 @@ export const DatiScreen: React.FC = () => {
           )}
           {tab === 'tempi' && <TempiRipartenzeScreen />}
           {tab === 'registro' && <RegistroScreen />}
+          {tab === 'biomeccanica' && <ParaSwimmingAnalyticsView />}
         </div>
       )}
 

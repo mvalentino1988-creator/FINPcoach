@@ -336,17 +336,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const creaStagione = (nome: string, inizio: string, fine: string) => {
     const nuovaStagione: Stagione = {
       id: 1,
-      nome,
+      nome: nome.trim() || 'Stagione Agonistica FINP',
       inizio,
       fine,
       vascaMetri: 25
     };
     const feste = Festivita.perStagione(nuovaStagione).map((c, i) => ({ ...c, id: i + 1 }));
-    setStagione(nuovaStagione);
-    setChiusure(feste);
-    setGare([]);
 
-    // Immediately generate plan
     const planGen = PianoGenerator.genera(nuovaStagione, feste, [], parametriEffettivi);
     let macroId = 1;
     let mesoId = 1;
@@ -368,9 +364,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
+    setStagione(nuovaStagione);
+    setChiusure(feste);
+    setGare([]);
     setMacro(newMacro);
     setMeso(newMeso);
     setMicro(newMicro);
+
+    FINPStorage.saveStagione(nuovaStagione);
+    FINPStorage.saveChiusure(feste);
+    FINPStorage.saveGare([]);
+    FINPStorage.savePiano(newMacro, newMeso, newMicro);
   };
 
   const modificaDateStagione = (inizio: string, fine: string) => {
@@ -430,6 +434,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setMacro([]);
     setMeso([]);
     setMicro([]);
+
+    FINPStorage.saveStagione(null);
+    FINPStorage.saveChiusure([]);
+    FINPStorage.saveGare([]);
+    FINPStorage.savePiano([], [], []);
   };
 
   const aggiungiChiusura = (dal: string, al: string, motivo: string) => {

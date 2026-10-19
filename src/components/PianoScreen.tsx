@@ -95,10 +95,10 @@ export const PianoScreen: React.FC = () => {
 
   // Form nuova stagione
   const oggi = todayISO();
-  const [inizioStagione, setInizioStagione] = useState(formattaData(AutoPianificatore.inizioStagioneSuggerito(oggi)));
+  const [inizioStagione, setInizioStagione] = useState(() => AutoPianificatore.inizioStagioneSuggerito(oggi));
   const inizioParsed = parseData(inizioStagione);
-  const fineSuggerita = inizioParsed ? AutoPianificatore.fineStagioneSuggerita(inizioParsed) : null;
-  const [fineStagione, setFineStagione] = useState('');
+  const fineSuggerita = inizioParsed ? AutoPianificatore.fineStagioneSuggerita(inizioParsed) : '';
+  const [fineStagione, setFineStagione] = useState(() => fineSuggerita);
   const fineEffettiva = fineStagione.trim() ? parseData(fineStagione) : fineSuggerita;
   const [nomeStagione, setNomeStagione] = useState('');
   const nomeAuto = inizioParsed && fineEffettiva ? AutoPianificatore.nomeStagione(inizioParsed, fineEffettiva) : '';
@@ -135,23 +135,26 @@ export const PianoScreen: React.FC = () => {
 
         <div className="space-y-3 text-sm">
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">Inizio stagione (gg/mm/aaaa) *</label>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">Inizio stagione (Seleziona da calendario) *</label>
             <input
-              type="text"
+              type="date"
               value={inizioStagione}
-              onChange={e => setInizioStagione(e.target.value)}
-              className="w-full px-3 h-12 border rounded-xl border-slate-300"
+              onChange={e => {
+                setInizioStagione(e.target.value);
+                const p = parseData(e.target.value);
+                if (p) setFineStagione(AutoPianificatore.fineStagioneSuggerita(p));
+              }}
+              className="w-full px-3 h-12 border rounded-xl border-slate-300 font-bold bg-slate-50 text-slate-800"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">Fine stagione (auto)</label>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">Fine stagione (Seleziona da calendario)</label>
             <input
-              type="text"
-              placeholder={fineSuggerita ? formattaData(fineSuggerita) : 'gg/mm/aaaa'}
+              type="date"
               value={fineStagione}
               onChange={e => setFineStagione(e.target.value)}
-              className="w-full px-3 h-12 border rounded-xl border-slate-300"
+              className="w-full px-3 h-12 border rounded-xl border-slate-300 font-bold bg-slate-50 text-slate-800"
             />
           </div>
 
@@ -200,19 +203,21 @@ export const PianoScreen: React.FC = () => {
           <span className="text-[11px] uppercase tracking-wider text-cyan-200 font-bold block">
             Stagione Agonistica FINP
           </span>
-          <h2 className="text-xl sm:text-2xl font-black">{stagione.nome}</h2>
+          <h2 className="text-xl sm:text-2xl font-black">{stagione?.nome ?? 'Stagione'}</h2>
           <p className="text-xs text-cyan-100 font-medium mt-0.5">
-            {formattaData(stagione.inizio)} – {formattaData(stagione.fine)} · Vasca da {stagione.vascaMetri} m
+            {stagione?.inizio ? formattaData(stagione.inizio) : ''} – {stagione?.fine ? formattaData(stagione.fine) : ''} · Vasca da {stagione?.vascaMetri ?? 25} m
           </p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-center">
           <button
             onClick={() => {
-              setModInizio(formattaData(stagione.inizio));
-              setModFine(formattaData(stagione.fine));
-              setModError(null);
-              setModificaDateOpen(true);
+              if (stagione) {
+                setModInizio(formattaData(stagione.inizio));
+                setModFine(formattaData(stagione.fine));
+                setModError(null);
+                setModificaDateOpen(true);
+              }
             }}
             className="px-3 h-12 bg-white/20 hover:bg-white/30 text-white border border-white/30 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
           >

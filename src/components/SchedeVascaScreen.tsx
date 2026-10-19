@@ -38,6 +38,8 @@ export const SchedeVascaScreen: React.FC = () => {
   const [atletaSelId, setAtletaSelId] = useState<number | null>(null); // null = Tutta la Squadra
   const [dataTesto, setDataTesto] = useState<string>(formattaData(todayISO()));
   const [metriManual, setMetriManual] = useState<string>('1800');
+  const [vascaSel, setVascaSel] = useState<number>(25);
+  const [durataSel, setDurataSel] = useState<number>(90);
   const [copiato, setCopiato] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
@@ -199,6 +201,49 @@ export const SchedeVascaScreen: React.FC = () => {
                 className="w-full px-3 h-12 border border-slate-300 rounded-xl font-black text-[#006874] text-sm"
               />
             )}
+          </div>
+        </div>
+
+        {/* Vasca & Durata Giornaliera Selectors (Refined from Stitch Design) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100 text-xs">
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">Configurazione Vasca Impianto</label>
+            <div className="flex gap-2">
+              {[25, 50].map(v => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setVascaSel(v)}
+                  className={`flex-1 h-12 rounded-xl font-bold transition border ${
+                    vascaSel === v
+                      ? 'bg-[#006874] text-white border-[#006874] shadow-xs'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  {v === 50 ? 'Vasca 50m' : 'Vasca 25m'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">Durata Giornaliera Target</label>
+            <div className="flex gap-2">
+              {[60, 90, 120].map(d => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => setDurataSel(d)}
+                  className={`flex-1 h-12 rounded-xl font-bold transition border ${
+                    durataSel === d
+                      ? 'bg-[#006874] text-white border-[#006874] shadow-xs'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  {d} min
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

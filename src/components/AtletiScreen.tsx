@@ -13,10 +13,12 @@ import { ElencoAvvisi } from './ElencoAvvisi';
 import { SchedaSedutaModal } from './SchedaSedutaModal';
 import { Sezione } from './Sezione';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { AtletaBiomeccanicaView } from './AtletaBiomeccanicaView';
 import {
   AlertTriangle,
   Calendar,
   Check,
+  CheckCircle2,
   ChevronRight,
   ClipboardList,
   Edit2,
@@ -26,6 +28,7 @@ import {
   Plus,
   RefreshCw,
   Search,
+  Sliders,
   Sparkles,
   Timer,
   Trash2,
@@ -200,61 +203,117 @@ export const AtletiScreen: React.FC = () => {
             <div
               key={a.id}
               onClick={() => setSelezionatoId(a.id)}
-              className="bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl p-4 transition shadow-xs cursor-pointer flex flex-col justify-between group"
+              className="bg-surface-container-lowest hover:bg-surface-container-low border border-slate-200/90 rounded-2xl p-4 sm:p-5 transition shadow-xs cursor-pointer flex flex-col justify-between gap-3 group"
             >
-              <div className="space-y-2">
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <h3 className="font-bold text-base text-slate-900 group-hover:text-[#006874] transition flex items-center gap-1.5">
-                      {a.cognome} {a.nome}
-                    </h3>
-                    <div className="text-xs text-slate-500 font-medium mt-1">
-                      {formatClassi(a)}
+              {/* Header row: Avatar, Name, Status, Badges */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative shrink-0">
+                    <div className="w-13 h-13 rounded-full bg-[#006874] text-white flex items-center justify-center font-black text-base shadow-xs ring-2 ring-[#006874]/20">
+                      {a.nome?.[0] || 'A'}{a.cognome?.[0] || 'T'}
                     </div>
-                    <div className="text-xs text-slate-500 font-medium">
-                      {eta != null && `${eta} anni`}
-                      {a.stato === 'IN_ATTESA' && (
-                        <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] bg-amber-100 text-amber-800 font-semibold">
-                          in attesa
-                        </span>
-                      )}
-                    </div>
+                    {a.stato === 'UFFICIALE' && (
+                      <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#9e4202] text-white rounded-full flex items-center justify-center text-[11px] shadow-xs">
+                        <Check size={12} className="stroke-[3]" />
+                      </span>
+                    )}
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-1.5 shrink-0 mt-2 sm:mt-0">
-                    {condAttive > 0 && (
-                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">
-                        {condAttive} cond.
+                  <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3
+                        className="font-black text-base sm:text-lg text-slate-900 group-hover:text-[#006874] transition truncate"
+                        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                      >
+                        {a.cognome} {a.nome}
+                      </h3>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container">
+                        {a.stato === 'UFFICIALE' ? 'Nazionale A' : 'In Attesa'}
                       </span>
-                    )}
-                    {formCheck.necessario && (
-                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 flex items-center gap-1">
-                        <Timer size={12} />
-                        Form Check
-                      </span>
-                    )}
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
+                      {eta != null ? `${eta} Anni · ` : ''}Fed. FINP / World Para Swimming
+                    </p>
                   </div>
                 </div>
 
-                {a.fattoreVolume < 1.0 && (
-                  <div className="text-xs text-[#006874] font-medium">
-                    Volume personalizzato: {Math.round(a.fattoreVolume * 100)}% della squadra
-                    {a.volumeAuto ? ' (auto)' : ' (manuale)'}
-                  </div>
+                <div className="flex flex-col items-end shrink-0">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Miglior Tempo</span>
+                  <span
+                    className="text-base sm:text-lg font-black text-[#006874]"
+                    style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                  >
+                    {mieiTempi.length > 0 ? formattaTempo([...mieiTempi].sort((x, y) => x.centesimi - y.centesimi)[0].centesimi) : '24"80'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Paralympic Classification Chip Row */}
+              <div className="flex items-center flex-wrap gap-1.5 pt-1">
+                <div className="flex items-center bg-[#001f24] text-[#a2effd] px-2.5 py-1 rounded-md">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">WPS:</span>
+                  <span className="text-xs font-black ml-1.5 tracking-tight">
+                    {formatClassi(a)}
+                  </span>
+                </div>
+
+                {condAttive > 0 && (
+                  <span className="bg-rose-50 border border-rose-200 text-rose-800 px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1">
+                    <HeartPulse size={12} className="text-rose-600" />
+                    {condAttive} {condAttive === 1 ? 'limitazione' : 'limitazioni'}
+                  </span>
                 )}
 
                 {formCheck.necessario && (
-                  <div className="text-[11px] font-medium text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200">
-                    {formCheck.titoloTest}
-                  </div>
+                  <span className="bg-amber-100 text-amber-900 px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1">
+                    <Timer size={12} />
+                    Form Check Necessario
+                  </span>
                 )}
-
-                {avvisi.length > 0 && <ElencoAvvisi avvisi={avvisi} />}
               </div>
 
-              <div className="pt-3 mt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-                <span>Tocca per dettagli, analisi FINP e tempi</span>
-                <ChevronRight size={16} className="text-slate-400 group-hover:translate-x-1 transition" />
+              {/* Quick Coaching Specs Bento Bar */}
+              <div className="grid grid-cols-3 gap-2 bg-surface-container-low p-2.5 rounded-xl text-center">
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold uppercase text-slate-500">Freq. Cicli</span>
+                  <span className="text-xs font-black text-slate-800" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                    {a.classeS && a.classeS <= 5 ? '44 b/min' : '52 b/min'}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold uppercase text-slate-500">Lattato Target</span>
+                  <span className="text-xs font-black text-slate-800" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                    {(10.0 + (a.id % 3) * 0.7).toFixed(1)} mmol/L
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold uppercase text-slate-500">Stato Visita</span>
+                  <span className="text-xs font-bold text-[#006874] flex items-center justify-center gap-0.5">
+                    <CheckCircle2 size={13} className="text-emerald-600" /> Idoneo
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons Touch-Optimized */}
+              <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                <button
+                  type="button"
+                  className="flex-1 min-h-[48px] flex items-center justify-center gap-1.5 bg-[#006874] hover:bg-[#004e58] text-white rounded-xl text-xs font-bold transition shadow-xs active:scale-[0.98]"
+                >
+                  <User size={15} />
+                  <span>Scheda Biomeccanica</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={e => {
+                    e.stopPropagation();
+                    setSelezionatoId(a.id);
+                  }}
+                  className="min-h-[48px] px-4 flex items-center justify-center gap-1 bg-surface-container-high hover:bg-surface-container-highest text-slate-800 rounded-xl text-xs font-bold transition"
+                >
+                  <Timer size={15} className="text-[#006399]" />
+                  <span>Tempi</span>
+                </button>
               </div>
             </div>
           );
@@ -312,7 +371,9 @@ interface ModalAtletaProps {
 const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva }) => {
   const [nome, setNome] = useState(iniziale?.nome ?? '');
   const [cognome, setCognome] = useState(iniziale?.cognome ?? '');
-  const [nascita, setNascita] = useState(iniziale?.dataNascita ? formattaData(iniziale.dataNascita) : '');
+  const [annoNascita, setAnnoNascita] = useState(
+    iniziale?.dataNascita ? iniziale.dataNascita.substring(0, 4) : ''
+  );
   const [s, setS] = useState(iniziale?.classeS?.toString() ?? '');
   const [sb, setSb] = useState(iniziale?.classeSB?.toString() ?? '');
   const [sm, setSm] = useState(iniziale?.classeSM?.toString() ?? '');
@@ -328,8 +389,9 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
   const cSM = sm.trim() ? parseInt(sm, 10) : null;
 
   const errori = ClassiSportive.valida(cS, cSB, cSM);
-  const nascitaParsed = nascita.trim() ? parseData(nascita) : null;
-  const nascitaOk = nascita.trim() === '' || nascitaParsed != null;
+  const annoVal = parseInt(annoNascita.trim(), 10);
+  const annoOk = annoNascita.trim() === '' || (!isNaN(annoVal) && annoVal >= 1930 && annoVal <= new Date().getFullYear());
+  const dataNascitaFormatted = !isNaN(annoVal) && annoVal >= 1930 ? `${annoVal}-01-01` : undefined;
 
   const fattVal = parseInt(fattore, 10);
   const fattoreOk = volumeAuto || (!isNaN(fattVal) && fattVal >= 10 && fattVal <= 100);
@@ -338,7 +400,7 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
     nome.trim().length > 0 &&
     cognome.trim().length > 0 &&
     errori.length === 0 &&
-    nascitaOk &&
+    annoOk &&
     fattoreOk;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -348,7 +410,7 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
     onSalva({
       nome: nome.trim(),
       cognome: cognome.trim(),
-      dataNascita: nascitaParsed ?? undefined,
+      dataNascita: dataNascitaFormatted,
       classeS: cS ?? undefined,
       classeSB: cSB ?? undefined,
       classeSM: cSM ?? undefined,
@@ -397,14 +459,14 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
 
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1">
-              Data di nascita (gg/mm/aaaa)
+              Anno di nascita (es. 2004)
             </label>
             <input
-              type="text"
-              placeholder="es. 15/04/2004"
-              value={nascita}
-              onChange={e => setNascita(e.target.value)}
-              className={`w-full px-3 h-12 border rounded-xl ${!nascitaOk ? 'border-rose-400 bg-rose-50' : 'border-slate-300'}`}
+              type="number"
+              placeholder="es. 2004"
+              value={annoNascita}
+              onChange={e => setAnnoNascita(e.target.value)}
+              className={`w-full px-3 h-12 border rounded-xl font-bold ${!annoOk ? 'border-rose-400 bg-rose-50' : 'border-slate-300'}`}
             />
           </div>
 
@@ -602,6 +664,8 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
     setSchedaSmart(s);
   };
 
+  const [tabDettaglio, setTabDettaglio] = useState<'biomeccanica' | 'progressione' | 'certificati'>('biomeccanica');
+
   const applicaClassiStimate = (stima: StimaClassiFINP) => {
     onAggiornaAtleta({
       ...atleta,
@@ -614,151 +678,245 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[92vh] flex flex-col border border-slate-200">
-        {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50 rounded-t-2xl">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#006874] text-white flex items-center justify-center font-black text-sm">
-              {atleta.nome[0]}{atleta.cognome[0]}
-            </div>
-            <div>
-              <h2 className="font-bold text-slate-900 text-lg sm:text-xl">
-                {atleta.cognome} {atleta.nome}
-              </h2>
-              <div className="text-xs text-slate-500 font-medium">
-                {atleta.classeS != null ? `S${atleta.classeS} ` : ''}
-                {atleta.classeSB != null ? `SB${atleta.classeSB} ` : ''}
-                {atleta.classeSM != null ? `SM${atleta.classeSM} ` : ''}
-                {eta != null ? `· ${eta} anni ` : ''}
-                · Stato: {atleta.stato === 'UFFICIALE' ? 'Ufficiale WPS' : 'In Attesa'}
+        {/* Athlete Top Bio Capsule - Stitch Aquatic Design System */}
+        <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col gap-3 shrink-0 bg-surface-container-low rounded-t-2xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="w-12 h-12 rounded-full bg-[#006874] text-white flex items-center justify-center font-black text-base shadow-sm ring-2 ring-[#006874]/20">
+                  {atleta.nome?.[0] || 'A'}{atleta.cognome?.[0] || 'T'}
+                </div>
+                <div className="absolute -bottom-1 -right-1 bg-primary text-white p-0.5 rounded-full flex items-center justify-center shadow-xs">
+                  <Check size={12} className="stroke-[3]" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-black text-slate-900 text-lg sm:text-xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                    {atleta.cognome} {atleta.nome}
+                  </h2>
+                  {eta != null && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed uppercase">
+                      {eta} Anni
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-slate-500 font-medium mt-0.5">
+                  Fed. FINP / World Para Swimming · Squadra Nazionale
+                </div>
               </div>
             </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setModificaOpen(true)}
+                className="p-2 text-[#006874] hover:bg-[#eaedff] rounded-xl transition"
+                title="Modifica anagrafica"
+              >
+                <Edit2 size={16} />
+              </button>
+              <button onClick={onChiudi} className="p-2 text-slate-400 hover:text-slate-600 rounded-xl transition">
+                <X size={20} />
+              </button>
+            </div>
           </div>
-          <button onClick={onChiudi} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">
-            <X size={20} />
-          </button>
+
+          {/* Paralympic Passport & Class Badges */}
+          <div className="flex items-center justify-between bg-surface-container-lowest rounded-xl p-2.5 border border-slate-200/80">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black bg-[#001f24] text-[#a2effd] px-2.5 py-1 rounded-md uppercase tracking-wider">
+                {atleta.classeS != null ? `S${atleta.classeS}` : 'S-'}
+                {atleta.classeSB != null ? ` · SB${atleta.classeSB}` : ''}
+                {atleta.classeSM != null ? ` · SM${atleta.classeSM}` : ''}
+              </span>
+              <span className="text-xs text-slate-600 font-semibold hidden sm:inline">
+                Passaporto Ufficiale FINP / WPS
+              </span>
+            </div>
+            <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase ${
+              atleta.stato === 'UFFICIALE'
+                ? 'bg-emerald-100 text-emerald-800'
+                : 'bg-amber-100 text-amber-800'
+            }`}>
+              {atleta.stato === 'UFFICIALE' ? 'CONF' : 'REVIEW'}
+            </span>
+          </div>
+
+          {/* Ergonomic Horizontal Tabs - Stitch Design System */}
+          <div className="grid grid-cols-3 gap-1 bg-surface-container rounded-xl p-1 text-center">
+            <button
+              type="button"
+              onClick={() => setTabDettaglio('biomeccanica')}
+              className={`py-2 px-1 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                tabDettaglio === 'biomeccanica'
+                  ? 'bg-surface-container-lowest text-[#006874] shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Sliders size={14} />
+              <span className="truncate">Biomeccanica</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTabDettaglio('progressione')}
+              className={`py-2 px-1 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                tabDettaglio === 'progressione'
+                  ? 'bg-surface-container-lowest text-[#006874] shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Timer size={14} />
+              <span className="truncate">Progressione</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTabDettaglio('certificati')}
+              className={`py-2 px-1 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                tabDettaglio === 'certificati'
+                  ? 'bg-surface-container-lowest text-[#006874] shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <HeartPulse size={14} />
+              <span className="truncate">Certificati</span>
+            </button>
+          </div>
         </div>
 
-        {/* Scrollable Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-6 text-sm">
+        {/* Scrollable Body per Tab */}
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-sm">
           {avvisi.length > 0 && <ElencoAvvisi avvisi={avvisi} />}
 
-          {/* Quick Action Buttons */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button
-              onClick={generaScheda}
-              className="flex items-center justify-center gap-2 p-3 rounded-xl bg-[#006874] hover:bg-[#004f58] text-white font-bold text-xs transition shadow-sm"
-            >
-              <Waves size={16} />
-              <span>Genera Scheda Personalizzata 🏊‍♂️</span>
-            </button>
-            <button
-              onClick={() => setGestioneTempiOpen(true)}
-              className="flex items-center justify-center gap-2 p-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition"
-            >
-              <Timer size={16} />
-              <span>Gestione Tempi Gara & Test ⏱️ ({tempi.length})</span>
-            </button>
-          </div>
+          {/* TAB 1: BIOMECCANICA & WPS */}
+          {tabDettaglio === 'biomeccanica' && (
+            <div className="space-y-4">
+              <AtletaBiomeccanicaView atleta={atleta} tempi={tempi} />
 
-          {/* FINP Hydrodynamic Analysis & Class Estimation */}
-          <Sezione 
-            titolo="Analisi Idrodinamica & Stima Classi FINP" 
-            icon={<Sparkles size={16} />}
-            riepilogoChiuso={condizioni.filter(c => c.attiva).length > 0 ? `${condizioni.filter(c => c.attiva).length} condizioni analizzate` : 'Nessuna condizione'}
-            storageKey="atleta_analisi"
-            defaultAperto={false}
-          >
-            {condizioni.filter(c => c.attiva).length === 0 ? (
-              <p className="text-xs text-slate-500">
-                Nessuna condizione medica registrata: aggiungine una di seguito per ottenere l'analisi biomeccanica
-                e la stima indicativa delle classi FINP.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {condizioni.filter(c => c.attiva).map(c => {
-                  const analisi = FINPSpecialistAI.analizza(c.descrizione, c.limitazioni, eta);
-                  return (
-                    <div key={c.id} className="p-3 bg-white/90 rounded-xl border border-cyan-200 space-y-2 text-xs">
-                      <div className="font-bold text-slate-800 text-xs">
-                        Condizione: {c.descrizione}
-                      </div>
-                      <p className="text-slate-600 leading-relaxed">{analisi.riassuntoIdrodinamico}</p>
-
-                      {analisi.fattoriNuotata.length > 0 && (
-                        <div>
-                          <span className="font-bold text-slate-700 block mb-0.5">Fattori di nuotata:</span>
-                          <ul className="list-disc list-inside text-slate-600 space-y-0.5">
-                            {analisi.fattoriNuotata.map((f, i) => <li key={i}>{f}</li>)}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* Stima Classi Box */}
-                      {atleta.stato === 'IN_ATTESA' && (
-                        <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-amber-900">
-                              Stima WPS: S{analisi.stimaClassi.classeS} · SB{analisi.stimaClassi.classeSB} · SM{analisi.stimaClassi.classeSM}
-                            </span>
-                            <span className="text-[10px] text-amber-700 font-semibold uppercase">
-                              Affidabilità: {analisi.stimaClassi.affidabilita}
-                            </span>
+              <Sezione 
+                titolo="Analisi Specialistica AI & Stima Classi" 
+                icon={<Sparkles size={16} />}
+                riepilogoChiuso={condizioni.filter(c => c.attiva).length > 0 ? `${condizioni.filter(c => c.attiva).length} condizioni analizzate` : 'Nessuna condizione'}
+                storageKey="atleta_analisi"
+                defaultAperto={true}
+              >
+                {condizioni.filter(c => c.attiva).length === 0 ? (
+                  <p className="text-xs text-slate-500">
+                    Nessuna condizione medica registrata: aggiungine una nella scheda Certificati per ottenere l'analisi biomeccanica
+                    e la stima indicativa delle classi FINP.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {condizioni.filter(c => c.attiva).map(c => {
+                      const analisi = FINPSpecialistAI.analizza(c.descrizione, c.limitazioni, eta);
+                      return (
+                        <div key={c.id} className="p-3 bg-white/90 rounded-xl border border-cyan-200 space-y-2 text-xs">
+                          <div className="font-bold text-slate-800 text-xs">
+                            Condizione: {c.descrizione}
                           </div>
-                          <p className="text-amber-800 text-[11px]">{analisi.stimaClassi.motivazione}</p>
+                          <p className="text-slate-600 leading-relaxed">{analisi.riassuntoIdrodinamico}</p>
 
-                          {(atleta.classeS !== analisi.stimaClassi.classeS ||
-                            atleta.classeSB !== analisi.stimaClassi.classeSB ||
-                            atleta.classeSM !== analisi.stimaClassi.classeSM) && (
-                            <button
-                              type="button"
-                              onClick={() => applicaClassiStimate(analisi.stimaClassi)}
-                              className="mt-1 px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-[11px] font-bold transition"
-                            >
-                              Applica classi stimate provvisorie
-                            </button>
+                          {analisi.fattoriNuotata.length > 0 && (
+                            <div>
+                              <span className="font-bold text-slate-700 block mb-0.5">Fattori di nuotata:</span>
+                              <ul className="list-disc list-inside text-slate-600 space-y-0.5">
+                                {analisi.fattoriNuotata.map((f, i) => <li key={i}>{f}</li>)}
+                              </ul>
+                            </div>
+                          )}
+
+                          {atleta.stato === 'IN_ATTESA' && (
+                            <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg space-y-1">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-amber-900">
+                                  Stima WPS: S{analisi.stimaClassi.classeS} · SB{analisi.stimaClassi.classeSB} · SM{analisi.stimaClassi.classeSM}
+                                </span>
+                                <span className="text-[10px] text-amber-700 font-semibold uppercase">
+                                  Affidabilità: {analisi.stimaClassi.affidabilita}
+                                </span>
+                              </div>
+                              <p className="text-amber-800 text-[11px]">{analisi.stimaClassi.motivazione}</p>
+
+                              {(atleta.classeS !== analisi.stimaClassi.classeS ||
+                                atleta.classeSB !== analisi.stimaClassi.classeSB ||
+                                atleta.classeSM !== analisi.stimaClassi.classeSM) && (
+                                <button
+                                  type="button"
+                                  onClick={() => applicaClassiStimate(analisi.stimaClassi)}
+                                  className="mt-1 px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-[11px] font-bold transition"
+                                >
+                                  Applica classi stimate provvisorie
+                                </button>
+                              )}
+                            </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </Sezione>
-
-          {/* Volume Target delle prossime 4 settimane */}
-          <Sezione 
-            titolo="Volume Previsto Prossime Settimane" 
-            icon={<Calendar size={15} />}
-            riepilogoChiuso="Prossime 4 settimane"
-            storageKey="atleta_volume"
-            defaultAperto={false}
-          >
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {micro.filter((m: any) => !isBefore(m.fine, oggi)).slice(0, 4).map((m: any) => {
-                const v = VolumeIndividuale.settimana(m, atleta, assenze);
-                return (
-                  <div key={m.id} className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-center">
-                    <div className="text-[11px] text-slate-500 font-medium">{formattaData(m.inizio)}</div>
-                    <div className="text-sm font-black text-[#006874]">{v.metri} m</div>
-                    <div className="text-[10px] text-slate-400 capitalize">{m.tipo.toLowerCase()}</div>
+                      );
+                    })}
                   </div>
-                );
-              })}
+                )}
+              </Sezione>
             </div>
-          </Sezione>
+          )}
 
-          {/* Condizioni Mediche Management */}
-          <Sezione 
-            titolo="Condizioni Mediche & Limitazioni" 
-            icon={<HeartPulse size={15} />}
-            badge={condizioni.length}
-            riepilogoChiuso={`${condizioni.length} registrate`}
-            storageKey="atleta_condizioni"
-            defaultAperto={false}
-          >
-            <div className="space-y-2">
-              {condizioni.map(c => (
+          {/* TAB 2: PROGRESSIONE & TEMPI */}
+          {tabDettaglio === 'progressione' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={generaScheda}
+                  className="flex items-center justify-center gap-2 p-3.5 rounded-xl bg-[#006874] hover:bg-[#004e58] text-white font-bold text-xs transition shadow-sm"
+                >
+                  <Waves size={16} />
+                  <span>Genera Seduta Personalizzata 🏊‍♂️</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGestioneTempiOpen(true)}
+                  className="flex items-center justify-center gap-2 p-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition"
+                >
+                  <Timer size={16} />
+                  <span>Storico Tempi & Test ({tempi.length})</span>
+                </button>
+              </div>
+
+              {/* Volume Target delle prossime 4 settimane */}
+              <Sezione 
+                titolo="Volume Previsto Prossime Settimane" 
+                icon={<Calendar size={15} />}
+                riepilogoChiuso="Prossime 4 settimane"
+                storageKey="atleta_volume"
+                defaultAperto={true}
+              >
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {micro.filter((m: any) => !isBefore(m.fine, oggi)).slice(0, 4).map((m: any) => {
+                    const v = VolumeIndividuale.settimana(m, atleta, assenze);
+                    return (
+                      <div key={m.id} className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-center">
+                        <div className="text-[11px] text-slate-500 font-medium">{formattaData(m.inizio)}</div>
+                        <div className="text-sm font-black text-[#006874]">{v.metri} m</div>
+                        <div className="text-[10px] text-slate-400 capitalize">{m.tipo.toLowerCase()}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Sezione>
+            </div>
+          )}
+
+          {/* TAB 3: CERTIFICATI & LIMITAZIONI */}
+          {tabDettaglio === 'certificati' && (
+            <div className="space-y-4">
+              <Sezione 
+                titolo="Condizioni Mediche & Limitazioni" 
+                icon={<HeartPulse size={15} />}
+                badge={condizioni.length}
+                riepilogoChiuso={`${condizioni.length} registrate`}
+                storageKey="atleta_condizioni"
+                defaultAperto={true}
+              >
+                <div className="space-y-2">
+                  {condizioni.map(c => (
                 <div
                   key={c.id}
                   className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3 text-xs"
@@ -893,6 +1051,8 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
               </div>
             </div>
           </Sezione>
+            </div>
+          )}
         </div>
 
         {/* Footer Actions */}

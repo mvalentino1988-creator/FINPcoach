@@ -8,6 +8,8 @@ import { AtletiScreen } from './components/AtletiScreen';
 import { PianoScreen } from './components/PianoScreen';
 import { DatiScreen } from './components/DatiScreen';
 import { FontiScreen } from './components/FontiScreen';
+import { CronometroLiveMultiCorsia } from './components/CronometroLiveMultiCorsia';
+import { RegiaTecnicaCorsie } from './components/RegiaTecnicaCorsie';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { FINPStorage } from './data/storage';
@@ -57,12 +59,14 @@ export const AppContent: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-[#F4FAFC]">
       <Navbar currentTab={tab} onTabChange={setTab} />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 pb-20 sm:pb-8">
+      <main className="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-5 pb-24 lg:pb-8">
         {tab === 'oggi' && <OggiScreen onNavigateTab={setTab} />}
         {tab === 'piano' && <PianoScreen />}
+        {tab === 'cronometro' && <CronometroLiveMultiCorsia />}
+        {tab === 'regia' && <RegiaTecnicaCorsie />}
         {tab === 'atleti' && <AtletiScreen />}
-        {tab === 'dati' && <DatiScreen />}
         {tab === 'fonti' && <FontiScreen />}
+        {tab === 'dati' && <DatiScreen />}
       </main>
     </div>
   );

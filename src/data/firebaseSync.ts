@@ -20,7 +20,7 @@ import {
   onAuthStateChanged,
   User
 } from 'firebase/auth';
-import firebaseConfig from './firebaseConfig';
+import firebaseConfig, { isFirebaseConfigured } from './firebaseConfig';
 import {
   Atleta,
   CondizioneMedica,
@@ -157,11 +157,17 @@ export class FirebaseSync {
    * Iscriviti ai cambiamenti dello stato di autenticazione
    */
   static onAuthStateChange(callback: (user: User | null) => void): () => void {
-    if (!this.initialize()) {
+    try {
+      if (!this.initialize() || !this.auth) {
+        callback(null);
+        return () => {};
+      }
+      return onAuthStateChanged(this.auth, callback);
+    } catch (e) {
+      console.error('Auth state change error:', e);
       callback(null);
       return () => {};
     }
-    return onAuthStateChanged(this.auth!, callback);
   }
 
   /**

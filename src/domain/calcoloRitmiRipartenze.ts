@@ -147,29 +147,39 @@ export class CalcoloRitmiRipartenze {
     }
 
     const giorniDallUltimoTempo = ultimoTempoData ? daysBetween(ultimoTempoData, oggi) : 999;
+    const classeS = atleta.classeS ?? 9;
+
+    let testConsigliato = "3 x 100m B1 passo costante con ripartenza a 2'";
+    if (classeS <= 4) {
+      testConsigliato = "3 x 50m B1 partenza dall'acqua con ripartenza controllata";
+    } else if (classeS >= 11 && classeS <= 13) {
+      testConsigliato = "3 x 100m B1 con assistenza tapper alle virate";
+    } else if (classeS === 14) {
+      testConsigliato = "Test T30 (30 min continui) o 4 x 100m B1 guidato";
+    }
 
     if (giorniDallUltimoTempo > 60) {
       return {
         necessario: true,
-        titoloTest: '⚡ Form Check Necessario: Test T30 / 100m Passo',
+        titoloTest: `⚡ Form Check Personalizzato per ${atleta.cognome} (S${classeS})`,
         motivazione: `Non ci sono tempi di gara o test registrati da oltre 60 giorni per ${atleta.nome}. È necessario un test per calibrare le ripartenze.`,
-        istruzioniVasca: "Esegui un Test T30 (30 minuti continui a passo costante A2/B1) oppure 3 x 100m B1 con ripartenza a 2' per determinare la velocità di soglia."
+        istruzioniVasca: `Test consigliato per classe S${classeS}: ${testConsigliato}.`
       };
     }
 
     if (mesocicloCorrente?.fase === 'PREPARAZIONE_SPECIFICA' && giorniDallUltimoTempo > 30) {
       return {
         necessario: true,
-        titoloTest: '⚡ Check della Forma: Test 100m Soglia B1',
+        titoloTest: `⚡ Check della Forma S${classeS}: Test 100m Soglia B1`,
         motivazione: 'Inizio della fase di Preparazione Specifica: occorre verificare la velocità di soglia anaerobica B1 prima delle serie VO2 Max B2.',
-        istruzioniVasca: 'Esegui 4 x 100m B1 alla massima velocità sostenibile regolare. Registra il tempo medio dei 100m.'
+        istruzioniVasca: `Consigliato per ${atleta.nome}: ${testConsigliato}. Registra il tempo medio dei 100m.`
       };
     }
 
     if (mesocicloCorrente?.fase === 'PRE_GARA' && giorniDallUltimoTempo > 21) {
       return {
         necessario: true,
-        titoloTest: '⚡ Check della Forma: Test Ritmo Gara C3 (50m / 100m)',
+        titoloTest: `⚡ Check della Forma S${classeS}: Test Ritmo Gara C3`,
         motivazione: 'Fase Pre-Gara: verifica il passo gara sui 50m o 100m per perfezionare le ripartenze della fase di tapering.',
         istruzioniVasca: 'Esegui 2 x 50m C3 al passo gara obiettivo con 3 minuti di recupero passivo.'
       };
@@ -178,7 +188,7 @@ export class CalcoloRitmiRipartenze {
     return {
       necessario: false,
       titoloTest: 'Forma e Ritmi Aggiornati',
-      motivazione: "I tempi dell'atleta sono recenti e calibrati correttamente.",
+      motivazione: `I tempi dell'atleta ${atleta.nome} sono recenti e calibrati correttamente.`,
       istruzioniVasca: 'Prosegui la programmazione standard con la tabella dei ritmi corrente.'
     };
   }
