@@ -14,11 +14,11 @@ import { SchedaSedutaModal } from './SchedaSedutaModal';
 import { Sezione } from './Sezione';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { AtletaBiomeccanicaView } from './AtletaBiomeccanicaView';
+import { GareAmmissibiliCard } from './GareAmmissibiliCard';
 import {
   AlertTriangle,
   Calendar,
   Check,
-  CheckCircle2,
   ChevronRight,
   ClipboardList,
   Edit2,
@@ -270,28 +270,6 @@ export const AtletiScreen: React.FC = () => {
                     Form Check Necessario
                   </span>
                 )}
-              </div>
-
-              {/* Quick Coaching Specs Bento Bar */}
-              <div className="grid grid-cols-3 gap-2 bg-surface-container-low p-2.5 rounded-xl text-center">
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-bold uppercase text-slate-500">Freq. Cicli</span>
-                  <span className="text-xs font-black text-slate-800" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                    {a.classeS && a.classeS <= 5 ? '44 b/min' : '52 b/min'}
-                  </span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-bold uppercase text-slate-500">Lattato Target</span>
-                  <span className="text-xs font-black text-slate-800" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                    {(10.0 + (a.id % 3) * 0.7).toFixed(1)} mmol/L
-                  </span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-bold uppercase text-slate-500">Stato Visita</span>
-                  <span className="text-xs font-bold text-[#006874] flex items-center justify-center gap-0.5">
-                    <CheckCircle2 size={13} className="text-emerald-600" /> Idoneo
-                  </span>
-                </div>
               </div>
 
               {/* Action Buttons Touch-Optimized */}
@@ -791,6 +769,8 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
           {tabDettaglio === 'biomeccanica' && (
             <div className="space-y-4">
               <AtletaBiomeccanicaView atleta={atleta} tempi={tempi} />
+
+              <GareAmmissibiliCard atleta={atleta} />
 
               <Sezione 
                 titolo="Analisi Specialistica AI & Stima Classi" 
