@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "fonte": "World Para Swimming Rules and Regulations 2026",
+    "riferimento": "Rule 10.4.1 - Events and Programme of Events",
+    "versione": "2026-02",
+    "estrattoIl": "2026-10-19",
+    "ambito": "WPS (internazionale), solo gare individuali",
+    "nota": "Staffette escluse. Il programma di ogni singola competizione puo' essere piu' ristretto: verificare sempre il regolamento di gara."
+  },
+  "gare": [
+    { "stile": "STILE_LIBERO", "distanza": 50,  "famiglia": "S",  "classi": [[1, 13]] },
+    { "stile": "STILE_LIBERO", "distanza": 100, "famiglia": "S",  "classi": [[1, 14]] },
+    { "stile": "STILE_LIBERO", "distanza": 200, "famiglia": "S",  "classi": [[1, 5], [14, 14]] },
+    { "stile": "STILE_LIBERO", "distanza": 400, "famiglia": "S",  "classi": [[6, 14]] },
+    { "stile": "DORSO",        "distanza": 50,  "famiglia": "S",  "classi": [[1, 5]] },
+    { "stile": "DORSO",        "distanza": 100, "famiglia": "S",  "classi": [[1, 2], [6, 14]] },
+    { "stile": "RANA",         "distanza": 50,  "famiglia": "SB", "classi": [[1, 3]] },
+    { "stile": "RANA",         "distanza": 100, "famiglia": "SB", "classi": [[4, 9], [11, 14]] },
+    { "stile": "FARFALLA",     "distanza": 50,  "famiglia": "S",  "classi": [[2, 7]] },
+    { "stile": "FARFALLA",     "distanza": 100, "famiglia": "S",  "classi": [[8, 14]] },
+    { "stile": "MISTI",        "distanza": 75,  "famiglia": "SM", "classi": [[1, 4]], "soloVascaCorta": true },
+    { "stile": "MISTI",        "distanza": 100, "famiglia": "SM", "classi": [[5, 13]], "soloVascaCorta": true },
+    { "stile": "MISTI",        "distanza": 150, "famiglia": "SM", "classi": [[1, 4]] },
+    { "stile": "MISTI",        "distanza": 200, "famiglia": "SM", "classi": [[5, 14]] }
+  ]
+}
