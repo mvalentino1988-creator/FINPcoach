@@ -2,8 +2,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../data/AppContext';
 import { Stile } from '../types';
 import { BiomechanicsEngine, LivelloGeografico } from '../domain/biomechanicsEngine';
+import { HydrodynamicsEngine } from '../domain/hydrodynamicsEngine';
 import { ParaSwimmingViewModel } from '../domain/paraSwimmingViewModel';
 import { ParaSwimmingCanvasChart } from './ParaSwimmingCanvasChart';
+import { HydrodynamicsChartsView } from './HydrodynamicsChartsView';
 import { Sezione } from './Sezione';
 import { Activity, Plus, RefreshCw, Flame, Award, Globe, User } from 'lucide-react';
 
@@ -145,6 +147,23 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
         athletePerformances={filteredPerformances}
         eliteClusters={eliteClusters}
       />
+
+      {/* Hydrodynamics Force F(v) and Power P(t) Dark Mode Charts */}
+      {(() => {
+        const classeStr = atletaSel?.classeS ? `S${atletaSel.classeS}` : 'S9';
+        const mainAth = {
+          id: atletaSel ? atletaSel.id.toString() : 'main',
+          nome: atletaSel ? `${atletaSel.cognome} ${atletaSel.nome}` : 'Atleta Principale',
+          classe: classeStr,
+          stile,
+          distanza,
+          kCoeff: 0.42,
+          velocitaMedia: filteredPerformances.length > 0 ? filteredPerformances[filteredPerformances.length - 1].velocitaMedia : 1.65,
+          isMainAtleta: true
+        };
+        const top10 = HydrodynamicsEngine.generaTop10Benchmark(classeStr, stile, distanza);
+        return <HydrodynamicsChartsView mainAtleta={mainAth} top10List={top10} />;
+      })()}
 
       <Sezione titolo="Legenda Colori Classi S & Marker Atleta" icon={<Award size={16} className="text-amber-500" />} storageKey="para_biomech_legend" defaultAperto={false}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs font-semibold">

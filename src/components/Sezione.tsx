@@ -27,7 +27,8 @@ export const Sezione: React.FC<Props> = ({
       const saved = sessionStorage.getItem(`sec_${storageKey}`);
       if (saved !== null) return saved === 'true';
     }
-    if (typeof window !== 'undefined' && window.innerWidth < 640 && storageKey && sessionStorage.getItem(`sec_${storageKey}`) === null) {
+    // Smartphone-first: di default chiuso su schermi < 640px per azzerare lo scroll verticale
+    if (typeof window !== 'undefined' && window.innerWidth < 640) {
       return false;
     }
     return defaultAperto;
@@ -45,9 +46,9 @@ export const Sezione: React.FC<Props> = ({
         type="button"
         onClick={() => setAperto(!aperto)}
         aria-expanded={aperto}
-        className="w-full px-4 py-3 min-h-[44px] flex items-center justify-between font-bold text-slate-800 text-sm hover:bg-slate-50 transition select-none"
+        className="w-full px-3.5 py-2.5 min-h-[44px] flex items-center justify-between font-bold text-slate-800 text-xs sm:text-sm hover:bg-slate-50 transition select-none"
       >
-        <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
           {icon && <span className="text-[#006874] shrink-0">{icon}</span>}
           <span className="truncate">{titolo}</span>
           {badge !== undefined && (
@@ -56,23 +57,23 @@ export const Sezione: React.FC<Props> = ({
             </span>
           )}
           {!aperto && riepilogoChiuso && (
-            <span className="text-xs text-slate-400 font-normal truncate hidden sm:inline">
+            <span className="text-[11px] text-slate-400 font-normal truncate hidden sm:inline">
               · {riepilogoChiuso}
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2 shrink-0 text-slate-400">
+        <div className="flex items-center gap-1.5 shrink-0 text-slate-400">
           {!aperto && riepilogoChiuso && (
-            <span className="text-xs text-slate-400 font-normal sm:hidden">
+            <span className="text-[11px] text-slate-400 font-normal sm:hidden">
               {riepilogoChiuso}
             </span>
           )}
-          {aperto ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          {aperto ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </div>
       </button>
 
       {aperto && (
-        <div className="p-4 pt-0 border-t border-slate-100 space-y-3 mt-1">
+        <div className="p-3.5 pt-0 border-t border-slate-100 space-y-2.5 mt-0.5">
           {children}
         </div>
       )}

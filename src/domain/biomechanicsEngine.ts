@@ -12,6 +12,7 @@ export interface AthleticPerformance {
   tempoSecondi: number;
   velocitaMedia: number; // m/s
   costoEnergetico: number; // C(v)
+  indiceAsimmetriaMs?: number; // Indice di asimmetria propulsiva (ms) per disabilità monolaterali
 }
 
 export interface EliteClusterPoint {
