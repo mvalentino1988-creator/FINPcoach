@@ -14,6 +14,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import java.io.ByteArrayInputStream
@@ -28,8 +29,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Enable edge-to-edge display optimized for modern devices like Pixel 10
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        hideSystemBars()
 
         webView = WebView(this).apply {
             layoutParams = ViewGroup.LayoutParams(
@@ -64,6 +65,14 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        // Apply system window insets padding for Pixel 10 edge-to-edge display
+        ViewCompat.setOnApplyWindowInsetsListener(webView) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+            windowInsets
+        }
+
         setContentView(webView)
 
         if (savedInstanceState == null || webView.restoreState(savedInstanceState) == null) {
@@ -100,19 +109,6 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         webView.destroy()
         super.onDestroy()
-    }
-
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) hideSystemBars()
-    }
-
-    private fun hideSystemBars() {
-        WindowCompat.getInsetsController(window, window.decorView).apply {
-            systemBarsBehavior =
-                androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            hide(WindowInsetsCompat.Type.systemBars())
-        }
     }
 
     private inner class BundledAppWebViewClient : WebViewClient() {
