@@ -1,45 +1,276 @@
-@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=Space+Grotesk:wght@600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+/* =============================================================================
+   FINPcoach — Design System "Aquatic Paralympic"
+   Layer base + primitive di componente (Stitch / aquatic_paralympic_coaching_system).
+
+   Principi:
+   - Superfici: canvas #faf8ff, card bianca con hairline #E2E8F0, contenitori
+     #f2f3ff / #eaedff / #e2e7ff / #dae2fd.
+   - Elevazione: micro-ombra (0 1px 2px) + hairline; niente drop-shadow pesanti
+     (si wash-out con il glare di vasca).
+   - Tipografia: Space Grotesk per titoli/metriche/tag, Public Sans per i corpi.
+   - Ergonomia: tap target >= 48px sui controlli ad alta frequenza, niente
+     troncamento del testo (white-space: normal) e cifre tabulari sui numeri.
+   - Mobile-first: pensato per Pixel 10 (412 x 915 css px) e simili.
+   ============================================================================= */
+
+/* I font sono caricati via <link> in index.html (niente @import: blocca il render). */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: 'Public Sans', sans-serif;
-  color-scheme: light;
+@layer base {
+  :root {
+    font-family: 'Public Sans', system-ui, sans-serif;
+    color-scheme: light;
+    /* Altezza utile reale (mobile browser chrome) */
+    --app-vh: 100dvh;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 16px);
+    --dock-h: calc(64px + var(--safe-bottom));
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: var(--app-vh);
+    background-color: #faf8ff;
+    color: #131b2e;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
+  /* Anti-truncation: un coach a bordo vasca non deve perdere "ripartenza 1'15"". */
+  button,
+  a[role="button"],
+  input[type="button"],
+  input[type="submit"] {
+    white-space: normal !important;
+    word-break: break-word;
+    line-height: 1.25;
+  }
+
+  /* Cifre tabulari: split e metriche non devono "ballare" durante l'update. */
+  .tabular-nums,
+  time,
+  output {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+    font-size: 16px; /* evita l'auto-zoom su iOS */
+  }
+
+  /* Le select sono sempre filtri di controllo: area di tap >= 48px (Android/iOS). */
+  select {
+    min-height: 48px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+  * {
+    scrollbar-width: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid #006874;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #faf8ff;
-  color: #131b2e;
-  -webkit-font-smoothing: antialiased;
+@layer components {
+  /* ---------- Safe area ---------- */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .pb-dock {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 16px));
+  }
+  .pt-header {
+    padding-top: calc(64px + env(safe-area-inset-top, 0px));
+  }
+
+  /* ---------- Superfici / card ---------- */
+  .ds-card {
+    @apply bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card;
+  }
+  .ds-card-flat {
+    @apply bg-surface-container-low rounded-xl;
+  }
+  .ds-card-tint {
+    @apply bg-surface-container-high rounded-xl;
+  }
+  .ds-card-primary {
+    @apply bg-primary-container text-on-primary rounded-xl;
+  }
+  .ds-card-outline {
+    @apply bg-surface-container-lowest rounded-xl border border-slate-200;
+  }
+  /* Hairline + micro-shadow, senza blur pesante */
+  .ds-divider {
+    @apply h-px w-full bg-slate-200/70;
+  }
+
+  /* ---------- Bottoni (tap target >= 48px) ---------- */
+  .ds-btn {
+    @apply inline-flex items-center justify-center gap-2 min-h-[48px] px-4 rounded-lg
+           font-label-lg text-label-lg transition active:scale-[0.98] select-none;
+  }
+  .ds-btn-primary {
+    @apply ds-btn bg-primary text-on-primary shadow-primary-sm hover:bg-primary-container;
+  }
+  .ds-btn-secondary {
+    @apply ds-btn bg-surface-container-high text-on-surface hover:bg-surface-container-highest;
+  }
+  .ds-btn-ghost {
+    @apply ds-btn bg-surface-container-low text-on-surface border border-slate-200 hover:bg-surface-container;
+  }
+  .ds-btn-quiet {
+    @apply ds-btn bg-transparent text-on-surface-variant hover:bg-surface-container-low;
+  }
+  .ds-btn-coral {
+    @apply ds-btn bg-tertiary-container text-on-tertiary shadow-sm hover:brightness-95;
+  }
+  .ds-btn-danger {
+    @apply ds-btn bg-error text-on-error shadow-sm;
+  }
+  .ds-btn-sm {
+    @apply min-h-[40px] px-3 rounded-lg font-label-md text-label-md gap-1.5;
+  }
+  .ds-btn-icon {
+    @apply inline-flex items-center justify-center w-12 h-12 rounded-lg shrink-0
+           bg-surface-container-high text-on-surface transition active:scale-95;
+  }
+
+  /* ---------- Chip / badge ---------- */
+  .ds-chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1
+           font-label-caps text-label-caps uppercase tracking-wider whitespace-nowrap;
+  }
+  .ds-chip-primary {
+    @apply ds-chip bg-primary-fixed text-on-primary-fixed;
+  }
+  .ds-chip-neutral {
+    @apply ds-chip bg-surface-container text-on-surface-variant;
+  }
+  .ds-chip-outline {
+    @apply ds-chip bg-surface-container-highest text-on-surface-variant;
+  }
+  .ds-chip-coral {
+    @apply ds-chip bg-tertiary-fixed text-on-tertiary-fixed;
+  }
+  .ds-chip-blue {
+    @apply ds-chip bg-secondary-fixed text-on-secondary-fixed;
+  }
+  .ds-chip-inverse {
+    @apply ds-chip bg-inverse-surface text-primary-fixed;
+  }
+  .ds-chip-class {
+    @apply ds-chip bg-on-secondary-fixed text-primary-fixed;
+  }
+  /* Chip interattivo (pallino premibile): area di tap >= 44px su righe dense. */
+  .ds-chip-tap {
+    @apply ds-chip min-h-[44px] px-3 py-1.5;
+  }
+
+  /* ---------- Tipografia ---------- */
+  .ds-label {
+    @apply font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant;
+  }
+  .ds-title {
+    @apply font-headline-sm text-headline-sm text-on-surface;
+  }
+  .ds-subtitle {
+    @apply font-headline-md text-headline-md text-on-surface;
+  }
+  .ds-body {
+    @apply font-body-base text-body-base text-on-surface-variant;
+  }
+  .ds-body-strong {
+    @apply font-body-bold text-body-bold text-on-surface;
+  }
+  .ds-metric {
+    @apply font-display-lg text-display-lg tracking-tight tabular-nums;
+  }
+  .ds-metric-sm {
+    @apply font-headline-md text-headline-md tracking-tight tabular-nums;
+  }
+
+  /* ---------- Bento stat ---------- */
+  .ds-stat {
+    @apply ds-card p-3 flex flex-col justify-between gap-1;
+  }
+  .ds-stat-value {
+    @apply font-headline-md text-headline-md tracking-tight tabular-nums;
+  }
+
+  /* ---------- Tab switcher segmentato ---------- */
+  .ds-tabs {
+    @apply grid gap-1 bg-surface-container rounded-xl p-1;
+  }
+  .ds-tab {
+    @apply flex items-center justify-center gap-1 min-h-[48px] py-2 px-1 rounded-lg
+           font-label-md text-label-md text-on-surface-variant transition-all;
+  }
+  .ds-tab-active {
+    @apply bg-surface-container-lowest text-primary font-bold shadow-sm;
+  }
+
+  /* ---------- Alert / callout medico ---------- */
+  .ds-alert {
+    @apply rounded-lg p-3 border-l-4;
+  }
+  .ds-alert-title {
+    @apply font-headline-sm text-headline-sm;
+  }
+  .ds-alert-body {
+    @apply font-body-base text-body-base leading-snug mt-0.5;
+  }
+
+  /* ---------- Scroll orizzontale senza barra ---------- */
+  .ds-scroll-x {
+    @apply overflow-x-auto;
+    scrollbar-width: none;
+  }
+  .ds-scroll-x::-webkit-scrollbar {
+    display: none;
+  }
+  .ds-touch-pan {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+  }
+
+  /* ---------- Bottom sheet ---------- */
+  .ds-sheet {
+    @apply fixed inset-x-0 bottom-0 z-50 rounded-t-2xl bg-surface-container-lowest
+           border-t border-slate-200 shadow-float px-4 pt-3 pb-safe;
+  }
+  .ds-sheet-scrim {
+    @apply fixed inset-0 z-40 bg-inverse-surface/50 backdrop-blur-[2px];
+  }
 }
 
-.bg-surface { background-color: #faf8ff; }
-.text-on-surface { color: #131b2e; }
-.bg-primary { background-color: #006874; }
-.text-on-primary { color: #ffffff; }
-.bg-primary-container { background-color: #004e58; }
-.text-primary { color: #006874; }
-.bg-surface-container-low { background-color: #f2f3ff; }
-.bg-surface-container { background-color: #eaedff; }
-.bg-surface-container-high { background-color: #e2e7ff; }
-.bg-surface-container-highest { background-color: #dae2fd; }
-.bg-surface-container-lowest { background-color: #ffffff; }
-.text-on-surface-variant { color: #3f484a; }
-.bg-surface-variant { background-color: #dae2fd; }
-
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom, 16px);
-}
-.pt-safe {
-  padding-top: env(safe-area-inset-top, 0px);
-}
-
-/* Zone fisiologiche FINP poolside */
+/* =============================================================================
+   Zone fisiologiche FINP (badge codice allenamento)
+   ============================================================================= */
 .zone-pill-a1 { background-color: #e0f2fe; color: #0369a1; }
 .zone-pill-a2 { background-color: #ccfbf1; color: #0f766e; }
 .zone-pill-b1 { background-color: #dbeafe; color: #1d4ed8; }
@@ -49,32 +280,26 @@ body {
 .zone-pill-c3 { background-color: #fce7f3; color: #be185d; }
 .zone-pill-d  { background-color: #fee2e2; color: #b91c1c; }
 
-/* Medical alert safeguards */
+/* =============================================================================
+   Callout medico / sicurezza (WCAG AAA)
+   ============================================================================= */
 .alert-dysreflexia {
   background-color: #fff1f2;
+  border: 1px solid #fecdd3;
   border-left: 4px solid #e11d48;
   color: #881337;
 }
 
 .alert-safeguard {
   background-color: #fffbeb;
+  border: 1px solid #fde68a;
   border-left: 4px solid #f59e0b;
   color: #78350f;
 }
 
 .alert-validated {
   background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
   border-left: 4px solid #22c55e;
   color: #14532d;
 }
-
-button, a[role="button"], input[type="button"], input[type="submit"] {
-  white-space: normal !important;
-  word-break: break-word;
-  line-height: 1.25;
-}
-
-::-webkit-scrollbar {
-  display: none;
-}
-

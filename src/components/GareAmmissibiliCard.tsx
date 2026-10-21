@@ -42,14 +42,14 @@ export const GareAmmissibiliCard: React.FC<Props> = ({ atleta }) => {
   return (
     <section aria-labelledby="gare-ammissibili-titolo" className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <h3 id="gare-ammissibili-titolo" className="text-base font-semibold text-slate-900">
+        <h3 id="gare-ammissibili-titolo" className="text-base font-semibold text-on-surface">
           Gare ammissibili
         </h3>
         <select
           aria-label="Vasca"
           value={vasca}
           onChange={(e) => setVasca(e.target.value as FiltroVasca)}
-          className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
+          className="rounded-lg border border-outline-variant px-2 py-1 text-sm"
         >
           <option value="tutte">Tutte le vasche</option>
           <option value="corta">Vasca corta (25 m)</option>
@@ -58,14 +58,14 @@ export const GareAmmissibiliCard: React.FC<Props> = ({ atleta }) => {
       </div>
 
       {mancanti.length > 0 && (
-        <p role="note" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+        <p role="note" className="rounded-lg bg-surface-container-low p-3 text-sm text-on-tertiary-fixed">
           Classi mancanti: {mancanti.map((f) => FAMIGLIA_LABEL[f]).join('; ')}. Le gare collegate non
           si possono valutare finché non vengono inserite.
         </p>
       )}
 
       {ammesse.length === 0 ? (
-        <p className="text-sm text-slate-600">Nessuna gara ammessa con i dati attuali.</p>
+        <p className="text-sm text-on-surface-variant">Nessuna gara ammessa con i dati attuali.</p>
       ) : (
         <ul className="flex flex-wrap gap-2">
           {ammesse.map((e) => (
@@ -80,7 +80,7 @@ export const GareAmmissibiliCard: React.FC<Props> = ({ atleta }) => {
       )}
 
       {nonAmmesse.length > 0 && (
-        <details className="text-sm text-slate-600">
+        <details className="text-sm text-on-surface-variant">
           <summary className="cursor-pointer">Non ammesse ({nonAmmesse.length})</summary>
           <ul className="mt-2 space-y-1">
             {nonAmmesse.map((e) => (
@@ -92,7 +92,7 @@ export const GareAmmissibiliCard: React.FC<Props> = ({ atleta }) => {
         </details>
       )}
 
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-on-surface-variant">
         Fonte: {FONTE_PROGRAMMA.fonte}, {FONTE_PROGRAMMA.riferimento} (versione{' '}
         {FONTE_PROGRAMMA.versione}). Solo gare individuali: verifica sempre il regolamento della
         singola manifestazione.

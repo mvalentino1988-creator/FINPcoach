@@ -19,50 +19,60 @@ export const BadgeCodice: React.FC<Props> = ({ codice, className = '' }) => {
         type="button"
         onClick={() => setModalOpen(true)}
         style={{ backgroundColor: info.containerBg, color: info.textColor }}
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold transition hover:opacity-90 shadow-sm ${className}`}
+        className={`inline-flex items-center px-3 min-h-[36px] rounded-full font-label-caps text-label-caps uppercase tracking-wider transition hover:opacity-90 shadow-card ${className}`}
         title="Clicca per info fisiologiche sul codice"
+        aria-label={`Codice allenamento ${info.codice}: ${info.nome}. Tocca per i dettagli fisiologici.`}
       >
         <span>{info.codice}</span>
       </button>
 
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 border border-slate-200">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-inverse-surface/50 backdrop-blur-[2px]">
+          <div className="ds-sheet sm:rounded-xl sm:max-w-sm sm:w-full sm:shadow-float p-5 sm:p-5 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-200/70">
+              <div className="flex items-center gap-2 min-w-0">
                 <span
                   style={{ backgroundColor: info.containerBg, color: info.textColor }}
-                  className="px-2.5 py-1 rounded-lg text-sm font-black"
+                  className="px-2.5 py-1 rounded-full font-label-caps text-label-caps uppercase shrink-0"
                 >
                   {info.codice}
                 </span>
-                <h3 className="font-bold text-slate-800 text-base">{info.nome}</h3>
+                <h3 className="font-headline-sm text-headline-sm text-on-surface truncate">
+                  {info.nome}
+                </h3>
               </div>
               <button
+                type="button"
                 onClick={() => setModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+                aria-label="Chiudi"
+                className="w-12 h-12 -mr-2 -mt-2 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="py-4 space-y-3 text-sm text-slate-600">
-              <p className="text-slate-700">{info.ambito}</p>
-              <div className="p-3 bg-slate-50 rounded-xl space-y-1.5 border border-slate-100 text-xs">
-                <div className="flex justify-between">
-                  <span className="font-medium text-slate-500">Frequenza Cardiaca:</span>
-                  <span className="font-semibold text-slate-800">{info.hrBpm}</span>
+            <div className="py-4 space-y-3">
+              <p className="font-body-base text-body-base text-on-surface-variant">{info.ambito}</p>
+              <div className="p-3 bg-surface-container-low rounded-xl space-y-1.5">
+                <div className="flex justify-between gap-3">
+                  <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">
+                    Frequenza cardiaca
+                  </span>
+                  <span className="font-body-bold text-body-bold text-on-surface">{info.hrBpm}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="font-medium text-slate-500">Lattato Ematico:</span>
-                  <span className="font-semibold text-slate-800">{info.lattato}</span>
+                <div className="flex justify-between gap-3">
+                  <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">
+                    Lattato ematico
+                  </span>
+                  <span className="font-body-bold text-body-bold text-on-surface">{info.lattato}</span>
                 </div>
               </div>
             </div>
 
             <button
+              type="button"
               onClick={() => setModalOpen(false)}
-              className="w-full h-12 bg-slate-100 hover:bg-slate-200 font-semibold text-slate-700 rounded-xl text-sm transition"
+              className="ds-btn-secondary w-full"
             >
               Chiudi
             </button>

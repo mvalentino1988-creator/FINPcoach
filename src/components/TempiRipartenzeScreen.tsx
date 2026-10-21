@@ -93,10 +93,10 @@ export const TempiRipartenzeScreen: React.FC = () => {
 
   if (!atletaSel) {
     return (
-      <div className="p-8 text-center bg-white rounded-2xl border border-slate-200">
-        <User size={36} className="mx-auto text-slate-300 mb-2" />
-        <h3 className="font-bold text-slate-700">Nessun atleta registrato</h3>
-        <p className="text-xs text-slate-500 mt-1">Aggiungi un atleta nella sezione Atleti per inserire tempi e calcolare ripartenze.</p>
+      <div className="p-8 text-center bg-surface-container-lowest rounded-xl border border-slate-200/70">
+        <User size={36} className="mx-auto text-outline mb-2" />
+        <h3 className="font-bold text-on-surface">Nessun atleta registrato</h3>
+        <p className="text-xs text-on-surface-variant mt-1">Aggiungi un atleta nella sezione Atleti per inserire tempi e calcolare ripartenze.</p>
       </div>
     );
   }
@@ -142,24 +142,24 @@ export const TempiRipartenzeScreen: React.FC = () => {
     <div className="space-y-4">
       {/* Title */}
       <div>
-        <h2 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-          <Timer size={22} className="text-[#006874]" />
+        <h2 className="text-xl font-bold text-on-surface tracking-tight flex items-center gap-2">
+          <Timer size={22} className="text-primary-container" />
           <span>Tempi Gara & Calcolo Ripartenze</span>
         </h2>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-on-surface-variant mt-0.5">
           Gestione cronometrica, tabelle di andatura e ripartenze A1–D.
         </p>
       </div>
 
       {/* Athlete Dropdown Selector */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-3 shadow-xs flex items-center gap-3">
-        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider shrink-0">
+      <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-3 shadow-card flex items-center gap-3">
+        <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider shrink-0">
           Atleta:
         </span>
         <select
           value={atletaSel.id}
           onChange={(e) => setAtletaSelId(Number(e.target.value))}
-          className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 text-xs"
+          className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface text-xs"
         >
           {atleti.map(a => (
             <option key={a.id} value={a.id}>{a.cognome} {a.nome} (S{a.classeS ?? '?'})</option>
@@ -169,26 +169,26 @@ export const TempiRipartenzeScreen: React.FC = () => {
 
       {/* Form Check Alert Card */}
       {formCheck && formCheck.necessario && (
-        <div className="p-3.5 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-1 text-xs text-amber-950">
-          <div className="flex items-center gap-2 font-bold text-amber-900 text-sm">
-            <Timer size={16} className="text-amber-600" />
+        <div className="p-3.5 bg-surface-container-low/80 border border-tertiary-fixed-dim rounded-xl space-y-1 text-xs text-amber-950">
+          <div className="flex items-center gap-2 font-bold text-on-tertiary-fixed text-sm">
+            <Timer size={16} className="text-tertiary-container" />
             <span>{formCheck.titoloTest}</span>
           </div>
-          <p className="text-amber-900">{formCheck.motivazione}</p>
+          <p className="text-on-tertiary-fixed">{formCheck.motivazione}</p>
         </div>
       )}
 
       {/* CSS Critical Swim Speed Card */}
       {cssResult && (
-        <div className="p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-2xl shadow-xs flex items-center justify-between gap-3 text-xs">
+        <div className="p-4 bg-gradient-to-r from-surface-container-low to-blue-50 border border-primary-fixed-dim rounded-xl shadow-card flex items-center justify-between gap-3 text-xs">
           <div>
-            <div className="flex items-center gap-1.5 text-[#006874] font-black uppercase tracking-wider">
-              <Flame size={15} className="text-[#006874]" />
+            <div className="flex items-center gap-1.5 text-primary-container font-bold uppercase tracking-wider">
+              <Flame size={15} className="text-primary-container" />
               <span>Velocità Critica CSS (B1)</span>
             </div>
-            <p className="text-slate-600 text-[11px] mt-0.5">{cssResult.spiegazioneMetodologica}</p>
+            <p className="text-on-surface-variant text-[11px] mt-0.5">{cssResult.spiegazioneMetodologica}</p>
           </div>
-          <span className="px-3 py-1.5 rounded-xl bg-[#006874] text-white font-black text-xs shrink-0">
+          <span className="px-3 py-1.5 rounded-xl bg-primary-container text-on-primary font-bold text-xs shrink-0">
             {cssResult.passo100mFormatted} /100m
           </span>
         </div>
@@ -196,12 +196,12 @@ export const TempiRipartenzeScreen: React.FC = () => {
 
       {/* Tabella Ritmi & Ripartenze a 5 secondi (Compatta senza note) */}
       {tabellaRitmi && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <h3 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
+        <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-4 shadow-card space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-200/70">
+            <h3 className="font-bold text-on-surface text-xs uppercase tracking-wider">
               Tabella Ritmi A1–D · Passo 100m & Ripartenze
             </h3>
-            <span className="text-xs text-[#006874] font-bold">
+            <span className="text-xs text-primary-container font-bold">
               Base 100m: {formattaTempo(tabellaRitmi.tempoRiferimento100mCentesimi)}
             </span>
           </div>
@@ -213,15 +213,15 @@ export const TempiRipartenzeScreen: React.FC = () => {
               return (
                 <div
                   key={k}
-                  className="p-2.5 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between text-xs space-y-1"
+                  className="p-2.5 rounded-xl border border-slate-200/70 bg-surface-container-low/50 flex flex-col justify-between text-xs space-y-1"
                 >
                   <div className="flex items-center justify-between">
                     <BadgeCodice codice={k} />
-                    <span className="font-bold text-slate-800 text-[11px]">{r.passo100mFormatted}</span>
+                    <span className="font-bold text-on-surface text-[11px]">{r.passo100mFormatted}</span>
                   </div>
                   <div className="pt-1 border-t border-slate-200/60 flex items-center justify-between text-[11px]">
-                    <span className="text-slate-500 font-medium">Rip:</span>
-                    <span className="font-black text-[#006874]">{r.ripartenzaFormatted}</span>
+                    <span className="text-on-surface-variant font-medium">Rip:</span>
+                    <span className="font-bold text-primary-container">{r.ripartenzaFormatted}</span>
                   </div>
                 </div>
               );
@@ -231,23 +231,23 @@ export const TempiRipartenzeScreen: React.FC = () => {
       )}
 
       {/* Official Personal Bests (1 per gara e distanza) */}
-      <Sezione titolo="Primati Personali in Gara" icon={<Award size={15} className="text-amber-500" />} badge={primati.length} riepilogoChiuso={`${primati.length} primati registrati`} storageKey="tempi_primati" defaultAperto={false}>
+      <Sezione titolo="Primati Personali in Gara" icon={<Award size={15} className="text-tertiary-container" />} badge={primati.length} riepilogoChiuso={`${primati.length} primati registrati`} storageKey="tempi_primati" defaultAperto={false}>
         {primati.length === 0 ? (
-          <p className="text-xs text-slate-400 py-2">Nessun primato di gara registrato.</p>
+          <p className="text-xs text-on-surface-variant py-2">Nessun primato di gara registrato.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
             {primati.map((p, i) => (
               <div
                 key={i}
-                className="p-3 bg-amber-50/40 border border-amber-200 rounded-xl flex items-center justify-between text-xs"
+                className="p-3 bg-surface-container-low/40 border border-tertiary-fixed-dim rounded-xl flex items-center justify-between text-xs"
               >
                 <div>
-                  <span className="font-bold text-slate-900 block">
+                  <span className="font-bold text-on-surface block">
                     {p.stile.replace('_', ' ')} {p.distanzaMetri} m ({p.vascaMetri}m)
                   </span>
-                  <span className="text-[10px] text-slate-500">{formattaData(p.data)}</span>
+                  <span className="text-[10px] text-on-surface-variant">{formattaData(p.data)}</span>
                 </div>
-                <span className="font-black text-[#006874] text-sm">
+                <span className="font-bold text-primary-container text-sm">
                   {formattaTempo(p.centesimi)}
                 </span>
               </div>
@@ -257,13 +257,13 @@ export const TempiRipartenzeScreen: React.FC = () => {
       </Sezione>
 
       {/* Add New Time Form (Compact with unified OCR button) */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
+      <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-4 shadow-card space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-2">
-            <Plus size={15} className="text-[#006874]" />
+          <h3 className="font-bold text-on-surface text-xs uppercase tracking-wider flex items-center gap-2">
+            <Plus size={15} className="text-primary-container" />
             <span>Registra Nuovo Tempo / Test</span>
           </h3>
-          <label className="px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-[#006874] border border-cyan-200 rounded-xl text-xs font-bold cursor-pointer transition flex items-center gap-1.5">
+          <label className="px-3 py-1.5 bg-surface-container-low hover:bg-primary-fixed text-primary-container border border-primary-fixed-dim rounded-xl text-xs font-bold cursor-pointer transition flex items-center gap-1.5">
             {ocrLoading ? <Loader2 size={13} className="animate-spin" /> : <Camera size={13} />}
             <span>{ocrLoading ? 'OCR in corso...' : 'Carica Screenshot'}</span>
             <input
@@ -289,44 +289,44 @@ export const TempiRipartenzeScreen: React.FC = () => {
         <form onSubmit={handleSalvaTempo} className="space-y-3 text-xs pt-1">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Data</label>
+              <label className="block font-semibold text-on-surface-variant mb-1">Data</label>
               <input
                 type="text"
                 value={dataTesto}
                 onChange={e => setDataTesto(e.target.value)}
-                className="w-full px-3 h-11 border border-slate-300 rounded-xl"
+                className="w-full px-3 h-11 border border-outline-variant rounded-xl"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Distanza (m)</label>
+              <label className="block font-semibold text-on-surface-variant mb-1">Distanza (m)</label>
               <input
                 type="number"
                 value={distanza}
                 onChange={e => setDistanza(e.target.value)}
-                className="w-full px-3 h-11 border border-slate-300 rounded-xl font-bold"
+                className="w-full px-3 h-11 border border-outline-variant rounded-xl font-bold"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Tempo (es. 1:04.20)</label>
+              <label className="block font-semibold text-on-surface-variant mb-1">Tempo (es. 1:04.20)</label>
               <input
                 type="text"
                 placeholder="es. 1:04.20"
                 value={tempoTesto}
                 onChange={e => setTempoTesto(e.target.value)}
-                className="w-full px-3 h-11 border border-slate-300 rounded-xl font-black text-sm text-[#006874]"
+                className="w-full px-3 h-11 border border-outline-variant rounded-xl font-bold text-sm text-primary-container"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Stile</label>
+              <label className="block font-semibold text-on-surface-variant mb-1">Stile</label>
               <select
                 value={stile}
                 onChange={e => setStile(e.target.value as Stile)}
-                className="w-full px-3 h-11 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                className="w-full px-3 h-11 bg-surface-container-low border border-outline-variant rounded-xl font-semibold text-on-surface"
               >
                 <option value="STILE_LIBERO">Stile libero</option>
                 <option value="DORSO">Dorso</option>
@@ -337,11 +337,11 @@ export const TempiRipartenzeScreen: React.FC = () => {
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Contesto</label>
+              <label className="block font-semibold text-on-surface-variant mb-1">Contesto</label>
               <select
                 value={contesto}
                 onChange={e => setContesto(e.target.value as ContestoTempo)}
-                className="w-full px-3 h-11 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                className="w-full px-3 h-11 bg-surface-container-low border border-outline-variant rounded-xl font-semibold text-on-surface"
               >
                 <option value="GARA">Gara</option>
                 <option value="ALLENAMENTO">Allenamento</option>
@@ -350,11 +350,11 @@ export const TempiRipartenzeScreen: React.FC = () => {
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Vasca</label>
+              <label className="block font-semibold text-on-surface-variant mb-1">Vasca</label>
               <select
                 value={vasca}
                 onChange={e => setVasca(Number(e.target.value))}
-                className="w-full px-3 h-11 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                className="w-full px-3 h-11 bg-surface-container-low border border-outline-variant rounded-xl font-semibold text-on-surface"
               >
                 <option value={25}>Vasca 25m</option>
                 <option value={50}>Vasca 50m</option>
@@ -365,7 +365,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
           <button
             type="submit"
             disabled={!formValido}
-            className="w-full h-11 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
+            className="w-full h-11 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-bold rounded-xl text-xs transition shadow-card"
           >
             Registra Tempo
           </button>
@@ -375,22 +375,22 @@ export const TempiRipartenzeScreen: React.FC = () => {
       {/* Storico Completo (Apribile a richiesta tramite Sezione) */}
       <Sezione titolo="Storico Tutti i Tempi Registrati" icon={<Clock size={16} />} badge={tempiAtleta.length} riepilogoChiuso={`${tempiAtleta.length} tempi in archivio`} storageKey="tempi_storico_completo" defaultAperto={false}>
         {tempiAtleta.length === 0 ? (
-          <p className="text-xs text-slate-400 py-2">Nessun tempo registrato per questo atleta.</p>
+          <p className="text-xs text-on-surface-variant py-2">Nessun tempo registrato per questo atleta.</p>
         ) : (
           <div className="space-y-1.5 pt-1">
             {tempiAtleta.map(t => (
               <div
                 key={t.id}
-                className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs"
+                className="p-3 bg-surface-container-low border border-slate-200/70 rounded-xl flex items-center justify-between text-xs"
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-800">
+                    <span className="font-bold text-on-surface">
                       {t.stile.replace('_', ' ')} {t.distanzaMetri} m
                     </span>
-                    <span className="font-black text-[#006874] text-sm">{formattaTempo(t.centesimi)}</span>
+                    <span className="font-bold text-primary-container text-sm">{formattaTempo(t.centesimi)}</span>
                   </div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">
+                  <div className="text-[11px] text-on-surface-variant mt-0.5">
                     {formattaData(t.data)} · {t.contesto.toLowerCase()} · vasca {t.vascaMetri}m
                     {t.note && ` · ${t.note}`}
                   </div>
@@ -398,7 +398,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
 
                 <button
                   onClick={() => eliminaTempo(t.id)}
-                  className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-200"
+                  className="p-1.5 text-on-surface-variant hover:text-error rounded-lg hover:bg-surface-container-high"
                 >
                   <Trash2 size={16} />
                 </button>

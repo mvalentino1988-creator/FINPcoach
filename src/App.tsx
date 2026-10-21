@@ -29,7 +29,7 @@ export const AppContent: React.FC = () => {
   useEffect(() => {
     const syncEnabled = localStorage.getItem('finp_sync_enabled') === 'true';
     const user = FirebaseSync.getCurrentUser();
-    
+
     if (syncEnabled && !user) {
       setShowLogin(true);
     } else if (user) {
@@ -55,11 +55,19 @@ export const AppContent: React.FC = () => {
     return <LoginScreen onLoginSuccess={handleLoginSuccess} onSkip={handleSkipLogin} />;
   }
 
+  /* Le viste "bordo vasca" (regia, cronometro) sono command center a tutto
+     schermo: su desktop non devono stare dentro il contenitore da 1024px. */
+  const wide = tab === 'regia' || tab === 'cronometro';
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#F4FAFC]">
+    <div className="min-h-screen flex flex-col bg-surface">
       <Navbar currentTab={tab} onTabChange={setTab} />
 
-      <main className="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-5 pb-24 lg:pb-8">
+      <main
+        className={`flex-1 w-full mx-auto pt-header pb-dock lg:pb-8 px-gutter-mobile sm:px-gutter py-3 sm:py-4 ${
+          wide ? 'max-w-none' : 'max-w-5xl'
+        }`}
+      >
         {tab === 'oggi' && <OggiScreen onNavigateTab={setTab} />}
         {tab === 'piano' && <PianoScreen />}
         {tab === 'cronometro' && <CronometroLiveMultiCorsia />}

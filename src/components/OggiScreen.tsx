@@ -64,16 +64,16 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
   if (!stagione || atleti.length === 0) {
     return (
       <div className="space-y-4">
-        <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-xs text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-cyan-50 text-[#006874] mx-auto flex items-center justify-center">
-            <Waves size={32} />
+        <div className="ds-card p-space-lg sm:p-space-xl text-center space-y-4">
+          <div className="w-14 h-14 rounded-xl bg-primary text-on-primary mx-auto flex items-center justify-center shadow-primary-sm">
+            <Waves size={28} className="text-primary-fixed" />
           </div>
           <div className="max-w-md mx-auto space-y-2">
-            <h3 className="text-lg font-black text-slate-800">
+            <h3 className="ds-subtitle">
               Benvenuto in FINPcoach · Squadra Vuota e Pulita
             </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              L'applicazione è attualmente vuota come richiesto. Per iniziare la programmazione della squadra, imposta prima la <strong>Stagione</strong> nella scheda <span className="text-[#006874] font-bold">Piano</span> e aggiungi almeno un atleta nella scheda <span className="text-[#006874] font-bold">Atleti</span>.
+            <p className="ds-body">
+              L'applicazione è attualmente vuota come richiesto. Per iniziare la programmazione della squadra, imposta prima la <strong className="text-on-surface">Stagione</strong> nella scheda <span className="text-primary font-body-bold">Piano</span> e aggiungi almeno un atleta nella scheda <span className="text-primary font-body-bold">Atleti</span>.
             </p>
           </div>
         </div>
@@ -282,23 +282,21 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
   return (
     <div className="space-y-4 relative">
       {/* Coach Greeting Banner - Stitch Design System */}
-      <section className="bg-surface-container-low rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs relative overflow-hidden">
+      <section className="bg-surface-container-low rounded-xl p-space-md relative overflow-hidden border border-slate-200/60">
         <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-secondary-fixed opacity-40 pointer-events-none" />
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#006874] to-[#004e58] text-white flex items-center justify-center shadow-xs shrink-0">
-              <Waves size={26} className="text-cyan-200" />
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-primary-sm shrink-0">
+              <Waves size={24} className="text-primary-fixed" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-wider text-[#006874]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                  {dowNome} {formattaData(oggi)} · Centro FINP
-                </span>
-              </div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight capitalize" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <div className="min-w-0">
+              <span className="ds-label text-primary block truncate">
+                {dowNome} {formattaData(oggi)} · Centro FINP
+              </span>
+              <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface tracking-tight leading-tight mt-0.5">
                 Buongiorno, Coach
               </h1>
-              <p className="text-xs text-slate-600 font-medium mt-0.5">
+              <p className="font-body-base text-body-base text-on-surface-variant mt-0.5 line-clamp-2">
                 {microCorrente
                   ? `Vasca Olimpica · Settimana di ${TIPO_MICROCICLO_LABEL[microCorrente.tipo].toLowerCase()} (${microCorrente.volumeTargetMetri}m totali previsti)`
                   : 'Centro Federale FINP Ostia · Vasca Olimpica'}
@@ -306,25 +304,25 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-center">
+          <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
             {chiusuraOggi ? (
-              <span className="inline-flex items-center gap-1.5 px-3 h-11 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">
-                <AlertTriangle size={15} className="text-amber-600" />
+              <span className="ds-chip-coral !px-3 !py-2 !h-11 !normal-case [white-space:normal]">
+                <AlertTriangle size={15} className="shrink-0" />
                 <span>Chiusura: {chiusuraOggi.motivo}</span>
               </span>
             ) : garaOggi ? (
-              <span className="inline-flex items-center gap-1.5 px-3 h-11 rounded-xl text-xs font-bold bg-amber-500 text-white shadow-xs">
-                <Zap size={15} />
+              <span className="ds-chip bg-tertiary-container text-on-tertiary !px-3 !py-2 !h-11 !normal-case [white-space:normal]">
+                <Zap size={15} className="shrink-0" />
                 <span>Gara: {garaOggi.nome}</span>
               </span>
             ) : isGiornoAllenamento ? (
-              <span className="inline-flex items-center gap-1.5 px-3.5 h-11 rounded-xl text-xs font-black bg-emerald-600 text-white shadow-xs">
-                <Sparkles size={15} className="text-emerald-200" />
+              <span className="ds-chip bg-primary text-on-primary !px-3 !py-2 !h-11 !normal-case [white-space:normal]">
+                <Sparkles size={15} className="text-primary-fixed shrink-0" />
                 <span>In Vasca Oggi</span>
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 h-11 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                <Coffee size={15} className="text-slate-500" />
+              <span className="ds-chip-neutral !px-3 !py-2 !h-11 !normal-case [white-space:normal]">
+                <Coffee size={15} className="shrink-0" />
                 <span>Recupero Attivo</span>
               </span>
             )}
@@ -333,118 +331,112 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
       </section>
 
       {/* Quick Action Ergonomic Bar (Poolside Touch Friendly >48px) */}
-      <section aria-label="Azioni Rapide Bordo Vasca" className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+      <section aria-label="Azioni Rapide Bordo Vasca" className="ds-scroll-x ds-touch-pan flex items-center gap-space-sm pb-1">
         <button
           type="button"
           onClick={() => onNavigateTab('cronometro')}
-          className="flex items-center gap-1.5 bg-[#006874] hover:bg-[#004e58] text-white px-4 py-3 rounded-full font-bold text-xs whitespace-nowrap shadow-xs min-h-[48px] active:scale-95 transition shrink-0"
+          className="ds-btn bg-primary text-on-primary !rounded-full shadow-primary-sm active:scale-95 shrink-0"
         >
-          <Timer size={16} className="text-cyan-200" />
+          <Timer size={18} className="text-primary-fixed" />
           <span>Cronometro Live Deck</span>
         </button>
         <button
           type="button"
           onClick={() => onNavigateTab('regia')}
-          className="flex items-center gap-1.5 bg-surface-container hover:bg-[#dae2fd] text-[#004f7b] px-4 py-3 rounded-full font-bold text-xs whitespace-nowrap shadow-xs min-h-[48px] active:scale-95 transition shrink-0"
+          className="ds-btn bg-surface-container text-on-secondary-container !rounded-full active:scale-95 shrink-0"
         >
-          <Users size={16} />
-          <span>Regia & Pianificatore</span>
+          <Users size={18} />
+          <span>Regia &amp; Pianificatore</span>
         </button>
         <button
           type="button"
           onClick={() => onNavigateTab('atleti')}
-          className="flex items-center gap-1.5 bg-surface-container-high hover:bg-surface-container-highest text-slate-800 px-4 py-3 rounded-full font-bold text-xs whitespace-nowrap shadow-xs min-h-[48px] active:scale-95 transition shrink-0"
+          className="ds-btn bg-surface-container-high text-on-surface !rounded-full active:scale-95 shrink-0"
         >
-          <User size={16} />
+          <User size={18} />
           <span>Classificazioni WPS</span>
         </button>
       </section>
 
       {/* Key Stats Bento Grid - Stitch Design System */}
-      <section aria-label="Statistiche Allenatore" className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        <div className="bg-surface-container-lowest rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+      <section aria-label="Statistiche Allenatore" className="grid grid-cols-2 sm:grid-cols-4 gap-space-sm">
+        <div className="ds-stat">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Atleti Squadra</span>
-            <Users size={16} className="text-[#006874]" />
+            <span className="ds-label">Atleti Squadra</span>
+            <Users size={18} className="text-primary" />
           </div>
-          <div className="flex items-baseline gap-1 pt-2">
-            <span className="text-2xl sm:text-3xl font-black text-[#006874] tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              {atleti.length}
-            </span>
-            <span className="text-[10px] text-slate-500 font-semibold">tesserati</span>
+          <div className="flex items-baseline gap-1">
+            <span className="ds-metric text-primary">{atleti.length}</span>
+            <span className="ds-label">tesserati</span>
           </div>
         </div>
 
-        <div className="bg-surface-container-lowest rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="ds-stat">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Sedute Settimana</span>
-            <Calendar size={16} className="text-[#006399]" />
+            <span className="ds-label">Sedute Settimana</span>
+            <Calendar size={18} className="text-secondary" />
           </div>
-          <div className="flex items-baseline gap-1 pt-2">
-            <span className="text-2xl sm:text-3xl font-black text-[#006399] tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <div className="flex items-baseline gap-1">
+            <span className="ds-metric text-secondary">
               {microCorrente?.sedutePreviste || giorniAllenamento.length || 4}
             </span>
-            <span className="text-[10px] text-slate-500 font-semibold">in vasca</span>
+            <span className="ds-label">in vasca</span>
           </div>
         </div>
 
-        <div className="bg-surface-container-lowest rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="ds-stat">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Tempi Registrati</span>
-            <Timer size={16} className="text-[#9e4202]" />
+            <span className="ds-label">Tempi Registrati</span>
+            <Timer size={18} className="text-tertiary" />
           </div>
-          <div className="flex items-baseline gap-1 pt-2">
-            <span className="text-2xl sm:text-3xl font-black text-[#9e4202] tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              {tempi.length}
-            </span>
-            <span className="text-[10px] text-slate-500 font-semibold">crono</span>
+          <div className="flex items-baseline gap-1">
+            <span className="ds-metric text-tertiary">{tempi.length}</span>
+            <span className="ds-label">crono</span>
           </div>
         </div>
 
-        <div className="bg-surface-container-lowest rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="ds-stat">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Gare in Calendario</span>
-            <Zap size={16} className="text-[#004e58]" />
+            <span className="ds-label">Gare in Calendario</span>
+            <Zap size={18} className="text-primary-container" />
           </div>
-          <div className="flex items-baseline gap-1 pt-2">
-            <span className="text-2xl sm:text-3xl font-black text-[#004e58] tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              {gare.length}
-            </span>
-            <span className="text-[10px] text-slate-500 font-semibold">eventi</span>
+          <div className="flex items-baseline gap-1">
+            <span className="ds-metric text-primary-container">{gare.length}</span>
+            <span className="ds-label">eventi</span>
           </div>
         </div>
       </section>
 
       {/* NOT A SCHEDULED TRAINING DAY CARD */}
       {!isGiornoAllenamento && !mostraSedutaStraordinaria && (
-        <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-xs text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
-            <Coffee size={32} />
+        <div className="ds-card p-space-md sm:p-space-lg text-center space-y-4">
+          <div className="w-14 h-14 rounded-xl bg-surface-container text-on-surface-variant mx-auto flex items-center justify-center">
+            <Coffee size={28} />
           </div>
           <div className="max-w-md mx-auto space-y-1.5">
-            <h3 className="text-lg font-black text-slate-800">
+            <h3 className="ds-subtitle">
               Oggi non è un giorno di allenamento fissato
             </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="ds-body">
               Secondo la programmazione della squadra, oggi è dedicato al recupero attivo o al riposo fisiologico.
               I giorni di vasca fissati sono:{' '}
-              <strong className="text-slate-800">
+              <strong className="text-on-surface">
                 {giorniAllenamento.map(d => DAY_OF_WEEK_FULL_NAMES[d]).join(', ')}
               </strong>.
             </p>
           </div>
 
           {prossimoAllenamento && (
-            <div className="p-4 max-w-md mx-auto bg-cyan-50/70 border border-cyan-200 rounded-2xl text-xs text-left flex items-start gap-3">
-              <Calendar size={18} className="text-[#006874] shrink-0 mt-0.5" />
+            <div className="ds-alert bg-surface-container border-l-primary border border-slate-200/60 max-w-md mx-auto text-left flex items-start gap-3">
+              <Calendar size={18} className="text-primary shrink-0 mt-0.5" />
               <div>
-                <span className="font-bold text-[#006874] block">
+                <span className="font-label-lg text-label-lg text-primary block">
                   Prossimo Allenamento Programmato
                 </span>
-                <span className="text-slate-800 font-semibold block text-sm mt-0.5">
+                <span className="text-body-bold text-body-bold text-on-surface block mt-0.5">
                   {prossimoAllenamento.dowNome} {formattaData(prossimoAllenamento.data)}
                 </span>
-                <span className="text-slate-500 text-[11px]">
+                <span className="ds-label !normal-case block mt-0.5">
                   {prossimoAllenamento.meso ? `Fase: ${FASE_MESOCICLO_LABEL[prossimoAllenamento.meso.fase]} · ` : ''}
                   Volume stimato: ~{volumeSquadra} m
                 </span>
@@ -452,20 +444,20 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
             </div>
           )}
 
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="pt-1 flex flex-col sm:flex-row items-center justify-center gap-2">
             <button
               onClick={() => setMostraSedutaStraordinaria(true)}
-              className="inline-flex items-center gap-2 px-4 h-12 bg-[#006874] hover:bg-[#004f58] text-white text-xs font-bold rounded-xl transition shadow-xs"
+              className="ds-btn-primary w-full sm:w-auto"
             >
-              <Zap size={15} />
+              <Zap size={18} />
               <span>Genera Seduta Straordinaria per Oggi</span>
             </button>
 
             <button
               onClick={() => onNavigateTab('piano')}
-              className="inline-flex items-center gap-2 px-4 h-12 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition"
+              className="ds-btn-ghost w-full sm:w-auto"
             >
-              <Calendar size={15} />
+              <Calendar size={18} />
               <span>Modifica Giorni nel Piano</span>
             </button>
           </div>
@@ -474,10 +466,10 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
 
       {/* Pull to Refresh Indicator */}
       {pullToRefresh.isPulling && (
-        <div className="flex items-center justify-center py-2 text-xs text-slate-500">
-          <RefreshCw 
-            size={16} 
-            className={`mr-2 ${pullToRefresh.isRefreshing ? 'animate-spin' : ''}`} 
+        <div className="flex items-center justify-center py-2 ds-body">
+          <RefreshCw
+            size={16}
+            className={`mr-2 ${pullToRefresh.isRefreshing ? 'animate-spin' : ''}`}
           />
           {pullToRefresh.isRefreshing ? 'Aggiornamento...' : 'Rilascia per aggiornare'}
         </div>
@@ -485,19 +477,19 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
 
       {/* TODAY'S WORKOUT CARD */}
       {visualizzaSeduta && (
-        <div className={`print-area space-y-4 pb-20 sm:pb-4 ${maxiDeck ? 'bg-slate-900 text-white p-5 rounded-3xl' : ''}`}>
+        <div className={`print-area space-y-3 pb-20 sm:pb-4 ${maxiDeck ? 'bg-inverse-surface text-inverse-on-surface p-4 rounded-xl' : ''}`}>
           {/* Controls Bar */}
-          <div className="no-print bg-white p-3 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="no-print ds-card p-2.5 flex flex-wrap items-center justify-between gap-2">
             {/* Athlete selector */}
-            <div className="flex items-center gap-2">
-              <span className="text-slate-500 font-bold flex items-center gap-1.5">
-                <Users size={15} className="text-[#006874]" />
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <span className="ds-label hidden sm:inline-flex items-center gap-1.5 shrink-0">
+                <Users size={15} className="text-primary" />
                 Visualizza per:
               </span>
               <select
                 value={atletaSelId ?? ''}
                 onChange={e => setAtletaSelId(e.target.value ? Number(e.target.value) : null)}
-                className="bg-slate-50 border border-slate-300 rounded-xl px-2.5 h-12 font-bold text-slate-800 text-xs focus:border-[#006874]"
+                className="w-full min-h-[48px] bg-surface-container-lowest border border-outline-variant rounded-lg px-2.5 font-body-bold text-body-bold text-on-surface text-sm focus:border-primary"
               >
                 <option value="">Tutta la Squadra (100% - {volumeSquadra}m)</option>
                 {atleti.map(a => (
@@ -509,93 +501,97 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
             </div>
 
             {/* Quick Actions */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <button
                 type="button"
                 onClick={() => setMaxiDeck(!maxiDeck)}
-                className={`p-2 rounded-xl border flex items-center gap-1.5 font-bold transition ${
+                className={`ds-btn-icon !w-auto !px-3 gap-1.5 ${
                   maxiDeck
-                    ? 'bg-amber-400 text-slate-900 border-amber-500'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                    ? 'bg-tertiary-fixed text-on-tertiary-fixed border border-tertiary'
+                    : 'bg-surface-container-high text-on-surface'
                 }`}
                 title="Attiva caratteri giganti ad alto contrasto per bordo vasca"
+                aria-label={maxiDeck ? 'Disattiva vista Maxi-Deck' : 'Attiva vista Maxi-Deck'}
               >
-                {maxiDeck ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
-                <span className="hidden sm:inline">{maxiDeck ? 'Vista Normale' : 'Maxi-Deck'}</span>
+                {maxiDeck ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                <span className="hidden sm:inline text-label-md font-label-md">{maxiDeck ? 'Vista Normale' : 'Maxi-Deck'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleCopy}
-                className="p-2 rounded-xl bg-[#006874] hover:bg-[#004f58] text-white font-bold flex items-center gap-1.5 transition shadow-xs"
+                className="ds-btn-icon !w-auto !px-3 gap-1.5 bg-primary text-on-primary shadow-primary-sm"
                 title="Copia negli appunti"
+                aria-label="Copia la scheda negli appunti (WhatsApp)"
               >
-                {copiato ? <Check size={15} className="text-emerald-300" /> : <Copy size={15} />}
-                <span className="hidden sm:inline">{copiato ? 'Copiato!' : 'WhatsApp'}</span>
+                {copiato ? <Check size={18} className="text-primary-fixed" /> : <Copy size={18} />}
+                <span className="hidden sm:inline text-label-md font-label-md">{copiato ? 'Copiato!' : 'WhatsApp'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center gap-1.5 transition border border-slate-200"
+                className="ds-btn-icon !w-auto !px-3 gap-1.5 bg-surface-container-high text-on-surface"
                 title="Stampa scheda bordo vasca"
+                aria-label="Stampa la scheda di oggi"
               >
-                <Printer size={15} className="text-[#006874]" />
-                <span className="hidden sm:inline">Stampa</span>
+                <Printer size={18} className="text-primary" />
+                <span className="hidden sm:inline text-label-md font-label-md">Stampa</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => onNavigateTab('dati')}
-                className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1.5 transition shadow-xs"
+                className="ds-btn-icon !w-auto !px-3 gap-1.5 bg-primary-container text-on-primary shadow-primary-sm"
                 title="Apri registro presenze di oggi"
+                aria-label="Segna le presenze di oggi"
               >
-                <CheckCircle2 size={15} />
-                <span className="hidden sm:inline">Segna Presenze</span>
+                <CheckCircle2 size={18} />
+                <span className="hidden sm:inline text-label-md font-label-md">Segna Presenze</span>
               </button>
             </div>
           </div>
 
           {/* Main Poolside Workout Card */}
-          <div className={`rounded-2xl border transition shadow-sm overflow-hidden ${
-            maxiDeck ? 'bg-slate-950 border-slate-800 text-white' : 'bg-white border-slate-200'
+          <div className={`rounded-xl border transition overflow-hidden ${
+            maxiDeck ? 'bg-inverse-surface border-outline-variant text-inverse-on-surface' : 'ds-card'
           }`}>
             {/* Header Metrics */}
-            <div className={`p-4 sm:p-5 border-b ${
-              maxiDeck ? 'bg-slate-900 border-slate-800' : 'bg-gradient-to-r from-slate-50 to-cyan-50/50 border-slate-100'
+            <div className={`p-space-md border-b ${
+              maxiDeck ? 'bg-inverse-surface border-outline-variant' : 'bg-surface-container-low border-slate-200/70'
             }`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs uppercase font-black tracking-wider text-[#006874] bg-cyan-100/70 px-2 py-0.5 rounded-md">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="ds-chip-primary">
                       Bordo Vasca · FINP
                     </span>
                     {atletaSel && (
-                      <span className="text-xs font-bold text-slate-600 flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                      <span className="ds-chip-outline !normal-case [white-space:normal]">
                         <User size={13} />
                         Personalizzata per {atletaSel.cognome} {atletaSel.nome} (Classe S{atletaSel.classeS})
                       </span>
                     )}
                   </div>
-                  <h3 className={`font-black tracking-tight mt-1 ${maxiDeck ? 'text-2xl text-amber-300' : 'text-xl text-slate-800'}`}>
+                  <h3 className={`ds-subtitle mt-1.5 ${maxiDeck ? 'text-tertiary-fixed' : ''}`}>
                     {schedaOggi.titolo}
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                  <p className={`ds-label !normal-case mt-0.5 ${maxiDeck ? '!text-inverse-on-surface/80' : ''}`}>
                     Fase: {FASE_MESOCICLO_LABEL[schedaOggi.faseStagione]} · Microciclo: {TIPO_MICROCICLO_LABEL[schedaOggi.tipoMicrociclo]}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 shrink-0">
                   <div className="text-right">
-                    <span className="text-[11px] text-slate-500 font-semibold block uppercase">Volume Totale</span>
-                    <span className={`font-black leading-none ${maxiDeck ? 'text-3xl text-emerald-400' : 'text-2xl text-[#006874]'}`}>
-                      {schedaOggi.volumeTotaleMetri} <span className="text-sm font-semibold">m</span>
+                    <span className="ds-label block">Volume Totale</span>
+                    <span className={`ds-metric-sm ${maxiDeck ? 'text-primary-fixed' : 'text-primary'}`}>
+                      {schedaOggi.volumeTotaleMetri} <span className="text-body-base font-body-base">m</span>
                     </span>
                   </div>
 
-                  <div className="text-right border-l pl-4 border-slate-200">
-                    <span className="text-[11px] text-slate-500 font-semibold block uppercase">Durata Stimata</span>
-                    <span className={`font-black leading-none flex items-center gap-1 ${maxiDeck ? 'text-2xl text-cyan-300' : 'text-xl text-slate-700'}`}>
+                  <div className="text-right border-l pl-4 border-slate-200/60">
+                    <span className="ds-label block">Durata Stimata</span>
+                    <span className={`ds-metric-sm flex items-center gap-1 ${maxiDeck ? 'text-secondary-fixed' : 'text-on-surface'}`}>
                       <Clock size={18} />
                       ~75'
                     </span>
@@ -613,58 +609,58 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
             </div>
 
             {/* Workout Tratti (Detailed Poolside Series) */}
-            <div className={`p-4 sm:p-6 space-y-3 ${maxiDeck ? 'text-lg' : 'text-sm'}`}>
+            <div className={`p-space-md space-y-2.5 ${maxiDeck ? 'text-body-lg font-body-lg' : ''}`}>
               {schedaOggi.tratti.map((t, idx) => {
-                let badgeColor = 'bg-slate-100 text-slate-800 border-slate-200';
+                let badgeColor = 'bg-surface-container text-on-surface border-slate-200/70';
                 if (t.sezione.toLowerCase().includes('riscaldamento')) {
-                  badgeColor = 'bg-blue-50 text-blue-900 border-blue-200';
+                  badgeColor = 'bg-secondary-fixed text-on-secondary-fixed border-secondary-fixed-dim';
                 } else if (t.sezione.toLowerCase().includes('tecnica') || t.sezione.toLowerCase().includes('attivazione')) {
-                  badgeColor = 'bg-emerald-50 text-emerald-900 border-emerald-200';
+                  badgeColor = 'bg-primary-fixed text-on-primary-fixed border-primary-fixed-dim';
                 } else if (t.sezione.toLowerCase().includes('principale') || t.sezione.toLowerCase().includes('centrale')) {
-                  badgeColor = 'bg-amber-50 text-amber-900 border-amber-300 ring-1 ring-amber-300/40';
+                  badgeColor = 'bg-tertiary-fixed text-on-tertiary-fixed border-tertiary-fixed-dim';
                 } else if (t.sezione.toLowerCase().includes('defaticamento')) {
-                  badgeColor = 'bg-indigo-50 text-indigo-900 border-indigo-200';
+                  badgeColor = 'bg-surface-container-highest text-on-surface border-outline-variant';
                 }
 
                 return (
                   <div
                     key={idx}
-                    className={`rounded-2xl border transition p-4 ${
+                    className={`rounded-lg border p-3 transition ${
                       maxiDeck
-                        ? 'bg-slate-900/90 border-slate-800'
+                        ? 'bg-inverse-surface border-outline-variant'
                         : t.sezione.toLowerCase().includes('principale')
-                          ? 'bg-amber-50/20 border-amber-200/80 shadow-xs'
-                          : 'bg-slate-50/60 border-slate-200'
+                          ? 'bg-tertiary-fixed/25 border-tertiary-fixed-dim'
+                          : 'bg-surface-container-low border-slate-200/70'
                     }`}
                   >
                     {/* Header line of tratto */}
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-md bg-[#006874] text-white flex items-center justify-center text-[10px] font-black shrink-0">
+                    <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-200/60">
+                      <div className="flex items-center gap-2 flex-wrap min-w-0">
+                        <span className="w-5 h-5 rounded bg-primary text-on-primary flex items-center justify-center text-[10px] font-bold shrink-0">
                           {idx + 1}
                         </span>
-                        <span className={`px-2.5 py-0.5 rounded-lg text-xs font-black uppercase tracking-wider border ${badgeColor}`}>
+                        <span className={`px-2 py-0.5 rounded text-label-caps font-label-caps uppercase tracking-wider border ${badgeColor}`}>
                           {t.sezione}
                         </span>
                         <BadgeCodice codice={t.codice} />
                       </div>
-                      <span className={`font-black ${maxiDeck ? 'text-2xl text-amber-300' : 'text-base text-slate-800'}`}>
+                      <span className={`ds-metric-sm shrink-0 ${maxiDeck ? 'text-tertiary-fixed' : 'text-on-surface'}`}>
                         {t.metri} m
                       </span>
                     </div>
 
                     {/* Content */}
-                    <div className="mt-2.5 flex items-start justify-between gap-3">
-                      <div>
-                        <div className={`font-black ${maxiDeck ? 'text-2xl text-white' : 'text-slate-800 text-sm'}`}>
+                    <div className="mt-2 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className={`font-body-bold text-body-bold ${maxiDeck ? 'text-2xl text-inverse-on-surface' : 'text-on-surface'}`}>
                           {t.ripetizioni}
                         </div>
-                        <p className={`mt-1 leading-relaxed ${maxiDeck ? 'text-lg text-slate-200' : 'text-xs text-slate-600 font-medium'}`}>
+                        <p className={`mt-1 leading-relaxed ${maxiDeck ? 'text-body-lg font-body-lg text-inverse-on-surface/90' : 'ds-body'}`}>
                           {t.descrizione}
                         </p>
                         {t.notaSpecifica && (
-                          <div className="text-[11px] text-[#006874] font-bold mt-1.5 flex items-center gap-1">
-                            <span>💡 Focus Tecnico:</span>
+                          <div className="text-body-base font-body-bold text-primary mt-1.5 flex items-start gap-1">
+                            <span className="shrink-0">Focus Tecnico:</span>
                             <span>{t.notaSpecifica}</span>
                           </div>
                         )}
@@ -672,9 +668,9 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
 
                       {/* Ripartenza if any */}
                       {t.ripartenza && (
-                        <div className="shrink-0 text-right">
-                          <span className="inline-block px-2.5 py-1 rounded-lg bg-cyan-100 text-[#006874] font-black text-xs">
-                            ⏱️ {t.ripartenza}
+                        <div className="shrink-0">
+                          <span className="inline-block px-2.5 py-1 rounded-lg bg-primary-fixed text-on-primary-fixed font-label-md text-label-md">
+                            {t.ripartenza}
                           </span>
                         </div>
                       )}
@@ -686,12 +682,12 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
 
             {/* Medical Precautions for Athletes */}
             {schedaOggi.avvertenzeMediche.length > 0 && (
-              <div className="p-4 sm:p-5 bg-rose-50 border-t border-rose-200 space-y-2">
-                <div className="flex items-center gap-2 text-rose-900 font-black text-xs uppercase tracking-wider">
-                  <HeartPulse size={17} className="text-rose-600" />
+              <div className="p-space-md bg-error-container border-t border-error/30 space-y-2">
+                <div className="flex items-center gap-2 text-on-error-container font-headline-sm text-headline-sm uppercase tracking-wider">
+                  <HeartPulse size={18} className="text-error shrink-0" />
                   <span>Prescrizioni Mediche FINP per la Seduta</span>
                 </div>
-                <ul className="list-disc list-inside space-y-1 text-xs text-rose-800 font-medium">
+                <ul className="list-disc list-inside space-y-1 text-body-base font-body-base text-on-error-container">
                   {schedaOggi.avvertenzeMediche.map((avv, i) => (
                     <li key={i}>{avv}</li>
                   ))}
@@ -702,21 +698,21 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
 
           {/* Squad Medical Attention Bar (if any) */}
           {avvertenzeSquadra.length > 0 && !atletaSel && (
-            <div className="no-print bg-white p-4 rounded-2xl border border-amber-200 shadow-xs space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="font-bold text-amber-900 text-xs flex items-center gap-1.5 uppercase tracking-wider">
-                  <AlertTriangle size={15} className="text-amber-600" />
+            <div className="no-print ds-card p-space-md space-y-2">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <h4 className="font-headline-sm text-headline-sm text-on-tertiary flex items-center gap-1.5">
+                  <AlertTriangle size={16} className="text-tertiary shrink-0" />
                   <span>Promemoria Attenzioni Mediche Squadra ({avvertenzeSquadra.length})</span>
                 </h4>
-                <span className="text-[11px] text-amber-700 font-semibold">
+                <span className="ds-label !normal-case">
                   Personalizza la scheda sopra per il singolo atleta
                 </span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {avvertenzeSquadra.slice(0, 4).map((av, i) => (
-                  <div key={i} className="p-2 bg-amber-50/50 rounded-xl border border-amber-100">
-                    <span className="font-bold text-slate-800 block">{av.atleta}</span>
-                    <span className="text-amber-900 text-[11px] block">{av.condizione}: {av.limitazione}</span>
+                  <div key={i} className="p-2.5 bg-tertiary-fixed/30 rounded-lg border border-tertiary-fixed-dim">
+                    <span className="font-body-bold text-body-bold text-on-surface block">{av.atleta}</span>
+                    <span className="text-body-base font-body-base text-on-tertiary block">{av.condizione}: {av.limitazione}</span>
                   </div>
                 ))}
               </div>
@@ -726,21 +722,18 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
       )}
 
       {/* Atleti in evidenza con recenti progressi - Stitch Design System */}
-      <section className="space-y-3 pt-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles size={18} className="text-[#9e4202]" />
-            <h3
-              className="text-base font-black text-slate-900 tracking-tight"
-              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-            >
-              Atleti in Evidenza & Progressi Recenti
+      <section className="space-y-2.5 pt-1">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Sparkles size={18} className="text-tertiary shrink-0" />
+            <h3 className="ds-title">
+              Atleti in Evidenza &amp; Progressi Recenti
             </h3>
           </div>
           <button
             type="button"
             onClick={() => onNavigateTab('atleti')}
-            className="text-xs font-bold text-[#006874] hover:underline"
+            className="ds-btn-quiet !min-h-[40px] !px-2 text-primary shrink-0"
           >
             Vedi tutti ({atleti.length})
           </button>
@@ -754,39 +747,40 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
             const cognIniz = a.cognome?.[0] || 'T';
 
             return (
-              <div
+              <button
                 key={a.id}
+                type="button"
                 onClick={() => onNavigateTab('atleti')}
-                className="bg-surface-container-lowest hover:bg-surface-container-low rounded-2xl p-3.5 border border-slate-200/80 shadow-xs flex items-center justify-between cursor-pointer transition"
+                className="ds-card p-3 flex items-center justify-between gap-2 text-left hover:bg-surface-container-low transition"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-10 h-10 rounded-full bg-[#006874] text-white flex items-center justify-center font-black text-xs shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-primary text-on-primary flex items-center justify-center font-headline-sm text-headline-sm shrink-0">
                     {nomeIniz}{cognIniz}
                   </div>
                   <div className="flex flex-col min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-bold text-xs text-slate-900 truncate">
+                      <span className="font-body-bold text-body-bold text-on-surface truncate">
                         {a.cognome || ''} {a.nome?.[0] ? `${a.nome[0]}.` : (a.nome || '')}
                       </span>
-                      <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-[#001f24] text-[#a2effd]">
+                      <span className="ds-chip-class">
                         S{a.classeS ?? '9'}
                       </span>
                     </div>
-                    <span className="text-[11px] text-slate-500 font-medium truncate">
+                    <span className="text-body-base font-body-base text-on-surface-variant truncate">
                       {best ? `${best.distanzaMetri}m: ${formattaTempo(best.centesimi)}` : 'Passo Gara Confermato'}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end shrink-0 pl-2">
-                  <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-[#a2effd] text-[#001f24] text-[10px] font-bold">
+                <div className="flex flex-col items-end shrink-0">
+                  <span className="ds-chip-primary">
                     -0.{3 + i * 2}s PB
                   </span>
-                  <span className="text-[9px] text-slate-400 font-semibold mt-0.5">
+                  <span className="ds-label mt-0.5">
                     {i === 0 ? 'Ieri' : `${i + 1} gg fa`}
                   </span>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>

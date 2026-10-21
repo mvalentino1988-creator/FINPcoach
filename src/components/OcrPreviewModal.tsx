@@ -24,58 +24,58 @@ export const OcrPreviewModal: React.FC<Props> = ({ isOpen, initialText, onConfir
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-xs">
-      <div className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl space-y-4 border border-slate-200">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+      <div className="bg-surface-container-lowest rounded-xl p-6 max-w-lg w-full shadow-float space-y-4 border border-slate-200/70">
+        <div className="flex items-center justify-between border-b border-slate-200/70 pb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-cyan-100 text-[#006874] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-primary-fixed text-primary-container flex items-center justify-center">
               <Camera size={18} />
             </div>
             <div>
-              <h3 className="font-black text-slate-800 text-base">Anteprima OCR & Modifica</h3>
-              <p className="text-xs text-slate-500">Verifica e correggi il testo riconosciuto prima di confermare.</p>
+              <h3 className="font-bold text-on-surface text-base">Anteprima OCR & Modifica</h3>
+              <p className="text-xs text-on-surface-variant">Verifica e correggi il testo riconosciuto prima di confermare.</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onCancel}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+            className="p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition"
           >
             <X size={18} />
           </button>
         </div>
 
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+          <label className="block text-xs font-bold text-on-surface uppercase tracking-wider">
             Testo Estratto (Modificabile)
           </label>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            className="w-full h-40 p-3 border border-slate-300 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#006874] focus:border-transparent"
+            className="w-full h-40 p-3 border border-outline-variant rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           />
         </div>
 
         {/* Live Parsed Preview */}
-        <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+        <div className="p-3 bg-surface-container-low border border-slate-200/70 rounded-xl space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-slate-600">Volume Totale Calcolato:</span>
-            <span className="font-black text-[#006874] text-sm">{metriStimati} m</span>
+            <span className="font-bold text-on-surface-variant">Volume Totale Calcolato:</span>
+            <span className="font-bold text-primary-container text-sm">{metriStimati} m</span>
           </div>
           <div className="max-h-36 overflow-y-auto space-y-1">
             {serieParsed.map((s, i) => (
-              <div key={i} className="flex items-center justify-between text-[11px] bg-white p-2 rounded-lg border border-slate-200">
-                <span className="font-medium text-slate-800">{s.descrizione}</span>
-                <span className="font-bold text-[#006874]">{s.metriTotali}m ({s.codice})</span>
+              <div key={i} className="flex items-center justify-between text-[11px] bg-surface-container-lowest p-2 rounded-lg border border-slate-200/70">
+                <span className="font-medium text-on-surface">{s.descrizione}</span>
+                <span className="font-bold text-primary-container">{s.metriTotali}m ({s.codice})</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100">
+        <div className="flex gap-2 pt-2 border-t border-slate-200/70">
           <button
             type="button"
             onClick={() => onConfirm(text)}
-            className="flex-1 flex items-center justify-center gap-1.5 px-4 h-12.5 bg-[#006874] hover:bg-[#005a63] text-white rounded-xl text-sm font-bold transition shadow-xs"
+            className="flex-1 flex items-center justify-center gap-1.5 px-4 h-12.5 bg-primary-container hover:bg-primary text-on-primary rounded-xl text-sm font-bold transition shadow-card"
           >
             <Check size={16} />
             <span>Conferma e Inserisci</span>
@@ -83,7 +83,7 @@ export const OcrPreviewModal: React.FC<Props> = ({ isOpen, initialText, onConfir
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 h-12.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition"
+            className="px-4 h-12.5 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl text-sm font-bold transition"
           >
             Annulla
           </button>

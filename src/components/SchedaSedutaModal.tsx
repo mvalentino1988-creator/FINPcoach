@@ -49,18 +49,18 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in overflow-y-auto">
-      <div className="print-area bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[92vh] flex flex-col border border-slate-200">
+      <div className="print-area bg-surface-container-lowest rounded-xl shadow-float max-w-2xl w-full max-h-[92vh] flex flex-col border border-slate-200/70">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50 rounded-t-2xl">
+        <div className="p-4 sm:p-5 border-b border-slate-200/70 flex items-center justify-between shrink-0 bg-surface-container-low rounded-t-2xl">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#006874] text-white flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shadow-card">
               <Waves size={22} />
             </div>
             <div>
-              <h2 className="font-bold text-slate-800 text-lg sm:text-xl leading-tight">
+              <h2 className="font-bold text-on-surface text-lg sm:text-xl leading-tight">
                 {scheda.titolo}
               </h2>
-              <div className="text-xs text-slate-500 font-medium">
+              <div className="text-xs text-on-surface-variant font-medium">
                 {scheda.data ? `Seduta del ${formattaData(scheda.data)} · ` : ''}
                 {scheda.volumeTotaleMetri} m · {FASE_MESOCICLO_LABEL[scheda.faseStagione]}
               </div>
@@ -68,7 +68,7 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
           </div>
           <button
             onClick={onChiudi}
-            className="no-print p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200 transition"
+            className="no-print p-1.5 text-on-surface-variant hover:text-on-surface-variant rounded-lg hover:bg-surface-container-high transition"
           >
             <X size={20} />
           </button>
@@ -77,20 +77,20 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
         {/* Scrollable Content */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-5 text-sm">
           {/* Quick Metrics Header */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-cyan-50/60 rounded-xl border border-cyan-100 text-cyan-950">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-surface-container-low/60 rounded-xl border border-primary-fixed-dim text-cyan-950">
             <div>
-              <span className="text-xs text-cyan-800 font-semibold block">Volume Target</span>
-              <span className="text-lg font-black text-[#006874]">{scheda.volumeTotaleMetri} m</span>
+              <span className="text-xs text-primary font-semibold block">Volume Target</span>
+              <span className="text-lg font-bold text-primary-container">{scheda.volumeTotaleMetri} m</span>
             </div>
             <div>
-              <span className="text-xs text-cyan-800 font-semibold block">Fase & Microciclo</span>
+              <span className="text-xs text-primary font-semibold block">Fase & Microciclo</span>
               <span className="text-xs font-bold leading-tight block mt-0.5">
                 {FASE_MESOCICLO_LABEL[scheda.faseStagione]} ({TIPO_MICROCICLO_LABEL[scheda.tipoMicrociclo]})
               </span>
             </div>
             {scheda.categoriaEta && (
               <div className="col-span-2 sm:col-span-1">
-                <span className="text-xs text-cyan-800 font-semibold block">Categoria</span>
+                <span className="text-xs text-primary font-semibold block">Categoria</span>
                 <span className="text-xs font-semibold">{scheda.categoriaEta}</span>
               </div>
             )}
@@ -100,7 +100,7 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
           <div className="no-print grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <button
               onClick={handleCopy}
-              className="flex items-center justify-center gap-2 h-12.5 px-4 bg-[#006874] hover:bg-[#004f58] text-white font-semibold rounded-xl text-xs sm:text-sm transition shadow-sm"
+              className="flex items-center justify-center gap-2 h-12.5 px-4 bg-primary-container hover:bg-primary text-on-primary font-semibold rounded-xl text-xs sm:text-sm transition shadow-card"
             >
               {copiato ? <Check size={17} className="text-emerald-300" /> : <Copy size={17} />}
               <span>{copiato ? 'Copiato!' : 'Copia per WhatsApp / Deck'}</span>
@@ -108,21 +108,21 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
 
             <button
               onClick={() => window.print()}
-              className="flex items-center justify-center gap-2 h-12.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs sm:text-sm transition border border-slate-200"
+              className="flex items-center justify-center gap-2 h-12.5 px-4 bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold rounded-xl text-xs sm:text-sm transition border border-slate-200/70"
             >
-              <Printer size={17} className="text-[#006874]" />
+              <Printer size={17} className="text-primary-container" />
               <span>Stampa Scheda Bordo Vasca</span>
             </button>
           </div>
 
           {/* Medical Alerts */}
           {scheda.avvertenzeMediche.length > 0 && (
-            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1.5">
-              <div className="flex items-center gap-2 text-rose-900 font-bold text-xs uppercase tracking-wider">
-                <HeartPulse size={16} className="text-rose-600" />
+            <div className="p-3.5 bg-error-container border border-error/40 rounded-xl space-y-1.5">
+              <div className="flex items-center gap-2 text-on-error-container font-bold text-xs uppercase tracking-wider">
+                <HeartPulse size={16} className="text-error" />
                 Adattamenti per Condizione Medica
               </div>
-              <ul className="list-disc list-inside space-y-1 text-xs text-rose-800">
+              <ul className="list-disc list-inside space-y-1 text-xs text-on-error-container">
                 {scheda.avvertenzeMediche.map((avv, i) => (
                   <li key={i}>{avv}</li>
                 ))}
@@ -132,12 +132,12 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
 
           {/* Age Physiological Adaptations */}
           {scheda.adattamentiEta.length > 0 && (
-            <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl space-y-1.5">
-              <div className="flex items-center gap-2 text-indigo-900 font-bold text-xs uppercase tracking-wider">
-                <Sparkles size={16} className="text-indigo-600" />
+            <div className="p-3.5 bg-surface-container-low border border-outline-variant rounded-xl space-y-1.5">
+              <div className="flex items-center gap-2 text-on-surface font-bold text-xs uppercase tracking-wider">
+                <Sparkles size={16} className="text-secondary" />
                 Modifiche Fisiologiche / Età
               </div>
-              <ul className="list-disc list-inside space-y-1 text-xs text-indigo-800">
+              <ul className="list-disc list-inside space-y-1 text-xs text-on-surface">
                 {scheda.adattamentiEta.map((ad, i) => (
                   <li key={i}>{ad}</li>
                 ))}
@@ -147,18 +147,18 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
 
           {/* Calibration on Race Times */}
           {scheda.noteCalibrazione.length > 0 && (
-            <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl space-y-1.5">
-              <div className="flex items-center gap-2 text-amber-900 font-bold text-xs uppercase tracking-wider">
-                <Timer size={16} className="text-amber-600" />
+            <div className="p-3.5 bg-surface-container-low border border-tertiary-fixed-dim rounded-xl space-y-1.5">
+              <div className="flex items-center gap-2 text-on-tertiary-fixed font-bold text-xs uppercase tracking-wider">
+                <Timer size={16} className="text-tertiary-container" />
                 Calibrazione sui Tempi dell'Atleta
               </div>
-              <ul className="list-disc list-inside space-y-1 text-xs text-amber-800">
+              <ul className="list-disc list-inside space-y-1 text-xs text-on-tertiary-fixed">
                 {scheda.noteCalibrazione.map((nota, i) => (
                   <li key={i}>{nota}</li>
                 ))}
               </ul>
               {scheda.tempiUtilizzati.length > 0 && (
-                <div className="pt-2 border-t border-amber-200 text-xs text-amber-900">
+                <div className="pt-2 border-t border-tertiary-fixed-dim text-xs text-on-tertiary-fixed">
                   <span className="font-semibold">Tempi utilizzati: </span>
                   {scheda.tempiUtilizzati.map(t => (
                     `${t.stile.replace('_', ' ')} ${t.distanzaMetri}m (${formattaTempo(t.centesimi)})`
@@ -169,8 +169,8 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
           )}
 
           {/* Energy Zones Breakdown */}
-          <div className="space-y-2 pt-2 border-t border-slate-100">
-            <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
+          <div className="space-y-2 pt-2 border-t border-slate-200/70">
+            <h4 className="font-bold text-on-surface text-xs uppercase tracking-wider">
               Distribuzione Zone Energetiche (A1 – D)
             </h4>
             <IndicatoreCodici
@@ -180,38 +180,38 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
           </div>
 
           {/* Session Sets (Poolside) */}
-          <div className="space-y-3 pt-2 border-t border-slate-100">
-            <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
+          <div className="space-y-3 pt-2 border-t border-slate-200/70">
+            <h4 className="font-bold text-on-surface text-xs uppercase tracking-wider">
               Serie d'Allenamento per Bordo Vasca
             </h4>
             <div className="space-y-2.5">
               {scheda.tratti.map((tratto, i) => (
                 <div
                   key={i}
-                  className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition space-y-1.5"
+                  className="p-3.5 rounded-xl border border-slate-200/70 bg-surface-container-low/50 hover:bg-surface-container-low transition space-y-1.5"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-bold text-slate-800 text-sm">
+                    <span className="font-bold text-on-surface text-sm">
                       {i + 1}. {tratto.sezione}
                     </span>
                     <BadgeCodice codice={tratto.codice} />
                   </div>
 
-                  <div className="text-[#006874] font-black text-sm">
-                    {tratto.ripetizioni} · <span className="text-slate-500 font-semibold">{tratto.metri} m</span>
+                  <div className="text-primary-container font-bold text-sm">
+                    {tratto.ripetizioni} · <span className="text-on-surface-variant font-semibold">{tratto.metri} m</span>
                   </div>
 
-                  <p className="text-xs text-slate-600 leading-relaxed">{tratto.descrizione}</p>
+                  <p className="text-xs text-on-surface-variant leading-relaxed">{tratto.descrizione}</p>
 
                   {tratto.ripartenza && (
-                    <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                    <div className="inline-flex items-center gap-1.5 text-xs font-bold text-on-tertiary-fixed bg-surface-container-low px-2 py-0.5 rounded-md border border-tertiary-fixed-dim">
                       <span>⏱️ Ripartenza / Recupero:</span>
                       <span>{tratto.ripartenza}</span>
                     </div>
                   )}
 
                   {tratto.notaSpecifica && (
-                    <div className="text-[11px] text-slate-500 font-medium italic">
+                    <div className="text-[11px] text-on-surface-variant font-medium italic">
                       • Focus: {tratto.notaSpecifica}
                     </div>
                   )}
@@ -222,10 +222,10 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-100 flex justify-end shrink-0 bg-slate-50 rounded-b-2xl">
+        <div className="p-4 border-t border-slate-200/70 flex justify-end shrink-0 bg-surface-container-low rounded-b-2xl">
           <button
             onClick={onChiudi}
-            className="px-5 h-12 bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 rounded-xl text-sm transition"
+            className="px-5 h-12 bg-surface-container-high hover:bg-surface-container-highest font-bold text-on-surface rounded-xl text-sm transition"
           >
             Chiudi e torna in vasca
           </button>

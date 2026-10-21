@@ -101,38 +101,38 @@ export const AtletiScreen: React.FC = () => {
   return (
     <div className="space-y-4 relative">
       {/* Top Action */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-black text-slate-800 tracking-tight">Atleti Squadra FINP</h2>
-          <p className="text-xs text-slate-500">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="ds-subtitle">Atleti Squadra FINP</h2>
+          <p className="ds-body">
             {atleti.length} {atleti.length === 1 ? 'atleta registrato' : 'atleti registrati'} · Classificazione World Para Swimming
           </p>
         </div>
         <button
           onClick={() => setNuovoOpen(true)}
-          className="inline-flex items-center gap-2 px-3.5 h-12 bg-[#006874] hover:bg-[#004f58] text-white rounded-xl text-xs font-bold transition shadow-sm"
+          className="ds-btn-primary !px-3.5 shrink-0"
         >
-          <UserPlus size={16} />
+          <UserPlus size={18} />
           <span>Nuovo Atleta</span>
         </button>
       </div>
 
       {/* Search & Class Category Filters */}
       {atleti.length > 0 && (
-        <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs space-y-2.5">
+        <div className="ds-card p-3 space-y-2.5">
           <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
             <input
               type="text"
               placeholder="Cerca per cognome o nome..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 h-12 bg-slate-50 border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 focus:bg-white focus:border-[#006874] transition"
+              className="w-full pl-10 pr-3 h-12 bg-surface-container-low border border-slate-200/70 rounded-lg text-sm placeholder:text-on-surface-variant focus:bg-surface-container-lowest focus:border-primary-container transition"
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-            <span className="text-slate-400 font-bold mr-1">Filtra:</span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="ds-label mr-1">Filtra:</span>
             {[
               { id: 'ALL', label: 'Tutti' },
               { id: 'S1-S6', label: 'Fisici S1-S6' },
@@ -143,10 +143,10 @@ export const AtletiScreen: React.FC = () => {
               <button
                 key={f.id}
                 onClick={() => setCategoriaFiltro(f.id as any)}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition ${
+                className={`min-h-[40px] px-2.5 rounded-full text-label-md font-label-md transition ${
                   categoriaFiltro === f.id
-                    ? 'bg-[#006874] text-white shadow-2xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-primary-container text-on-primary shadow-card'
+                    : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
                 }`}
               >
                 {f.label}
@@ -157,24 +157,24 @@ export const AtletiScreen: React.FC = () => {
       )}
 
       {atleti.length === 0 && (
-        <div className="p-8 text-center bg-white rounded-2xl border border-dashed border-slate-300">
-          <User size={36} className="mx-auto text-slate-300 mb-2" />
-          <h3 className="font-bold text-slate-700">Nessun atleta inserito</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+        <div className="p-8 text-center bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant">
+          <User size={36} className="mx-auto text-outline mb-2" />
+          <h3 className="font-bold text-on-surface">Nessun atleta inserito</h3>
+          <p className="text-xs text-on-surface-variant mt-1 max-w-sm mx-auto">
             Aggiungi il primo atleta per iniziare a gestire classi sportive, condizioni mediche e schede personalizzate.
           </p>
         </div>
       )}
 
       {atleti.length > 0 && atletiFiltrati.length === 0 && (
-        <div className="p-6 text-center bg-white rounded-2xl border border-slate-200">
-          <p className="text-xs text-slate-500">Nessun atleta corrisponde ai filtri di ricerca impostati.</p>
+        <div className="p-6 text-center bg-surface-container-lowest rounded-xl border border-slate-200/70">
+          <p className="text-xs text-on-surface-variant">Nessun atleta corrisponde ai filtri di ricerca impostati.</p>
         </div>
       )}
 
       {/* Pull to Refresh Indicator */}
       {pullToRefresh.isPulling && (
-        <div className="flex items-center justify-center py-2 text-xs text-slate-500">
+        <div className="flex items-center justify-center py-2 text-xs text-on-surface-variant">
           <RefreshCw 
             size={16} 
             className={`mr-2 ${pullToRefresh.isRefreshing ? 'animate-spin' : ''}`} 
@@ -203,17 +203,17 @@ export const AtletiScreen: React.FC = () => {
             <div
               key={a.id}
               onClick={() => setSelezionatoId(a.id)}
-              className="bg-surface-container-lowest hover:bg-surface-container-low border border-slate-200/90 rounded-2xl p-4 sm:p-5 transition shadow-xs cursor-pointer flex flex-col justify-between gap-3 group"
+              className="bg-surface-container-lowest hover:bg-surface-container-low border border-slate-200/90 rounded-xl p-4 sm:p-5 transition shadow-card cursor-pointer flex flex-col justify-between gap-3 group"
             >
               {/* Header row: Avatar, Name, Status, Badges */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="relative shrink-0">
-                    <div className="w-13 h-13 rounded-full bg-[#006874] text-white flex items-center justify-center font-black text-base shadow-xs ring-2 ring-[#006874]/20">
+                    <div className="w-12 h-12 rounded-lg bg-primary-container text-on-primary flex items-center justify-center font-headline-sm text-headline-sm shadow-card">
                       {a.nome?.[0] || 'A'}{a.cognome?.[0] || 'T'}
                     </div>
                     {a.stato === 'UFFICIALE' && (
-                      <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#9e4202] text-white rounded-full flex items-center justify-center text-[11px] shadow-xs">
+                      <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-tertiary-container text-on-primary rounded-full flex items-center justify-center text-[11px] shadow-card">
                         <Check size={12} className="stroke-[3]" />
                       </span>
                     )}
@@ -221,28 +221,22 @@ export const AtletiScreen: React.FC = () => {
 
                   <div className="flex flex-col min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3
-                        className="font-black text-base sm:text-lg text-slate-900 group-hover:text-[#006874] transition truncate"
-                        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                      >
+                      <h3 className="ds-title truncate">
                         {a.cognome} {a.nome}
                       </h3>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container">
+                      <span className="ds-chip !normal-case">
                         {a.stato === 'UFFICIALE' ? 'Nazionale A' : 'In Attesa'}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
+                    <p className="text-body-base font-body-base text-on-surface-variant truncate mt-0.5">
                       {eta != null ? `${eta} Anni · ` : ''}Fed. FINP / World Para Swimming
                     </p>
                   </div>
                 </div>
 
                 <div className="flex flex-col items-end shrink-0">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Miglior Tempo</span>
-                  <span
-                    className="text-base sm:text-lg font-black text-[#006874]"
-                    style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                  >
+                  <span className="ds-label">Miglior Tempo</span>
+                  <span className="ds-metric-sm text-primary-container">
                     {mieiTempi.length > 0 ? formattaTempo([...mieiTempi].sort((x, y) => x.centesimi - y.centesimi)[0].centesimi) : '24"80'}
                   </span>
                 </div>
@@ -250,22 +244,22 @@ export const AtletiScreen: React.FC = () => {
 
               {/* Paralympic Classification Chip Row */}
               <div className="flex items-center flex-wrap gap-1.5 pt-1">
-                <div className="flex items-center bg-[#001f24] text-[#a2effd] px-2.5 py-1 rounded-md">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">WPS:</span>
-                  <span className="text-xs font-black ml-1.5 tracking-tight">
+                <div className="flex items-center bg-on-primary-fixed text-primary-fixed px-2.5 py-1 rounded-md">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-outline">WPS:</span>
+                  <span className="text-xs font-bold ml-1.5 tracking-tight">
                     {formatClassi(a)}
                   </span>
                 </div>
 
                 {condAttive > 0 && (
-                  <span className="bg-rose-50 border border-rose-200 text-rose-800 px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1">
-                    <HeartPulse size={12} className="text-rose-600" />
+                  <span className="bg-error-container border border-error/40 text-on-error-container px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1">
+                    <HeartPulse size={12} className="text-error" />
                     {condAttive} {condAttive === 1 ? 'limitazione' : 'limitazioni'}
                   </span>
                 )}
 
                 {formCheck.necessario && (
-                  <span className="bg-amber-100 text-amber-900 px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1">
+                  <span className="bg-tertiary-fixed text-on-tertiary-fixed px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1">
                     <Timer size={12} />
                     Form Check Necessario
                   </span>
@@ -273,10 +267,10 @@ export const AtletiScreen: React.FC = () => {
               </div>
 
               {/* Action Buttons Touch-Optimized */}
-              <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+              <div className="flex items-center gap-2 pt-1 border-t border-slate-200/70">
                 <button
                   type="button"
-                  className="flex-1 min-h-[48px] flex items-center justify-center gap-1.5 bg-[#006874] hover:bg-[#004e58] text-white rounded-xl text-xs font-bold transition shadow-xs active:scale-[0.98]"
+                  className="flex-1 min-h-[48px] flex items-center justify-center gap-1.5 bg-primary-container hover:bg-primary text-on-primary rounded-xl text-xs font-bold transition shadow-card active:scale-[0.98]"
                 >
                   <User size={15} />
                   <span>Scheda Biomeccanica</span>
@@ -287,9 +281,9 @@ export const AtletiScreen: React.FC = () => {
                     e.stopPropagation();
                     setSelezionatoId(a.id);
                   }}
-                  className="min-h-[48px] px-4 flex items-center justify-center gap-1 bg-surface-container-high hover:bg-surface-container-highest text-slate-800 rounded-xl text-xs font-bold transition"
+                  className="min-h-[48px] px-4 flex items-center justify-center gap-1 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-xl text-xs font-bold transition"
                 >
-                  <Timer size={15} className="text-[#006399]" />
+                  <Timer size={15} className="text-secondary" />
                   <span>Tempi</span>
                 </button>
               </div>
@@ -401,12 +395,12 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 border border-slate-200 max-h-[92vh] overflow-y-auto">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <h3 className="font-bold text-slate-800 text-lg">
+      <div className="bg-surface-container-lowest rounded-xl shadow-float max-w-lg w-full p-6 border border-slate-200/70 max-h-[92vh] overflow-y-auto">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/70">
+          <h3 className="font-bold text-on-surface text-lg">
             {iniziale ? 'Modifica Atleta' : 'Nuovo Atleta'}
           </h3>
-          <button onClick={onAnnulla} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
+          <button onClick={onAnnulla} className="p-1 text-on-surface-variant hover:text-on-surface-variant rounded-lg">
             <X size={20} />
           </button>
         </div>
@@ -414,29 +408,29 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
         <form onSubmit={handleSubmit} className="py-4 space-y-4 text-sm">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Nome *</label>
+              <label className="block text-xs font-semibold text-on-surface-variant mb-1">Nome *</label>
               <input
                 type="text"
                 required
                 value={nome}
                 onChange={e => setNome(e.target.value)}
-                className="w-full px-3 h-12 border rounded-xl border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-[#006874]"
+                className="w-full px-3 h-12 border rounded-xl border-outline-variant focus:outline-hidden focus:ring-2 focus:ring-primary"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Cognome *</label>
+              <label className="block text-xs font-semibold text-on-surface-variant mb-1">Cognome *</label>
               <input
                 type="text"
                 required
                 value={cognome}
                 onChange={e => setCognome(e.target.value)}
-                className="w-full px-3 h-12 border rounded-xl border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-[#006874]"
+                className="w-full px-3 h-12 border rounded-xl border-outline-variant focus:outline-hidden focus:ring-2 focus:ring-primary"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">
+            <label className="block text-xs font-semibold text-on-surface-variant mb-1">
               Anno di nascita (es. 2004)
             </label>
             <input
@@ -444,12 +438,12 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
               placeholder="es. 2004"
               value={annoNascita}
               onChange={e => setAnnoNascita(e.target.value)}
-              className={`w-full px-3 h-12 border rounded-xl font-bold ${!annoOk ? 'border-rose-400 bg-rose-50' : 'border-slate-300'}`}
+              className={`w-full px-3 h-12 border rounded-xl font-bold ${!annoOk ? 'border-error/50 bg-error-container' : 'border-outline-variant'}`}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">
+            <label className="block text-xs font-semibold text-on-surface-variant mb-1">
               Classi FINP / World Para Swimming (S, SB, SM)
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -458,58 +452,58 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
                 placeholder="Classe S"
                 value={s}
                 onChange={e => setS(e.target.value)}
-                className="px-3 h-12 border rounded-xl border-slate-300 text-center"
+                className="px-3 h-12 border rounded-xl border-outline-variant text-center"
               />
               <input
                 type="number"
                 placeholder="SB (no 10)"
                 value={sb}
                 onChange={e => setSb(e.target.value)}
-                className="px-3 h-12 border rounded-xl border-slate-300 text-center"
+                className="px-3 h-12 border rounded-xl border-outline-variant text-center"
               />
               <input
                 type="number"
                 placeholder="Classe SM"
                 value={sm}
                 onChange={e => setSm(e.target.value)}
-                className="px-3 h-12 border rounded-xl border-slate-300 text-center"
+                className="px-3 h-12 border rounded-xl border-outline-variant text-center"
               />
             </div>
             {errori.map((err, i) => (
-              <p key={i} className="text-xs text-rose-600 mt-1 font-medium">{err}</p>
+              <p key={i} className="text-xs text-error mt-1 font-medium">{err}</p>
             ))}
           </div>
 
-          <div className="p-3 bg-slate-50 rounded-xl space-y-3 border border-slate-200">
+          <div className="p-3 bg-surface-container-low rounded-xl space-y-3 border border-slate-200/70">
             <div className="flex items-center justify-between">
               <div>
-                <span className="font-semibold text-xs text-slate-700 block">Classificazione Ufficiale</span>
-                <span className="text-[11px] text-slate-500">Se disattivato, risulta 'In Attesa'</span>
+                <span className="font-semibold text-xs text-on-surface block">Classificazione Ufficiale</span>
+                <span className="text-[11px] text-on-surface-variant">Se disattivato, risulta 'In Attesa'</span>
               </div>
               <input
                 type="checkbox"
                 checked={ufficiale}
                 onChange={e => setUfficiale(e.target.checked)}
-                className="w-4 h-4 accent-[#006874] rounded"
+                className="w-4 h-4 accent-primary rounded"
               />
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+            <div className="flex items-center justify-between pt-2 border-t border-slate-200/70">
               <div>
-                <span className="font-semibold text-xs text-slate-700 block">Volume Automatico</span>
-                <span className="text-[11px] text-slate-500">Calcolato su età, condizioni mediche e classe</span>
+                <span className="font-semibold text-xs text-on-surface block">Volume Automatico</span>
+                <span className="text-[11px] text-on-surface-variant">Calcolato su età, condizioni mediche e classe</span>
               </div>
               <input
                 type="checkbox"
                 checked={volumeAuto}
                 onChange={e => setVolumeAuto(e.target.checked)}
-                className="w-4 h-4 accent-[#006874] rounded"
+                className="w-4 h-4 accent-primary rounded"
               />
             </div>
 
             {!volumeAuto && (
-              <div className="pt-2 border-t border-slate-200">
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <div className="pt-2 border-t border-slate-200/70">
+                <label className="block text-xs font-semibold text-on-surface mb-1">
                   Volume rispetto alla squadra (10 - 100%)
                 </label>
                 <input
@@ -518,35 +512,35 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
                   max="100"
                   value={fattore}
                   onChange={e => setFattore(e.target.value)}
-                  className="w-full px-3 h-12 border rounded-xl border-slate-300 text-center font-bold"
+                  className="w-full px-3 h-12 border rounded-xl border-outline-variant text-center font-bold"
                 />
               </div>
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">Note / Menomazione</label>
+            <label className="block text-xs font-semibold text-on-surface-variant mb-1">Note / Menomazione</label>
             <textarea
               rows={2}
               value={note}
               onChange={e => setNote(e.target.value)}
               placeholder="es. Amputazione transtibiale arto inferiore sinistro..."
-              className="w-full px-3 h-12 border rounded-xl border-slate-300 text-xs"
+              className="w-full px-3 h-12 border rounded-xl border-outline-variant text-xs"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200/70">
             <button
               type="button"
               onClick={onAnnulla}
-              className="px-4 h-12 text-slate-600 hover:bg-slate-100 font-semibold rounded-xl text-xs transition"
+              className="px-4 h-12 text-on-surface-variant hover:bg-surface-container font-semibold rounded-xl text-xs transition"
             >
               Annulla
             </button>
             <button
               type="submit"
               disabled={!valido}
-              className="px-5 h-12 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
+              className="px-5 h-12 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-bold rounded-xl text-xs transition shadow-card"
             >
               Salva Atleta
             </button>
@@ -655,22 +649,22 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[92vh] flex flex-col border border-slate-200">
+      <div className="bg-surface-container-lowest rounded-xl shadow-float max-w-2xl w-full max-h-[92vh] flex flex-col border border-slate-200/70">
         {/* Athlete Top Bio Capsule - Stitch Aquatic Design System */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col gap-3 shrink-0 bg-surface-container-low rounded-t-2xl">
+        <div className="p-4 sm:p-5 border-b border-slate-200/70 flex flex-col gap-3 shrink-0 bg-surface-container-low rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-12 h-12 rounded-full bg-[#006874] text-white flex items-center justify-center font-black text-base shadow-sm ring-2 ring-[#006874]/20">
+                <div className="w-12 h-12 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold text-base shadow-card ring-2 ring-primary/20">
                   {atleta.nome?.[0] || 'A'}{atleta.cognome?.[0] || 'T'}
                 </div>
-                <div className="absolute -bottom-1 -right-1 bg-primary text-white p-0.5 rounded-full flex items-center justify-center shadow-xs">
+                <div className="absolute -bottom-1 -right-1 bg-primary text-on-primary p-0.5 rounded-full flex items-center justify-center shadow-card">
                   <Check size={12} className="stroke-[3]" />
                 </div>
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="font-black text-slate-900 text-lg sm:text-xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  <h2 className="font-bold text-on-surface text-lg sm:text-xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                     {atleta.cognome} {atleta.nome}
                   </h2>
                   {eta != null && (
@@ -679,7 +673,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5">
+                <div className="text-xs text-on-surface-variant font-medium mt-0.5">
                   Fed. FINP / World Para Swimming · Squadra Nazionale
                 </div>
               </div>
@@ -688,12 +682,12 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
               <button
                 type="button"
                 onClick={() => setModificaOpen(true)}
-                className="p-2 text-[#006874] hover:bg-[#eaedff] rounded-xl transition"
+                className="p-2 text-primary-container hover:bg-surface-container rounded-xl transition"
                 title="Modifica anagrafica"
               >
                 <Edit2 size={16} />
               </button>
-              <button onClick={onChiudi} className="p-2 text-slate-400 hover:text-slate-600 rounded-xl transition">
+              <button onClick={onChiudi} className="p-2 text-on-surface-variant hover:text-on-surface-variant rounded-xl transition">
                 <X size={20} />
               </button>
             </div>
@@ -702,19 +696,19 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
           {/* Paralympic Passport & Class Badges */}
           <div className="flex items-center justify-between bg-surface-container-lowest rounded-xl p-2.5 border border-slate-200/80">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black bg-[#001f24] text-[#a2effd] px-2.5 py-1 rounded-md uppercase tracking-wider">
+              <span className="text-xs font-bold bg-on-primary-fixed text-primary-fixed px-2.5 py-1 rounded-md uppercase tracking-wider">
                 {atleta.classeS != null ? `S${atleta.classeS}` : 'S-'}
                 {atleta.classeSB != null ? ` · SB${atleta.classeSB}` : ''}
                 {atleta.classeSM != null ? ` · SM${atleta.classeSM}` : ''}
               </span>
-              <span className="text-xs text-slate-600 font-semibold hidden sm:inline">
+              <span className="text-xs text-on-surface-variant font-semibold hidden sm:inline">
                 Passaporto Ufficiale FINP / WPS
               </span>
             </div>
-            <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase ${
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
               atleta.stato === 'UFFICIALE'
-                ? 'bg-emerald-100 text-emerald-800'
-                : 'bg-amber-100 text-amber-800'
+                ? 'bg-primary-fixed text-primary'
+                : 'bg-tertiary-fixed text-on-tertiary-fixed'
             }`}>
               {atleta.stato === 'UFFICIALE' ? 'CONF' : 'REVIEW'}
             </span>
@@ -727,8 +721,8 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
               onClick={() => setTabDettaglio('biomeccanica')}
               className={`py-2 px-1 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
                 tabDettaglio === 'biomeccanica'
-                  ? 'bg-surface-container-lowest text-[#006874] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-surface-container-lowest text-primary-container shadow-card'
+                  : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
               <Sliders size={14} />
@@ -739,8 +733,8 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
               onClick={() => setTabDettaglio('progressione')}
               className={`py-2 px-1 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
                 tabDettaglio === 'progressione'
-                  ? 'bg-surface-container-lowest text-[#006874] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-surface-container-lowest text-primary-container shadow-card'
+                  : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
               <Timer size={14} />
@@ -751,8 +745,8 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
               onClick={() => setTabDettaglio('certificati')}
               className={`py-2 px-1 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
                 tabDettaglio === 'certificati'
-                  ? 'bg-surface-container-lowest text-[#006874] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-surface-container-lowest text-primary-container shadow-card'
+                  : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
               <HeartPulse size={14} />
@@ -780,7 +774,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                 defaultAperto={true}
               >
                 {condizioni.filter(c => c.attiva).length === 0 ? (
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-on-surface-variant">
                     Nessuna condizione medica registrata: aggiungine una nella scheda Certificati per ottenere l'analisi biomeccanica
                     e la stima indicativa delle classi FINP.
                   </p>
@@ -789,32 +783,32 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                     {condizioni.filter(c => c.attiva).map(c => {
                       const analisi = FINPSpecialistAI.analizza(c.descrizione, c.limitazioni, eta);
                       return (
-                        <div key={c.id} className="p-3 bg-white/90 rounded-xl border border-cyan-200 space-y-2 text-xs">
-                          <div className="font-bold text-slate-800 text-xs">
+                        <div key={c.id} className="p-3 bg-white/90 rounded-xl border border-primary-fixed-dim space-y-2 text-xs">
+                          <div className="font-bold text-on-surface text-xs">
                             Condizione: {c.descrizione}
                           </div>
-                          <p className="text-slate-600 leading-relaxed">{analisi.riassuntoIdrodinamico}</p>
+                          <p className="text-on-surface-variant leading-relaxed">{analisi.riassuntoIdrodinamico}</p>
 
                           {analisi.fattoriNuotata.length > 0 && (
                             <div>
-                              <span className="font-bold text-slate-700 block mb-0.5">Fattori di nuotata:</span>
-                              <ul className="list-disc list-inside text-slate-600 space-y-0.5">
+                              <span className="font-bold text-on-surface block mb-0.5">Fattori di nuotata:</span>
+                              <ul className="list-disc list-inside text-on-surface-variant space-y-0.5">
                                 {analisi.fattoriNuotata.map((f, i) => <li key={i}>{f}</li>)}
                               </ul>
                             </div>
                           )}
 
                           {atleta.stato === 'IN_ATTESA' && (
-                            <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg space-y-1">
+                            <div className="p-2.5 bg-surface-container-low border border-tertiary-fixed-dim rounded-lg space-y-1">
                               <div className="flex items-center justify-between">
-                                <span className="font-bold text-amber-900">
+                                <span className="font-bold text-on-tertiary-fixed">
                                   Stima WPS: S{analisi.stimaClassi.classeS} · SB{analisi.stimaClassi.classeSB} · SM{analisi.stimaClassi.classeSM}
                                 </span>
-                                <span className="text-[10px] text-amber-700 font-semibold uppercase">
+                                <span className="text-[10px] text-tertiary font-semibold uppercase">
                                   Affidabilità: {analisi.stimaClassi.affidabilita}
                                 </span>
                               </div>
-                              <p className="text-amber-800 text-[11px]">{analisi.stimaClassi.motivazione}</p>
+                              <p className="text-on-tertiary-fixed text-[11px]">{analisi.stimaClassi.motivazione}</p>
 
                               {(atleta.classeS !== analisi.stimaClassi.classeS ||
                                 atleta.classeSB !== analisi.stimaClassi.classeSB ||
@@ -822,7 +816,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => applicaClassiStimate(analisi.stimaClassi)}
-                                  className="mt-1 px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-[11px] font-bold transition"
+                                  className="mt-1 px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-on-primary rounded-md text-[11px] font-bold transition"
                                 >
                                   Applica classi stimate provvisorie
                                 </button>
@@ -845,7 +839,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                 <button
                   type="button"
                   onClick={generaScheda}
-                  className="flex items-center justify-center gap-2 p-3.5 rounded-xl bg-[#006874] hover:bg-[#004e58] text-white font-bold text-xs transition shadow-sm"
+                  className="flex items-center justify-center gap-2 p-3.5 rounded-xl bg-primary-container hover:bg-primary text-on-primary font-bold text-xs transition shadow-card"
                 >
                   <Waves size={16} />
                   <span>Genera Seduta Personalizzata 🏊‍♂️</span>
@@ -853,7 +847,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                 <button
                   type="button"
                   onClick={() => setGestioneTempiOpen(true)}
-                  className="flex items-center justify-center gap-2 p-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition"
+                  className="flex items-center justify-center gap-2 p-3.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-xs transition"
                 >
                   <Timer size={16} />
                   <span>Storico Tempi & Test ({tempi.length})</span>
@@ -872,10 +866,10 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                   {micro.filter((m: any) => !isBefore(m.fine, oggi)).slice(0, 4).map((m: any) => {
                     const v = VolumeIndividuale.settimana(m, atleta, assenze);
                     return (
-                      <div key={m.id} className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-center">
-                        <div className="text-[11px] text-slate-500 font-medium">{formattaData(m.inizio)}</div>
-                        <div className="text-sm font-black text-[#006874]">{v.metri} m</div>
-                        <div className="text-[10px] text-slate-400 capitalize">{m.tipo.toLowerCase()}</div>
+                      <div key={m.id} className="p-2.5 bg-surface-container-low border border-slate-200/70 rounded-xl text-center">
+                        <div className="text-[11px] text-on-surface-variant font-medium">{formattaData(m.inizio)}</div>
+                        <div className="text-sm font-bold text-primary-container">{v.metri} m</div>
+                        <div className="text-[10px] text-on-surface-variant capitalize">{m.tipo.toLowerCase()}</div>
                       </div>
                     );
                   })}
@@ -899,17 +893,17 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                   {condizioni.map(c => (
                 <div
                   key={c.id}
-                  className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3 text-xs"
+                  className="p-3 bg-surface-container-low border border-slate-200/70 rounded-xl flex items-center justify-between gap-3 text-xs"
                 >
                   <div>
-                    <span className="font-bold text-slate-800 block">{c.descrizione}</span>
+                    <span className="font-bold text-on-surface block">{c.descrizione}</span>
                     {c.limitazioni && (
-                      <span className="text-slate-500 block mt-0.5">Limitazioni: {c.limitazioni}</span>
+                      <span className="text-on-surface-variant block mt-0.5">Limitazioni: {c.limitazioni}</span>
                     )}
                   </div>
                   <button
                     onClick={() => onEliminaCondizione(c.id)}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 transition"
+                    className="p-1.5 text-on-surface-variant hover:text-error rounded-lg hover:bg-surface-container transition"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -917,20 +911,20 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
               ))}
 
               {/* Add Condition Form */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-300 space-y-2">
+              <div className="p-3 bg-surface-container-low rounded-xl border border-dashed border-outline-variant space-y-2">
                 <input
                   type="text"
                   placeholder="Diagnosi / Condizione medica (es. Paraplegia T6, Acondroplasia...)"
                   value={nuovaCond}
                   onChange={e => setNuovaCond(e.target.value)}
-                  className="w-full h-12 px-3 h-12 bg-white border border-slate-300 rounded-lg text-xs"
+                  className="w-full h-12 px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
                 />
                 <input
                   type="text"
                   placeholder="Limitazioni fisiche per l'allenamento in vasca..."
                   value={nuovaLimitaz}
                   onChange={e => setNuovaLimitaz(e.target.value)}
-                  className="w-full h-12 px-3 h-12 bg-white border border-slate-300 rounded-lg text-xs"
+                  className="w-full h-12 px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
                 />
                 <button
                   type="button"
@@ -945,7 +939,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                     setNuovaCond('');
                     setNuovaLimitaz('');
                   }}
-                  className="w-full h-12 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white rounded-lg text-xs font-bold transition"
+                  className="w-full h-12 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary rounded-lg text-xs font-bold transition"
                 >
                   Aggiungi Condizione Medica
                 </button>
@@ -966,17 +960,17 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
               {assenze.map(a => (
                 <div
                   key={a.id}
-                  className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3 text-xs"
+                  className="p-3 bg-surface-container-low border border-slate-200/70 rounded-xl flex items-center justify-between gap-3 text-xs"
                 >
                   <div>
-                    <span className="font-bold text-slate-800">
+                    <span className="font-bold text-on-surface">
                       {formattaData(a.dal)} – {formattaData(a.al)}
                     </span>
-                    {a.motivo && <span className="text-slate-500 ml-2">({a.motivo})</span>}
+                    {a.motivo && <span className="text-on-surface-variant ml-2">({a.motivo})</span>}
                   </div>
                   <button
                     onClick={() => onEliminaAssenza(a.id)}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg"
+                    className="p-1.5 text-on-surface-variant hover:text-error rounded-lg"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -984,21 +978,21 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
               ))}
 
               {/* Add Absence Form */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-300 space-y-2 text-xs">
+              <div className="p-3 bg-surface-container-low rounded-xl border border-dashed border-outline-variant space-y-2 text-xs">
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     type="text"
                     placeholder="Dal (gg/mm/aaaa)"
                     value={assDal}
                     onChange={e => setAssDal(e.target.value)}
-                    className="h-12 px-3 h-12 bg-white border border-slate-300 rounded-lg"
+                    className="h-12 px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg"
                   />
                   <input
                     type="text"
                     placeholder="Al (gg/mm/aaaa)"
                     value={assAl}
                     onChange={e => setAssAl(e.target.value)}
-                    className="h-12 px-3 h-12 bg-white border border-slate-300 rounded-lg"
+                    className="h-12 px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg"
                   />
                 </div>
                 <input
@@ -1006,7 +1000,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                   placeholder="Motivo (es. Convalescenza, Esami universitari...)"
                   value={assMotivo}
                   onChange={e => setAssMotivo(e.target.value)}
-                  className="w-full h-12 px-3 h-12 bg-white border border-slate-300 rounded-lg"
+                  className="w-full h-12 px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg"
                 />
                 <button
                   type="button"
@@ -1024,7 +1018,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                       setAssMotivo('');
                     }
                   }}
-                  className="w-full h-12 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white rounded-lg font-bold transition"
+                  className="w-full h-12 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-on-primary rounded-lg font-bold transition"
                 >
                   Registra Assenza
                 </button>
@@ -1036,11 +1030,11 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-slate-100 flex items-center justify-between shrink-0 bg-slate-50 rounded-b-2xl">
+        <div className="p-4 border-t border-slate-200/70 flex items-center justify-between shrink-0 bg-surface-container-low rounded-b-2xl">
           <div className="flex gap-2">
             <button
               onClick={() => setModificaOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 h-12 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition"
+              className="inline-flex items-center gap-1.5 px-3 h-12 bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-semibold rounded-xl text-xs transition"
             >
               <Edit2 size={14} />
               <span>Modifica</span>
@@ -1051,7 +1045,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                   onEliminaAtleta(atleta.id);
                 }
               }}
-              className="inline-flex items-center gap-1.5 px-3 h-12 bg-rose-100 hover:bg-rose-200 text-rose-800 font-semibold rounded-xl text-xs transition"
+              className="inline-flex items-center gap-1.5 px-3 h-12 bg-error-container hover:bg-error-container text-on-error-container font-semibold rounded-xl text-xs transition"
             >
               <Trash2 size={14} />
               <span>Elimina</span>
@@ -1060,7 +1054,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
 
           <button
             onClick={onChiudi}
-            className="px-5 h-12 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition"
+            className="px-5 h-12 bg-slate-800 hover:bg-slate-900 text-on-primary font-bold rounded-xl text-xs transition"
           >
             Chiudi
           </button>
@@ -1146,33 +1140,33 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-5 border border-slate-200 max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <h3 className="font-bold text-slate-800 text-base">
+      <div className="bg-surface-container-lowest rounded-xl shadow-float max-w-lg w-full p-5 border border-slate-200/70 max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/70">
+          <h3 className="font-bold text-on-surface text-base">
             Tempi di {atleta.nome} {atleta.cognome} ⏱️
           </h3>
-          <button onClick={onChiudi} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
+          <button onClick={onChiudi} className="p-1 text-on-surface-variant hover:text-on-surface-variant rounded-lg">
             <X size={18} />
           </button>
         </div>
 
         <div className="py-3 overflow-y-auto space-y-4 text-xs">
           {/* Add form */}
-          <form onSubmit={handleAdd} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
+          <form onSubmit={handleAdd} className="p-3 bg-surface-container-low border border-slate-200/70 rounded-xl space-y-2.5">
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="text"
                 placeholder="Data (gg/mm/aaaa)"
                 value={dataTesto}
                 onChange={e => setDataTesto(e.target.value)}
-                className="px-3 h-12 bg-white border border-slate-300 rounded-lg text-xs"
+                className="px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
               />
               <input
                 type="number"
                 placeholder="Distanza metri"
                 value={distanza}
                 onChange={e => setDistanza(e.target.value)}
-                className="px-3 h-12 bg-white border border-slate-300 rounded-lg text-xs"
+                className="px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
               />
             </div>
 
@@ -1180,7 +1174,7 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
               <select
                 value={stile}
                 onChange={e => setStile(e.target.value)}
-                className="px-2 h-12 bg-white border border-slate-300 rounded-lg text-xs"
+                className="px-2 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
               >
                 <option value="STILE_LIBERO">Stile libero</option>
                 <option value="DORSO">Dorso</option>
@@ -1192,7 +1186,7 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
               <select
                 value={contesto}
                 onChange={e => setContesto(e.target.value)}
-                className="px-2 h-12 bg-white border border-slate-300 rounded-lg text-xs"
+                className="px-2 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
               >
                 <option value="GARA">Gara ufficiale</option>
                 <option value="ALLENAMENTO">Allenamento</option>
@@ -1205,13 +1199,13 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
               placeholder="Tempo (es. 1:04.20 o 28.50)"
               value={tempoTesto}
               onChange={e => setTempoTesto(e.target.value)}
-              className="w-full px-3 h-12 bg-white border border-slate-300 rounded-lg text-xs font-bold"
+              className="w-full px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs font-bold"
             />
 
             <button
               type="submit"
               disabled={!valido}
-              className="w-full h-12 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white rounded-lg font-bold transition shadow-xs"
+              className="w-full h-12 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary rounded-lg font-bold transition shadow-card"
             >
               Aggiungi Tempo
             </button>
@@ -1220,25 +1214,25 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
           {/* List */}
           <div className="space-y-1.5 max-h-56 overflow-y-auto">
             {tempi.length === 0 ? (
-              <p className="text-center text-slate-400 py-4">Nessun tempo registrato</p>
+              <p className="text-center text-on-surface-variant py-4">Nessun tempo registrato</p>
             ) : (
               tempi.map(t => (
                 <div
                   key={t.id}
-                  className="p-2.5 bg-white border border-slate-200 rounded-xl flex items-center justify-between gap-2"
+                  className="p-2.5 bg-surface-container-lowest border border-slate-200/70 rounded-xl flex items-center justify-between gap-2"
                 >
                   <div>
-                    <span className="font-bold text-slate-800">
+                    <span className="font-bold text-on-surface">
                       {t.stile.replace('_', ' ')} {t.distanzaMetri}m: {formattaTempo(t.centesimi)}
                     </span>
-                    <span className="text-[10px] text-slate-500 block">
+                    <span className="text-[10px] text-on-surface-variant block">
                       {formattaData(t.data)} · {t.contesto.toLowerCase()}
                       {t.note && ` · ${t.note}`}
                     </span>
                   </div>
                   <button
                     onClick={() => onEliminaTempo(t.id)}
-                    className="p-1 text-slate-400 hover:text-rose-600 rounded"
+                    className="p-1 text-on-surface-variant hover:text-error rounded"
                   >
                     <Trash2 size={15} />
                   </button>
@@ -1248,10 +1242,10 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
           </div>
         </div>
 
-        <div className="pt-3 border-t border-slate-100 flex justify-end">
+        <div className="pt-3 border-t border-slate-200/70 flex justify-end">
           <button
             onClick={onChiudi}
-            className="px-4 h-12 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs"
+            className="px-4 h-12 bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-bold rounded-xl text-xs"
           >
             Chiudi
           </button>

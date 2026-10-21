@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import {
-  Calendar,
+  CalendarDays,
   Database,
   Users,
   Waves,
   Timer,
   LayoutDashboard,
   Trophy,
-  Sliders
+  Sliders,
+  MoreHorizontal,
+  X,
+  CloudDownload,
 } from 'lucide-react';
 import { BackupModal } from './BackupModal';
 
@@ -18,52 +21,79 @@ interface Props {
   onTabChange: (tab: TabKey) => void;
 }
 
+/** Sotto-titolo contestuale nell'header (come nei mockup Stitch). */
+const CONTESTO: Record<TabKey, string> = {
+  oggi: 'Dashboard',
+  piano: 'Allenamenti',
+  atleti: 'Atleti',
+  fonti: 'Gare & Record',
+  cronometro: 'Live Deck',
+  regia: 'Pianificatore',
+  dati: 'Dati',
+};
+
 export const Navbar: React.FC<Props> = ({ currentTab, onTabChange }) => {
   const [backupOpen, setBackupOpen] = useState(false);
+  const [altroOpen, setAltroOpen] = useState(false);
 
-  const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
-    { key: 'oggi', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-    { key: 'piano', label: 'Allenamenti', icon: <Calendar size={18} /> },
-    { key: 'cronometro', label: 'Live Deck', icon: <Timer size={18} /> },
-    { key: 'regia', label: 'Pianificatore', icon: <Sliders size={18} /> },
-    { key: 'atleti', label: 'Atleti', icon: <Users size={18} /> },
-    { key: 'fonti', label: 'Gare & Record', icon: <Trophy size={18} /> },
-    { key: 'dati', label: 'Dati', icon: <Database size={18} /> }
+  /** Le 4 voci del dock mobile (design Stitch): massimo 5 target da 48px. */
+  const primary: { key: TabKey; label: string; icon: React.ReactNode }[] = [
+    { key: 'oggi', label: 'Dashboard', icon: <LayoutDashboard size={22} /> },
+    { key: 'atleti', label: 'Atleti', icon: <Users size={22} /> },
+    { key: 'piano', label: 'Allenamenti', icon: <CalendarDays size={22} /> },
+    { key: 'fonti', label: 'Gare', icon: <Trophy size={22} /> },
   ];
+
+  /** Voci secondarie: vive nel foglio "Altro", non nel dock (spazio prezioso). */
+  const secondary: { key: TabKey; label: string; desc: string; icon: React.ReactNode }[] = [
+    { key: 'cronometro', label: 'Live Deck', desc: 'Cronometro multi-corsia a bordo vasca', icon: <Timer size={20} /> },
+    { key: 'regia', label: 'Pianificatore', desc: 'Regia tecnica e assegnazione corsie', icon: <Sliders size={20} /> },
+    { key: 'dati', label: 'Dati', desc: 'Schede vasca, tempi di ripartenza, registro', icon: <Database size={20} /> },
+  ];
+
+  const vai = (tab: TabKey) => {
+    onTabChange(tab);
+    setAltroOpen(false);
+  };
 
   return (
     <>
       {backupOpen && <BackupModal onClose={() => setBackupOpen(false)} />}
 
-      {/* Top Header - Stitch Aquatic Paralympic Design System */}
-      <header className="sticky top-0 z-40 bg-[#faf8ff]/90 backdrop-blur-xl border-b border-slate-200/80 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#006874] text-white flex items-center justify-center shadow-xs">
-              <Waves size={22} className="text-cyan-200" />
-            </div>
-            <div>
-              <h1 className="text-lg font-black tracking-tight text-[#006874] leading-none" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                FINP<span className="text-[#006399]">coach</span>
-              </h1>
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mt-0.5">
-                Aquatic Paralympic System
+      {/* ============ HEADER FISSO ============ */}
+      <header className="fixed top-0 inset-x-0 z-40 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] pt-safe">
+        <div className="h-16 px-gutter-mobile sm:px-gutter mx-auto max-w-6xl flex items-center justify-between gap-space-sm">
+          {/* Brand */}
+          <button
+            type="button"
+            onClick={() => vai('oggi')}
+            className="flex items-center gap-space-sm min-w-0 text-left"
+          >
+            <span className="w-9 h-9 rounded-xl bg-primary text-on-primary flex items-center justify-center shrink-0 shadow-primary-sm">
+              <Waves size={20} className="text-primary-fixed" />
+            </span>
+            <span className="flex flex-col min-w-0">
+              <span className="font-headline-sm text-headline-sm text-primary tracking-tight leading-none truncate">
+                FINP<span className="text-secondary">coach</span>
               </span>
-            </div>
-          </div>
+              <span className="font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant truncate mt-0.5">
+                {CONTESTO[currentTab]}
+              </span>
+            </span>
+          </button>
 
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Desktop Nav */}
+          {/* Azioni */}
+          <div className="flex items-center gap-1 shrink-0">
             <nav className="hidden lg:flex items-center gap-1">
-              {tabs.map(tab => (
+              {[...primary, ...secondary].map(tab => (
                 <button
                   key={tab.key}
                   type="button"
-                  onClick={() => onTabChange(tab.key)}
+                  onClick={() => vai(tab.key)}
                   className={`flex items-center gap-1.5 px-3 h-10 rounded-full text-xs font-bold transition ${
                     currentTab === tab.key
-                      ? 'bg-[#006874] text-white shadow-xs'
-                      : 'bg-surface-container text-[#131b2e] hover:bg-[#dae2fd]'
+                      ? 'bg-primary text-on-primary shadow-primary-sm'
+                      : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
                   {tab.icon}
@@ -72,59 +102,131 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange }) => {
               ))}
             </nav>
 
-            {/* Quick Live Deck button on tablet */}
-            <button
-              type="button"
-              onClick={() => onTabChange('cronometro')}
-              className={`hidden sm:flex lg:hidden items-center gap-1 px-3 h-10 rounded-full font-bold text-xs transition ${
-                currentTab === 'cronometro'
-                  ? 'bg-[#006874] text-white'
-                  : 'bg-cyan-50 text-[#006874] border border-cyan-200'
-              }`}
-            >
-              <Timer size={16} />
-              <span>Live Deck</span>
-            </button>
-
-            {/* Backup / Data Management button */}
             <button
               type="button"
               onClick={() => setBackupOpen(true)}
               title="Gestione Dati & Backup"
-              className="px-3 h-10 rounded-full bg-[#f2f3ff] hover:bg-[#eaedff] text-[#006874] text-xs font-bold flex items-center gap-1.5 transition border border-slate-200"
+              aria-label="Gestione Dati e Backup"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 h-10 rounded-full bg-surface-container text-primary text-xs font-bold border border-slate-200/70 hover:bg-surface-container-high transition"
             >
-              <Database size={15} />
-              <span className="hidden sm:inline">Backup</span>
+              <CloudDownload size={15} />
+              <span>Backup</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setAltroOpen(true)}
+              aria-label="Altre sezioni"
+              className="lg:hidden inline-flex items-center justify-center w-12 h-12 -mr-2 rounded-full text-on-surface-variant hover:text-primary active:bg-surface-container transition"
+            >
+              <MoreHorizontal size={22} />
             </button>
           </div>
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation Bar - Stitch Design System */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 shadow-lg pb-safe">
-        <div className="grid grid-cols-7 h-16 px-1 items-center">
-          {tabs.map(tab => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => onTabChange(tab.key)}
-              className={`flex flex-col items-center justify-center gap-0.5 text-[10px] font-bold transition min-h-[48px] ${
-                currentTab === tab.key ? 'text-[#006874]' : 'text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              <div
-                className={`px-2 py-1 rounded-full transition ${
-                  currentTab === tab.key ? 'bg-[#eaedff] text-[#006874]' : ''
+      {/* ============ DOCK BOTTOM (mobile) ============ */}
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-surface/95 backdrop-blur-xl shadow-nav pb-safe">
+        <div className="h-16 px-1 flex items-center justify-around">
+          {primary.map(tab => {
+            const active = currentTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => vai(tab.key)}
+                aria-current={active ? 'page' : undefined}
+                className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-h-[48px] py-1 rounded-lg transition-all ${
+                  active ? 'text-primary font-bold bg-primary/10' : 'text-on-surface-variant'
                 }`}
               >
                 {tab.icon}
-              </div>
-              <span className="truncate max-w-[46px]">{tab.label}</span>
-            </button>
-          ))}
+                <span className="font-label-md text-label-md tracking-tight truncate max-w-full px-0.5">
+                  {tab.label}
+                </span>
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setAltroOpen(true)}
+            aria-label="Altre sezioni"
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-h-[48px] py-1 rounded-lg transition-all ${
+              secondary.some(s => s.key === currentTab)
+                ? 'text-primary font-bold bg-primary/10'
+                : 'text-on-surface-variant'
+            }`}
+          >
+            <MoreHorizontal size={22} />
+            <span className="font-label-md text-label-md tracking-tight">Altro</span>
+          </button>
         </div>
-      </div>
+      </nav>
+
+      {/* ============ FOGLIO "ALTRO" ============ */}
+      {altroOpen && (
+        <>
+          <div className="ds-sheet-scrim" onClick={() => setAltroOpen(false)} />
+          <div className="ds-sheet" role="dialog" aria-label="Altre sezioni">
+            <div className="w-10 h-1 rounded-full bg-surface-container-highest mx-auto mb-3" />
+            <div className="flex items-center justify-between mb-2">
+              <span className="ds-title">Altre sezioni</span>
+              <button
+                type="button"
+                onClick={() => setAltroOpen(false)}
+                aria-label="Chiudi"
+                className="w-10 h-10 -mr-1 rounded-full flex items-center justify-center text-on-surface-variant active:bg-surface-container"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-1.5 pb-3">
+              {secondary.map(tab => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => vai(tab.key)}
+                  className={`flex items-center gap-3 p-3 rounded-xl text-left min-h-[56px] transition ${
+                    currentTab === tab.key
+                      ? 'bg-primary/10 text-primary'
+                      : 'bg-surface-container-low text-on-surface'
+                  }`}
+                >
+                  <span className="w-9 h-9 rounded-lg bg-surface-container-lowest flex items-center justify-center shrink-0">
+                    {tab.icon}
+                  </span>
+                  <span className="flex flex-col min-w-0">
+                    <span className="font-body-bold text-body-bold">{tab.label}</span>
+                    <span className="font-body-base text-body-base text-on-surface-variant truncate">
+                      {tab.desc}
+                    </span>
+                  </span>
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => {
+                  setAltroOpen(false);
+                  setBackupOpen(true);
+                }}
+                className="flex items-center gap-3 p-3 rounded-xl bg-surface-container-low text-on-surface text-left min-h-[56px] transition"
+              >
+                <span className="w-9 h-9 rounded-lg bg-surface-container-lowest flex items-center justify-center shrink-0">
+                  <Database size={20} />
+                </span>
+                <span className="flex flex-col min-w-0">
+                  <span className="font-body-bold text-body-bold">Backup & Dati</span>
+                  <span className="font-body-base text-body-base text-on-surface-variant truncate">
+                    Esporta, importa, ripristina e sincronizza
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 };
-

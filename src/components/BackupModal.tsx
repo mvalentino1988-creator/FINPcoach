@@ -168,6 +168,22 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
     }
   };
 
+  /** Torna allo stato "squadra vuota" (stesso stato del primo avvio) azzerando lo storage. */
+  const handleClearSquad = () => {
+    if (
+      confirm(
+        'Vuoi svuotare tutti i dati (atleti, stagione, piano, tempi, registro) e ripartire da una squadra vuota?\n\n' +
+          'L\'operazione non è reversibile: esporta prima un backup JSON se ti serve conservarli.'
+      )
+    ) {
+      FINPStorage.startLiveSquad();
+      setSuccessMsg('Squadra svuotata! Ricarico...');
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
+    }
+  };
+
   if (showLogin) {
     return (
       <LoginScreen
@@ -184,25 +200,25 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden">
+      <div className="bg-surface-container-lowest rounded-xl shadow-float max-w-md w-full border border-slate-200/70 overflow-hidden">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div className="p-4 sm:p-5 border-b border-slate-200/70 flex items-center justify-between bg-surface-container-low">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#006874] text-white flex items-center justify-center shadow-xs">
+            <div className="w-9 h-9 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shadow-card">
               <Database size={18} />
             </div>
             <div>
-              <h2 className="font-bold text-slate-800 text-base leading-tight">
+              <h2 className="font-bold text-on-surface text-base leading-tight">
                 Gestione Dati & Backup
               </h2>
-              <span className="text-[11px] text-slate-500">
+              <span className="text-[11px] text-on-surface-variant">
                 Salvataggio locale sicuro & Esportazione JSON
               </span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200 transition"
+            className="p-1.5 text-on-surface-variant hover:text-on-surface-variant rounded-lg hover:bg-surface-container-high transition"
           >
             <X size={18} />
           </button>
@@ -211,46 +227,46 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
         {/* Body */}
         <div className="p-4 sm:p-6 space-y-4 text-xs">
           {successMsg && (
-            <div className="flex items-center gap-2 p-3 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl font-bold">
-              <CheckCircle size={16} className="text-emerald-600 shrink-0" />
+            <div className="flex items-center gap-2 p-3 bg-surface-container-low text-primary border border-primary-fixed-dim rounded-xl font-bold">
+              <CheckCircle size={16} className="text-primary shrink-0" />
               <span>{successMsg}</span>
             </div>
           )}
 
           {errorMsg && (
-            <div className="flex items-center gap-2 p-3 bg-rose-50 text-rose-800 border border-rose-200 rounded-xl font-bold">
-              <AlertTriangle size={16} className="text-rose-600 shrink-0" />
+            <div className="flex items-center gap-2 p-3 bg-error-container text-on-error-container border border-error/40 rounded-xl font-bold">
+              <AlertTriangle size={16} className="text-error shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
-          <div className="p-3 bg-cyan-50/60 rounded-xl border border-cyan-100 flex items-start gap-2.5">
-            <ShieldCheck size={18} className="text-[#006874] shrink-0 mt-0.5" />
-            <p className="text-slate-600 leading-relaxed text-[11px]">
+          <div className="p-3 bg-surface-container-low/60 rounded-xl border border-primary-fixed-dim flex items-start gap-2.5">
+            <ShieldCheck size={18} className="text-primary-container shrink-0 mt-0.5" />
+            <p className="text-on-surface-variant leading-relaxed text-[11px]">
               Tutti i dati della squadra, visite mediche, programmazione e presenze sono memorizzati localmente nel tuo browser con persistenza crittografica sul dispositivo.
             </p>
           </div>
 
           {/* Firebase Sync Section */}
           {isConfigured && (
-            <div className="p-3 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl border border-cyan-200">
+            <div className="p-3 bg-gradient-to-r from-surface-container-low to-blue-50 rounded-xl border border-primary-fixed-dim">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   {syncEnabled ? (
-                    <Cloud size={18} className="text-[#006874]" />
+                    <Cloud size={18} className="text-primary-container" />
                   ) : (
-                    <CloudOff size={18} className="text-slate-400" />
+                    <CloudOff size={18} className="text-on-surface-variant" />
                   )}
-                  <span className="font-bold text-slate-700 text-xs">Sincronizzazione Cloud</span>
+                  <span className="font-bold text-on-surface text-xs">Sincronizzazione Cloud</span>
                 </div>
                 <button
                   onClick={handleToggleSync}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    syncEnabled ? 'bg-[#006874]' : 'bg-slate-300'
+                    syncEnabled ? 'bg-primary-container' : 'bg-surface-container-highest'
                   }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    className={`inline-block h-4 w-4 transform rounded-full bg-surface-container-lowest transition-transform ${
                       syncEnabled ? 'translate-x-6' : 'translate-x-1'
                     }`}
                   />
@@ -260,13 +276,13 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
               {syncEnabled && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-slate-500">
+                    <span className="text-on-surface-variant">
                       {syncStatus === 'synced' && lastSync ? `Ultimo sync: ${new Date(lastSync).toLocaleString('it-IT')}` : 'Non sincronizzato'}
                     </span>
                     {FirebaseSync.getCurrentUser() && (
                       <button
                         onClick={handleLogout}
-                        className="text-rose-600 hover:text-rose-700 font-medium flex items-center gap-1"
+                        className="text-error hover:text-error font-medium flex items-center gap-1"
                       >
                         <LogOut size={12} />
                         Logout
@@ -283,7 +299,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
                       handleManualSync();
                     }}
                     disabled={syncing}
-                    className="w-full h-10 bg-[#006874] hover:bg-[#004f58] text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full h-10 bg-primary-container hover:bg-primary text-on-primary rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {syncing ? (
                       <>
@@ -308,16 +324,16 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
             {/* Download Backup */}
             <button
               onClick={handleDownload}
-              className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-[#006874] hover:bg-slate-50 transition group font-bold text-slate-700"
+              className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200/70 hover:border-primary-container hover:bg-surface-container-low transition group font-bold text-on-surface"
             >
               <div className="flex items-center gap-2.5">
-                <Download size={16} className="text-[#006874] group-hover:scale-110 transition" />
+                <Download size={16} className="text-primary-container group-hover:scale-110 transition" />
                 <div className="text-left">
                   <div>Esporta Backup Completo (JSON)</div>
-                  <div className="text-[10px] text-slate-400 font-normal">Salva atleti, piani, tempi e registro su file</div>
+                  <div className="text-[10px] text-on-surface-variant font-normal">Salva atleti, piani, tempi e registro su file</div>
                 </div>
               </div>
-              <span className="text-[11px] text-[#006874] font-bold">Scarica</span>
+              <span className="text-[11px] text-primary-container font-bold">Scarica</span>
             </button>
 
             {/* Import Backup */}
@@ -330,40 +346,57 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-[#006874] hover:bg-slate-50 transition group font-bold text-slate-700"
+              className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200/70 hover:border-primary-container hover:bg-surface-container-low transition group font-bold text-on-surface"
             >
               <div className="flex items-center gap-2.5">
-                <Upload size={16} className="text-[#006874] group-hover:scale-110 transition" />
+                <Upload size={16} className="text-primary-container group-hover:scale-110 transition" />
                 <div className="text-left">
                   <div>Importa / Ripristina Backup</div>
-                  <div className="text-[10px] text-slate-400 font-normal">Carica un file JSON esportato in precedenza</div>
+                  <div className="text-[10px] text-on-surface-variant font-normal">Carica un file JSON esportato in precedenza</div>
                 </div>
               </div>
-              <span className="text-[11px] text-[#006874] font-bold">Sfoglia</span>
+              <span className="text-[11px] text-primary-container font-bold">Sfoglia</span>
             </button>
 
             {/* Reset to Seed Demo */}
             <button
               onClick={handleResetDemo}
-              className="w-full flex items-center justify-between p-3 rounded-xl border border-rose-100 hover:border-rose-300 hover:bg-rose-50/50 transition group font-semibold text-rose-700 mt-2"
+              className="w-full flex items-center justify-between p-3 rounded-xl border border-error/40 hover:border-error/50 hover:bg-error-container/50 transition group font-semibold text-error mt-2"
             >
               <div className="flex items-center gap-2.5">
-                <RefreshCw size={15} className="text-rose-500 group-hover:rotate-180 transition duration-500" />
+                <RefreshCw size={15} className="text-error group-hover:rotate-180 transition duration-500" />
                 <div className="text-left">
                   <div>Ripristina Dati Esempio FINP</div>
-                  <div className="text-[10px] text-rose-400 font-normal">Ricarica i profili atleti e la stagione dimostrativa</div>
+                  <div className="text-[10px] text-error font-normal">Ricarica i profili atleti e la stagione dimostrativa</div>
                 </div>
               </div>
-              <span className="text-[11px] text-rose-600 font-bold">Reset</span>
+              <span className="text-[11px] text-error font-bold">Reset</span>
+            </button>
+
+            {/* Clear squad - back to empty state */}
+            <button
+              onClick={handleClearSquad}
+              className="w-full flex items-center justify-between p-3 rounded-xl border border-outline hover:border-on-surface-variant hover:bg-surface-container transition group font-semibold text-on-surface"
+            >
+              <div className="flex items-center gap-2.5">
+                <Trash2 size={15} className="text-on-surface-variant group-hover:text-error transition" />
+                <div className="text-left">
+                  <div>Svuota squadra</div>
+                  <div className="text-[10px] text-on-surface-variant font-normal">
+                    Azzera tutto e riparti da una squadra vuota
+                  </div>
+                </div>
+              </div>
+              <span className="text-[11px] text-on-surface-variant font-bold">Svuota</span>
             </button>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-3 bg-slate-50 border-t border-slate-100 flex justify-end">
+        <div className="p-3 bg-surface-container-low border-t border-slate-200/70 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 h-12 text-xs font-bold text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-200 transition"
+            className="px-4 h-12 text-xs font-bold text-on-surface-variant hover:text-on-surface rounded-lg hover:bg-surface-container-high transition"
           >
             Chiudi
           </button>

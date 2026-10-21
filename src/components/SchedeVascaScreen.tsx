@@ -25,10 +25,10 @@ export const SchedeVascaScreen: React.FC = () => {
 
   if (!stagione || atleti.length === 0) {
     return (
-      <div className="p-8 text-center bg-white rounded-2xl border border-dashed border-slate-300 space-y-3">
-        <Waves size={36} className="mx-auto text-slate-300" />
-        <h3 className="font-bold text-slate-700">Nessuna stagione o atleta configurato</h3>
-        <p className="text-xs text-slate-500 max-w-sm mx-auto">
+      <div className="p-8 text-center bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant space-y-3">
+        <Waves size={36} className="mx-auto text-outline" />
+        <h3 className="font-bold text-on-surface">Nessuna stagione o atleta configurato</h3>
+        <p className="text-xs text-on-surface-variant max-w-sm mx-auto">
           Per generare e visualizzare le schede di vasca, imposta prima una stagione nella scheda <strong>Piano</strong> e aggiungi almeno un atleta nella scheda <strong>Atleti</strong>.
         </p>
       </div>
@@ -122,20 +122,20 @@ export const SchedeVascaScreen: React.FC = () => {
     <div className="space-y-5">
       {/* Title & Info */}
       <div>
-        <h2 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-          <Waves size={22} className="text-[#006874]" />
+        <h2 className="text-xl font-bold text-on-surface tracking-tight flex items-center gap-2">
+          <Waves size={22} className="text-primary-container" />
           <span>Schede Allenamento Bordo Vasca</span>
         </h2>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-on-surface-variant mt-0.5">
           Generatore intelligente di sedute basato sulla fase agonistica del piano, età, patologie ed andature con ripartenze a 5 secondi.
         </p>
       </div>
 
       {/* Configuration bar */}
-      <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-4">
+      <div className="p-4 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card space-y-4">
         {/* Recipient Chips */}
         <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+          <label className="block text-xs font-bold text-on-surface uppercase tracking-wider mb-2">
             Destinatario della Scheda
           </label>
           <div className="flex flex-wrap gap-2">
@@ -144,8 +144,8 @@ export const SchedeVascaScreen: React.FC = () => {
               onClick={() => setAtletaSelId(null)}
               className={`inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-bold transition ${
                 atletaSelId === null
-                  ? 'bg-[#006874] text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-primary-container text-on-primary shadow-card'
+                  : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
               }`}
             >
               <Users size={14} />
@@ -159,8 +159,8 @@ export const SchedeVascaScreen: React.FC = () => {
                 onClick={() => setAtletaSelId(a.id)}
                 className={`inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-semibold transition ${
                   atletaSelId === a.id
-                    ? 'bg-[#006874] text-white font-bold shadow-xs'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    ? 'bg-primary-container text-on-primary font-bold shadow-card'
+                    : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                 }`}
               >
                 <User size={14} />
@@ -171,25 +171,25 @@ export const SchedeVascaScreen: React.FC = () => {
         </div>
 
         {/* Date and Target Distance */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-2 border-t border-slate-100">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-2 border-t border-slate-200/70">
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Data Allenamento</label>
+            <label className="block font-semibold text-on-surface mb-1">Data Allenamento</label>
             <input
               type="text"
               value={dataTesto}
               onChange={e => setDataTesto(e.target.value)}
-              className="w-full px-3 h-12 border border-slate-300 rounded-xl font-medium"
+              className="w-full px-3 h-12 border border-outline-variant rounded-xl font-medium"
             />
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">
+            <label className="block font-semibold text-on-surface mb-1">
               {atletaSel
                 ? `Volume Calcolato per Atleta (da piano ${Math.round(atletaSel.fattoreVolume * 100)}%)`
                 : 'Metri Target Squadra (m)'}
             </label>
             {atletaSel ? (
-              <div className="px-3 h-12 bg-slate-50 border border-slate-200 rounded-xl font-black text-[#006874] text-sm">
+              <div className="px-3 h-12 bg-surface-container-low border border-slate-200/70 rounded-xl font-bold text-primary-container text-sm">
                 {volumeCalcolato} m
               </div>
             ) : (
@@ -198,16 +198,16 @@ export const SchedeVascaScreen: React.FC = () => {
                 step="50"
                 value={metriManual}
                 onChange={e => setMetriManual(e.target.value)}
-                className="w-full px-3 h-12 border border-slate-300 rounded-xl font-black text-[#006874] text-sm"
+                className="w-full px-3 h-12 border border-outline-variant rounded-xl font-bold text-primary-container text-sm"
               />
             )}
           </div>
         </div>
 
         {/* Vasca & Durata Giornaliera Selectors (Refined from Stitch Design) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200/70 text-xs">
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Configurazione Vasca Impianto</label>
+            <label className="block font-semibold text-on-surface mb-1">Configurazione Vasca Impianto</label>
             <div className="flex gap-2">
               {[25, 50].map(v => (
                 <button
@@ -216,8 +216,8 @@ export const SchedeVascaScreen: React.FC = () => {
                   onClick={() => setVascaSel(v)}
                   className={`flex-1 h-12 rounded-xl font-bold transition border ${
                     vascaSel === v
-                      ? 'bg-[#006874] text-white border-[#006874] shadow-xs'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      ? 'bg-primary-container text-on-primary border-primary-container shadow-card'
+                      : 'bg-surface-container-low text-on-surface border-slate-200/70 hover:bg-surface-container'
                   }`}
                 >
                   {v === 50 ? 'Vasca 50m' : 'Vasca 25m'}
@@ -227,7 +227,7 @@ export const SchedeVascaScreen: React.FC = () => {
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Durata Giornaliera Target</label>
+            <label className="block font-semibold text-on-surface mb-1">Durata Giornaliera Target</label>
             <div className="flex gap-2">
               {[60, 90, 120].map(d => (
                 <button
@@ -236,8 +236,8 @@ export const SchedeVascaScreen: React.FC = () => {
                   onClick={() => setDurataSel(d)}
                   className={`flex-1 h-12 rounded-xl font-bold transition border ${
                     durataSel === d
-                      ? 'bg-[#006874] text-white border-[#006874] shadow-xs'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      ? 'bg-primary-container text-on-primary border-primary-container shadow-card'
+                      : 'bg-surface-container-low text-on-surface border-slate-200/70 hover:bg-surface-container'
                   }`}
                 >
                   {d} min
@@ -249,18 +249,18 @@ export const SchedeVascaScreen: React.FC = () => {
       </div>
 
       {/* Visualizzatore Scheda Vasca */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-5">
+      <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-4 sm:p-6 shadow-card space-y-5">
         {/* Intestazione */}
-        <div className="p-4 sm:p-5 bg-cyan-50/70 border border-cyan-100 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="p-4 sm:p-5 bg-surface-container-low/70 border border-primary-fixed-dim rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#006874]" />
-              <h3 className="font-black text-slate-800 text-lg sm:text-xl">
+              <span className="w-2.5 h-2.5 rounded-full bg-primary-container" />
+              <h3 className="font-bold text-on-surface text-lg sm:text-xl">
                 {scheda.titolo}
               </h3>
             </div>
-            <div className="text-xs text-slate-600 font-medium mt-1">
-              Volume Totale: <strong className="text-[#006874] text-sm font-black">{scheda.volumeTotaleMetri} m</strong> · Fase:{' '}
+            <div className="text-xs text-on-surface-variant font-medium mt-1">
+              Volume Totale: <strong className="text-primary-container text-sm font-bold">{scheda.volumeTotaleMetri} m</strong> · Fase:{' '}
               {FASE_MESOCICLO_LABEL[scheda.faseStagione]} ({TIPO_MICROCICLO_LABEL[scheda.tipoMicrociclo]})
               {scheda.categoriaEta && ` · Categoria: ${scheda.categoriaEta}`}
             </div>
@@ -270,13 +270,13 @@ export const SchedeVascaScreen: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowDetails(!showDetails)}
-              className="self-start sm:self-center inline-flex items-center gap-2 px-3 h-12 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+              className="self-start sm:self-center inline-flex items-center gap-2 px-3 h-12 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl text-xs font-bold transition"
             >
               {showDetails ? 'Semplifica' : 'Dettagli'}
             </button>
             <button
               onClick={handleCopy}
-              className="self-start sm:self-center inline-flex items-center gap-2 px-4 h-12 bg-[#006874] hover:bg-[#004f58] text-white rounded-xl text-xs font-bold transition shadow-xs"
+              className="self-start sm:self-center inline-flex items-center gap-2 px-4 h-12 bg-primary-container hover:bg-primary text-on-primary rounded-xl text-xs font-bold transition shadow-card"
             >
               {copiato ? <Check size={16} className="text-emerald-300" /> : <Copy size={16} />}
               <span>{copiato ? 'Copiato!' : 'Copia'}</span>
@@ -286,12 +286,12 @@ export const SchedeVascaScreen: React.FC = () => {
 
         {/* Medical Alerts - Always Visible */}
         {scheda.avvertenzeMediche.length > 0 && (
-          <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1.5 text-xs">
-            <div className="flex items-center gap-1.5 text-rose-900 font-bold uppercase tracking-wider">
-              <HeartPulse size={15} className="text-rose-600" />
+          <div className="p-3.5 bg-error-container border border-error/40 rounded-xl space-y-1.5 text-xs">
+            <div className="flex items-center gap-1.5 text-on-error-container font-bold uppercase tracking-wider">
+              <HeartPulse size={15} className="text-error" />
               <span>⚠️ Adattamenti Medici</span>
             </div>
-            <ul className="list-disc list-inside space-y-0.5 text-rose-800 font-medium">
+            <ul className="list-disc list-inside space-y-0.5 text-on-error-container font-medium">
               {scheda.avvertenzeMediche.map((avv, i) => (
                 <li key={i}>{avv}</li>
               ))}
@@ -303,12 +303,12 @@ export const SchedeVascaScreen: React.FC = () => {
         {showDetails && (
           <>
             {scheda.adattamentiEta.length > 0 && (
-              <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl space-y-1.5 text-xs">
-                <div className="flex items-center gap-1.5 text-indigo-900 font-bold uppercase tracking-wider">
-                  <Sparkles size={15} className="text-indigo-600" />
+              <div className="p-3.5 bg-surface-container-low border border-outline-variant rounded-xl space-y-1.5 text-xs">
+                <div className="flex items-center gap-1.5 text-on-surface font-bold uppercase tracking-wider">
+                  <Sparkles size={15} className="text-secondary" />
                   <span>Modifiche Fisiologiche / Età</span>
                 </div>
-                <ul className="list-disc list-inside space-y-0.5 text-indigo-800 font-medium">
+                <ul className="list-disc list-inside space-y-0.5 text-on-surface font-medium">
                   {scheda.adattamentiEta.map((ad, i) => (
                     <li key={i}>{ad}</li>
                   ))}
@@ -317,12 +317,12 @@ export const SchedeVascaScreen: React.FC = () => {
             )}
 
             {scheda.noteCalibrazione.length > 0 && (
-              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl space-y-1.5 text-xs">
-                <div className="flex items-center gap-1.5 text-amber-900 font-bold uppercase tracking-wider">
-                  <Timer size={15} className="text-amber-600" />
+              <div className="p-3.5 bg-surface-container-low border border-tertiary-fixed-dim rounded-xl space-y-1.5 text-xs">
+                <div className="flex items-center gap-1.5 text-on-tertiary-fixed font-bold uppercase tracking-wider">
+                  <Timer size={15} className="text-tertiary-container" />
                   <span>Calibrazione sui Tempi</span>
                 </div>
-                <ul className="list-disc list-inside space-y-0.5 text-amber-800 font-medium">
+                <ul className="list-disc list-inside space-y-0.5 text-on-tertiary-fixed font-medium">
                   {scheda.noteCalibrazione.map((nota, i) => (
                     <li key={i}>{nota}</li>
                   ))}
@@ -331,9 +331,9 @@ export const SchedeVascaScreen: React.FC = () => {
             )}
 
             {/* Energy Zones Breakdown */}
-            <div className="space-y-2 pt-2 border-t border-slate-100">
-              <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                <Flame size={15} className="text-[#006874]" />
+            <div className="space-y-2 pt-2 border-t border-slate-200/70">
+              <h4 className="font-bold text-on-surface text-xs uppercase tracking-wider flex items-center gap-1.5">
+                <Flame size={15} className="text-primary-container" />
                 <span>Zone Energetiche della Seduta (A1 – D)</span>
               </h4>
               <IndicatoreCodici
@@ -345,9 +345,9 @@ export const SchedeVascaScreen: React.FC = () => {
         )}
 
         {/* Detailed Sets - Always Visible but Simplified */}
-        <div className="space-y-3 pt-2 border-t border-slate-100">
-          <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
-            <List size={15} className="text-[#006874]" />
+        <div className="space-y-3 pt-2 border-t border-slate-200/70">
+          <h4 className="font-bold text-on-surface text-xs uppercase tracking-wider flex items-center gap-1.5">
+            <List size={15} className="text-primary-container" />
             <span>Serie per Bordo Vasca</span>
           </h4>
 
@@ -355,32 +355,32 @@ export const SchedeVascaScreen: React.FC = () => {
             {scheda.tratti.map((tratto, idx) => (
               <div
                 key={idx}
-                className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition space-y-1.5"
+                className="p-3.5 rounded-xl border border-slate-200/70 bg-surface-container-low/50 hover:bg-surface-container-low transition space-y-1.5"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-bold text-slate-800 text-sm">
+                  <span className="font-bold text-on-surface text-sm">
                     {idx + 1}. {tratto.sezione}
                   </span>
                   <BadgeCodice codice={tratto.codice} />
                 </div>
 
-                <div className="text-[#006874] font-black text-sm">
-                  {tratto.ripetizioni} · <span className="text-slate-500 font-semibold">{tratto.metri} m</span>
+                <div className="text-primary-container font-bold text-sm">
+                  {tratto.ripetizioni} · <span className="text-on-surface-variant font-semibold">{tratto.metri} m</span>
                 </div>
 
                 {showDetails && (
-                  <p className="text-xs text-slate-600 leading-relaxed">{tratto.descrizione}</p>
+                  <p className="text-xs text-on-surface-variant leading-relaxed">{tratto.descrizione}</p>
                 )}
 
                 {tratto.ripartenza && (
-                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-on-tertiary-fixed bg-surface-container-low px-2 py-0.5 rounded-md border border-tertiary-fixed-dim">
                     <span>⏱️ Ripartenza:</span>
                     <span>{tratto.ripartenza}</span>
                   </div>
                 )}
 
                 {showDetails && tratto.notaSpecifica && (
-                  <div className="text-[11px] text-slate-500 font-medium italic">
+                  <div className="text-[11px] text-on-surface-variant font-medium italic">
                     • Focus: {tratto.notaSpecifica}
                   </div>
                 )}

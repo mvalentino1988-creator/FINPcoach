@@ -65,33 +65,33 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-          <Activity size={22} className="text-[#006874]" />
+        <h2 className="text-xl font-bold text-on-surface tracking-tight flex items-center gap-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <Activity size={22} className="text-primary-container" />
           <span>Analisi Biomeccanica & Costo Energetico C(v)</span>
         </h2>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-on-surface-variant mt-0.5">
           Curva a U del Costo Energetico C(v) = (220/v) + 75 v² e confronto con i Top 10 Elite ({livelloGeo}).
         </p>
       </div>
 
-      <div className="p-3 bg-cyan-50/80 border border-cyan-200 rounded-2xl flex items-center justify-between text-xs text-[#006874] font-semibold">
+      <div className="p-3 bg-surface-container-low/80 border border-primary-fixed-dim rounded-xl flex items-center justify-between text-xs text-primary-container font-semibold">
         <div className="flex items-center gap-2">
           <RefreshCw size={15} />
           <span>Sincronizzazione Temporale Mensile: {syncStatus.lastUpdateDate}</span>
         </div>
-        <span className="px-2 py-0.5 rounded-full bg-[#006874] text-white font-bold text-[10px]">
+        <span className="px-2 py-0.5 rounded-full bg-primary-container text-on-primary font-bold text-[10px]">
           {syncStatus.refreshed ? 'Cluster Ricalcolati' : 'Allineato 30gg'}
         </span>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
+      <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-4 shadow-card space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Atleta</label>
+            <label className="block font-bold text-on-surface mb-1">Atleta</label>
             <select
               value={atletaSel?.id ?? ''}
               onChange={(e) => setAtletaSelId(e.target.value ? Number(e.target.value) : null)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800"
+              className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface"
             >
               {atleti.map(a => (
                 <option key={a.id} value={a.id}>{a.cognome} {a.nome} (S{a.classeS ?? '?'})</option>
@@ -100,11 +100,11 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
           </div>
 
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Stile</label>
+            <label className="block font-bold text-on-surface mb-1">Stile</label>
             <select
               value={stile}
               onChange={(e) => setStile(e.target.value as Stile)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800"
+              className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface"
             >
               <option value="STILE_LIBERO">Stile Libero</option>
               <option value="DORSO">Dorso</option>
@@ -115,11 +115,11 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
           </div>
 
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Distanza Gara</label>
+            <label className="block font-bold text-on-surface mb-1">Distanza Gara</label>
             <select
               value={distanza}
               onChange={(e) => setDistanza(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800"
+              className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface"
             >
               <option value={50}>50m</option>
               <option value={100}>100m</option>
@@ -129,11 +129,11 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
           </div>
 
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Filtro Elite Competitors</label>
+            <label className="block font-bold text-on-surface mb-1">Filtro Elite Competitors</label>
             <select
               value={livelloGeo}
               onChange={(e) => setLivelloGeo(e.target.value as LivelloGeografico)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800"
+              className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface"
             >
               <option value="Mondiale">Top 10 Mondiale</option>
               <option value="Europeo">Top 10 Europeo</option>
@@ -165,45 +165,45 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
         return <HydrodynamicsChartsView mainAtleta={mainAth} top10List={top10} />;
       })()}
 
-      <Sezione titolo="Legenda Colori Classi S & Marker Atleta" icon={<Award size={16} className="text-amber-500" />} storageKey="para_biomech_legend" defaultAperto={false}>
+      <Sezione titolo="Legenda Colori Classi S & Marker Atleta" icon={<Award size={16} className="text-tertiary-container" />} storageKey="para_biomech_legend" defaultAperto={false}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs font-semibold">
-          <div className="flex items-center gap-2 p-2 bg-red-50 rounded-xl border border-red-200">
-            <span className="w-3 h-3 rounded-full bg-red-500 shrink-0" />
-            <span className="text-red-900">Classe S1-S2</span>
+          <div className="flex items-center gap-2 p-2 bg-error-container rounded-xl border border-error/40">
+            <span className="w-3 h-3 rounded-full bg-error shrink-0" />
+            <span className="text-on-error-container">Classe S1-S2</span>
           </div>
-          <div className="flex items-center gap-2 p-2 bg-orange-50 rounded-xl border border-orange-200">
-            <span className="w-3 h-3 rounded-full bg-orange-500 shrink-0" />
-            <span className="text-orange-900">Classe S3-S4</span>
+          <div className="flex items-center gap-2 p-2 bg-tertiary-fixed/40 rounded-xl border border-tertiary-fixed-dim">
+            <span className="w-3 h-3 rounded-full bg-tertiary-container shrink-0" />
+            <span className="text-on-tertiary-fixed">Classe S3-S4</span>
           </div>
           <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded-xl border border-yellow-200">
             <span className="w-3 h-3 rounded-full bg-yellow-500 shrink-0" />
             <span className="text-yellow-900">Classe S5-S6</span>
           </div>
-          <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-xl border border-emerald-200">
+          <div className="flex items-center gap-2 p-2 bg-surface-container-low rounded-xl border border-primary-fixed-dim">
             <span className="w-3 h-3 rounded-full bg-emerald-500 shrink-0" />
-            <span className="text-emerald-900">Classe S7-S8</span>
+            <span className="text-on-primary-fixed">Classe S7-S8</span>
           </div>
-          <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-xl border border-blue-200">
-            <span className="w-3 h-3 rounded-full bg-blue-500 shrink-0" />
-            <span className="text-blue-900">Classe S9</span>
+          <div className="flex items-center gap-2 p-2 bg-surface-container-low rounded-xl border border-outline-variant">
+            <span className="w-3 h-3 rounded-full bg-secondary shrink-0" />
+            <span className="text-on-surface">Classe S9</span>
           </div>
-          <div className="flex items-center gap-2 p-2 bg-purple-50 rounded-xl border border-purple-200">
-            <span className="w-3 h-3 rounded-full bg-purple-500 shrink-0" />
-            <span className="text-purple-900">Classe S10</span>
+          <div className="flex items-center gap-2 p-2 bg-surface-container-high rounded-xl border border-outline-variant">
+            <span className="w-3 h-3 rounded-full bg-secondary-container shrink-0" />
+            <span className="text-on-surface">Classe S10</span>
           </div>
-          <div className="flex items-center gap-2 p-2 bg-amber-100 rounded-xl border border-amber-300 sm:col-span-2">
-            <span className="w-3.5 h-3.5 bg-amber-500 border border-white rounded-xs shrink-0" />
+          <div className="flex items-center gap-2 p-2 bg-tertiary-fixed rounded-xl border border-tertiary sm:col-span-2">
+            <span className="w-3.5 h-3.5 bg-tertiary-container border border-white rounded-xs shrink-0" />
             <span className="text-amber-950 font-bold">Mio Atleta (Prestazioni Reali)</span>
           </div>
         </div>
       </Sezione>
 
-      <Sezione titolo="Spiegazione Scientifica della Curva C(v)" icon={<Activity size={16} className="text-[#006874]" />} storageKey="para_biomech_formula" defaultAperto={false}>
-        <div className="space-y-2 pt-1 text-xs text-slate-700 leading-relaxed">
-          <p className="font-bold text-slate-900">
+      <Sezione titolo="Spiegazione Scientifica della Curva C(v)" icon={<Activity size={16} className="text-primary-container" />} storageKey="para_biomech_formula" defaultAperto={false}>
+        <div className="space-y-2 pt-1 text-xs text-on-surface leading-relaxed">
+          <p className="font-bold text-on-surface">
             Formula del Costo Energetico: C(v) = (220 / v) + 75 v² [J/m/kg]
           </p>
-          <ul className="list-disc list-inside space-y-1 text-slate-600">
+          <ul className="list-disc list-inside space-y-1 text-on-surface-variant">
             <li><strong>Termine (220 / v):</strong> Rappresenta la spesa metabolica di base per sostenere il corpo in acqua al passare del tempo. Alle basse velocità (v &lt; 0.8 m/s), il tempo impiegato in vasca è elevato e fa salire il costo energetico.</li>
             <li><strong>Termine 75 v²:</strong> Rappresenta la resistenza idrodinamica dell'acqua (drag), che cresce con il quadrato della velocità. Ad alte velocità, la resistenza dell'acqua diventa il fattore limitante primario.</li>
             <li><strong>Punto di Minimo della Parabola a U:</strong> Identifica l'andatura di massima efficienza propulsiva per la specifica classe funzionale paralimpica.</li>
@@ -211,32 +211,32 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
         </div>
       </Sezione>
 
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
-        <h3 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-2">
-          <Plus size={15} className="text-[#006874]" />
+      <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-4 shadow-card space-y-3">
+        <h3 className="font-bold text-on-surface text-xs uppercase tracking-wider flex items-center gap-2">
+          <Plus size={15} className="text-primary-container" />
           <span>Aggiungi Nuova Prestazione Reale Atleta ({stile.replace('_', ' ')} {distanza}m)</span>
         </h3>
 
         <form onSubmit={handleAddPerformance} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
           <div>
-            <label className="block font-semibold text-slate-600 mb-1">Data (Seleziona da calendario)</label>
+            <label className="block font-semibold text-on-surface-variant mb-1">Data (Seleziona da calendario)</label>
             <input
               type="date"
               value={dataTesto}
               onChange={e => setDataTesto(e.target.value)}
-              className="w-full px-3 h-11 border border-slate-300 rounded-xl font-bold bg-slate-50 text-slate-800"
+              className="w-full px-3 h-11 border border-outline-variant rounded-xl font-bold bg-surface-container-low text-on-surface"
             />
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-600 mb-1">Tempo Totale (secondi, es. 28.5 o 62.3)</label>
+            <label className="block font-semibold text-on-surface-variant mb-1">Tempo Totale (secondi, es. 28.5 o 62.3)</label>
             <input
               type="number"
               step="0.01"
               placeholder="es. 28.5"
               value={tempoTesto}
               onChange={e => setTempoTesto(e.target.value)}
-              className="w-full px-3 h-11 border border-slate-300 rounded-xl font-black text-sm text-[#006874]"
+              className="w-full px-3 h-11 border border-outline-variant rounded-xl font-bold text-sm text-primary-container"
             />
           </div>
 
@@ -244,7 +244,7 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
             <button
               type="submit"
               disabled={!tempoTesto.trim() || parseFloat(tempoTesto) <= 0}
-              className="w-full h-11 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
+              className="w-full h-11 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-bold rounded-xl text-xs transition shadow-card"
             >
               Aggiungi Prestazione
             </button>
@@ -254,20 +254,20 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
 
       <Sezione titolo="Storico Prestazioni Reali Filtrate" icon={<Flame size={16} />} badge={filteredPerformances.length} storageKey="para_biomech_history" defaultAperto={true}>
         {filteredPerformances.length === 0 ? (
-          <p className="text-xs text-slate-400 py-2">Nessuna prestazione registrata per {stile.replace('_', ' ')} {distanza}m.</p>
+          <p className="text-xs text-on-surface-variant py-2">Nessuna prestazione registrata per {stile.replace('_', ' ')} {distanza}m.</p>
         ) : (
           <div className="space-y-2 pt-1 text-xs">
             {filteredPerformances.map((p, idx) => (
-              <div key={p.id} className="p-3 bg-amber-50/40 border border-amber-200 rounded-xl flex items-center justify-between">
+              <div key={p.id} className="p-3 bg-surface-container-low/40 border border-tertiary-fixed-dim rounded-xl flex items-center justify-between">
                 <div>
-                  <span className="font-bold text-slate-900 block">
+                  <span className="font-bold text-on-surface block">
                     #{idx + 1} · {p.data} — {p.tempoSecondi.toFixed(2)}s ({p.classeParalimpica})
                   </span>
-                  <span className="text-[11px] text-slate-500">
+                  <span className="text-[11px] text-on-surface-variant">
                     Velocità: {p.velocitaMedia.toFixed(2)} m/s · Costo Energetico: {p.costoEnergetico.toFixed(1)} J/m/kg
                   </span>
                 </div>
-                <span className="px-2.5 py-1 rounded-full bg-amber-200 text-amber-900 font-bold text-xs">
+                <span className="px-2.5 py-1 rounded-full bg-amber-200 text-on-tertiary-fixed font-bold text-xs">
                   {p.velocitaMedia.toFixed(2)} m/s
                 </span>
               </div>

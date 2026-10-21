@@ -122,10 +122,10 @@ export const RegistroScreen: React.FC = () => {
 
   if (atleti.length === 0) {
     return (
-      <div className="p-8 text-center bg-white rounded-2xl border border-slate-200">
-        <User size={36} className="mx-auto text-slate-300 mb-2" />
-        <h3 className="font-bold text-slate-700">Nessun atleta registrato</h3>
-        <p className="text-xs text-slate-500 mt-1">Aggiungi prima gli atleti per registrare presenze e carico.</p>
+      <div className="p-8 text-center bg-surface-container-lowest rounded-xl border border-slate-200/70">
+        <User size={36} className="mx-auto text-outline mb-2" />
+        <h3 className="font-bold text-on-surface">Nessun atleta registrato</h3>
+        <p className="text-xs text-on-surface-variant mt-1">Aggiungi prima gli atleti per registrare presenze e carico.</p>
       </div>
     );
   }
@@ -133,12 +133,12 @@ export const RegistroScreen: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* Tab Navigation */}
-      <div className="flex p-1 bg-slate-100 rounded-2xl border border-slate-200">
+      <div className="flex p-1 bg-surface-container rounded-xl border border-slate-200/70">
         <button
           type="button"
           onClick={() => setSezione('seduta')}
           className={`flex-1 h-12 text-xs font-bold rounded-xl transition ${
-            sezione === 'seduta' ? 'bg-white text-[#006874] shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            sezione === 'seduta' ? 'bg-surface-container-lowest text-primary-container shadow-card' : 'text-on-surface-variant hover:text-on-surface'
           }`}
         >
           1. Registro Seduta Vasca
@@ -147,7 +147,7 @@ export const RegistroScreen: React.FC = () => {
           type="button"
           onClick={() => setSezione('tempi')}
           className={`flex-1 h-12 text-xs font-bold rounded-xl transition ${
-            sezione === 'tempi' ? 'bg-white text-[#006874] shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            sezione === 'tempi' ? 'bg-surface-container-lowest text-primary-container shadow-card' : 'text-on-surface-variant hover:text-on-surface'
           }`}
         >
           2. Tempi Gara
@@ -156,7 +156,7 @@ export const RegistroScreen: React.FC = () => {
           type="button"
           onClick={() => setSezione('storico')}
           className={`flex-1 h-12 text-xs font-bold rounded-xl transition ${
-            sezione === 'storico' ? 'bg-white text-[#006874] shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            sezione === 'storico' ? 'bg-surface-container-lowest text-primary-container shadow-card' : 'text-on-surface-variant hover:text-on-surface'
           }`}
         >
           3. Monitoraggio Carico ACWR
@@ -166,30 +166,30 @@ export const RegistroScreen: React.FC = () => {
       {/* ==================================== SUBTAB SEDUTA ==================================== */}
       {sezione === 'seduta' && (
         <div className="space-y-4">
-          <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-3">
-            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-              <Calendar size={16} className="text-[#006874]" />
+          <div className="p-4 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card space-y-3">
+            <h3 className="font-bold text-on-surface text-sm flex items-center gap-2">
+              <Calendar size={16} className="text-primary-container" />
               <span>Registra Presenze e Carico Effettivo</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="block font-semibold text-slate-600 mb-1">Data Allenamento *</label>
+                <label className="block font-semibold text-on-surface-variant mb-1">Data Allenamento *</label>
                 <input
                   type="text"
                   value={dataTesto}
                   onChange={e => setDataTesto(e.target.value)}
-                  className="w-full px-3 h-12 border border-slate-300 rounded-xl"
+                  className="w-full px-3 h-12 border border-outline-variant rounded-xl"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-600 mb-1">Durata Seduta (minuti) *</label>
+                <label className="block font-semibold text-on-surface-variant mb-1">Durata Seduta (minuti) *</label>
                 <input
                   type="number"
                   value={durata}
                   onChange={e => setDurata(e.target.value)}
-                  className="w-full px-3 h-12 border border-slate-300 rounded-xl font-bold"
+                  className="w-full px-3 h-12 border border-outline-variant rounded-xl font-bold"
                 />
               </div>
             </div>
@@ -214,22 +214,22 @@ export const RegistroScreen: React.FC = () => {
                   )
                 );
               }}
-              className="w-full flex items-center justify-center gap-2 p-2.5 bg-cyan-50 hover:bg-cyan-100 text-[#006874] border border-cyan-200 rounded-xl font-bold text-xs transition"
+              className="w-full flex items-center justify-center gap-2 p-2.5 bg-surface-container-low hover:bg-primary-fixed text-primary-container border border-primary-fixed-dim rounded-xl font-bold text-xs transition"
             >
               <Waves size={16} />
               <span>Scheda Bordo Vasca del Giorno 🏊‍♂️</span>
             </button>
 
             {giaRegistrata && (
-              <p className="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200 font-medium">
+              <p className="text-[11px] text-tertiary bg-surface-container-low p-2 rounded-lg border border-tertiary-fixed-dim font-medium">
                 Per questa data è già presente una seduta nel registro: salvando verrà aggiornata.
               </p>
             )}
           </div>
 
           {/* Athletes checklist */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-2.5">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider pb-2 border-b border-slate-100">
+          <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-4 shadow-card space-y-2.5">
+            <div className="flex items-center justify-between text-xs font-bold text-on-surface-variant uppercase tracking-wider pb-2 border-b border-slate-200/70">
               <span>Atleta</span>
               <div className="flex gap-16 mr-3">
                 <span>Metri Effettivi</span>
@@ -243,7 +243,7 @@ export const RegistroScreen: React.FC = () => {
                 <div
                   key={a.id}
                   className={`p-3 rounded-xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${
-                    r.presente ? 'bg-slate-50 border-slate-200' : 'bg-slate-100/60 border-slate-200 opacity-60'
+                    r.presente ? 'bg-surface-container-low border-slate-200/70' : 'bg-surface-container/60 border-slate-200/70 opacity-60'
                   }`}
                 >
                   <label className="flex items-center gap-2.5 cursor-pointer select-none">
@@ -256,13 +256,13 @@ export const RegistroScreen: React.FC = () => {
                           [a.id]: { ...r, presente: e.target.checked }
                         }));
                       }}
-                      className="w-4 h-4 accent-[#006874] rounded"
+                      className="w-4 h-4 accent-primary rounded"
                     />
                     <div>
-                      <span className="font-bold text-slate-800 text-sm block">
+                      <span className="font-bold text-on-surface text-sm block">
                         {a.cognome} {a.nome}
                       </span>
-                      <span className="text-[11px] text-slate-500 font-medium">
+                      <span className="text-[11px] text-on-surface-variant font-medium">
                         {a.classeS != null ? `S${a.classeS} ` : ''}
                         · Fattore volume: {Math.round(a.fattoreVolume * 100)}%
                       </span>
@@ -282,9 +282,9 @@ export const RegistroScreen: React.FC = () => {
                               [a.id]: { ...r, metri: e.target.value }
                             }));
                           }}
-                          className="w-24 px-2.5 h-12 border border-slate-300 rounded-lg text-center font-bold text-xs"
+                          className="w-24 px-2.5 h-12 border border-outline-variant rounded-lg text-center font-bold text-xs"
                         />
-                        <span className="text-slate-500">m</span>
+                        <span className="text-on-surface-variant">m</span>
                       </div>
 
                       <div className="flex items-center gap-1">
@@ -299,21 +299,21 @@ export const RegistroScreen: React.FC = () => {
                               [a.id]: { ...r, rpe: e.target.value }
                             }));
                           }}
-                          className="w-16 px-2.5 h-12 border border-slate-300 rounded-lg text-center font-bold text-xs text-[#006874]"
+                          className="w-16 px-2.5 h-12 border border-outline-variant rounded-lg text-center font-bold text-xs text-primary-container"
                         />
-                        <span className="text-[10px] text-slate-400">/10</span>
+                        <span className="text-[10px] text-on-surface-variant">/10</span>
                       </div>
                     </div>
                   ) : (
-                    <span className="text-xs font-semibold text-rose-600 italic">Assente</span>
+                    <span className="text-xs font-semibold text-error italic">Assente</span>
                   )}
                 </div>
               );
             })}
 
             {salvatoSuccesso && (
-              <div className="flex items-center gap-2 p-3 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold animate-fadeIn">
-                <CheckCircle size={16} className="text-emerald-600" />
+              <div className="flex items-center gap-2 p-3 bg-surface-container-low text-primary border border-primary-fixed-dim rounded-xl text-xs font-bold animate-fadeIn">
+                <CheckCircle size={16} className="text-primary" />
                 <span>Seduta registrata con successo nel registro presenze e carichi!</span>
               </div>
             )}
@@ -321,7 +321,7 @@ export const RegistroScreen: React.FC = () => {
             <button
               onClick={handleSalvaSeduta}
               disabled={!dataParsed || isNaN(durataInt) || durataInt <= 0}
-              className="w-full mt-3 h-12.5 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
+              className="w-full mt-3 h-12.5 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-bold rounded-xl text-xs transition shadow-card"
             >
               {giaRegistrata ? 'Aggiorna Seduta nel Registro' : 'Salva Seduta nel Registro'}
             </button>
@@ -333,8 +333,8 @@ export const RegistroScreen: React.FC = () => {
       {sezione === 'tempi' && atletaSel && (
         <div className="space-y-4">
           {/* Athlete Selector */}
-          <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2 overflow-x-auto">
-            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider shrink-0 pl-1">
+          <div className="p-3 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card flex items-center gap-2 overflow-x-auto">
+            <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider shrink-0 pl-1">
               Atleta:
             </span>
             <div className="flex gap-1.5 shrink-0">
@@ -344,8 +344,8 @@ export const RegistroScreen: React.FC = () => {
                   onClick={() => setAtletaSelId(a.id)}
                   className={`px-3 h-12 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                     atletaSel.id === a.id
-                      ? 'bg-[#006874] text-white shadow-xs'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      ? 'bg-primary-container text-on-primary shadow-card'
+                      : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
                   <User size={13} />
@@ -368,8 +368,8 @@ export const RegistroScreen: React.FC = () => {
       {sezione === 'storico' && atletaSel && (
         <div className="space-y-4">
           {/* Athlete Selector */}
-          <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2 overflow-x-auto">
-            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider shrink-0 pl-1">
+          <div className="p-3 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card flex items-center gap-2 overflow-x-auto">
+            <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider shrink-0 pl-1">
               Atleta:
             </span>
             <div className="flex gap-1.5 shrink-0">
@@ -379,8 +379,8 @@ export const RegistroScreen: React.FC = () => {
                   onClick={() => setAtletaSelId(a.id)}
                   className={`px-3 h-12 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                     atletaSel.id === a.id
-                      ? 'bg-[#006874] text-white shadow-xs'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      ? 'bg-primary-container text-on-primary shadow-card'
+                      : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
                   <User size={13} />
@@ -460,40 +460,40 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
   return (
     <div className="space-y-4">
       {/* Add Form */}
-      <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-3">
-        <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-          <Plus size={16} className="text-[#006874]" />
+      <div className="p-4 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card space-y-3">
+        <h3 className="font-bold text-on-surface text-sm flex items-center gap-2">
+          <Plus size={16} className="text-primary-container" />
           <span>Nuovo Tempo · {atleta.nome} {atleta.cognome}</span>
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Data *</label>
+              <label className="block font-semibold text-on-surface-variant mb-1">Data *</label>
               <input
                 type="text"
                 value={dataTesto}
                 onChange={e => setDataTesto(e.target.value)}
-                className="w-full px-3 h-12 border border-slate-300 rounded-lg"
+                className="w-full px-3 h-12 border border-outline-variant rounded-lg"
               />
             </div>
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Distanza (m) *</label>
+              <label className="block font-semibold text-on-surface-variant mb-1">Distanza (m) *</label>
               <input
                 type="number"
                 value={distanza}
                 onChange={e => setDistanza(e.target.value)}
-                className="w-full px-3 h-12 border border-slate-300 rounded-lg font-bold"
+                className="w-full px-3 h-12 border border-outline-variant rounded-lg font-bold"
               />
             </div>
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Tempo (es. 1:02.35 o 28.40) *</label>
+              <label className="block font-semibold text-on-surface-variant mb-1">Tempo (es. 1:02.35 o 28.40) *</label>
               <input
                 type="text"
                 placeholder="es. 1:02.35"
                 value={tempoTesto}
                 onChange={e => setTempoTesto(e.target.value)}
-                className="w-full px-3 h-12 border border-slate-300 rounded-lg font-black text-sm text-[#006874]"
+                className="w-full px-3 h-12 border border-outline-variant rounded-lg font-bold text-sm text-primary-container"
               />
             </div>
           </div>
@@ -505,7 +505,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
                 type="button"
                 onClick={() => setStile(s)}
                 className={`px-3 py-1 rounded-lg font-semibold transition ${
-                  stile === s ? 'bg-[#006874] text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  stile === s ? 'bg-primary-container text-on-primary font-bold' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                 }`}
               >
                 {s.replace('_', ' ')}
@@ -521,7 +521,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
                   type="button"
                   onClick={() => setContesto(c)}
                   className={`px-2.5 py-1 rounded-lg font-semibold transition ${
-                    contesto === c ? 'bg-[#006874] text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    contesto === c ? 'bg-primary-container text-on-primary font-bold' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
                   {c.toLowerCase()}
@@ -536,7 +536,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
                   type="button"
                   onClick={() => setVasca(v)}
                   className={`px-2.5 py-1 rounded-lg font-semibold transition ${
-                    vasca === v ? 'bg-[#006874] text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    vasca === v ? 'bg-primary-container text-on-primary font-bold' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
                   Vasca {v}m
@@ -550,13 +550,13 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
             placeholder="Note sul tempo (opzionale)"
             value={note}
             onChange={e => setNote(e.target.value)}
-            className="w-full px-3 h-12 border border-slate-300 rounded-lg"
+            className="w-full px-3 h-12 border border-outline-variant rounded-lg"
           />
 
           <button
             type="submit"
             disabled={!valido}
-            className="w-full h-12 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
+            className="w-full h-12 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-bold rounded-xl text-xs transition shadow-card"
           >
             Aggiungi Tempo
           </button>
@@ -564,28 +564,28 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
       </div>
 
       {/* Official PB */}
-      <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-3">
-        <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
-          <Award size={16} className="text-amber-500" />
+      <div className="p-4 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card space-y-3">
+        <h4 className="font-bold text-on-surface text-xs uppercase tracking-wider flex items-center gap-1.5">
+          <Award size={16} className="text-tertiary-container" />
           <span>Primati Personali Ufficiali (Gara)</span>
         </h4>
 
         {primati.length === 0 ? (
-          <p className="text-xs text-slate-400">Nessun tempo di gara registrato.</p>
+          <p className="text-xs text-on-surface-variant">Nessun tempo di gara registrato.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             {primati.map((p, i) => (
               <div
                 key={i}
-                className="p-2.5 bg-amber-50/50 border border-amber-200 rounded-xl flex items-center justify-between"
+                className="p-2.5 bg-surface-container-low/50 border border-tertiary-fixed-dim rounded-xl flex items-center justify-between"
               >
                 <div>
-                  <span className="font-bold text-slate-900 block">
+                  <span className="font-bold text-on-surface block">
                     {p.stile.replace('_', ' ')} {p.distanzaMetri} m (vasca {p.vascaMetri}m)
                   </span>
-                  <span className="text-[10px] text-slate-500">{formattaData(p.data)}</span>
+                  <span className="text-[10px] text-on-surface-variant">{formattaData(p.data)}</span>
                 </div>
-                <span className="font-black text-[#006874] text-sm">
+                <span className="font-bold text-primary-container text-sm">
                   {formattaTempo(p.centesimi)}
                 </span>
               </div>
@@ -595,28 +595,28 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
       </div>
 
       {/* Time records list */}
-      <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-2">
-        <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
+      <div className="p-4 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card space-y-2">
+        <h4 className="font-bold text-on-surface text-xs uppercase tracking-wider">
           Storico Tempi ({tempi.length})
         </h4>
 
         {tempi.length === 0 ? (
-          <p className="text-xs text-slate-400">Nessun tempo registrato per questo atleta.</p>
+          <p className="text-xs text-on-surface-variant">Nessun tempo registrato per questo atleta.</p>
         ) : (
           <div className="space-y-1.5 text-xs">
             {tempi.map(t => (
               <div
                 key={t.id}
-                className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-2"
+                className="p-2.5 bg-surface-container-low border border-slate-200/70 rounded-xl flex items-center justify-between gap-2"
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-800">
+                    <span className="font-bold text-on-surface">
                       {t.stile.replace('_', ' ')} {t.distanzaMetri} m
                     </span>
-                    <span className="font-black text-[#006874]">{formattaTempo(t.centesimi)}</span>
+                    <span className="font-bold text-primary-container">{formattaTempo(t.centesimi)}</span>
                   </div>
-                  <div className="text-[10px] text-slate-500">
+                  <div className="text-[10px] text-on-surface-variant">
                     {formattaData(t.data)} · {t.contesto.toLowerCase()} · vasca {t.vascaMetri}m
                     {t.note && ` · ${t.note}`}
                   </div>
@@ -624,7 +624,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
 
                 <button
                   onClick={() => onElimina(t.id)}
-                  className="p-1 text-slate-400 hover:text-rose-600 rounded"
+                  className="p-1 text-on-surface-variant hover:text-error rounded"
                 >
                   <Trash2 size={15} />
                 </button>
@@ -667,52 +667,52 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
   return (
     <div className="space-y-4">
       {/* ACWR Monitor Card */}
-      <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-3">
+      <div className="p-4 sm:p-5 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-            <HeartPulse size={18} className="text-rose-600" />
+          <h3 className="font-bold text-on-surface text-sm flex items-center gap-2">
+            <HeartPulse size={18} className="text-error" />
             <span>Monitoraggio Infortuni ACWR (Acute:Chronic Workload Ratio)</span>
           </h3>
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800">
+          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-surface-container text-on-surface">
             {acwr.livelloRischio}
           </span>
         </div>
 
         {acwr.avvisoInfortunio && (
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900 flex items-start gap-2 font-medium">
-            <ShieldAlert size={16} className="text-rose-600 shrink-0 mt-0.5" />
+          <div className="p-3 bg-error-container border border-error/40 rounded-xl text-xs text-on-error-container flex items-start gap-2 font-medium">
+            <ShieldAlert size={16} className="text-error shrink-0 mt-0.5" />
             <p>{acwr.avvisoInfortunio}</p>
           </div>
         )}
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs pt-1">
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <span className="text-slate-500 font-medium block">Carico Acuto (7gg)</span>
-            <span className="text-base font-black text-[#006874]">{acwr.caricoAcuto} sRPE</span>
+          <div className="p-3 bg-surface-container-low rounded-xl border border-slate-200/70">
+            <span className="text-on-surface-variant font-medium block">Carico Acuto (7gg)</span>
+            <span className="text-base font-bold text-primary-container">{acwr.caricoAcuto} sRPE</span>
           </div>
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <span className="text-slate-500 font-medium block">Carico Cronico Medio (28gg)</span>
-            <span className="text-base font-black text-slate-700">{Math.round(acwr.caricoCronicoMedio)} sRPE</span>
+          <div className="p-3 bg-surface-container-low rounded-xl border border-slate-200/70">
+            <span className="text-on-surface-variant font-medium block">Carico Cronico Medio (28gg)</span>
+            <span className="text-base font-bold text-on-surface">{Math.round(acwr.caricoCronicoMedio)} sRPE</span>
           </div>
-          <div className="col-span-2 sm:col-span-1 p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <span className="text-slate-500 font-medium block">Rapporto ACWR</span>
-            <span className="text-base font-black text-cyan-800">{acwr.acwrRapporto.toFixed(2)}</span>
+          <div className="col-span-2 sm:col-span-1 p-3 bg-surface-container-low rounded-xl border border-slate-200/70">
+            <span className="text-on-surface-variant font-medium block">Rapporto ACWR</span>
+            <span className="text-base font-bold text-primary">{acwr.acwrRapporto.toFixed(2)}</span>
           </div>
         </div>
 
         {/* Visual ACWR Sweet Spot Gauge */}
-        <div className="pt-2 border-t border-slate-100 space-y-1.5">
-          <div className="flex justify-between items-center text-[10px] font-bold text-slate-500">
+        <div className="pt-2 border-t border-slate-200/70 space-y-1.5">
+          <div className="flex justify-between items-center text-[10px] font-bold text-on-surface-variant">
             <span>&lt;0.8 Sotto-carico</span>
-            <span className="text-emerald-700">0.8 - 1.3 Sweet Spot (Sicuro)</span>
-            <span className="text-amber-700">1.3 - 1.5 Attenzione</span>
-            <span className="text-rose-700">&gt;1.5 Alto Rischio</span>
+            <span className="text-primary">0.8 - 1.3 Sweet Spot (Sicuro)</span>
+            <span className="text-tertiary">1.3 - 1.5 Attenzione</span>
+            <span className="text-error">&gt;1.5 Alto Rischio</span>
           </div>
-          <div className="relative h-3 w-full bg-slate-100 rounded-full overflow-hidden flex">
-            <div className="w-[30%] bg-blue-200" title="Sotto-allenamento" />
-            <div className="w-[35%] bg-emerald-400" title="Zona Sicura (Sweet Spot)" />
-            <div className="w-[15%] bg-amber-400" title="Zona Attenzione" />
-            <div className="w-[20%] bg-rose-500" title="Zona Rischio Elevato" />
+          <div className="relative h-3 w-full bg-surface-container rounded-full overflow-hidden flex">
+            <div className="w-[30%] bg-secondary-fixed" title="Sotto-allenamento" />
+            <div className="w-[35%] bg-primary-fixed" title="Zona Sicura (Sweet Spot)" />
+            <div className="w-[15%] bg-tertiary-fixed-dim" title="Zona Attenzione" />
+            <div className="w-[20%] bg-error" title="Zona Rischio Elevato" />
           </div>
           {/* Current ACWR Indicator Pin */}
           <div className="relative h-2 w-full">
@@ -723,7 +723,7 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
               }}
             >
               <div className="w-2.5 h-2.5 bg-slate-900 rotate-45 rounded-xs" />
-              <span className="text-[9px] font-black text-slate-900 mt-0.5 whitespace-nowrap">
+              <span className="text-[9px] font-bold text-on-surface mt-0.5 whitespace-nowrap">
                 ▲ {acwr.acwrRapporto.toFixed(2)}
               </span>
             </div>
@@ -732,35 +732,35 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
       </div>
 
       {/* Attendance Metrics */}
-      <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between text-xs">
-        <span className="font-semibold text-slate-700">
+      <div className="p-4 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card flex items-center justify-between text-xs">
+        <span className="font-semibold text-on-surface">
           Presenze Totali: <strong>{presentiCount}</strong> su {log.length} sedute registrate
         </span>
-        <span className="text-slate-500">
+        <span className="text-on-surface-variant">
           Carico sRPE = RPE (1-10) × durata (minuti)
         </span>
       </div>
 
       {/* Weekly History Cards */}
       <div className="space-y-2">
-        <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
+        <h4 className="font-bold text-on-surface text-xs uppercase tracking-wider">
           Riepilogo Ultime Settimane
         </h4>
 
         {settimane.length === 0 ? (
-          <p className="text-xs text-slate-400">Nessuna seduta registrata nel registro.</p>
+          <p className="text-xs text-on-surface-variant">Nessuna seduta registrata nel registro.</p>
         ) : (
           settimane.map((s, i) => (
             <div
               key={i}
-              className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+              className="p-3.5 bg-surface-container-lowest border border-slate-200/70 rounded-xl shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
             >
               <div>
-                <span className="font-bold text-slate-900 block text-sm">
+                <span className="font-bold text-on-surface block text-sm">
                   Settimana del {formattaData(s.lunedi)}
                 </span>
-                <span className="text-slate-500">
-                  {s.sedute} sedute effettuate · <strong className="text-slate-800">{s.metri} m</strong>
+                <span className="text-on-surface-variant">
+                  {s.sedute} sedute effettuate · <strong className="text-on-surface">{s.metri} m</strong>
                   {s.metriPrevisti != null && ` (previsti ${s.metriPrevisti} m)`}
                   {s.assenze > 0 && ` · ${s.assenze} assenze`}
                 </span>
@@ -768,11 +768,11 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
 
               <div className="text-left sm:text-right">
                 {s.rpeMedio != null && (
-                  <span className="text-slate-600 block text-[11px]">
+                  <span className="text-on-surface-variant block text-[11px]">
                     RPE medio: <strong>{s.rpeMedio.toFixed(1)}</strong>
                   </span>
                 )}
-                <span className="font-bold text-[#006874] text-xs">
+                <span className="font-bold text-primary-container text-xs">
                   Carico sRPE: {s.caricoSrpe}
                 </span>
               </div>

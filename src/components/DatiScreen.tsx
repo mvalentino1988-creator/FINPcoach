@@ -152,20 +152,20 @@ export const DatiScreen: React.FC = () => {
   return (
     <div className="space-y-4">
       {pullToRefresh.isPulling && (
-        <div className="flex items-center justify-center py-2 text-xs text-slate-500">
+        <div className="flex items-center justify-center py-2 text-xs text-on-surface-variant">
           <RefreshCw size={16} className={`mr-2 ${pullToRefresh.isRefreshing ? 'animate-spin' : ''}`} />
           {pullToRefresh.isRefreshing ? 'Aggiornamento...' : 'Rilascia per aggiornare'}
         </div>
       )}
       {/* Selettore Sezione (Menu a tendina) */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-3 shadow-xs flex items-center justify-between gap-3">
-        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider shrink-0">
+      <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-3 shadow-card flex items-center justify-between gap-3">
+        <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider shrink-0">
           Sezione Dati:
         </span>
         <select
           value={tab}
           onChange={(e) => setTab(e.target.value as DatiTab)}
-          className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 text-xs"
+          className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface text-xs"
         >
           <option value="schede">🏊‍♂️ Schede Vasca</option>
           <option value="tempi">⏱️ Tempi & Ripartenze</option>
@@ -177,7 +177,7 @@ export const DatiScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => setEditMode(!editMode)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-[#006874] hover:bg-[#004f58] text-white rounded-xl text-xs font-bold transition shrink-0 shadow-xs"
+            className="flex items-center gap-1.5 px-3 min-h-[48px] bg-primary-container hover:bg-primary text-on-primary rounded-xl text-xs font-bold transition shrink-0 shadow-card"
           >
             {editMode ? <X size={15} /> : <Edit2 size={15} />}
             <span>{editMode ? 'Annulla' : 'Scrivi'}</span>
@@ -187,10 +187,10 @@ export const DatiScreen: React.FC = () => {
 
       {/* Editor Allenamento Personalizzato */}
       {tab === 'schede' && editMode && (
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+        <div className="bg-surface-container-lowest rounded-xl p-4 shadow-card border border-slate-200/70">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2">
-              <Edit2 size={18} className="text-[#006874]" />
+            <h3 className="font-bold text-on-surface flex items-center gap-2">
+              <Edit2 size={18} className="text-primary-container" />
               Scrivi l'allenamento
             </h3>
             <div className="flex gap-1">
@@ -199,8 +199,8 @@ export const DatiScreen: React.FC = () => {
                 onClick={() => setModalitaEditor('testuale')}
                 className={`px-3 h-12 rounded-lg text-xs font-semibold transition ${
                   modalitaEditor === 'testuale'
-                    ? 'bg-[#006874] text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    ? 'bg-primary-container text-on-primary'
+                    : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                 }`}
               >
                 Testuale
@@ -210,8 +210,8 @@ export const DatiScreen: React.FC = () => {
                 onClick={() => setModalitaEditor('strutturato')}
                 className={`px-3 h-12 rounded-lg text-xs font-semibold transition ${
                   modalitaEditor === 'strutturato'
-                    ? 'bg-[#006874] text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    ? 'bg-primary-container text-on-primary'
+                    : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                 }`}
               >
                 Strutturato
@@ -223,25 +223,25 @@ export const DatiScreen: React.FC = () => {
           {modalitaEditor === 'testuale' && (
             <>
               <div className="mb-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Data allenamento</label>
+                <label className="block text-xs font-semibold text-on-surface mb-1">Data allenamento</label>
                 <input
                   type="text"
                   value={workoutDate}
                   onChange={(e) => setWorkoutDate(e.target.value)}
                   placeholder="es. 05/10/2026"
-                  className="w-full px-3 h-12 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#006874] focus:border-transparent"
+                  className="w-full px-3 h-12 border border-outline-variant rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
               <div className="mb-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Destinatario</label>
+                <label className="block text-xs font-semibold text-on-surface mb-1">Destinatario</label>
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={() => setSelectedAtletaId(null)}
                     className={`inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-semibold transition ${
                       selectedAtletaId === null
-                        ? 'bg-[#006874] text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        ? 'bg-primary-container text-on-primary shadow-card'
+                        : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                     }`}
                   >
                     <Users size={14} />
@@ -254,8 +254,8 @@ export const DatiScreen: React.FC = () => {
                       onClick={() => setSelectedAtletaId(a.id)}
                       className={`inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-semibold transition ${
                         selectedAtletaId === a.id
-                          ? 'bg-[#006874] text-white font-bold shadow-xs'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                          ? 'bg-primary-container text-on-primary font-bold shadow-card'
+                          : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                       }`}
                     >
                       <User size={14} />
@@ -265,8 +265,8 @@ export const DatiScreen: React.FC = () => {
                 </div>
               </div>
               <div className="mb-2 flex items-center justify-between">
-                <label className="block text-xs font-semibold text-slate-700">Testo Allenamento / Serie</label>
-                <label className="inline-flex items-center gap-1.5 px-3 h-12 bg-cyan-50 hover:bg-cyan-100 text-[#006874] rounded-lg text-xs font-bold cursor-pointer transition border border-cyan-200">
+                <label className="block text-xs font-semibold text-on-surface">Testo Allenamento / Serie</label>
+                <label className="inline-flex items-center gap-1.5 px-3 h-12 bg-surface-container-low hover:bg-primary-fixed text-primary-container rounded-lg text-xs font-bold cursor-pointer transition border border-primary-fixed-dim">
                   {ocrLoading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
                   <span>{ocrLoading ? 'Lettura OCR in corso...' : 'Carica Screenshot (OCR)'}</span>
                   <input
@@ -292,18 +292,18 @@ export const DatiScreen: React.FC = () => {
                 value={customWorkout}
                 onChange={(e) => setCustomWorkout(e.target.value)}
                 placeholder="Esempio: Riscaldamento 400m stile libero A1&#10;4x100m stile libero a 1'30&quot; (ripartenza)&#10;Serie gambe 200m A1&#10;Defaticamento 200m"
-                className="w-full h-48 p-3 border border-slate-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#006874] focus:border-transparent"
+                className="w-full h-48 p-3 border border-outline-variant rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
               {customWorkout && (
-                <div className="text-xs text-slate-500 mt-2">
-                  Metri totali calcolati: <strong className="text-[#006874]">{ParserScheda.calcolaMetriDaTesto(customWorkout)} m</strong>
+                <div className="text-xs text-on-surface-variant mt-2">
+                  Metri totali calcolati: <strong className="text-primary-container">{ParserScheda.calcolaMetriDaTesto(customWorkout)} m</strong>
                 </div>
               )}
               <div className="flex gap-2 mt-3">
                 <button
                   type="button"
                   onClick={handleSave}
-                  className="flex items-center gap-1.5 px-4 h-12 bg-[#006874] text-white rounded-lg text-sm font-semibold hover:bg-[#005663] transition"
+                  className="flex items-center gap-1.5 px-4 h-12 bg-primary-container text-on-primary rounded-lg text-sm font-semibold hover:bg-primary transition"
                 >
                   <Save size={16} />
                   Salva
@@ -311,13 +311,13 @@ export const DatiScreen: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setEditMode(false)}
-                  className="flex items-center gap-1.5 px-4 h-12 bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-200 transition"
+                  className="flex items-center gap-1.5 px-4 h-12 bg-surface-container text-on-surface rounded-lg text-sm font-semibold hover:bg-surface-container-high transition"
                 >
                   <X size={16} />
                   Annulla
                 </button>
               </div>
-              <p className="text-xs text-slate-500 mt-2">
+              <p className="text-xs text-on-surface-variant mt-2">
                 L'allenamento viene salvato e mostrato al posto della scheda generata automaticamente. I metri vengono calcolati automaticamente dal testo.
               </p>
             </>
@@ -327,25 +327,25 @@ export const DatiScreen: React.FC = () => {
           {modalitaEditor === 'strutturato' && (
             <>
               <div className="mb-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Data allenamento</label>
+                <label className="block text-xs font-semibold text-on-surface mb-1">Data allenamento</label>
                 <input
                   type="text"
                   value={workoutDate}
                   onChange={(e) => setWorkoutDate(e.target.value)}
                   placeholder="es. 05/10/2026"
-                  className="w-full px-3 h-12 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#006874] focus:border-transparent"
+                  className="w-full px-3 h-12 border border-outline-variant rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
               <div className="mb-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Destinatario</label>
+                <label className="block text-xs font-semibold text-on-surface mb-1">Destinatario</label>
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={() => setSelectedAtletaId(null)}
                     className={`inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-semibold transition ${
                       selectedAtletaId === null
-                        ? 'bg-[#006874] text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        ? 'bg-primary-container text-on-primary shadow-card'
+                        : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                     }`}
                   >
                     <Users size={14} />
@@ -358,8 +358,8 @@ export const DatiScreen: React.FC = () => {
                       onClick={() => setSelectedAtletaId(a.id)}
                       className={`inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-semibold transition ${
                         selectedAtletaId === a.id
-                          ? 'bg-[#006874] text-white font-bold shadow-xs'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                          ? 'bg-primary-container text-on-primary font-bold shadow-card'
+                          : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                       }`}
                     >
                       <User size={14} />
@@ -382,9 +382,9 @@ export const DatiScreen: React.FC = () => {
 
       {/* Lista allenamenti salvati */}
       {tab === 'schede' && !editMode && customWorkouts.length > 0 && (
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
-          <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2 text-sm">
-            <Calendar size={16} className="text-[#006874]" />
+        <div className="bg-surface-container-lowest rounded-xl p-4 shadow-card border border-slate-200/70">
+          <h3 className="font-bold text-on-surface mb-3 flex items-center gap-2 text-sm">
+            <Calendar size={16} className="text-primary-container" />
             Allenamenti salvati
           </h3>
           <div className="space-y-2">
@@ -393,8 +393,8 @@ export const DatiScreen: React.FC = () => {
                 key={w.id}
                 className={`p-3 rounded-lg border transition cursor-pointer ${
                   selectedWorkoutId === w.id
-                    ? 'bg-[#006874] text-white border-[#006874]'
-                    : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+                    ? 'bg-primary-container text-on-primary border-primary-container'
+                    : 'bg-surface-container-low border-slate-200/70 hover:bg-surface-container'
                 }`}
                 onClick={() => setSelectedWorkoutId(w.id)}
               >
@@ -421,7 +421,7 @@ export const DatiScreen: React.FC = () => {
             <button
               type="button"
               onClick={() => setSelectedWorkoutId(null)}
-              className="mt-3 text-xs text-[#006874] font-semibold hover:underline"
+              className="mt-3 text-xs text-primary-container font-semibold hover:underline"
             >
               ← Torna alla scheda generata automaticamente
             </button>
@@ -438,8 +438,8 @@ export const DatiScreen: React.FC = () => {
               onClick={() => setVistaSchede('calendario')}
               className={`px-3 h-12 rounded-lg text-xs font-semibold transition ${
                 vistaSchede === 'calendario'
-                  ? 'bg-[#006874] text-white'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-primary-container text-on-primary'
+                  : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
               }`}
             >
               Calendario
@@ -449,8 +449,8 @@ export const DatiScreen: React.FC = () => {
               onClick={() => setVistaSchede('lista')}
               className={`px-3 h-12 rounded-lg text-xs font-semibold transition ${
                 vistaSchede === 'lista'
-                  ? 'bg-[#006874] text-white'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-primary-container text-on-primary'
+                  : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
               }`}
             >
               Lista
@@ -459,7 +459,7 @@ export const DatiScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => setEditMode(true)}
-            className="flex items-center gap-1.5 px-3 h-12 bg-[#006874] text-white rounded-lg text-xs font-semibold hover:bg-[#005663] transition"
+            className="flex items-center gap-1.5 px-3 h-12 bg-primary-container text-on-primary rounded-lg text-xs font-semibold hover:bg-primary transition"
           >
             <Layers size={14} />
             Nuovo Allenamento
@@ -469,7 +469,7 @@ export const DatiScreen: React.FC = () => {
 
       {/* Calendario */}
       {tab === 'schede' && !editMode && vistaSchede === 'calendario' && !selectedWorkout && (
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+        <div className="bg-surface-container-lowest rounded-xl p-4 shadow-card border border-slate-200/70">
           <div className="flex items-center justify-between mb-4">
             <button
               type="button"
@@ -479,11 +479,11 @@ export const DatiScreen: React.FC = () => {
                   setCalendarioData(formattaData(addDays(parsed, -7)));
                 }
               }}
-              className="p-2 hover:bg-slate-100 rounded-lg transition"
+              className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center hover:bg-surface-container rounded-lg transition"
             >
-              <ChevronLeft size={20} className="text-slate-600" />
+              <ChevronLeft size={20} className="text-on-surface-variant" />
             </button>
-            <h3 className="font-bold text-slate-800">
+            <h3 className="font-bold text-on-surface">
               {calendarioData}
             </h3>
             <button
@@ -494,16 +494,16 @@ export const DatiScreen: React.FC = () => {
                   setCalendarioData(formattaData(addDays(parsed, 7)));
                 }
               }}
-              className="p-2 hover:bg-slate-100 rounded-lg transition"
+              className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center hover:bg-surface-container rounded-lg transition"
             >
-              <ChevronRight size={20} className="text-slate-600" />
+              <ChevronRight size={20} className="text-on-surface-variant" />
             </button>
           </div>
           
           {/* Grid dei giorni */}
           <div className="grid grid-cols-7 gap-2 mb-2">
             {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(giorno => (
-              <div key={giorno} className="text-center text-xs font-semibold text-slate-500 h-12">
+              <div key={giorno} className="text-center text-xs font-semibold text-on-surface-variant h-12">
                 {giorno}
               </div>
             ))}
@@ -546,10 +546,10 @@ export const DatiScreen: React.FC = () => {
                     }}
                     className={`aspect-square rounded-lg flex flex-col items-center justify-center transition ${
                       workoutGiorno 
-                        ? 'bg-[#006874] text-white cursor-pointer hover:bg-[#005663]' 
+                        ? 'bg-primary-container text-on-primary cursor-pointer hover:bg-primary' 
                         : isOggi
-                        ? 'bg-slate-200 text-slate-800'
-                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                        ? 'bg-surface-container-high text-on-surface'
+                        : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'
                     }`}
                   >
                     <span className="text-sm font-semibold">{giorno}</span>
@@ -575,22 +575,22 @@ export const DatiScreen: React.FC = () => {
             {customWorkouts.map(workout => (
               <div
                 key={workout.id}
-                className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100 transition cursor-pointer"
+                className="flex items-center justify-between p-3 bg-surface-container-low rounded-xl border border-slate-200/70 hover:bg-surface-container transition cursor-pointer"
                 onClick={() => setSelectedWorkoutId(workout.id)}
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-slate-800 text-xs">{workout.data}</span>
+                    <span className="font-semibold text-on-surface text-xs">{workout.data}</span>
                     {workout.atletaId && (
-                      <span className="text-[10px] bg-[#006874] text-white px-2 py-0.5 rounded-full font-bold">
+                      <span className="text-[10px] bg-primary-container text-on-primary px-2 py-0.5 rounded-full font-bold">
                         Personale
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-slate-500 truncate">
+                  <div className="text-xs text-on-surface-variant truncate">
                     {workout.testo.split('\n')[0]}
                   </div>
-                  <div className="text-xs text-[#006874] font-semibold mt-1">
+                  <div className="text-xs text-primary-container font-semibold mt-1">
                     {workout.metriTotali || ParserScheda.calcolaMetriDaTesto(workout.testo)} m
                   </div>
                 </div>
@@ -607,7 +607,7 @@ export const DatiScreen: React.FC = () => {
                       setCustomWorkouts(updated);
                       FINPStorage.saveCustomWorkouts(updated);
                     }}
-                    className="p-2 text-slate-400 hover:text-[#006874] transition"
+                    className="p-2 text-on-surface-variant hover:text-primary-container transition"
                     title="Modifica allenamento"
                   >
                     <Edit2 size={16} />
@@ -620,7 +620,7 @@ export const DatiScreen: React.FC = () => {
                       setCustomWorkouts(updated);
                       FINPStorage.saveCustomWorkouts(updated);
                     }}
-                    className="p-2 text-slate-400 hover:text-red-500 transition"
+                    className="p-2 text-on-surface-variant hover:text-error transition"
                     title="Elimina allenamento"
                   >
                     <Trash2 size={16} />
@@ -637,12 +637,12 @@ export const DatiScreen: React.FC = () => {
         <div>
           {tab === 'schede' && (
             selectedWorkout ? (
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+              <div className="bg-surface-container-lowest rounded-xl p-6 shadow-card border border-slate-200/70">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-slate-800 text-lg">
+                  <h3 className="font-bold text-on-surface text-lg">
                     Allenamento del {selectedWorkout.data}
                     {selectedWorkout.atletaId && (
-                      <span className="text-sm font-normal text-slate-500 ml-2">
+                      <span className="text-sm font-normal text-on-surface-variant ml-2">
                         (Atleta specifico)
                       </span>
                     )}
@@ -650,7 +650,7 @@ export const DatiScreen: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setSelectedWorkoutId(null)}
-                    className="text-xs text-slate-500 hover:text-slate-700"
+                    className="text-xs text-on-surface-variant hover:text-on-surface"
                   >
                     Chiudi
                   </button>
@@ -663,33 +663,33 @@ export const DatiScreen: React.FC = () => {
                   const codiceStimato = ParserScheda.stimaCodiceDaSerie(serie);
                   
                   return (
-                    <div className="space-y-3 mb-4 p-4 bg-slate-50 rounded-lg">
+                    <div className="space-y-3 mb-4 p-4 bg-surface-container-low rounded-lg">
                       <div className="flex items-center gap-4 text-sm">
                         <div>
-                          <span className="text-slate-500">Volume totale:</span>
-                          <span className="font-bold text-[#006874] ml-1">{ParserScheda.calcolaMetriDaTesto(selectedWorkout.testo)} m</span>
+                          <span className="text-on-surface-variant">Volume totale:</span>
+                          <span className="font-bold text-primary-container ml-1">{ParserScheda.calcolaMetriDaTesto(selectedWorkout.testo)} m</span>
                         </div>
                         <div>
-                          <span className="text-slate-500">Serie:</span>
-                          <span className="font-bold text-slate-700 ml-1">{serie.length}</span>
+                          <span className="text-on-surface-variant">Serie:</span>
+                          <span className="font-bold text-on-surface ml-1">{serie.length}</span>
                         </div>
                         <div>
-                          <span className="text-slate-500">Codice stimato:</span>
-                          <span className="font-bold text-slate-700 ml-1">{codiceStimato}</span>
+                          <span className="text-on-surface-variant">Codice stimato:</span>
+                          <span className="font-bold text-on-surface ml-1">{codiceStimato}</span>
                         </div>
                       </div>
                       
                       {analisi.attrezzi.length > 0 && (
                         <div className="text-xs">
-                          <span className="text-slate-500">Attrezzi:</span>
-                          <span className="text-slate-700 ml-1">{analisi.attrezzi.join(', ')}</span>
+                          <span className="text-on-surface-variant">Attrezzi:</span>
+                          <span className="text-on-surface ml-1">{analisi.attrezzi.join(', ')}</span>
                         </div>
                       )}
                       
                       {analisi.tipiLavoro.length > 0 && (
                         <div className="text-xs">
-                          <span className="text-slate-500">Tipi lavoro:</span>
-                          <span className="text-slate-700 ml-1">{analisi.tipiLavoro.join(', ')}</span>
+                          <span className="text-on-surface-variant">Tipi lavoro:</span>
+                          <span className="text-on-surface ml-1">{analisi.tipiLavoro.join(', ')}</span>
                         </div>
                       )}
                     </div>
@@ -697,26 +697,26 @@ export const DatiScreen: React.FC = () => {
                 })()}
                 
                 <div className="space-y-4">
-                  <div className="whitespace-pre-wrap text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200 font-mono">
+                  <div className="whitespace-pre-wrap text-sm text-on-surface leading-relaxed bg-surface-container-low p-4 rounded-xl border border-slate-200/70 font-mono">
                     {selectedWorkout.testo}
                   </div>
 
-                  <div className="space-y-2 pt-2 border-t border-slate-100">
-                    <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
+                  <div className="space-y-2 pt-2 border-t border-slate-200/70">
+                    <h4 className="font-bold text-on-surface text-xs uppercase tracking-wider">
                       Analisi Automatica Serie e Zone Energetiche (A1–D)
                     </h4>
                     <div className="space-y-2">
                       {ParserScheda.parseSerie(selectedWorkout.testo).map((s, idx) => (
-                        <div key={idx} className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between gap-2 text-xs shadow-xs">
+                        <div key={idx} className="p-3 bg-surface-container-lowest border border-slate-200/70 rounded-xl flex items-center justify-between gap-2 text-xs shadow-card">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-400">#{idx + 1}</span>
-                            <span className="text-slate-800 font-semibold">{s.descrizione}</span>
+                            <span className="font-bold text-on-surface-variant">#{idx + 1}</span>
+                            <span className="text-on-surface font-semibold">{s.descrizione}</span>
                           </div>
                           <div className="flex items-center gap-3">
                             {s.attrezzi.length > 0 && (
-                              <span className="text-slate-500 font-medium italic">[{s.attrezzi.join(', ')}]</span>
+                              <span className="text-on-surface-variant font-medium italic">[{s.attrezzi.join(', ')}]</span>
                             )}
-                            <span className="font-black text-[#006874] text-sm">{s.metriTotali} m</span>
+                            <span className="font-bold text-primary-container text-sm">{s.metriTotali} m</span>
                             <BadgeCodice codice={s.codice as any} />
                           </div>
                         </div>

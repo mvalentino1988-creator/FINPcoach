@@ -124,10 +124,10 @@ export const PianoScreen: React.FC = () => {
 
   if (!stagione) {
     return (
-      <div className="max-w-xl mx-auto p-6 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-5">
+      <div className="max-w-xl mx-auto p-6 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card space-y-5">
         <div>
-          <h2 className="text-xl font-black text-slate-800 tracking-tight">Nuova Stagione Agonistica FINP</h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <h2 className="text-xl font-bold text-on-surface tracking-tight">Nuova Stagione Agonistica FINP</h2>
+          <p className="text-xs text-on-surface-variant mt-1">
             Basta inserire la data di inizio: nome, fine stagione, festività nazionali e piano di carico
             vengono creati in automatico in base alla metodologia paralimpica.
           </p>
@@ -135,7 +135,7 @@ export const PianoScreen: React.FC = () => {
 
         <div className="space-y-3 text-sm">
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">Inizio stagione (Seleziona da calendario) *</label>
+            <label className="block text-xs font-semibold text-on-surface-variant mb-1">Inizio stagione (Seleziona da calendario) *</label>
             <input
               type="date"
               value={inizioStagione}
@@ -144,28 +144,28 @@ export const PianoScreen: React.FC = () => {
                 const p = parseData(e.target.value);
                 if (p) setFineStagione(AutoPianificatore.fineStagioneSuggerita(p));
               }}
-              className="w-full px-3 h-12 border rounded-xl border-slate-300 font-bold bg-slate-50 text-slate-800"
+              className="w-full px-3 h-12 border rounded-xl border-outline-variant font-bold bg-surface-container-low text-on-surface"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">Fine stagione (Seleziona da calendario)</label>
+            <label className="block text-xs font-semibold text-on-surface-variant mb-1">Fine stagione (Seleziona da calendario)</label>
             <input
               type="date"
               value={fineStagione}
               onChange={e => setFineStagione(e.target.value)}
-              className="w-full px-3 h-12 border rounded-xl border-slate-300 font-bold bg-slate-50 text-slate-800"
+              className="w-full px-3 h-12 border rounded-xl border-outline-variant font-bold bg-surface-container-low text-on-surface"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">Nome stagione (auto)</label>
+            <label className="block text-xs font-semibold text-on-surface-variant mb-1">Nome stagione (auto)</label>
             <input
               type="text"
               placeholder={nomeAuto}
               value={nomeStagione}
               onChange={e => setNomeStagione(e.target.value)}
-              className="w-full px-3 h-12 border rounded-xl border-slate-300 font-semibold"
+              className="w-full px-3 h-12 border rounded-xl border-outline-variant font-semibold"
             />
           </div>
 
@@ -176,7 +176,7 @@ export const PianoScreen: React.FC = () => {
               }
             }}
             disabled={!inizioParsed || !fineEffettiva || inizioParsed >= fineEffettiva}
-            className="w-full h-12.5 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-sm transition shadow-sm mt-2"
+            className="w-full h-12.5 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-bold rounded-xl text-sm transition shadow-card mt-2"
           >
             Crea Stagione e Genera Piano
           </button>
@@ -198,13 +198,13 @@ export const PianoScreen: React.FC = () => {
   return (
     <div className="space-y-5 relative">
       {/* Header Banner */}
-      <div className="p-4 sm:p-5 bg-gradient-to-r from-[#006874] to-[#004f58] text-white rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="p-4 sm:p-5 bg-gradient-to-r from-primary-container to-primary text-on-primary rounded-xl shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <span className="text-[11px] uppercase tracking-wider text-cyan-200 font-bold block">
+          <span className="text-[11px] uppercase tracking-wider text-primary-fixed font-bold block">
             Stagione Agonistica FINP
           </span>
-          <h2 className="text-xl sm:text-2xl font-black">{stagione?.nome ?? 'Stagione'}</h2>
-          <p className="text-xs text-cyan-100 font-medium mt-0.5">
+          <h2 className="text-xl sm:text-2xl font-bold">{stagione?.nome ?? 'Stagione'}</h2>
+          <p className="text-xs text-primary-fixed font-medium mt-0.5">
             {stagione?.inizio ? formattaData(stagione.inizio) : ''} – {stagione?.fine ? formattaData(stagione.fine) : ''} · Vasca da {stagione?.vascaMetri ?? 25} m
           </p>
         </div>
@@ -219,7 +219,7 @@ export const PianoScreen: React.FC = () => {
                 setModificaDateOpen(true);
               }
             }}
-            className="px-3 h-12 bg-white/20 hover:bg-white/30 text-white border border-white/30 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+            className="px-3 h-12 bg-white/20 hover:bg-white/30 text-on-primary border border-white/30 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-card"
           >
             <Edit2 size={13} />
             <span>Modifica Date Stagione</span>
@@ -231,7 +231,7 @@ export const PianoScreen: React.FC = () => {
                 eliminaStagione();
               }
             }}
-            className="px-3 h-12 bg-white/10 hover:bg-rose-500/80 text-white/90 hover:text-white border border-white/20 rounded-xl text-xs font-semibold transition"
+            className="px-3 h-12 bg-white/10 hover:bg-error text-white/90 hover:text-on-primary border border-white/20 rounded-xl text-xs font-semibold transition"
           >
             Elimina stagione
           </button>
@@ -240,7 +240,7 @@ export const PianoScreen: React.FC = () => {
 
       {/* Pull to Refresh Indicator */}
       {pullToRefresh.isPulling && (
-        <div className="flex items-center justify-center py-2 text-xs text-slate-500">
+        <div className="flex items-center justify-center py-2 text-xs text-on-surface-variant">
           <RefreshCw 
             size={16} 
             className={`mr-2 ${pullToRefresh.isRefreshing ? 'animate-spin' : ''}`} 
@@ -252,20 +252,20 @@ export const PianoScreen: React.FC = () => {
       {/* Modal Modifica Date Stagione */}
       {modificaDateOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden">
-            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+          <div className="bg-surface-container-lowest rounded-xl shadow-float max-w-md w-full border border-slate-200/70 overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-slate-200/70 flex items-center justify-between bg-surface-container-low">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#006874] text-white flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-primary-container text-on-primary flex items-center justify-center">
                   <Calendar size={18} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800 text-sm">Modifica Date Stagione</h3>
-                  <span className="text-[11px] text-slate-500">{stagione.nome}</span>
+                  <h3 className="font-bold text-on-surface text-sm">Modifica Date Stagione</h3>
+                  <span className="text-[11px] text-on-surface-variant">{stagione.nome}</span>
                 </div>
               </div>
               <button
                 onClick={() => setModificaDateOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200"
+                className="p-1 text-on-surface-variant hover:text-on-surface-variant rounded-lg hover:bg-surface-container-high"
               >
                 <X size={18} />
               </button>
@@ -273,19 +273,19 @@ export const PianoScreen: React.FC = () => {
 
             <div className="p-4 sm:p-6 space-y-4 text-xs">
               {modError && (
-                <div className="p-3 bg-rose-50 text-rose-800 border border-rose-200 rounded-xl font-medium">
+                <div className="p-3 bg-error-container text-on-error-container border border-error/40 rounded-xl font-medium">
                   {modError}
                 </div>
               )}
 
-              <p className="text-slate-600 leading-relaxed text-[11px]">
+              <p className="text-on-surface-variant leading-relaxed text-[11px]">
                 Modificando le date di inizio e fine, la timeline della stagione, i macrocicli e i mesocicli
                 verranno ricalcolati mantenendo tutti i microcicli bloccati manualmente.
               </p>
 
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-on-surface mb-1">
                     Nuova data di inizio (gg/mm/aaaa) *
                   </label>
                   <input
@@ -293,12 +293,12 @@ export const PianoScreen: React.FC = () => {
                     value={modInizio}
                     onChange={e => setModInizio(e.target.value)}
                     placeholder="es. 01/09/2026"
-                    className="w-full px-3 h-12 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 focus:bg-white focus:border-[#006874]"
+                    className="w-full px-3 h-12 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface focus:bg-surface-container-lowest focus:border-primary-container"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-on-surface mb-1">
                     Nuova data di fine (gg/mm/aaaa) *
                   </label>
                   <input
@@ -306,17 +306,17 @@ export const PianoScreen: React.FC = () => {
                     value={modFine}
                     onChange={e => setModFine(e.target.value)}
                     placeholder="es. 30/06/2027"
-                    className="w-full px-3 h-12 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 focus:bg-white focus:border-[#006874]"
+                    className="w-full px-3 h-12 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface focus:bg-surface-container-lowest focus:border-primary-container"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="p-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+            <div className="p-3.5 bg-surface-container-low border-t border-slate-200/70 flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setModificaDateOpen(false)}
-                className="px-4 h-12 text-xs font-semibold text-slate-600 hover:text-slate-800 rounded-xl"
+                className="px-4 h-12 text-xs font-semibold text-on-surface-variant hover:text-on-surface rounded-xl"
               >
                 Annulla
               </button>
@@ -340,7 +340,7 @@ export const PianoScreen: React.FC = () => {
                   modificaDateStagione(pInizio, pFine);
                   setModificaDateOpen(false);
                 }}
-                className="px-4 h-12 text-xs font-bold bg-[#006874] hover:bg-[#004f58] text-white rounded-xl shadow-xs transition"
+                className="px-4 h-12 text-xs font-bold bg-primary-container hover:bg-primary text-on-primary rounded-xl shadow-card transition"
               >
                 Salva e Ricalcola Piano
               </button>
@@ -356,7 +356,7 @@ export const PianoScreen: React.FC = () => {
             <button
               type="button"
               onClick={aggiungiFestivitaNazionali}
-              className="px-3 h-12 bg-cyan-50 hover:bg-cyan-100 text-[#006874] border border-cyan-200 rounded-lg font-bold"
+              className="px-3 h-12 bg-surface-container-low hover:bg-primary-fixed text-primary-container border border-primary-fixed-dim rounded-lg font-bold"
             >
               + Aggiungi Festività Nazionali Italiane
             </button>
@@ -366,15 +366,15 @@ export const PianoScreen: React.FC = () => {
             {chiusure.map(c => (
               <div
                 key={c.id}
-                className="p-2 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between"
+                className="p-2 bg-surface-container-low border border-slate-200/70 rounded-lg flex items-center justify-between"
               >
                 <span>
                   {c.dal === c.al ? formattaData(c.dal) : `${formattaData(c.dal)} – ${formattaData(c.al)}`}:{' '}
-                  <strong className="text-slate-800">{c.motivo}</strong>
+                  <strong className="text-on-surface">{c.motivo}</strong>
                 </span>
                 <button
                   onClick={() => eliminaChiusura(c.id)}
-                  className="text-slate-400 hover:text-rose-600 p-1"
+                  className="text-on-surface-variant hover:text-error p-1"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -383,21 +383,21 @@ export const PianoScreen: React.FC = () => {
           </div>
 
           {/* Add Custom Closure */}
-          <div className="p-3 bg-slate-50 border border-dashed border-slate-300 rounded-xl space-y-2">
+          <div className="p-3 bg-surface-container-low border border-dashed border-outline-variant rounded-xl space-y-2">
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="text"
                 placeholder="Dal (gg/mm/aaaa)"
                 value={cDal}
                 onChange={e => setCDal(e.target.value)}
-                className="px-3 h-12 bg-white border border-slate-300 rounded-lg"
+                className="px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg"
               />
               <input
                 type="text"
                 placeholder="Al (gg/mm/aaaa)"
                 value={cAl}
                 onChange={e => setCAl(e.target.value)}
-                className="px-3 h-12 bg-white border border-slate-300 rounded-lg"
+                className="px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg"
               />
             </div>
             <input
@@ -405,7 +405,7 @@ export const PianoScreen: React.FC = () => {
               placeholder="Motivo (es. Chiusura natalizia impianto, festa patronale...)"
               value={cMotivo}
               onChange={e => setCMotivo(e.target.value)}
-              className="w-full px-3 h-12 bg-white border border-slate-300 rounded-lg"
+              className="w-full px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg"
             />
             <button
               type="button"
@@ -419,7 +419,7 @@ export const PianoScreen: React.FC = () => {
                   setCMotivo('');
                 }
               }}
-              className="w-full h-12 bg-[#006874] hover:bg-[#004f58] text-white rounded-lg font-bold"
+              className="w-full h-12 bg-primary-container hover:bg-primary text-on-primary rounded-lg font-bold"
             >
               Aggiungi Chiusura Vasca
             </button>
@@ -431,11 +431,11 @@ export const PianoScreen: React.FC = () => {
       <Sezione titolo="Gare Agonistiche" icon={<Trophy size={16} />} badge={gare.length} riepilogoChiuso={`${gare.length} programmate`} storageKey="piano_gare" defaultAperto={false}>
         <div className="space-y-3 pt-1 text-xs">
           <div className="flex items-center justify-between">
-            <span className="font-bold text-slate-700">Calendario Gare</span>
+            <span className="font-bold text-on-surface">Calendario Gare</span>
             <button
               type="button"
               onClick={() => setModalGaraOpen(true)}
-              className="px-3 py-2 bg-[#006874] hover:bg-[#004f58] text-white rounded-xl font-bold transition shadow-xs flex items-center gap-1.5"
+              className="px-3 py-2 bg-primary-container hover:bg-primary text-on-primary rounded-xl font-bold transition shadow-card flex items-center gap-1.5"
             >
               <Plus size={14} />
               <span>Aggiungi Nuova Gara 🏆</span>
@@ -444,27 +444,27 @@ export const PianoScreen: React.FC = () => {
 
           <div className="space-y-1.5">
             {gare.length === 0 ? (
-              <p className="text-xs text-slate-400 py-1">Nessuna gara inserita nel calendario.</p>
+              <p className="text-xs text-on-surface-variant py-1">Nessuna gara inserita nel calendario.</p>
             ) : (
               gare.map(g => (
                 <div
                   key={g.id}
-                  className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs"
+                  className="p-3 bg-surface-container-low border border-slate-200/70 rounded-xl flex items-center justify-between text-xs"
                 >
                   <div className="flex items-center gap-2">
-                    {g.prioritaria && <Star size={16} className="text-amber-500 fill-amber-500 shrink-0" />}
+                    {g.prioritaria && <Star size={16} className="text-tertiary-container fill-tertiary-container shrink-0" />}
                     <div>
-                      <span className="font-bold text-slate-800 block">
-                        {g.nome} {g.prioritaria && <span className="text-amber-700 font-semibold">(A-Race Prioritaria)</span>}
+                      <span className="font-bold text-on-surface block">
+                        {g.nome} {g.prioritaria && <span className="text-tertiary font-semibold">(A-Race Prioritaria)</span>}
                       </span>
-                      <span className="text-slate-500 text-[11px]">
+                      <span className="text-on-surface-variant text-[11px]">
                         {formattaData(g.dal)}{g.al && g.al !== g.dal ? ` – ${formattaData(g.al)}` : ''}
                       </span>
                     </div>
                   </div>
                   <button
                     onClick={() => eliminaGara(g.id)}
-                    className="p-1 text-slate-400 hover:text-rose-600 rounded"
+                    className="p-1 text-on-surface-variant hover:text-error rounded"
                   >
                     <Trash2 size={15} />
                   </button>
@@ -478,53 +478,53 @@ export const PianoScreen: React.FC = () => {
       {/* Modal Nuova Gara Ad Hoc */}
       {modalGaraOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
-                <Trophy size={18} className="text-amber-500" />
+          <div className="bg-surface-container-lowest rounded-xl shadow-float max-w-md w-full p-5 border border-slate-200/70 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200/70">
+              <h3 className="font-bold text-on-surface text-base flex items-center gap-2">
+                <Trophy size={18} className="text-tertiary-container" />
                 <span>Inserisci Nuova Gara Agonistica</span>
               </h3>
-              <button onClick={() => setModalGaraOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 rounded">
+              <button onClick={() => setModalGaraOpen(false)} className="p-1 text-on-surface-variant hover:text-on-surface-variant rounded">
                 <X size={18} />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Nome Gara / Manifestazione *</label>
+                <label className="block font-semibold text-on-surface mb-1">Nome Gara / Manifestazione *</label>
                 <input
                   type="text"
                   placeholder="es. Campionati Italiani Assoluti FINP..."
                   value={gNome}
                   onChange={e => setGNome(e.target.value)}
-                  className="w-full px-3 h-12 bg-slate-50 border border-slate-300 rounded-xl"
+                  className="w-full px-3 h-12 bg-surface-container-low border border-outline-variant rounded-xl"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Data Inizio *</label>
+                  <label className="block font-semibold text-on-surface mb-1">Data Inizio *</label>
                   <input
                     type="text"
                     placeholder="gg/mm/aaaa"
                     value={gDal}
                     onChange={e => setGDal(e.target.value)}
-                    className="w-full px-3 h-12 bg-slate-50 border border-slate-300 rounded-xl"
+                    className="w-full px-3 h-12 bg-surface-container-low border border-outline-variant rounded-xl"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Data Fine (opz.)</label>
+                  <label className="block font-semibold text-on-surface mb-1">Data Fine (opz.)</label>
                   <input
                     type="text"
                     placeholder="gg/mm/aaaa"
                     value={gAl}
                     onChange={e => setGAl(e.target.value)}
-                    className="w-full px-3 h-12 bg-slate-50 border border-slate-300 rounded-xl"
+                    className="w-full px-3 h-12 bg-surface-container-low border border-outline-variant rounded-xl"
                   />
                 </div>
               </div>
 
-              <label className="flex items-center gap-2.5 p-3 bg-amber-50/50 border border-amber-200 rounded-xl cursor-pointer font-medium text-slate-800 select-none">
+              <label className="flex items-center gap-2.5 p-3 bg-surface-container-low/50 border border-tertiary-fixed-dim rounded-xl cursor-pointer font-medium text-on-surface select-none">
                 <input
                   type="checkbox"
                   checked={gPrioritaria}
@@ -533,16 +533,16 @@ export const PianoScreen: React.FC = () => {
                 />
                 <div>
                   <span className="block font-bold">Gara Prioritaria (A-Race)</span>
-                  <span className="text-[11px] text-slate-500">Attiva picco di forma, scarico e tapering pre-gara.</span>
+                  <span className="text-[11px] text-on-surface-variant">Attiva picco di forma, scarico e tapering pre-gara.</span>
                 </div>
               </label>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200/70">
               <button
                 type="button"
                 onClick={() => setModalGaraOpen(false)}
-                className="px-4 h-12 text-slate-600 hover:bg-slate-100 rounded-xl font-semibold text-xs"
+                className="px-4 h-12 text-on-surface-variant hover:bg-surface-container rounded-xl font-semibold text-xs"
               >
                 Annulla
               </button>
@@ -561,7 +561,7 @@ export const PianoScreen: React.FC = () => {
                     setModalGaraOpen(false);
                   }
                 }}
-                className="px-5 h-12 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white rounded-xl font-bold text-xs shadow-xs"
+                className="px-5 h-12 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary rounded-xl font-bold text-xs shadow-card"
               >
                 Salva Gara
               </button>
@@ -574,24 +574,24 @@ export const PianoScreen: React.FC = () => {
       <Sezione titolo="Parametri Auto-Pianificatore & Controlli sul Piano" icon={<Sparkles size={16} />} badge={avvisiPiano.length > 0 ? avvisiPiano.length : undefined} riepilogoChiuso={avvisiPiano.length > 0 ? `${avvisiPiano.length} avvisi sul carico` : "Configurazione e controlli"} storageKey="piano_parametri" defaultAperto={false}>
         <div className="space-y-4 pt-1 text-xs">
           {avvisiPiano.length > 0 && (
-            <div className="space-y-1.5 pb-3 border-b border-slate-100">
-              <h4 className="font-bold text-amber-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+            <div className="space-y-1.5 pb-3 border-b border-slate-200/70">
+              <h4 className="font-bold text-on-tertiary-fixed text-xs uppercase tracking-wider flex items-center gap-1.5">
                 <span>⚠️ Controlli e Avvisi sul Piano di Carico</span>
               </h4>
               <ElencoAvvisi avvisi={avvisiPiano} />
             </div>
           )}
 
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-on-surface-variant">
             Il piano si adatta automaticamente all'età media, ai dati storici di carico e alle gare.
             I campi lasciati vuoti usano il calcolo intelligente.
           </p>
 
           {/* Days of week selector */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-slate-700">
+            <label className="block text-body-bold font-body-bold text-on-surface">
               Giorni di Allenamento Settimanali{' '}
-              <span className="font-normal text-slate-500">
+              <span className="font-normal text-on-surface-variant">
                 {impostazioni.giorni == null ? '(attualmente automatici)' : '(impostati a mano)'}
               </span>
             </label>
@@ -599,10 +599,10 @@ export const PianoScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={() => salvaImpostazioni({ ...impostazioni, giorni: undefined })}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+                className={`min-h-[40px] px-3 rounded-full text-label-md font-label-md transition ${
                   impostazioni.giorni == null
-                    ? 'bg-[#006874] text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-primary-container text-on-primary'
+                    : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
                 }`}
               >
                 Auto
@@ -621,8 +621,8 @@ export const PianoScreen: React.FC = () => {
                         giorni: next.length > 0 ? (next.sort((a, b) => a - b) as DayOfWeekNum[]) : undefined
                       });
                     }}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
-                      active ? 'bg-cyan-100 text-cyan-900 border border-cyan-300 font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    className={`min-h-[40px] px-3 rounded-full text-label-md font-label-md transition ${
+                      active ? 'bg-primary-fixed text-on-primary-fixed border border-primary-fixed-dim font-bold' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
                     }`}
                   >
                     {DAY_OF_WEEK_NAMES[dow]}
@@ -635,7 +635,7 @@ export const PianoScreen: React.FC = () => {
           {/* Metric inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
+              <label className="block font-semibold text-on-surface mb-1">
                 Metri base seduta (auto {parametriEffettivi.metriBaseSeduta}m)
               </label>
               <input
@@ -643,12 +643,12 @@ export const PianoScreen: React.FC = () => {
                 placeholder={`Auto: ${parametriEffettivi.metriBaseSeduta}`}
                 value={metriTxt}
                 onChange={e => setMetriTxt(e.target.value)}
-                className="w-full px-3 h-12 border border-slate-300 rounded-lg font-bold"
+                className="w-full px-3 h-12 border border-outline-variant rounded-lg font-bold"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
+              <label className="block font-semibold text-on-surface mb-1">
                 Macrocicli (auto {parametriEffettivi.numeroMacrocicli})
               </label>
               <input
@@ -656,12 +656,12 @@ export const PianoScreen: React.FC = () => {
                 placeholder={`Auto: ${parametriEffettivi.numeroMacrocicli}`}
                 value={macroTxt}
                 onChange={e => setMacroTxt(e.target.value)}
-                className="w-full px-3 h-12 border border-slate-300 rounded-lg font-bold"
+                className="w-full px-3 h-12 border border-outline-variant rounded-lg font-bold"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
+              <label className="block font-semibold text-on-surface mb-1">
                 Scarico ogni N sett. (auto {parametriEffettivi.settimaneCicloCarico})
               </label>
               <input
@@ -669,12 +669,12 @@ export const PianoScreen: React.FC = () => {
                 placeholder={`Auto: ${parametriEffettivi.settimaneCicloCarico}`}
                 value={cicloTxt}
                 onChange={e => setCicloTxt(e.target.value)}
-                className="w-full px-3 h-12 border border-slate-300 rounded-lg font-bold"
+                className="w-full px-3 h-12 border border-outline-variant rounded-lg font-bold"
               />
             </div>
           </div>
 
-          <div className="flex gap-2 pt-2 border-t border-slate-100">
+          <div className="flex gap-2 pt-2 border-t border-slate-200/70">
             <button
               type="button"
               onClick={() => {
@@ -685,14 +685,14 @@ export const PianoScreen: React.FC = () => {
                   settimaneCicloCarico: cicloTxt.trim() ? parseInt(cicloTxt, 10) : undefined
                 });
               }}
-              className="px-4 h-12 bg-[#006874] hover:bg-[#004f58] text-white font-bold rounded-xl text-xs transition"
+              className="px-4 h-12 bg-primary-container hover:bg-primary text-on-primary font-bold rounded-xl text-xs transition"
             >
               Salva Impostazioni
             </button>
             <button
               type="button"
               onClick={rigeneraPianoCompleto}
-              className="flex items-center gap-1.5 px-4 h-12 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition"
+              className="flex items-center gap-1.5 px-4 h-12 bg-surface-container hover:bg-surface-container-high text-on-surface font-bold rounded-xl text-xs transition"
             >
               <RefreshCw size={14} />
               Rigenera Piano
@@ -706,9 +706,9 @@ export const PianoScreen: React.FC = () => {
       <Sezione titolo="Programmazione & Cicli di Carico" icon={<Calendar size={18} />} badge={`${micro.length} sett.`} riepilogoChiuso={`${macro.length} macrocicli · ${meso.length} mesocicli`} storageKey="piano_programmazione" defaultAperto={true}>
         <div className="space-y-4 pt-1">
           {/* Navigation & Controls Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-200/70">
             <div>
-              <span className="text-xs text-slate-500 font-medium">
+              <span className="text-xs text-on-surface-variant font-medium">
                 {macro.length} macrocicli · {meso.length} mesocicli · {micro.length} settimane totali
               </span>
             </div>
@@ -726,7 +726,7 @@ export const PianoScreen: React.FC = () => {
                 }
                 setEspandiTutti(false);
               }}
-              className="px-3 h-12 rounded-xl bg-cyan-50 hover:bg-cyan-100 text-[#006874] border border-cyan-200 text-xs font-bold transition flex items-center gap-1.5"
+              className="px-3 h-12 rounded-xl bg-surface-container-low hover:bg-primary-fixed text-primary-container border border-primary-fixed-dim text-xs font-bold transition flex items-center gap-1.5"
             >
               <Sparkles size={14} />
               <span>Vai a Settimana di Oggi</span>
@@ -736,7 +736,7 @@ export const PianoScreen: React.FC = () => {
             <button
               type="button"
               onClick={() => setEspandiTutti(!espandiTutti)}
-              className="px-3 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition"
+              className="px-3 h-12 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold transition"
             >
               {espandiTutti ? 'Menu Cliccabile' : 'Tutti a Vista'}
             </button>
@@ -748,10 +748,10 @@ export const PianoScreen: React.FC = () => {
           <div className="space-y-4">
             {/* LIVELLO 1: Menu Cliccabile Macrocicli */}
             <div className="space-y-1.5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+              <span className="ds-label block">
                 1. Seleziona Macrociclo:
               </span>
-              <div className="flex gap-2 overflow-x-auto pb-1">
+              <div className="ds-scroll-x ds-touch-pan flex gap-2 pb-1">
                 {macro.map(ma => {
                   const isCurrent = !isBefore(oggi, ma.inizio) && !isBefore(ma.fine, oggi);
                   const isSelected = (selectedMacroId ?? macro[0]?.id) === ma.id;
@@ -765,23 +765,21 @@ export const PianoScreen: React.FC = () => {
                         const firstMeso = meso.find(me => me.macrocicloId === ma.id);
                         if (firstMeso) setSelectedMesoId(firstMeso.id);
                       }}
-                      className={`px-3.5 h-12.5 rounded-xl text-xs font-bold transition shrink-0 border text-left flex flex-col gap-0.5 ${
+                      className={`px-3.5 min-h-[48px] rounded-xl text-label-lg font-label-lg transition shrink-0 border text-left flex flex-col gap-0.5 ${
                         isSelected
-                          ? 'bg-[#006874] text-white border-[#006874] shadow-sm'
-                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                          ? 'bg-primary-container text-on-primary border-primary-container shadow-card'
+                          : 'bg-surface-container-lowest text-on-surface border-slate-200/70 hover:border-outline-variant hover:bg-surface-container-low'
                       }`}
                     >
                       <div className="flex items-center gap-1.5">
                         <span>{ma.nome}</span>
                         {isCurrent && (
-                          <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-black ${
-                            isSelected ? 'bg-cyan-200 text-[#006874]' : 'bg-cyan-100 text-[#006874]'
-                          }`}>
+                          <span className="text-label-caps px-1.5 py-0.5 rounded-full font-label-caps bg-primary-fixed text-on-primary-fixed">
                             In corso
                           </span>
                         )}
                       </div>
-                      <span className={`text-[10px] font-normal ${isSelected ? 'text-cyan-100' : 'text-slate-400'}`}>
+                      <span className={`text-label-caps font-normal ${isSelected ? 'text-primary-fixed' : 'text-on-surface-variant'}`}>
                         {formattaData(ma.inizio)} – {formattaData(ma.fine)}
                       </span>
                     </button>
@@ -803,7 +801,7 @@ export const PianoScreen: React.FC = () => {
               return (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                    <span className="ds-label block">
                       2. Seleziona Mesociclo:
                     </span>
                     <div className="flex flex-wrap gap-1.5">
@@ -816,20 +814,20 @@ export const PianoScreen: React.FC = () => {
                             key={me.id}
                             type="button"
                             onClick={() => setSelectedMesoId(me.id)}
-                            className={`px-3 h-12 rounded-xl text-xs font-bold transition border flex items-center gap-1.5 ${
+                            className={`px-3 min-h-[48px] rounded-xl text-label-lg font-label-lg transition border flex items-center gap-1.5 ${
                               isSelected
-                                ? 'bg-cyan-700 text-white border-cyan-700 shadow-xs'
-                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                ? 'bg-primary-container text-on-primary border-primary shadow-card'
+                                : 'bg-surface-container-lowest text-on-surface border-slate-200/70 hover:bg-surface-container-low'
                             }`}
                           >
                             <span>{FASE_MESOCICLO_LABEL[me.fase]}</span>
-                            <span className={`text-[10px] px-1.5 py-0.2 rounded-md ${
-                              isSelected ? 'bg-cyan-800 text-white' : 'bg-slate-100 text-slate-500'
+                            <span className={`text-label-caps px-1.5 py-0.5 rounded-md font-label-caps ${
+                              isSelected ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'
                             }`}>
                               {numMicro} sett.
                             </span>
                             {isCurrent && (
-                              <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" title="Settimana corrente attiva" />
+                              <span className="w-2 h-2 rounded-full bg-primary-fixed shrink-0" title="Settimana corrente attiva" />
                             )}
                           </button>
                         );
@@ -839,24 +837,24 @@ export const PianoScreen: React.FC = () => {
 
                   {/* Active Mesociclo Banner */}
                   {activeMeso && (
-                    <div className="p-3.5 bg-gradient-to-r from-cyan-50/70 to-slate-50 rounded-2xl border border-cyan-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <div className="p-3.5 bg-surface-container-low rounded-xl border border-primary-fixed-dim flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-black text-[#006874] text-sm">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="ds-subtitle text-primary-container">
                             {FASE_MESOCICLO_LABEL[activeMeso.fase]}
                           </span>
-                          <span className="text-slate-500 font-medium">
+                          <span className="text-body-base font-body-base text-on-surface-variant">
                             ({formattaData(activeMeso.inizio)} – {formattaData(activeMeso.fine)})
                           </span>
                         </div>
-                        <span className="text-[11px] text-slate-500">
+                        <span className="text-body-base font-body-base text-on-surface-variant">
                           {microOfActiveMeso.length} settimane di allenamento programmate in questa fase
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2 text-[11px] text-slate-600 font-semibold">
+                      <div className="flex items-center gap-2 text-body-base font-body-base text-on-surface-variant">
                         <span>Volume medio seduta:{' '}
-                          <strong className="text-[#006874]">
+                          <strong className="text-primary-container">
                             {microOfActiveMeso.length > 0 && microOfActiveMeso[0].sedutePreviste > 0
                               ? Math.round(microOfActiveMeso[0].volumeTargetMetri / microOfActiveMeso[0].sedutePreviste)
                               : 1800} m
@@ -881,36 +879,42 @@ export const PianoScreen: React.FC = () => {
                         mi.tipo
                       );
 
-                      let cardBg = 'bg-white border-slate-200';
-                      if (isCurrentWeek) cardBg = 'bg-cyan-50/70 border-cyan-400 ring-2 ring-[#006874]/30 shadow-md';
-                      else if (mi.tipo === 'CARICO') cardBg = 'bg-cyan-50/30 border-cyan-200';
-                      else if (mi.tipo === 'GARA') cardBg = 'bg-amber-50/50 border-amber-200';
-                      else if (mi.tipo === 'SCARICO' || mi.tipo === 'RECUPERO') cardBg = 'bg-indigo-50/40 border-indigo-200';
+                      let cardBg = 'bg-surface-container-lowest border-slate-200/70';
+                      if (isCurrentWeek) cardBg = 'bg-primary-container/10 border-primary ring-2 ring-primary/30 shadow-pop';
+                      else if (mi.tipo === 'CARICO') cardBg = 'bg-primary-fixed/25 border-primary-fixed-dim';
+                      else if (mi.tipo === 'GARA') cardBg = 'bg-tertiary-fixed/30 border-tertiary-fixed-dim';
+                      else if (mi.tipo === 'SCARICO' || mi.tipo === 'RECUPERO') cardBg = 'bg-surface-container border-outline-variant';
+
+                      const tipoChip =
+                        mi.tipo === 'CARICO' ? 'bg-primary-fixed text-on-primary-fixed border-primary-fixed-dim'
+                        : mi.tipo === 'GARA' ? 'bg-tertiary-fixed text-on-tertiary-fixed border-tertiary-fixed-dim'
+                        : mi.tipo === 'SCARICO' || mi.tipo === 'RECUPERO' ? 'bg-surface-container-highest text-on-surface-variant border-outline-variant'
+                        : 'bg-surface-container text-on-surface-variant border-outline-variant';
 
                       return (
                         <div
                           key={mi.id}
-                          className={`p-4 rounded-2xl border transition shadow-xs flex flex-col justify-between space-y-2.5 ${cardBg}`}
+                          className={`p-4 rounded-xl border transition shadow-card flex flex-col justify-between space-y-2.5 ${cardBg}`}
                         >
                           <div className="space-y-2">
                             {isCurrentWeek && (
-                              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#006874] text-white text-[10px] font-black uppercase tracking-wider mb-0.5">
-                                <Sparkles size={11} className="text-cyan-200" />
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary-container text-on-primary text-[10px] font-bold uppercase tracking-wider mb-0.5">
+                                <Sparkles size={11} className="text-primary-fixed" />
                                 <span>Settimana di Oggi (In Corso)</span>
                               </div>
                             )}
 
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-slate-800 text-sm">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                                <span className="font-body-bold text-body-bold text-on-surface">
                                   {formattaData(mi.inizio)} – {formattaData(mi.fine)}
                                 </span>
-                                <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-white/90 border border-slate-200 text-slate-700">
+                                <span className={`px-2 py-0.5 rounded-full text-label-caps font-label-caps uppercase tracking-wider border ${tipoChip}`}>
                                   {TIPO_MICROCICLO_LABEL[mi.tipo]}
                                 </span>
                                 {mi.bloccato && (
                                   <span title="Bloccato a mano">
-                                    <Lock size={14} className="text-amber-600" />
+                                    <Lock size={14} className="text-tertiary-container" />
                                   </span>
                                 )}
                               </div>
@@ -918,25 +922,25 @@ export const PianoScreen: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => setSchedaSmart(schedaAnteprima)}
-                                className="text-[11px] font-bold text-[#006874] hover:underline flex items-center gap-1 bg-white/80 px-2 py-1 rounded-lg border border-slate-200"
+                                className="text-label-md font-label-md text-primary-container hover:underline flex items-center gap-1 bg-surface-container-lowest px-3 min-h-[44px] rounded-lg border border-slate-200/70 shrink-0"
                               >
                                 <Waves size={13} />
                                 <span>Scheda Smart</span>
                               </button>
                             </div>
 
-                            <div className="text-xs text-slate-600 flex items-center justify-between">
+                            <div className="text-body-base font-body-base text-on-surface-variant flex items-center justify-between gap-2">
                               <span>{mi.sedutePreviste} sedute previste (~{metriSeduta}m cad.)</span>
-                              <span className="font-black text-[#006874] text-base">
+                              <span className="ds-metric-sm text-primary-container">
                                 {mi.volumeTargetMetri} m
                               </span>
                             </div>
 
                             {/* Progress bar compared to max volume */}
                             {volumeMax > 0 && (
-                              <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                              <div className="h-1.5 bg-surface-container-high rounded-full overflow-hidden">
                                 <div
-                                  className="h-full bg-[#006874] rounded-full"
+                                  className="h-full bg-primary-container rounded-full"
                                   style={{ width: `${(mi.volumeTargetMetri / volumeMax) * 100}%` }}
                                 />
                               </div>
@@ -949,20 +953,20 @@ export const PianoScreen: React.FC = () => {
                             />
 
                             {gareInSettimana.map(g => (
-                              <div key={g.id} className="text-[11px] font-bold text-amber-800 flex items-center gap-1 bg-amber-100/60 p-1.5 rounded-lg">
-                                <Trophy size={13} className="text-amber-600" />
+                              <div key={g.id} className="text-[11px] font-bold text-on-tertiary-fixed flex items-center gap-1 bg-tertiary-fixed/60 p-1.5 rounded-lg">
+                                <Trophy size={13} className="text-tertiary-container" />
                                 <span>Gara: {g.nome} {g.prioritaria ? '⭐' : ''}</span>
                               </div>
                             ))}
 
                             {mi.note && (
-                              <p className="text-[11px] text-slate-500 italic">{mi.note}</p>
+                              <p className="text-[11px] text-on-surface-variant italic">{mi.note}</p>
                             )}
                           </div>
 
                           {/* Sedute del giorno cliccabili direttamente dal calendario */}
-                          <div className="pt-2 border-t border-slate-100 space-y-1">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          <div className="pt-2 border-t border-slate-200/70 space-y-1">
+                            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
                               Schede Giornaliere (Varietà):
                             </span>
                             <div className="flex flex-wrap gap-1">
@@ -978,7 +982,7 @@ export const PianoScreen: React.FC = () => {
                                     key={sIdx}
                                     type="button"
                                     onClick={() => setSchedaSmart(schedaSedutaGiorno)}
-                                    className="px-2 py-0.5 bg-cyan-50 hover:bg-[#006874] hover:text-white text-[#006874] rounded-md text-[10px] font-bold transition border border-cyan-200 flex items-center gap-1 shadow-xs"
+                                    className="ds-chip-tap !px-3 bg-surface-container-low hover:bg-primary-container hover:text-on-primary text-primary-container rounded-md text-[11px] font-bold transition border border-primary-fixed-dim items-center gap-1 shadow-card"
                                     title={`Apri scheda per il ${formattaData(dataSeduta)}`}
                                   >
                                     <Waves size={11} />
@@ -992,7 +996,7 @@ export const PianoScreen: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setMicroSelezionato(mi)}
-                            className="text-[11px] text-slate-500 hover:text-slate-800 font-semibold pt-1.5 border-t border-slate-200/60 flex items-center justify-between w-full"
+                            className="text-[12px] text-on-surface-variant hover:text-on-surface font-semibold py-2 min-h-[48px] border-t border-slate-200/60 flex items-center justify-between w-full"
                           >
                             <span>Modifica sedute o volume</span>
                             <Edit2 size={12} />
@@ -1014,24 +1018,24 @@ export const PianoScreen: React.FC = () => {
               const mesoOfMacro = meso.filter(me => me.macrocicloId === ma.id);
               return (
                 <div key={ma.id} className="space-y-3">
-                  <div className="p-3 bg-slate-100/80 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <div className="p-3 bg-surface-container/80 rounded-xl border border-slate-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                     <div>
-                      <span className="font-black text-slate-800 text-sm">{ma.nome}</span>
-                      <span className="text-xs text-slate-500 ml-2">
+                      <span className="font-bold text-on-surface text-sm">{ma.nome}</span>
+                      <span className="text-xs text-on-surface-variant ml-2">
                         {formattaData(ma.inizio)} – {formattaData(ma.fine)}
                       </span>
                     </div>
                     {ma.obiettivo && (
-                      <span className="text-xs font-semibold text-[#006874]">{ma.obiettivo}</span>
+                      <span className="text-xs font-semibold text-primary-container">{ma.obiettivo}</span>
                     )}
                   </div>
 
                   {mesoOfMacro.map(me => {
                     const microOfMeso = micro.filter(mi => mi.mesocicloId === me.id);
                     return (
-                      <div key={me.id} className="pl-2 sm:pl-4 space-y-2 border-l-2 border-cyan-200">
-                        <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                          <span className="px-2 py-0.5 rounded bg-cyan-100 text-cyan-900">
+                      <div key={me.id} className="pl-2 sm:pl-4 space-y-2 border-l-2 border-primary-fixed-dim">
+                        <div className="flex items-center gap-2 text-xs font-bold text-on-surface-variant">
+                          <span className="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed">
                             {FASE_MESOCICLO_LABEL[me.fase]}
                           </span>
                           <span>
@@ -1055,20 +1059,20 @@ export const PianoScreen: React.FC = () => {
                             return (
                               <div
                                 key={mi.id}
-                                className="p-3.5 rounded-xl border border-slate-200 bg-white transition shadow-xs flex flex-col justify-between space-y-2"
+                                className="p-3.5 rounded-xl border border-slate-200/70 bg-surface-container-lowest transition shadow-card flex flex-col justify-between space-y-2"
                               >
                                 <div className="space-y-1.5">
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-1.5">
-                                      <span className="font-bold text-slate-800 text-sm">
+                                      <span className="font-bold text-on-surface text-sm">
                                         {formattaData(mi.inizio)}
                                       </span>
-                                      <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-white/80 border border-slate-200 text-slate-700">
+                                      <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-white/80 border border-slate-200/70 text-on-surface">
                                         {TIPO_MICROCICLO_LABEL[mi.tipo]}
                                       </span>
                                       {mi.bloccato && (
                                         <span title="Bloccato a mano">
-                                          <Lock size={14} className="text-amber-600" />
+                                          <Lock size={14} className="text-tertiary-container" />
                                         </span>
                                       )}
                                     </div>
@@ -1076,16 +1080,16 @@ export const PianoScreen: React.FC = () => {
                                     <button
                                       type="button"
                                       onClick={() => setSchedaSmart(schedaAnteprima)}
-                                      className="text-[11px] font-bold text-[#006874] hover:underline flex items-center gap-1"
+                                      className="text-[11px] font-bold text-primary-container hover:underline flex items-center gap-1"
                                     >
                                       <Waves size={13} />
                                       <span>Scheda</span>
                                     </button>
                                   </div>
 
-                                  <div className="text-xs text-slate-600 flex items-center justify-between">
+                                  <div className="text-xs text-on-surface-variant flex items-center justify-between">
                                     <span>{mi.sedutePreviste} sedute previste</span>
-                                    <span className="font-black text-[#006874] text-sm">
+                                    <span className="font-bold text-primary-container text-sm">
                                       {mi.volumeTargetMetri} m
                                     </span>
                                   </div>
@@ -1096,7 +1100,7 @@ export const PianoScreen: React.FC = () => {
                                   />
 
                                   {gareInSettimana.map(g => (
-                                    <div key={g.id} className="text-[11px] font-bold text-amber-800 flex items-center gap-1">
+                                    <div key={g.id} className="text-[11px] font-bold text-on-tertiary-fixed flex items-center gap-1">
                                       <Trophy size={13} />
                                       <span>Gara: {g.nome}</span>
                                     </div>
@@ -1106,7 +1110,7 @@ export const PianoScreen: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => setMicroSelezionato(mi)}
-                                  className="text-[11px] text-slate-400 hover:text-slate-600 font-semibold pt-1 border-t border-slate-100 flex items-center justify-between w-full"
+                                  className="text-[11px] text-on-surface-variant hover:text-on-surface-variant font-semibold pt-1 border-t border-slate-200/70 flex items-center justify-between w-full"
                                 >
                                   <span>Modifica microciclo</span>
                                   <Edit2 size={12} />
@@ -1180,19 +1184,19 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 border border-slate-200">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <h3 className="font-bold text-slate-800 text-base">
+      <div className="bg-surface-container-lowest rounded-xl shadow-float max-w-md w-full p-5 border border-slate-200/70">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/70">
+          <h3 className="font-bold text-on-surface text-base">
             Settimana del {formattaData(micro.inizio)}
           </h3>
-          <button onClick={onChiudi} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
+          <button onClick={onChiudi} className="p-1 text-on-surface-variant hover:text-on-surface-variant rounded-lg">
             <X size={18} />
           </button>
         </div>
 
         <div className="py-4 space-y-3 text-xs">
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Tipo Microciclo</label>
+            <label className="block font-semibold text-on-surface mb-1">Tipo Microciclo</label>
             <div className="grid grid-cols-3 gap-1.5">
               {tipi.map(t => (
                 <button
@@ -1200,7 +1204,7 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
                   type="button"
                   onClick={() => setTipo(t)}
                   className={`p-2 rounded-lg text-center font-bold transition ${
-                    tipo === t ? 'bg-[#006874] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    tipo === t ? 'bg-primary-container text-on-primary shadow-card' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
                   {TIPO_MICROCICLO_LABEL[t]}
@@ -1211,50 +1215,50 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Sedute Previste</label>
+              <label className="block font-semibold text-on-surface mb-1">Sedute Previste</label>
               <input
                 type="number"
                 min="0"
                 max="14"
                 value={sedute}
                 onChange={e => setSedute(e.target.value)}
-                className="w-full px-3 h-12 border border-slate-300 rounded-lg font-bold"
+                className="w-full px-3 h-12 border border-outline-variant rounded-lg font-bold"
               />
             </div>
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Volume Squadra (m)</label>
+              <label className="block font-semibold text-on-surface mb-1">Volume Squadra (m)</label>
               <input
                 type="number"
                 step="50"
                 value={metri}
                 onChange={e => setMetri(e.target.value)}
-                className="w-full px-3 h-12 border border-slate-300 rounded-lg font-bold"
+                className="w-full px-3 h-12 border border-outline-variant rounded-lg font-bold"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Note settimana</label>
+            <label className="block font-semibold text-on-surface mb-1">Note settimana</label>
             <input
               type="text"
               value={note}
               onChange={e => setNote(e.target.value)}
-              className="w-full px-3 h-12 border border-slate-300 rounded-lg"
+              className="w-full px-3 h-12 border border-outline-variant rounded-lg"
             />
           </div>
 
-          <p className="text-[11px] text-slate-500">
+          <p className="text-[11px] text-on-surface-variant">
             Salvare bloccherà la settimana (🔒): le modifiche manuali non verranno sovrascritte durante le rigenerazioni automatiche.
           </p>
         </div>
 
-        <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+        <div className="pt-3 border-t border-slate-200/70 flex items-center justify-between">
           <div>
             {micro.bloccato && (
               <button
                 type="button"
                 onClick={() => onSblocca(micro)}
-                className="inline-flex items-center gap-1 px-3 h-12 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl text-xs font-bold transition"
+                className="inline-flex items-center gap-1 px-3 h-12 bg-tertiary-fixed hover:bg-amber-200 text-on-tertiary-fixed rounded-xl text-xs font-bold transition"
               >
                 <Unlock size={14} />
                 <span>Sblocca</span>
@@ -1266,7 +1270,7 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
             <button
               type="button"
               onClick={onChiudi}
-              className="px-4 h-12 text-slate-600 hover:bg-slate-100 font-semibold rounded-xl text-xs"
+              className="px-4 h-12 text-on-surface-variant hover:bg-surface-container font-semibold rounded-xl text-xs"
             >
               Annulla
             </button>
@@ -1282,7 +1286,7 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
                   note: note.trim()
                 });
               }}
-              className="px-4 h-12 bg-[#006874] hover:bg-[#004f58] disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-xs"
+              className="px-4 h-12 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-bold rounded-xl text-xs transition shadow-card"
             >
               Salva
             </button>
