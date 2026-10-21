@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
@@ -12,7 +11,7 @@ ksp {
 android {
     namespace = "com.mattia.nuotoparalimpico"
     compileSdk = 35
-    buildToolsVersion = "35.0.0"
+    buildToolsVersion = "36.0.0"
 
     sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
 
@@ -39,9 +38,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
     buildFeatures {
         compose = true
     }
@@ -64,7 +60,7 @@ dependencies {
     ksp("androidx.room:room-compiler:$roomVersion")
 
     // ML Kit per OCR
-    implementation("com.google.mlkit:text-recognition:16.0.0")
+    implementation("com.google.mlkit:text-recognition:16.0.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -61,7 +61,10 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange }) => {
       {backupOpen && <BackupModal onClose={() => setBackupOpen(false)} />}
 
       {/* ============ HEADER FISSO ============ */}
-      <header className="fixed top-0 inset-x-0 z-40 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] pt-safe">
+      <header
+        className="fixed top-0 inset-x-0 z-40 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"
+        style={{ paddingTop: 'calc(var(--safe-top, 0px) + 8px)' }}
+      >
         <div className="h-16 px-gutter-mobile sm:px-gutter mx-auto max-w-6xl flex items-center justify-between gap-space-sm">
           {/* Brand */}
           <button

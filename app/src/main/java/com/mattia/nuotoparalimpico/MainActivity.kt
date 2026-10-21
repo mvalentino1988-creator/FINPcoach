@@ -25,11 +25,14 @@ class MainActivity : ComponentActivity() {
     private var uploadMessage: ValueCallback<Array<Uri>>? = null
     private val PICK_FILE_REQUEST = 1001
 
+    private var currentTopInset = 0
+    private var currentBottomInset = 0
+
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Enable edge-to-edge display optimized for modern devices like Pixel 10
+        // Enable true edge-to-edge display optimized for modern devices like Pixel 10
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         webView = WebView(this).apply {
@@ -66,10 +69,12 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Apply system window insets padding for Pixel 10 edge-to-edge display
-        ViewCompat.setOnApplyWindowInsetsListener(webView) { view, windowInsets ->
+        // Intelligently feed system window insets as CSS variables into the web app root
+        ViewCompat.setOnApplyWindowInsetsListener(webView) { _, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+            currentTopInset = insets.top
+            currentBottomInset = insets.bottom
+            updateWebViewInsets()
             windowInsets
         }
 
@@ -88,6 +93,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
         })
+    }
+
+    private fun updateWebViewInsets() {
+        val script = """
+            (function() {
+                document.documentElement.style.setProperty('--safe-top', '${currentTopInset}px');
+                document.documentElement.style.setProperty('--safe-bottom', '${currentBottomInset}px');
+            })();
+        """
+        webView.evaluateJavascript(script, null)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -112,6 +127,11 @@ class MainActivity : ComponentActivity() {
     }
 
     private inner class BundledAppWebViewClient : WebViewClient() {
+        override fun onPageFinished(view: WebView, url: String) {
+            super.onPageFinished(view, url)
+            updateWebViewInsets()
+        }
+
         override fun shouldInterceptRequest(
             view: WebView,
             request: WebResourceRequest

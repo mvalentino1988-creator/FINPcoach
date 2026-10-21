@@ -70,10 +70,10 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
           </div>
           <div className="max-w-md mx-auto space-y-2">
             <h3 className="ds-subtitle">
-              Benvenuto in FINPcoach · Squadra Vuota e Pulita
+              Squadra Vuota
             </h3>
             <p className="ds-body">
-              L'applicazione è attualmente vuota come richiesto. Per iniziare la programmazione della squadra, imposta prima la <strong className="text-on-surface">Stagione</strong> nella scheda <span className="text-primary font-body-bold">Piano</span> e aggiungi almeno un atleta nella scheda <span className="text-primary font-body-bold">Atleti</span>.
+              Imposta la <strong className="text-on-surface">Stagione</strong> nel <span className="text-primary font-body-bold">Piano</span> e aggiungi atleti in <span className="text-primary font-body-bold">Atleti</span> per iniziare.
             </p>
           </div>
         </div>
