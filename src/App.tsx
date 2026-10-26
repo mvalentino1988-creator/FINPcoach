@@ -13,6 +13,7 @@ import { RegiaTecnicaCorsie } from './components/RegiaTecnicaCorsie';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { FINPStorage } from './data/storage';
+import { useLayoutMetrics } from './hooks/useLayoutMetrics';
 
 export const AppContent: React.FC = () => {
   const [tab, setTab] = useState<TabKey>(() => {
@@ -20,11 +21,32 @@ export const AppContent: React.FC = () => {
   });
   const [showLogin, setShowLogin] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [mode, setMode] = useState<'demo' | 'live' | null>(() => FINPStorage.getMode());
+  const [mode, setMode] = useState<'demo' | 'live' | null>(() => {
+    const m = FINPStorage.getMode();
+    if (!m) {
+      FINPStorage.applyDemoSeed();
+      return 'demo';
+    }
+    return m;
+  });
+  /* Altezze reali di header e dock: il padding del contenuto le segue, quindi
+     nulla può finire sotto l'header o dietro il dock, a qualsiasi dimensione. */
+  const layout = useLayoutMetrics();
 
   useEffect(() => {
     sessionStorage.setItem('finp_active_tab', tab);
   }, [tab]);
+
+  /* Modalità a schermo singolo:
+     - 'oggi', 'cronometro', 'regia': sia mobile che desktop non devono mai scorrere.
+     - Su schermi desktop/laptop (>= 1024px o altezza generosa): anche 'fonti', 'dati', 'atleti' possono
+       beneficiare del layout a viewport fisso (flex a tutta altezza senza scroll di pagina). */
+  const isBordoVasca = tab === 'oggi' || tab === 'cronometro' || tab === 'regia';
+  const fixed = isBordoVasca;
+
+  useEffect(() => {
+    document.body.classList.toggle('app-no-scroll', fixed);
+  }, [fixed]);
 
   useEffect(() => {
     const syncEnabled = localStorage.getItem('finp_sync_enabled') === 'true';
@@ -56,16 +78,16 @@ export const AppContent: React.FC = () => {
   }
 
   /* Le viste "bordo vasca" (regia, cronometro) sono command center a tutto
-     schermo: su desktop non devono stare dentro il contenitore da 1024px. */
+     schermo: su desktop non devono stare dentro il contenitore limitato. */
   const wide = tab === 'regia' || tab === 'cronometro';
 
   return (
-    <div className="min-h-screen flex flex-col bg-surface">
-      <Navbar currentTab={tab} onTabChange={setTab} />
+    <div className={`app-shell ${fixed ? 'app-shell-fixed' : ''}`}>
+      <Navbar currentTab={tab} onTabChange={setTab} layout={layout} />
 
       <main
-        className={`flex-1 w-full mx-auto pt-header pb-dock lg:pb-8 px-gutter-mobile sm:px-gutter py-3 sm:py-4 ${
-          wide ? 'max-w-none' : 'max-w-5xl'
+        className={`app-main w-full mx-auto px-gutter-mobile sm:px-gutter ${
+          wide ? 'max-w-none' : 'max-w-[1600px]'
         }`}
       >
         {tab === 'oggi' && <OggiScreen onNavigateTab={setTab} />}

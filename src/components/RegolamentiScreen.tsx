@@ -165,7 +165,7 @@ export const RegolamentiScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => toggleSezione(chiave)}
-            className="w-full flex items-start gap-2 px-3 h-12.5 text-left hover:bg-surface-container-low transition"
+            className="w-full flex items-start gap-2 px-3 h-12 text-left hover:bg-surface-container-low transition"
           >
             <span className="mt-0.5 text-outline shrink-0">
               {aperta ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
@@ -226,7 +226,7 @@ export const RegolamentiScreen: React.FC = () => {
     <div className="space-y-5">
       {/* Title */}
       <div>
-        <h2 className="text-xl font-bold text-on-surface tracking-tight flex items-center gap-2">
+        <h2 className="ds-title flex items-center gap-2">
           <BookOpen size={22} className="text-primary-container" />
           <span>Regolamenti</span>
         </h2>
@@ -238,7 +238,7 @@ export const RegolamentiScreen: React.FC = () => {
       </div>
 
       {/* Search */}
-      <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-3 shadow-card space-y-3">
+      <div className="ds-card p-3 shadow-card space-y-3">
         <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
           <input
@@ -246,7 +246,7 @@ export const RegolamentiScreen: React.FC = () => {
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Cerca nei regolamenti (es. categorie età, partenze, staffette, classificazione…)"
-            className="w-full pl-9 pr-9 h-12.5 rounded-xl border border-slate-200/70 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary-container"
+            className="w-full pl-9 pr-9 h-12 rounded-xl border border-slate-200/70 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary-container"
           />
           {query && (
             <button
@@ -325,7 +325,7 @@ export const RegolamentiScreen: React.FC = () => {
           )}
 
           {risultati.map(r => (
-            <div key={`${r.documentoId}#${r.indice}`} className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-4 shadow-card space-y-2">
+            <div key={`${r.documentoId}#${r.indice}`} className="ds-card p-4 shadow-card space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <h4 className="font-bold text-on-surface text-sm leading-snug">
                   {evidenzia(r.sezione.titolo, query)}

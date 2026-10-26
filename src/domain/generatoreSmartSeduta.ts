@@ -7,6 +7,7 @@ import {
   FlagMedici,
   LogSeduta,
   Mesociclo,
+  ParametriSeduta,
   RitmoCodice,
   SchedaSeduta,
   Stile,
@@ -22,12 +23,10 @@ import { CalibrazioneAtleta } from './calibrazioneAtleta';
 import { addDays, daysBetween, getDayOfWeek, isBefore, todayISO, yearsBetween } from './dateUtils';
 import { FINPSpecialistAI } from './finpAnalisiMedica';
 import { formattaTempo } from './tempoUtils';
-import { FINPStorage } from '../data/storage';
-import { ParserScheda } from './parserScheda';
+import { normalizzaDurata, normalizzaVasca } from './parametriSeduta';
+import { arrotondaA50m, durataStimataMin } from './volumePrescritto';
 
-export function arrotondaA50m(n: number): number {
-  return Math.round(n / 50) * 50;
-}
+export { arrotondaA50m } from './volumePrescritto';
 
 interface SerieDef {
   codice: CodiceAllenamentoKey;
@@ -70,9 +69,12 @@ export class GeneratoreSmartSeduta {
     tempi: Tempo[] = [],
     logSedute: LogSeduta[] = [],
     mesocicloCorrente?: Mesociclo | null,
-    giorniAllenamento: DayOfWeekNum[] = []
+    giorniAllenamento: DayOfWeekNum[] = [],
+    parametri?: Partial<ParametriSeduta>
   ): SchedaSeduta {
     const oggi = data ?? todayISO();
+    const vascaMetri = normalizzaVasca(parametri?.vascaMetri, 25);
+    const durataMin = normalizzaDurata(parametri?.durataMin, 90);
     const eta = atleta?.dataNascita ? yearsBetween(atleta.dataNascita, oggi) : null;
     let categoria: string | null = null;
     if (eta != null) {
@@ -86,21 +88,6 @@ export class GeneratoreSmartSeduta {
     const adattamentiEta: string[] = [];
     const avvertenze: string[] = [];
     const note: string[] = [];
-
-    // Adaptive Continuity: Adatta il volume target sulla base degli ultimi allenamenti manuali inseriti dall'allenatore
-    try {
-      const customWorkouts = FINPStorage.getCustomWorkouts();
-      if (customWorkouts && customWorkouts.length > 0) {
-        const ultimi = customWorkouts.slice(0, 5);
-        const sommaMetri = ultimi.reduce((acc, w) => acc + ParserScheda.calcolaMetriDaTesto(w.testo), 0);
-        const mediaManuale = Math.round(sommaMetri / ultimi.length);
-        if (mediaManuale > 500) {
-          metriTarget = Math.round((metriTarget * 0.3) + (mediaManuale * 0.7));
-        }
-      }
-    } catch (e) {
-      // Fallback
-    }
 
     // 1. Quote base per codice
     const quote: Record<CodiceAllenamentoKey, number> = {
@@ -194,7 +181,7 @@ export class GeneratoreSmartSeduta {
     }
     if (flag.visiva) {
       avvertenze.push(
-        `👁️ Disabilità visiva (${nomi(f => f.visiva)}): tapper per arrivi e virate nelle serie veloci, conteggio costante delle bracciate.`
+        `👁️ Disabilità visiva (${nomi(f => f.visiva)}): tapper per arrivi e virate nelle serie veloci.`
       );
     }
     if (flag.epilessia) {
@@ -216,42 +203,29 @@ export class GeneratoreSmartSeduta {
         );
       });
 
-    // 5. Calibrazione automatica atleta-specifica
-    let fattoreCalibrazione = 1.0;
+    // 5. Sicurezza atleta (limitazioni di distanza) e note di calibrazione.
+    //    Il VOLUME non viene piu' ricalcolato qui: arriva gia' da
+    //    domain/volumePrescritto.ts (fonte unica).
     let limitaDistanzeLunghe = false;
-    let volumeBaseCalibrazione: number | null = null;
+    let passo100m = 6000;
     if (atleta != null) {
       const calibrazione = CalibrazioneAtleta.calibra(atleta, tempi, condizioniMediche, logSedute);
-      fattoreCalibrazione = calibrazione.fattoreCorrezione;
       limitaDistanzeLunghe = !calibrazione.puoSostenereDistanzeLunghe;
-      volumeBaseCalibrazione = calibrazione.volumeBaseGiornaliero;
+      passo100m = calibrazione.passo100mCentesimi || 6000;
       note.push(...calibrazione.note);
     }
 
-    // 6. Volume, corretto sul carico recente dell'atleta (ACWR) e calibrazione
-    let volume = Math.max(400, arrotondaA50m(metriTarget));
-    
-    // Se abbiamo un volume base dalla calibrazione, usalo come riferimento
-    if (volumeBaseCalibrazione && atleta != null) {
-      volume = Math.max(400, arrotondaA50m(volumeBaseCalibrazione));
-      note.push(`Volume base calibrato sul livello: ${volumeBaseCalibrazione}m`);
-    }
-    
-    const [fattoreCarico, notaCarico] = this.fattoreDaCarico(logSedute, oggi);
-    
-    // Applica fattori: prima ACWR, poi calibrazione atleta
-    volume = Math.max(400, arrotondaA50m(Math.round(volume * fattoreCarico * fattoreCalibrazione)));
-    
-    if (notaCarico) note.push(notaCarico);
+    // 6. Volume prescritto (gia' filtrato da fattori atleta, durata e ACWR)
+    const volume = Math.max(200, arrotondaA50m(metriTarget));
 
-    // 6. Tempi di riferimento -> tabella ritmi
+    // 6b. Tempi di riferimento -> tabella ritmi
     const rif = this.scegliRiferimento(tempi, oggi);
     const tabella = rif
       ? CalcoloRitmiRipartenze.calcolaTabellaRitmi(
           atleta?.id ?? 0,
           rif.centesimi100,
           rif.tempo.stile,
-          25
+          vascaMetri
         )
       : null;
 
@@ -286,7 +260,7 @@ export class GeneratoreSmartSeduta {
       if (m > 0) metriCodice[k] = m;
     }
 
-    const tratti = this.costruisciTratti(volume, metriCodice, fase, tabella, limitaDistanzeLunghe);
+    const tratti = this.costruisciTratti(volume, metriCodice, fase, tabella, limitaDistanzeLunghe, vascaMetri);
 
     const nomeAtleta = atleta ? `${atleta.cognome} ${atleta.nome}` : null;
     const titoloBase = nomeAtleta ? `Scheda Personalizzata · ${nomeAtleta}` : 'Scheda di Squadra';
@@ -311,7 +285,10 @@ export class GeneratoreSmartSeduta {
       avvertenzeMediche: avvertenze,
       tempiUtilizzati: rif ? [rif.tempo] : [],
       noteCalibrazione: note,
-      tipoSeduta
+      tipoSeduta,
+      vascaMetri,
+      durataMin,
+      durataStimataMin: durataStimataMin(tratti.reduce((acc, t) => acc + t.metri, 0), passo100m)
     };
   }
 
@@ -466,7 +443,7 @@ export class GeneratoreSmartSeduta {
   private static descrizioneSerie(c: CodiceAllenamentoKey, lunghezza: number): string {
     switch (c) {
       case 'A2': return 'Stile principale o misti a ritmo costante, palette corte e boccaglio per la continuità del gesto.';
-      case 'B1': return 'Passo soglia regolare e controllato (FC ~165 bpm), numero di bracciate costante.';
+      case 'B1': return 'Passo soglia regolare e controllato (FC ~165 bpm), tecnica costante.';
       case 'B2': return 'Intervalli ad alta intensità (FC 175+ bpm): massimo sforzo aerobico senza perdere tecnica.';
       case 'C1':
         return lunghezza >= 100
@@ -482,11 +459,11 @@ export class GeneratoreSmartSeduta {
     switch (c) {
       case 'A2': return 'Respirazione regolare e controllo costante dell\'andatura.';
       case 'B1': return 'Lavoro fondamentale per innalzare la soglia anaerobica.';
-      case 'B2': return 'Mantenere costante il numero di bracciate per vasca.';
+      case 'B2': return 'Mantenere costante l\'andatura e la tecnica per vasca.';
       case 'C1': return 'Resistere all\'acidosi mantenendo assetto e idrodinamicità.';
       case 'C2': return 'Se il passo cala o il gesto si rompe, fermarsi.';
-      case 'C3': return 'Massima concentrazione sul ritmo di bracciata della gara prioritaria.';
-      default: return 'Focus sulla reattività dei primi metri e sulla frequenza di bracciata.';
+      case 'C3': return 'Massima concentrazione sul ritmo della gara prioritaria.';
+      default: return 'Focus sulla reattività dei primi metri e sulla tecnica di partenza.';
     }
   }
 
@@ -505,7 +482,8 @@ export class GeneratoreSmartSeduta {
     metriCodice: Partial<Record<CodiceAllenamentoKey, number>>,
     fase: FaseMesociclo,
     tabella: TabellaRitmiAtleta | null,
-    limitaDistanzeLunghe: boolean = false
+    limitaDistanzeLunghe: boolean = false,
+    vascaMetri: number = 25
   ): TrattoSeduta[] {
     const serie: SerieDef[] = [];
 
@@ -542,7 +520,10 @@ export class GeneratoreSmartSeduta {
         }
       }
 
-      while (len > m && len > 50) len = Math.floor(len / 2);
+      while (len > m && len > vascaMetri) len = Math.floor(len / 2);
+      if (len % vascaMetri !== 0) {
+        len = Math.max(vascaMetri, Math.round(len / vascaMetri) * vascaMetri);
+      }
       const n = Math.max(1, Math.min(this.maxRipetizioni(c), Math.floor(m / len)));
       serie.push({
         codice: c,
@@ -576,7 +557,7 @@ export class GeneratoreSmartSeduta {
       codice: 'A1',
       metri: riscaldamento,
       ripetizioni: `1 x ${riscaldamento} m`,
-      descrizione: 'Stile libero e dorso a scelta, con esercizi di sensibilità (bracciata singola, cagnolino) e scivolamento.',
+      descrizione: 'Stile libero e dorso a scelta, con esercizi di sensibilità (movimenti singoli, cagnolino) e scivolamento.',
       ripartenza: 'Pausa libera',
       notaSpecifica: ritmoA1
         ? `Passo target: ${ritmoA1.passo100mFormatted} per 100m · ${ritmoA1.noteTecniche}`

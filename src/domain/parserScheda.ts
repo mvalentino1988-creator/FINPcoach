@@ -1,6 +1,9 @@
+import { ParserApprendimento } from './parserApprendimento';
+
 /**
  * Parser universale per schede di allenamento in linguaggio naturale.
  * Supporta serie composte e annidate (es. "(3x100 b1 + 2x50 forte) X2"), NxM, e distanze singole.
+ * Integra le regole apprese da ParserApprendimento.
  */
 
 export interface SeriaParsata {
@@ -10,6 +13,10 @@ export interface SeriaParsata {
   metriTotali: number;
   codice: string; // A1, A2, B1, B2, C1, C2, C3, D
   attrezzi: string[];
+  /** Etichetta di sezione riconosciuta (es. "Riscaldamento", "T finale"). */
+  sezione?: string;
+  /** Regola apprese che ha risolto la riga, se presente. */
+  regolaAppresa?: string;
 }
 
 export class ParserScheda {
@@ -18,75 +25,57 @@ export class ParserScheda {
     return serie.reduce((sum, s) => sum + s.metriTotali, 0);
   }
 
+  /**
+   * Separa una possibile etichetta iniziale dal contenuto numerico.
+   * Es. "Riscaldamento 400m" -> { etichetta: "Riscaldamento", contenuto: "400m" }
+   *      "Riscaldamento: 4x100" -> { etichetta: "Riscaldamento", contenuto: "4x100" }
+   *      "8x50 libero" -> { etichetta: undefined, contenuto: "8x50 libero" }
+   */
+  static estraiEtichetta(riga: string): { etichetta?: string; contenuto: string } {
+    return ParserApprendimento.estraiEtichetta(riga);
+  }
+
   static parseSerie(testo: string): SeriaParsata[] {
     const serie: SeriaParsata[] = [];
     if (!testo) return serie;
     const righe = testo.split('\n');
-    
+
     for (const riga of righe) {
       const trimRiga = riga.trim();
       if (!trimRiga) continue;
 
-      const cleanRiga = trimRiga.replace(/^([-*•]|\d+[\.\)])\s+/, '').trim();
+      const senzaElenco = trimRiga.replace(/^([-*•]|\d+[\.\)])\s+/, '').trim();
+
+      // Separa etichetta (es. "Riscaldamento 400m")
+      const { etichetta, contenuto } = this.estraiEtichetta(senzaElenco);
+      const cleanRiga = contenuto;
 
       let ripetizioni = 1;
       let distanza = 0;
       let metriTotali = 0;
+      let regolaAppresa: string | undefined;
 
-      // 1. Cerca pattern composto con parentesi e moltiplicatore esterno (es. "(3x100 b1 + 2x50 forte) X2")
-      const matchParentesiMul = cleanRiga.match(/\(([^)]+)\)\s*[xX](\d+)/i);
-      if (matchParentesiMul) {
-        const innerText = matchParentesiMul[1];
-        const outerMultiplier = parseInt(matchParentesiMul[2], 10);
-
-        const parti = innerText.split('+');
-        let innerMetri = 0;
-        for (const parte of parti) {
-          const mSub = parte.match(/(\d+)\s*[xX]\s*(\d+)/);
-          if (mSub) {
-            innerMetri += parseInt(mSub[1], 10) * parseInt(mSub[2], 10);
-          } else {
-            const mNum = parte.match(/^(\d+)\b/);
-            if (mNum) {
-              const val = parseInt(mNum[1], 10);
-              if (val >= 25) innerMetri += val;
-            }
-          }
-        }
-        metriTotali = innerMetri * outerMultiplier;
-        distanza = Math.round(metriTotali / outerMultiplier);
-        ripetizioni = outerMultiplier;
+      // 1. Pattern standard + regole apprese (unica fonte di verita)
+      const interpretazione = ParserApprendimento.analizzaStandard(cleanRiga);
+      if (interpretazione) {
+        ripetizioni = interpretazione.ripetizioni;
+        distanza = interpretazione.distanza;
+        metriTotali = interpretazione.metriTotali;
       } else {
-        // 2. Cerca pattern standard "NxM" o "N x M" (es. 8x50, 12x50, 10x25)
-        const matchNxM = cleanRiga.match(/(\d+)\s*[xX]\s*(\d+)/);
-        if (matchNxM) {
-          ripetizioni = parseInt(matchNxM[1], 10);
-          distanza = parseInt(matchNxM[2], 10);
-          metriTotali = ripetizioni * distanza;
+        // 2. Regole apprese dal coach: prima sulla riga completa, poi sul contenuto
+        const regola =
+          ParserApprendimento.applicaRegole(senzaElenco) ??
+          ParserApprendimento.applicaRegole(cleanRiga);
+        if (regola) {
+          ripetizioni = regola.ripetizioni;
+          distanza = regola.distanza;
+          metriTotali = regola.metriTotali;
+          regolaAppresa = regola.regola?.descrizione;
         } else {
-          // 3. Cerca un numero all'inizio (es. "200", "300 gambe", "6 sciolte")
-          const matchNumeroInizio = cleanRiga.match(/^(\d+)\b/);
-          if (matchNumeroInizio) {
-            const val = parseInt(matchNumeroInizio[1], 10);
-            if (val < 25 && cleanRiga.toLowerCase().includes('sciolt')) {
-              // Es. "6 sciolte" -> 6 vasche da 25m = 150m
-              ripetizioni = val;
-              distanza = 25;
-              metriTotali = ripetizioni * distanza;
-            } else if (val >= 25) {
-              distanza = val;
-              ripetizioni = 1;
-              metriTotali = distanza;
-            } else {
-              distanza = 0;
-              ripetizioni = 1;
-              metriTotali = 0;
-            }
-          } else {
-            distanza = 0;
-            ripetizioni = 1;
-            metriTotali = 0;
-          }
+          // 3. Non compreso: nessun metro conteggiato, la riga resta in revisione
+          distanza = 0;
+          ripetizioni = 1;
+          metriTotali = 0;
         }
       }
 
@@ -99,7 +88,9 @@ export class ParserScheda {
         descrizione: cleanRiga,
         metriTotali,
         codice,
-        attrezzi
+        attrezzi,
+        sezione: etichetta,
+        regolaAppresa,
       });
     }
 
@@ -140,10 +131,9 @@ export class ParserScheda {
       desc.includes('forte') ||
       desc.includes('veloce') ||
       desc.includes('sprint') ||
-      desc.includes('massimale') ||
-      desc.includes('bracciate')
+      desc.includes('massimale')
     ) {
-      if (distanza <= 25 || desc.includes('bracciate')) return 'D';
+      if (distanza <= 25) return 'D';
       if (distanza <= 50) return 'C2';
       return 'C1';
     }
@@ -175,7 +165,6 @@ export class ParserScheda {
       const desc = s.descrizione.toLowerCase();
       if (desc.includes('gambe')) tipiLavoroSet.add('Lavoro gambe');
       if (desc.includes('sciolt')) tipiLavoroSet.add('Nuoto sciolto');
-      if (desc.includes('bracciate')) tipiLavoroSet.add('Esercizi bracciata');
       if (desc.includes('forte') || desc.includes('sprint')) tipiLavoroSet.add('Velocità / Intensità');
     }
 

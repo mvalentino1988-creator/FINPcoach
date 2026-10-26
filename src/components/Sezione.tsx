@@ -57,28 +57,37 @@ export const Sezione: React.FC<Props> = ({
         onClick={() => setAperto(!aperto)}
         aria-expanded={aperto}
         className="w-full px-3 py-2.5 min-h-[48px] flex items-center justify-between gap-2 font-headline-sm text-headline-sm text-on-surface hover:bg-surface-container-low transition select-none"
+        title={titolo}
       >
-        <div className="flex items-center gap-2 min-w-0">
-          {icon && <span className="text-primary shrink-0">{icon}</span>}
-          <span className="truncate">{titolo}</span>
+        <div className="flex items-start sm:items-center gap-2 min-w-0 flex-1">
+          {icon && <span className="text-primary shrink-0 mt-0.5 sm:mt-0">{icon}</span>}
+          <div className="min-w-0 flex-1">
+            <span className="block line-clamp-2 sm:line-clamp-1 leading-snug">{titolo}</span>
+            {!aperto && riepilogoChiuso && (
+              <span className="hidden sm:inline font-label-md text-label-md text-on-surface-variant truncate">
+                · {riepilogoChiuso}
+              </span>
+            )}
+          </div>
           {badge !== undefined && (
             <span className="px-2 py-0.5 rounded-full font-label-caps text-label-caps bg-primary-fixed text-on-primary-fixed shrink-0">
               {badge}
             </span>
           )}
-          {!aperto && riepilogoChiuso && (
-            <span className="font-label-md text-label-md text-on-surface-variant truncate hidden sm:inline">
-              · {riepilogoChiuso}
-            </span>
-          )}
         </div>
         <div className="flex items-center gap-1.5 shrink-0 text-on-surface-variant">
-          {!aperto && riepilogoChiuso && (
-            <span className="font-label-md text-label-md sm:hidden">{riepilogoChiuso}</span>
-          )}
           {aperto ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </div>
       </button>
+
+      {/* Riepilogo a piena riga su mobile: niente testo compresso nel header */}
+      {!aperto && riepilogoChiuso && (
+        <div className="px-3 pb-2.5 -mt-0.5 sm:hidden">
+          <span className="block font-label-md text-label-md text-on-surface-variant truncate">
+            {riepilogoChiuso}
+          </span>
+        </div>
+      )}
 
       {aperto && (
         <div className="p-3 pt-0 border-t border-slate-200/70 space-y-2.5 mt-0.5">

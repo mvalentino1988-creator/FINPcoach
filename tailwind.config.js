@@ -87,15 +87,17 @@ export default {
       },
 
       spacing: {
-        gutter: '1rem',
-        'gutter-mobile': '0.75rem',
+        /* Gutters fluidi: 12px su telefoni stretti, ~20px su desktop.
+           Un solo token evita il salto brusco al breakpoint sm. */
+        gutter: 'clamp(0.75rem, 0.55rem + 0.9vw, 1.25rem)',
+        'gutter-mobile': 'clamp(0.75rem, 0.55rem + 0.9vw, 1rem)',
         margin: '1.5rem',
         'margin-mobile': '1rem',
         'space-xs': '0.25rem',
         'space-sm': '0.5rem',
-        'space-md': '1rem',
-        'space-lg': '1.5rem',
-        'space-xl': '2rem',
+        'space-md': '0.875rem',
+        'space-lg': '1.25rem',
+        'space-xl': '1.75rem',
         /* Riferimenti rapidi per i tap target poolside */
         'tap': '48px',
         'tap-lg': '52px',
@@ -118,17 +120,19 @@ export default {
       },
 
       fontSize: {
-        'display-lg': ['32px', { lineHeight: '38px', fontWeight: '700' }],
-        'headline-lg': ['24px', { lineHeight: '30px', fontWeight: '700' }],
-        'headline-lg-mobile': ['20px', { lineHeight: '26px', fontWeight: '700' }],
-        'headline-md': ['18px', { lineHeight: '24px', fontWeight: '600' }],
-        'headline-sm': ['16px', { lineHeight: '22px', fontWeight: '600' }],
+        /* Tipografia fluida: cresce con la larghezza del viewport senza salti
+           ai breakpoint. I limiti (min/max) restano quelli del design system. */
+        'display-lg': ['clamp(28px, 1.1vw + 22px, 34px)', { lineHeight: '1.15', fontWeight: '700' }],
+        'headline-lg': ['clamp(21px, 0.6vw + 18px, 26px)', { lineHeight: '1.2', fontWeight: '700' }],
+        'headline-lg-mobile': ['clamp(18px, 0.5vw + 16px, 21px)', { lineHeight: '1.25', fontWeight: '700' }],
+        'headline-md': ['clamp(16px, 0.35vw + 15px, 19px)', { lineHeight: '1.3', fontWeight: '600' }],
+        'headline-sm': ['clamp(15px, 0.2vw + 14.4px, 17px)', { lineHeight: '1.35', fontWeight: '600' }],
         'body-lg': ['16px', { lineHeight: '24px', fontWeight: '400' }],
         'body-base': ['14px', { lineHeight: '20px', fontWeight: '400' }],
         'body-bold': ['14px', { lineHeight: '20px', fontWeight: '700' }],
-        'label-lg': ['13px', { lineHeight: '16px', fontWeight: '600' }],
-        'label-md': ['11px', { lineHeight: '14px', fontWeight: '700' }],
-        'label-caps': ['10px', { lineHeight: '14px', fontWeight: '700' }],
+        'label-lg': ['clamp(13px, 0.1vw + 12.7px, 14px)', { lineHeight: '16px', fontWeight: '600' }],
+        'label-md': ['clamp(11px, 0.12vw + 10.6px, 12px)', { lineHeight: '14px', fontWeight: '700' }],
+        'label-caps': ['clamp(10px, 0.12vw + 9.6px, 11px)', { lineHeight: '14px', fontWeight: '700' }],
       },
 
       boxShadow: {
@@ -145,6 +149,15 @@ export default {
 
       screens: {
         xs: '380px',
+        /* Finestra bassa (telefono in landscape, split-screen): compatta
+           header e spaziature verticali senza cambiare la larghezza. */
+        short: { raw: '(max-height: 520px)' },
+      },
+
+      /* Altezze minime per i tap target poolside (regolari di legge FINP) */
+      minHeight: {
+        'tap': '48px',
+        'tap-lg': '52px',
       },
     },
   },

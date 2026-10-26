@@ -138,6 +138,94 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 documenti = cache.first,
                 aggiornatoIl = cache.second
             )
+            // Auto-seed demo data if database has no athletes
+            try {
+                val atletiList = atletaDao.osservaAtleti().first()
+                val stagioneCorrente = pianoDao.osservaStagione().first()
+                if (atletiList.isEmpty() && stagioneCorrente == null) {
+                    applicaSeedDemo()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun applicaSeedDemo() {
+        viewModelScope.launch {
+            val stagioneId = pianoDao.inserisciStagione(
+                Stagione(
+                    nome = "Stagione 2026/2027",
+                    inizio = LocalDate.of(2026, 9, 1),
+                    fine = LocalDate.of(2027, 6, 30),
+                    vascaMetri = 25,
+                    giorniAllenamento = 36
+                )
+            )
+            val id1 = atletaDao.inserisci(
+                Atleta(
+                    nome = "Marco",
+                    cognome = "Rossi",
+                    dataNascita = LocalDate.of(2004, 5, 12),
+                    classeS = 9,
+                    classeSB = 8,
+                    classeSM = 9,
+                    stato = com.mattia.nuotoparalimpico.data.StatoClassificazione.UFFICIALE,
+                    fattoreVolume = 1.0,
+                    note = "Amputazione transtibiale arto inferiore sinistro.",
+                    sesso = com.mattia.nuotoparalimpico.data.Sesso.MASCHILE
+                )
+            )
+            val id2 = atletaDao.inserisci(
+                Atleta(
+                    nome = "Sofia",
+                    cognome = "Bianchi",
+                    dataNascita = LocalDate.of(2001, 8, 20),
+                    classeS = 4,
+                    classeSB = 3,
+                    classeSM = 4,
+                    stato = com.mattia.nuotoparalimpico.data.StatoClassificazione.UFFICIALE,
+                    fattoreVolume = 0.85,
+                    note = "Paraplegia T6 da lesione midollare dorsale, controllo tronco ridotto.",
+                    sesso = com.mattia.nuotoparalimpico.data.Sesso.FEMMINILE
+                )
+            )
+            val id3 = atletaDao.inserisci(
+                Atleta(
+                    nome = "Matteo",
+                    cognome = "Galli",
+                    dataNascita = LocalDate.of(2010, 3, 15),
+                    classeS = 7,
+                    classeSB = 6,
+                    classeSM = 7,
+                    stato = com.mattia.nuotoparalimpico.data.StatoClassificazione.IN_ATTESA,
+                    fattoreVolume = 0.8,
+                    note = "Emiparesi spastica lato destro esito paralisi cerebrale infantile.",
+                    sesso = com.mattia.nuotoparalimpico.data.Sesso.MASCHILE
+                )
+            )
+
+            atletaDao.inserisciCondizione(
+                CondizioneMedica(
+                    atletaId = id1,
+                    descrizione = "Amputazione transtibiale arto inferiore sinistro",
+                    limitazioni = "Spinta dal blocco monolaterale con gamba destra, virata controllata."
+                )
+            )
+            atletaDao.inserisciCondizione(
+                CondizioneMedica(
+                    atletaId = id2,
+                    descrizione = "Paraplegia dorsale T6 completa",
+                    limitazioni = "Assenza spinta gambe, utilizzo pull-buoy in riscaldamento e fondo."
+                )
+            )
+            atletaDao.inserisciCondizione(
+                CondizioneMedica(
+                    atletaId = id3,
+                    descrizione = "Emiparesi spastica emilato destro",
+                    limitazioni = "Evitare serie ad altissimo lattato (C1/C2) che innescano spasticità."
+                )
+            )
         }
     }
 

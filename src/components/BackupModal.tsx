@@ -3,7 +3,7 @@ import { FINPStorage } from '../data/storage';
 import { FirebaseSync, SyncStatus } from '../data/firebaseSync';
 import { isFirebaseConfigured } from '../data/firebaseConfig';
 import { LoginScreen } from './LoginScreen';
-import { Download, Upload, RefreshCw, X, CheckCircle, AlertTriangle, ShieldCheck, Database, Cloud, CloudOff, LogOut, Loader2 } from 'lucide-react';
+import { Download, Upload, RefreshCw, X, CheckCircle, AlertTriangle, ShieldCheck, Database, Cloud, CloudOff, LogOut, Loader2, Trash2 } from 'lucide-react';
 
 interface Props {
   onClose: () => void;
@@ -199,33 +199,34 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-      <div className="bg-surface-container-lowest rounded-xl shadow-float max-w-md w-full border border-slate-200/70 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+      <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl shadow-float max-w-md w-full border border-slate-200/70 max-h-[92dvh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-200/70 flex items-center justify-between bg-surface-container-low">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shadow-card">
+        <div className="p-4 sm:p-5 border-b border-slate-200/70 flex items-center justify-between gap-2 bg-surface-container-low shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shadow-card shrink-0">
               <Database size={18} />
             </div>
-            <div>
+            <div className="min-w-0">
               <h2 className="font-bold text-on-surface text-base leading-tight">
                 Gestione Dati & Backup
               </h2>
-              <span className="text-[11px] text-on-surface-variant">
+              <span className="text-[11px] text-on-surface-variant leading-snug block">
                 Salvataggio locale sicuro & Esportazione JSON
               </span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-on-surface-variant hover:text-on-surface-variant rounded-lg hover:bg-surface-container-high transition"
+            aria-label="Chiudi"
+            className="shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2 text-on-surface-variant hover:text-on-surface-variant rounded-lg hover:bg-surface-container-high transition"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-4 sm:p-6 space-y-4 text-xs">
+        <div className="p-4 sm:p-6 space-y-4 text-xs flex-1 min-h-0 overflow-y-auto">
           {successMsg && (
             <div className="flex items-center gap-2 p-3 bg-surface-container-low text-primary border border-primary-fixed-dim rounded-xl font-bold">
               <CheckCircle size={16} className="text-primary shrink-0" />
@@ -330,7 +331,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
                 <Download size={16} className="text-primary-container group-hover:scale-110 transition" />
                 <div className="text-left">
                   <div>Esporta Backup Completo (JSON)</div>
-                  <div className="text-[10px] text-on-surface-variant font-normal">Salva atleti, piani, tempi e registro su file</div>
+                  <div className="text-[11px] text-on-surface-variant font-normal">Salva atleti, piani, tempi e registro su file</div>
                 </div>
               </div>
               <span className="text-[11px] text-primary-container font-bold">Scarica</span>
@@ -352,7 +353,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
                 <Upload size={16} className="text-primary-container group-hover:scale-110 transition" />
                 <div className="text-left">
                   <div>Importa / Ripristina Backup</div>
-                  <div className="text-[10px] text-on-surface-variant font-normal">Carica un file JSON esportato in precedenza</div>
+                  <div className="text-[11px] text-on-surface-variant font-normal">Carica un file JSON esportato in precedenza</div>
                 </div>
               </div>
               <span className="text-[11px] text-primary-container font-bold">Sfoglia</span>
@@ -367,7 +368,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
                 <RefreshCw size={15} className="text-error group-hover:rotate-180 transition duration-500" />
                 <div className="text-left">
                   <div>Ripristina Dati Esempio FINP</div>
-                  <div className="text-[10px] text-error font-normal">Ricarica i profili atleti e la stagione dimostrativa</div>
+                  <div className="text-[11px] text-error font-normal">Ricarica i profili atleti e la stagione dimostrativa</div>
                 </div>
               </div>
               <span className="text-[11px] text-error font-bold">Reset</span>
@@ -382,7 +383,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
                 <Trash2 size={15} className="text-on-surface-variant group-hover:text-error transition" />
                 <div className="text-left">
                   <div>Svuota squadra</div>
-                  <div className="text-[10px] text-on-surface-variant font-normal">
+                  <div className="text-[11px] text-on-surface-variant font-normal">
                     Azzera tutto e riparti da una squadra vuota
                   </div>
                 </div>
@@ -393,7 +394,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="p-3 bg-surface-container-low border-t border-slate-200/70 flex justify-end">
+        <div className="p-3 bg-surface-container-low border-t border-slate-200/70 flex justify-end shrink-0">
           <button
             onClick={onClose}
             className="px-4 h-12 text-xs font-bold text-on-surface-variant hover:text-on-surface rounded-lg hover:bg-surface-container-high transition"

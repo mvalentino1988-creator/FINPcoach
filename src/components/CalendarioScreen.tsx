@@ -54,7 +54,7 @@ export const CalendarioScreen: React.FC = () => {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-bold text-on-surface tracking-tight flex items-center gap-2">
+        <h2 className="ds-title flex items-center gap-2">
           <CalendarDays size={22} className="text-primary-container" />
           <span>Calendario gare FINP {meta.aggiornato}</span>
         </h2>
@@ -63,7 +63,7 @@ export const CalendarioScreen: React.FC = () => {
         </p>
       </div>
 
-      <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-3 shadow-card">
+      <div className="ds-card p-3 shadow-card">
         <label className="flex items-center gap-2 text-xs font-semibold text-on-surface-variant cursor-pointer select-none">
           <input
             type="checkbox"

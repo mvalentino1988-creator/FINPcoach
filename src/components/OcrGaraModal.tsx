@@ -52,8 +52,8 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-xs">
-      <div className="bg-surface-container-lowest rounded-xl p-6 max-w-3xl w-full shadow-float space-y-4 border border-slate-200/70 max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 backdrop-blur-xs">
+      <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl p-4 sm:p-6 max-w-3xl w-full shadow-float space-y-4 border border-slate-200/70 max-h-[92dvh] flex flex-col">
         <div className="flex items-center justify-between border-b border-slate-200/70 pb-3 shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-primary-fixed text-primary-container flex items-center justify-center">
@@ -97,7 +97,7 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-3 min-h-[250px]">
+        <div className="flex-1 overflow-y-auto space-y-3 min-h-0">
           {modoTesto ? (
             <textarea
               value={rawText}
@@ -192,7 +192,7 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
           <button
             type="button"
             onClick={handleConferma}
-            className="flex-1 flex items-center justify-center gap-1.5 px-4 h-12.5 bg-primary-container hover:bg-primary text-on-primary rounded-xl text-sm font-bold transition shadow-card"
+            className="flex-1 flex items-center justify-center gap-1.5 px-4 h-12 bg-primary-container hover:bg-primary text-on-primary rounded-xl text-sm font-bold transition shadow-card"
           >
             <Check size={16} />
             <span>Importa Tempi Selezionati ({righe.filter(r => r.selezionato).length})</span>
@@ -200,7 +200,7 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 h-12.5 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl text-sm font-bold transition"
+            className="px-4 h-12 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl text-sm font-bold transition"
           >
             Annulla
           </button>

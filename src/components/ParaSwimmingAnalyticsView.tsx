@@ -65,7 +65,7 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-bold text-on-surface tracking-tight flex items-center gap-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+        <h2 className="ds-title flex items-center gap-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
           <Activity size={22} className="text-primary-container" />
           <span>Analisi Biomeccanica & Costo Energetico C(v)</span>
         </h2>
@@ -84,7 +84,7 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
         </span>
       </div>
 
-      <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-4 shadow-card space-y-3">
+      <div className="ds-card p-4 shadow-card space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
           <div>
             <label className="block font-bold text-on-surface mb-1">Atleta</label>
@@ -211,7 +211,7 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
         </div>
       </Sezione>
 
-      <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-4 shadow-card space-y-3">
+      <div className="ds-card p-4 shadow-card space-y-3">
         <h3 className="font-bold text-on-surface text-xs uppercase tracking-wider flex items-center gap-2">
           <Plus size={15} className="text-primary-container" />
           <span>Aggiungi Nuova Prestazione Reale Atleta ({stile.replace('_', ' ')} {distanza}m)</span>

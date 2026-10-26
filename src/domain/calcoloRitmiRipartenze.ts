@@ -29,7 +29,7 @@ export class CalcoloRitmiRipartenze {
 
     const defs: Record<CodiceAllenamentoKey, [number, number, number, string]> = {
       A1: [16, 15, 15, 'Nuoto rilassato e coordinato, frequenza cardiaca contenuta.'],
-      A2: [12, 10, 12, 'Passo fondo costante, controllo del numero di bracciate.'],
+      A2: [12, 10, 12, 'Passo fondo costante, controllo dell\'andatura.'],
       B1: [6, 8, 10, 'Passo Soglia Anaerobica: mantenere costante per tutta la serie.'],
       B2: [3, 20, 20, 'Passo VO2 Max: sforzo ad alta frequenza cardiaca.'],
       C1: [0, 75, 75, "Passo Gara 100m: tolleranza all'acidosi con ampio recupero."],

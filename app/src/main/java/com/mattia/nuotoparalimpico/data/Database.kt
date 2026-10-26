@@ -257,7 +257,20 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "nuoto.db"
-                ).addMigrations(MIGRAZIONE_1_2, MIGRAZIONE_2_3, MIGRAZIONE_3_4, MIGRAZIONE_4_5).build().also { istanza = it }
+                ).addMigrations(MIGRAZIONE_1_2, MIGRAZIONE_2_3, MIGRAZIONE_3_4, MIGRAZIONE_4_5)
+                    .addCallback(object : RoomDatabase.Callback() {
+                        override fun onCreate(db: SupportSQLiteDatabase) {
+                            super.onCreate(db)
+                            db.execSQL("INSERT INTO stagioni (id, nome, inizio, fine, vascaMetri, giorniAllenamento) VALUES (1, 'Stagione 2026/2027', 20697, 20999, 25, 36);")
+                            db.execSQL("INSERT INTO atleti (id, nome, cognome, dataNascita, classeS, classeSB, classeSM, stato, fattoreVolume, volumeAuto, note, sesso) VALUES (1, 'Marco', 'Rossi', 12550, 9, 8, 9, 'UFFICIALE', 1.0, 1, 'Amputazione transtibiale arto inferiore sinistro.', 'MASCHILE');")
+                            db.execSQL("INSERT INTO atleti (id, nome, cognome, dataNascita, classeS, classeSB, classeSM, stato, fattoreVolume, volumeAuto, note, sesso) VALUES (2, 'Sofia', 'Bianchi', 11524, 4, 3, 4, 'UFFICIALE', 0.85, 1, 'Paraplegia T6 da lesione midollare dorsale, controllo tronco ridotto.', 'FEMMINILE');")
+                            db.execSQL("INSERT INTO atleti (id, nome, cognome, dataNascita, classeS, classeSB, classeSM, stato, fattoreVolume, volumeAuto, note, sesso) VALUES (3, 'Matteo', 'Galli', 14683, 7, 6, 7, 'IN_ATTESA', 0.8, 1, 'Emiparesi spastica lato destro esito paralisi cerebrale infantile.', 'MASCHILE');")
+                            db.execSQL("INSERT INTO condizioni_mediche (id, atletaId, descrizione, limitazioni, attiva) VALUES (1, 1, 'Amputazione transtibiale arto inferiore sinistro', 'Spinta dal blocco monolaterale con gamba destra, virata controllata.', 1);")
+                            db.execSQL("INSERT INTO condizioni_mediche (id, atletaId, descrizione, limitazioni, attiva) VALUES (2, 2, 'Paraplegia dorsale T6 completa', 'Assenza spinta gambe, utilizzo pull-buoy in riscaldamento e fondo.', 1);")
+                            db.execSQL("INSERT INTO condizioni_mediche (id, atletaId, descrizione, limitazioni, attiva) VALUES (3, 3, 'Emiparesi spastica emilato destro', 'Evitare serie ad altissimo lattato (C1/C2) che innescano spasticità.', 1);")
+                        }
+                    })
+                    .build().also { istanza = it }
             }
     }
 }

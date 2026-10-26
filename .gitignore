@@ -21,3 +21,10 @@ mia-chiave
 debug.keystore.base64
 bun.lock
 
+
+# artefatti locali di verifica (screenshot/audit)
+tmp/
+*.log
+,
+*.tmp
+

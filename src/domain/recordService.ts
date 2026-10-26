@@ -1,6 +1,6 @@
-import recordsData from '../data/records.json';
+import { payloadRecord } from '../data/staticData';
 import { Atleta, Stile, Tempo } from '../types';
-import { parseTempo, formattaTempo } from './tempoUtils';
+import { parseTempo, formattaTempo, calcolaPuntiWPS } from './tempoUtils';
 
 /** Un record FINP (italiano, europeo o mondiale) per classe e categoria. */
 export interface RecordFINP {
@@ -51,10 +51,20 @@ export interface ConfrontoRecord {
   percentuale: number;
   /** true se l'atleta è più veloce o uguale al record. */
   migliore: boolean;
+  /** Punteggio World Para Swimming (se record mondiale). */
+  puntiWPS?: number | null;
 }
 
-const DATA = recordsData as RecordsPayload;
-const RECORDS: RecordFINP[] = DATA.records;
+const META_VUOTA: RecordMeta = { fonte: '', aggiornato: '', url: '', nota: '' };
+
+/** Payload caricato all'avvio da `public/data/records.json` (vedi staticData). */
+function data(): RecordsPayload | null {
+  return payloadRecord() as RecordsPayload | null;
+}
+
+function elenco(): RecordFINP[] {
+  return data()?.records ?? [];
+}
 
 const STILE_TO_EVENT: Record<Stile, string> = {
   STILE_LIBERO: 'Stile Libero',
@@ -111,13 +121,13 @@ function ordinaClassi(a: string, b: string): number {
 
 export class RecordService {
   static meta(): RecordMeta {
-    return DATA.meta;
+    return data()?.meta ?? META_VUOTA;
   }
 
   /** Tutti gli eventi disponibili per una vasca (individuali + staffette). */
   static eventi(vasca: number): string[] {
     const set = new Set<string>();
-    for (const r of RECORDS) if (r.v === vasca) set.add(r.ev);
+    for (const r of elenco()) if (r.v === vasca) set.add(r.ev);
     return [...set].sort(ordinaEventi);
   }
 
@@ -128,19 +138,19 @@ export class RecordService {
 
   static generi(vasca: number, evento: string): string[] {
     const set = new Set<string>();
-    for (const r of RECORDS) if (r.v === vasca && r.ev === evento) set.add(r.g);
+    for (const r of elenco()) if (r.v === vasca && r.ev === evento) set.add(r.g);
     return [...set].sort();
   }
 
   static classi(vasca: number, evento: string, genere: string): string[] {
     const set = new Set<string>();
-    for (const r of RECORDS) if (r.v === vasca && r.ev === evento && r.g === genere) set.add(r.cl);
+    for (const r of elenco()) if (r.v === vasca && r.ev === evento && r.g === genere) set.add(r.cl);
     return [...set].sort(ordinaClassi);
   }
 
   /** Tutti i record (ITA/EUR/WR) per un evento, genere e classe. */
   static perClasse(vasca: number, evento: string, genere: string, classe: string): RecordFINP[] {
-    return RECORDS.filter(
+    return elenco().filter(
       r => r.v === vasca && r.ev === evento && r.g === genere && r.cl === classe
     );
   }
@@ -148,7 +158,7 @@ export class RecordService {
   /** Record ITA di una categoria specifica. */
   static recordIta(vasca: number, evento: string, genere: string, classe: string, categoria: string): RecordFINP | null {
     return (
-      RECORDS.find(
+      elenco().find(
         r =>
           r.v === vasca &&
           r.ev === evento &&
@@ -163,7 +173,7 @@ export class RecordService {
   /** Record europeo o mondiale (categoria Assoluto). */
   static recordInternazionale(vasca: number, evento: string, genere: string, classe: string, tipo: 'EUR' | 'WR'): RecordFINP | null {
     return (
-      RECORDS.find(
+      elenco().find(
         r => r.v === vasca && r.ev === evento && r.g === genere && r.cl === classe && r.t === tipo
       ) || null
     );
@@ -182,7 +192,8 @@ export class RecordService {
   static confronta(tempoAtletaCentesimi: number, recordCentesimi: number): ConfrontoRecord {
     const delta = tempoAtletaCentesimi - recordCentesimi;
     const percentuale = recordCentesimi > 0 ? (tempoAtletaCentesimi / recordCentesimi) * 100 : 0;
-    return { deltaCentesimi: delta, percentuale, migliore: delta <= 0 };
+    const puntiWPS = calcolaPuntiWPS(tempoAtletaCentesimi, recordCentesimi);
+    return { deltaCentesimi: delta, percentuale, migliore: delta <= 0, puntiWPS };
   }
 
   /** Etichetta della classe dell'atleta per uno stile (S/SB/SM). */

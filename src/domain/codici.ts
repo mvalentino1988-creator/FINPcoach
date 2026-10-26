@@ -4,7 +4,7 @@ export const CODICI_ALLENAMENTO: Record<CodiceAllenamentoKey, CodiceInfo> = {
   A1: {
     codice: 'A1',
     nome: 'Aerobico di Base / Scioglimento',
-    ambito: 'Riscaldamento, recupero attivo, tecnica di bracciata e mobilità.',
+    ambito: 'Riscaldamento, recupero attivo, tecnica di nuotata e mobilità.',
     hrBpm: '120-140 bpm',
     lattato: '< 2 mmol/L',
     containerBg: '#E0F2FE', // Aqua Chiaro

@@ -27,25 +27,27 @@ export const AtletaBiomeccanicaView: React.FC<Props> = ({ atleta, tempi }) => {
   const isVisivo = s >= 11 && s <= 13;
   const isBassaClasse = s <= 5;
 
-  // Stime biomeccaniche parametrizzate in base alla classe
-  const dpsMedio = (1.5 + (s / 14) * 0.8).toFixed(2);
-  const strokeRate = isBassaClasse ? '42-46' : s >= 9 ? '52-56' : '46-50';
-  const lattatoMax = (9.5 + (s % 4) * 0.7).toFixed(1);
-
   // Miglior tempo registrato o tempo stimato
   const bestTempo = tempi.length > 0
     ? [...tempi].sort((a, b) => a.centesimi - b.centesimi)[0]
     : null;
 
+  // Parametri fisiologici e prestativi
+  const lattatoMax = (9.5 + (s % 4) * 0.7).toFixed(1);
+  const velocitaMetriSec = bestTempo && bestTempo.distanzaMetri
+    ? (bestTempo.distanzaMetri / (bestTempo.centesimi / 100)).toFixed(2)
+    : (1.2 + (s / 14) * 0.6).toFixed(2);
+  const indiceEfficienza = (70 + (s * 2)).toFixed(0);
+
   return (
     <div className="space-y-4">
-      {/* 2x2 High-Readability Biomechanics Grid - Stitch Design */}
-      <div className="grid grid-cols-2 gap-2.5">
-        {/* Card 1: DPS */}
+      {/* 2x2 High-Readability Biomechanics Grid - Parametri Fisiologici e Idrodinamici */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+        {/* Card 1: Velocità media di picco */}
         <div className="bg-surface-container-lowest rounded-xl p-3 sm:p-4 border border-slate-200/80 shadow-card flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
-              Indice DPS Medio
+              Velocità Target
             </span>
             <Sliders size={16} className="text-primary-container" />
           </div>
@@ -54,23 +56,23 @@ export const AtletaBiomeccanicaView: React.FC<Props> = ({ atleta, tempi }) => {
               className="text-2xl sm:text-3xl font-bold text-primary-container tracking-tight"
               style={{ fontFamily: "'Space Grotesk', sans-serif" }}
             >
-              {dpsMedio}
+              {velocitaMetriSec}
             </span>
-            <span className="text-[10px] font-semibold text-on-surface-variant">m/bracc</span>
+            <span className="text-[10px] font-semibold text-on-surface-variant">m/s</span>
           </div>
           <div className="mt-2 w-full bg-surface-container rounded-full h-1.5 overflow-hidden">
             <div
               className="bg-primary-container h-full rounded-full transition-all"
-              style={{ width: `${Math.min(100, Math.round((parseFloat(dpsMedio) / 2.5) * 100))}%` }}
+              style={{ width: `${Math.min(100, Math.round((parseFloat(velocitaMetriSec) / 2.2) * 100))}%` }}
             />
           </div>
         </div>
 
-        {/* Card 2: Frequenza Ottimale */}
+        {/* Card 2: Indice di Efficienza Idrodinamica */}
         <div className="bg-surface-container-lowest rounded-xl p-3 sm:p-4 border border-slate-200/80 shadow-card flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
-              Freq. Cicli Ottimale
+              Efficienza Scivolamento
             </span>
             <Activity size={16} className="text-secondary" />
           </div>
@@ -79,12 +81,12 @@ export const AtletaBiomeccanicaView: React.FC<Props> = ({ atleta, tempi }) => {
               className="text-2xl sm:text-3xl font-bold text-secondary tracking-tight"
               style={{ fontFamily: "'Space Grotesk', sans-serif" }}
             >
-              {strokeRate}
+              {indiceEfficienza}
             </span>
-            <span className="text-[10px] font-semibold text-on-surface-variant">cicli/min</span>
+            <span className="text-[10px] font-semibold text-on-surface-variant">/100</span>
           </div>
           <div className="mt-2 w-full bg-surface-container rounded-full h-1.5 overflow-hidden">
-            <div className="bg-secondary h-full rounded-full w-[80%]" />
+            <div className="bg-secondary h-full rounded-full" style={{ width: `${indiceEfficienza}%` }} />
           </div>
         </div>
 
@@ -132,7 +134,7 @@ export const AtletaBiomeccanicaView: React.FC<Props> = ({ atleta, tempi }) => {
             <span className="bg-tertiary-container text-on-primary px-1.5 py-0.5 rounded font-bold uppercase">
               PB S{s}
             </span>
-            <span className="text-on-secondary-container font-medium truncate">
+            <span className="text-on-secondary-container font-medium leading-tight">
               {bestTempo ? `Vasca ${bestTempo.vascaMetri}m` : 'Target Nazionale'}
             </span>
           </div>

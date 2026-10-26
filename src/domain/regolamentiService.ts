@@ -1,4 +1,4 @@
-import regolamentiData from '../data/regolamenti.json';
+import { payloadRegolamenti } from '../data/staticData';
 
 /** Una sezione (articolo/capitolo) di un regolamento. */
 export interface SezioneRegolamento {
@@ -62,8 +62,16 @@ export interface RisultatoRicerca {
   matchTitolo: boolean;
 }
 
-const DATA = regolamentiData as RegolamentiPayload;
-const DOCUMENTI: DocumentoRegolamento[] = DATA.documenti;
+const META_VUOTA: MetaRegolamenti = { aggiornato: '', fonti: [] };
+
+/** Payload caricato all'avvio da `public/data/regolamenti.json` (vedi staticData). */
+function data(): RegolamentiPayload | null {
+  return payloadRegolamenti() as RegolamentiPayload | null;
+}
+
+function documenti(): DocumentoRegolamento[] {
+  return data()?.documenti ?? [];
+}
 
 /** Parole vuote italiane/inglesi ignorate nella ricerca. */
 const STOPWORDS = new Set([
@@ -106,9 +114,18 @@ interface SezioneIndicizzata {
 
 const INDICE: SezioneIndicizzata[] = [];
 const DF = new Map<string, number>();
+let indicePronto = false;
+let N_DOC = 0;
+let LUNGHEZZA_MEDIA = 1;
 
-(function costruisciIndice() {
-  for (const doc of DOCUMENTI) {
+/**
+ * Costruisce l'indice di ricerca alla prima interrogazione: il caricamento
+ * dei JSON avviene all'avvio, quindi non può essere fatto al module-load.
+ */
+function assicuraIndice(): void {
+  if (indicePronto) return;
+  indicePronto = true;
+  for (const doc of documenti()) {
     doc.sezioni.forEach((sezione, indice) => {
       const tokenTitolo = tokenizza(sezione.titolo);
       const tokenTesto = tokenizza(sezione.testo);
@@ -118,10 +135,9 @@ const DF = new Map<string, number>();
       for (const t of visti) DF.set(t, (DF.get(t) ?? 0) + 1);
     });
   }
-})();
-
-const N_DOC = INDICE.length;
-const LUNGHEZZA_MEDIA = N_DOC > 0 ? INDICE.reduce((s, d) => s + d.lunghezza, 0) / N_DOC : 1;
+  N_DOC = INDICE.length;
+  LUNGHEZZA_MEDIA = N_DOC > 0 ? INDICE.reduce((s, d) => s + d.lunghezza, 0) / N_DOC : 1;
+}
 
 const K1 = 1.5;
 const B = 0.75;
@@ -265,15 +281,15 @@ const CAPITOLI_CACHE = new Map<string, CapitoloRegolamento[]>();
 
 export class RegolamentiService {
   static meta(): MetaRegolamenti {
-    return DATA.meta;
+    return data()?.meta ?? META_VUOTA;
   }
 
   static documenti(): DocumentoRegolamento[] {
-    return DOCUMENTI;
+    return documenti();
   }
 
   static documento(id: string): DocumentoRegolamento | null {
-    return DOCUMENTI.find(d => d.id === id) ?? null;
+    return documenti().find(d => d.id === id) ?? null;
   }
 
   static sezioni(documentoId: string): SezioneRegolamento[] {
@@ -301,10 +317,11 @@ export class RegolamentiService {
 
   /** Numero totale di capitoli su tutti i documenti. */
   static totaleCapitoli(): number {
-    return DOCUMENTI.reduce((n, d) => n + this.capitoli(d.id).length, 0);
+    return documenti().reduce((n, d) => n + this.capitoli(d.id).length, 0);
   }
 
   static totaleSezioni(): number {
+    assicuraIndice();
     return INDICE.length;
   }
 
@@ -313,6 +330,7 @@ export class RegolamentiService {
    * Restituisce i risultati ordinati per rilevanza.
    */
   static cerca(query: string, limite = 12, documentoId?: string): RisultatoRicerca[] {
+    assicuraIndice();
     const termini = tokenizza(query);
     if (termini.length === 0) return [];
 

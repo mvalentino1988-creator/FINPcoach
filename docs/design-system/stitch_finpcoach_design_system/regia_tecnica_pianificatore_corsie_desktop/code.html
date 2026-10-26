@@ -1,0 +1,792 @@
+<!DOCTYPE html><html lang="it" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>FINPcoach - Regia Tecnica &amp; Pianificatore Corsie</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#006874",
+            "primary-container": "#004e58",
+            "primary-light": "#e0f2f1",
+            "primary-fixed": "#a2effd",
+            "on-primary": "#ffffff",
+            secondary: "#006399",
+            "secondary-container": "#cde5ff",
+            tertiary: "#9e4202",
+            "tertiary-container": "#ffdbcb",
+            "tertiary-fixed": "#ffb692",
+            surface: "#faf8ff",
+            "surface-container": "#f0f4f9",
+            "surface-container-low": "#f6f8fc",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-high": "#e4e9f2",
+            "on-surface": "#131b2e",
+            "on-surface-variant": "#495764",
+            outline: "#727d88",
+            "outline-variant": "#dce3ec",
+            error: "#ba1a1a",
+            "error-container": "#ffdad6",
+            "on-error-container": "#93000a",
+          },
+          fontFamily: {
+            headline: ["Space Grotesk", "sans-serif"],
+            body: ["Public Sans", "sans-serif"],
+          },
+          borderRadius: {
+            xl: "0.875rem",
+            "2xl": "1.25rem",
+            "3xl": "1.75rem",
+          },
+          boxShadow: {
+            subtle: "0 2px 10px rgba(0, 78, 88, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03)",
+            card: "0 4px 18px rgba(0, 50, 60, 0.06)",
+            accent: "0 4px 14px rgba(0, 104, 116, 0.22)",
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    body {
+      font-family: 'Public Sans', sans-serif;
+      overscroll-behavior: none;
+    }
+    .font-space {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c3d3db;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #9ab4bf;
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen overflow-x-hidden flex flex-col relative">
+<!-- ============================================================== -->
+<!-- 1. TOP HEADER & BRANDING CONFINATO ALLA DASHBOARD MOBILE FINP -->
+<!-- ============================================================== -->
+<header class="h-16 bg-surface-container-lowest border-b border-outline-variant/60 px-3 sm:px-6 flex items-center justify-between z-30 shrink-0 shadow-subtle">
+<!-- Brand / Identity -->
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#004e58] to-[#00838f] flex items-center justify-center text-white shadow-accent">
+<span class="material-symbols-outlined text-[24px]">waves</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5 leading-none">
+<span class="font-space text-[20px] font-bold tracking-tight text-primary">FINP<span class="text-[#00838f]">coach</span></span>
+<span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[#e0f7fa] text-primary border border-primary/20 tracking-wide font-space uppercase">PRO REGIA</span>
+</div>
+<span class="font-space text-[9.5px] font-bold text-on-surface-variant uppercase tracking-widest mt-0.5">FEDERAZIONE ITALIANA NUOTO PARALIMPICO</span>
+</div>
+</div>
+<div class="h-6 w-px bg-outline-variant/80 hidden md:block"></div>
+<!-- Facility Active Indicator Chip -->
+<div class="hidden lg:flex items-center gap-2.5 bg-surface-container-low border border-outline-variant/70 px-3.5 py-1.5 rounded-full">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+</span>
+<div class="flex items-center gap-1.5">
+<span class="font-space text-xs font-bold text-on-surface">Centro Federale FINP Ostia</span>
+<span class="text-outline text-xs">•</span>
+<span class="font-space text-[11px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">Vasca 50m Olimpionica (8 Corsie)</span>
+</div>
+<span class="material-symbols-outlined text-outline text-[18px] cursor-pointer hover:text-on-surface transition-colors">unfold_more</span>
+</div>
+</div>
+<!-- Header Right Quick Telemetry & Coach Profile -->
+<div class="flex items-center gap-4">
+<!-- Live Sync status -->
+<div class="hidden xl:flex items-center gap-2 bg-[#e8f5e9] text-emerald-800 border border-emerald-200/80 px-3 py-1 rounded-full text-xs font-medium"><span class="material-symbols-outlined text-emerald-600 text-[16px]">biotech</span>
+<span class="font-space font-semibold text-[11px]">Biomeccanica FINP • Sincronizzata</span></div>
+<div class="h-6 w-px bg-outline-variant/80 hidden sm:block"></div>
+<!-- Actions & Notification -->
+<div class="flex items-center gap-1.5">
+<button class="w-9 h-9 rounded-xl flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors" title="Cerca atleta o serie">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</button>
+<button class="relative w-9 h-9 rounded-xl flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors" title="Notifiche">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-tertiary ring-2 ring-white"></span>
+</button>
+<button class="w-9 h-9 rounded-xl flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors" title="Aiuto &amp; Specifiche">
+<span class="material-symbols-outlined text-[20px]">help</span>
+</button>
+</div>
+<div class="h-6 w-px bg-outline-variant/80"></div>
+<!-- Coach Avatar / Identity -->
+<div class="flex items-center gap-3 pl-1">
+<div class="flex flex-col text-right leading-tight">
+<span class="font-space font-bold text-xs text-on-surface">M. Rossi</span>
+<span class="font-space text-[10px] font-semibold text-[#006874] uppercase tracking-wide">Head Coach FINP</span>
+</div>
+<div class="relative">
+<img alt="Coach Avatar" class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/30" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXnBFiLQe3LiAJvP488S9NAt4B95L1IjOUBYlIyr9H7D5SIBppiBum4L-0i2x-XhRgd5YPI9Qm4_T2gzZEl8ar6NXh7emsFsgy63LkQfmzD7rBtpKLUg-UyyOZJTbbfGcp7v-QpKe_23Q5lje0TSFyIUg8kkrbyLPb4eSVvXv2Z5Mxs0oE26DvlO_vTm4V9mAiECHtUm4KPBJWuURCdiGu3ukjozglYg9L6slXyfUB1YvOnNVYMlSw">
+<span class="bottom-0 right-0 absolute w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full"></span>
+</div>
+</div>
+</div>
+</header>
+<!-- ============================================================== -->
+<!-- MAIN WORKSPACE: SIDEBAR + 3-COLUMN CONTROL DESK                -->
+<!-- ============================================================== -->
+<div class="flex-1 flex flex-col lg:flex-row overflow-x-hidden">
+<!-- ============================================================ -->
+<!-- 2. SIDEBAR DI NAVIGAZIONE COERENTE                           -->
+<!-- ============================================================ -->
+<aside class="w-60 bg-surface-container-lowest border-r border-outline-variant/60 hidden lg:flex flex-col justify-between shrink-0 py-4 px-3">
+<div class="space-y-4">
+<!-- License badge -->
+<div class="bg-gradient-to-r from-primary/10 to-[#00838f]/10 border border-primary/20 rounded-2xl p-3 flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-space text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">Qualifica Tecnica</span>
+<span class="font-space text-xs font-bold text-primary truncate">Tecnico Federale FINP</span>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-space font-medium text-xs text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" href="#">
+<span class="material-symbols-outlined text-[20px] text-outline">dashboard</span>
+<span class="">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-space font-medium text-xs text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" href="#">
+<span class="material-symbols-outlined text-[20px] text-outline">group</span>
+<span class="">Atleti &amp; Classi</span>
+</a>
+<!-- ACTIVE ITEM -->
+<a class="flex items-center justify-between px-3.5 py-2.5 rounded-xl font-space font-bold text-xs bg-primary text-white shadow-accent transition-all" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] text-white">pool</span>
+<span class="">Pianificatore Corsie</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-space font-medium text-xs text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" href="#"><span class="material-symbols-outlined text-[20px] text-outline">assignment</span>
+<span class="">Piani di Allenamento</span></a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-space font-medium text-xs text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" href="#">
+<span class="material-symbols-outlined text-[20px] text-outline">emoji_events</span>
+<span class="">Gare &amp; Record</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-space font-medium text-xs text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" href="#">
+<span class="material-symbols-outlined text-[20px] text-outline">tune</span>
+<span class="">Impostazioni</span>
+</a>
+</nav>
+</div>
+<!-- Sidebar Bottom System Info -->
+<div class="space-y-2 pt-2 border-t border-outline-variant/60">
+<div class="bg-surface-container-low rounded-xl p-2.5 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-space text-[10px] font-bold text-on-surface-variant uppercase">Sincronizzazione</span>
+</div>
+<span class="font-space text-[10px] font-bold text-primary">Live FINP Cloud</span>
+</div>
+<div class="px-2 flex items-center justify-between text-outline text-[10px] font-space">
+<span class="">Rel. FINP-OS 3.4.2</span>
+<span class="">Build #892</span>
+</div>
+</div>
+</aside>
+<!-- ============================================================ -->
+<!-- 4. CONTENUTO CENTRALE A 3 COLONNE ZERO-SCROLL                -->
+<!-- ============================================================ -->
+<main class="flex-1 p-2.5 sm:p-4 lg:p-3 overflow-y-auto lg:overflow-hidden flex flex-col bg-surface gap-2.5 pb-20 lg:pb-3 w-full max-w-full">
+<!-- TOP SUB-BAR COMPATTA: TELEMETRIA E STATO VASCA -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl px-3 sm:px-4 py-2 flex flex-wrap items-center justify-between gap-2 shadow-subtle shrink-0">
+<div class="flex items-center gap-3">
+<span class="flex items-center justify-center w-7 h-7 rounded-xl bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-[18px]">sports_score</span>
+</span>
+<div class="flex items-center gap-2">
+<span class="font-space font-bold text-xs text-on-surface">Microciclo 18 • Fase Specifica Paralimpica</span>
+<span class="bg-primary/10 text-primary text-[10px] font-space font-bold px-2 py-0.5 rounded-full border border-primary/20">Sessione A3 #104</span>
+</div>
+</div>
+<div class="flex items-center gap-4 text-xs font-space"><div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-secondary text-[18px]">biotech</span>
+<span class="">Efficienza Biomeccanica: <strong class="text-on-surface font-bold">88.4%</strong></span>
+</div>
+<span class="text-outline-variant">|</span>
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-[18px]">speed</span>
+<span class="">Cadenza Media: <strong class="text-on-surface font-bold">48.2 cpm</strong></span>
+</div>
+<span class="text-outline-variant">|</span>
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-tertiary text-[18px]">straighten</span>
+<span class="">DPS Medio: <strong class="text-on-surface font-bold">2.14 m/c</strong></span>
+</div>
+<span class="text-outline-variant">|</span>
+<div class="flex items-center gap-2">
+<button class="h-7 px-3 bg-surface-container hover:bg-surface-container-high rounded-lg text-on-surface text-[11px] font-bold font-space flex items-center gap-1 transition-colors" onclick="window.print()">
+<span class="material-symbols-outlined text-[14px]">print</span>
+<span class="">Stampa Scheda Vasca</span>
+</button>
+<button class="h-7 px-3 bg-primary hover:bg-primary-container text-white rounded-lg text-[11px] font-bold font-space flex items-center gap-1 shadow-sm transition-all" id="sync-portal-btn">
+<span class="material-symbols-outlined text-[14px]">cloud_sync</span>
+<span class="">Sincro CONI</span>
+</button>
+</div></div>
+</div>
+<!-- GRID PRINCIPALE AD ALTA DENSITÀ A 3 COLONNE (H-FULL, ZERO-SCROLL) -->
+<div class="flex-1 flex flex-col lg:grid lg:grid-cols-12 gap-2.5 min-h-0 lg:overflow-hidden w-full">
+<!-- ======================================================== -->
+<!-- COLONNA 1: PARAMETRI & CARICO METABOLICO (Colspan: 3)    -->
+<!-- ======================================================== -->
+<div class="w-full lg:col-span-3 flex flex-col gap-2.5 min-h-0 lg:overflow-hidden">
+<!-- Card 1: Microciclo & Settimana -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-3 shadow-subtle shrink-0">
+<div class="flex items-center justify-between mb-1.5">
+<span class="font-space text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Macrociclo Parigi 2024</span>
+<span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-space font-bold text-[10px]">W18 • DAY 3</span>
+</div>
+<div class="grid grid-cols-7 gap-1 text-center my-2">
+<div class="p-1 rounded-lg bg-surface-container text-on-surface-variant font-space text-[10px]">
+<div class="font-bold text-outline">L</div>
+<div class="font-bold text-[11px] text-on-surface">4.8k</div>
+</div>
+<div class="p-1 rounded-lg bg-surface-container text-on-surface-variant font-space text-[10px]">
+<div class="font-bold text-outline">M</div>
+<div class="font-bold text-[11px] text-on-surface">5.2k</div>
+</div>
+<div class="p-1 rounded-lg bg-primary text-white font-space text-[10px] shadow-sm">
+<div class="font-bold text-primary-fixed">M</div>
+<div class="font-bold text-[11px]">4.2k</div>
+</div>
+<div class="p-1 rounded-lg bg-surface-container text-on-surface-variant font-space text-[10px]">
+<div class="font-bold text-outline">G</div>
+<div class="font-bold text-[11px] text-on-surface">5.5k</div>
+</div>
+<div class="p-1 rounded-lg bg-surface-container text-on-surface-variant font-space text-[10px]">
+<div class="font-bold text-outline">V</div>
+<div class="font-bold text-[11px] text-on-surface">4.0k</div>
+</div>
+<div class="p-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 font-space text-[10px]">
+<div class="font-bold text-amber-600">S</div>
+<div class="font-bold text-[10px]">TEST</div>
+</div>
+<div class="p-1 rounded-lg bg-surface-container-low text-outline font-space text-[10px]">
+<div class="font-bold text-outline">D</div>
+<div class="font-bold text-[10px]">OFF</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1 border-t border-outline-variant/50 text-[11px] font-space">
+<span class="text-on-surface-variant">Volume Oggi: <strong class="text-primary font-bold text-xs">4.200m</strong></span>
+<span class="text-secondary font-bold">RPE Target: 8.5/10</span>
+</div>
+</div>
+<!-- Card 2: Ripartizione Carico Fisiologico (Coerente con app mobile FINP) -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-3 shadow-subtle shrink-0">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]">equalizer</span>
+<span class="font-space text-xs font-bold text-on-surface">Ripartizione Carico FINP</span>
+</div>
+<span class="font-space text-[11px] font-bold text-primary">4.200m Totali</span>
+</div>
+<!-- Proportional Bar Stacked identical to mobile FINP -->
+<div class="w-full h-3 rounded-full overflow-hidden flex bg-surface-container gap-0.5 mb-2.5">
+<div class="h-full bg-secondary rounded-l-full transition-all" style="width: 45%" title="Aerobico A1/A2 (45%)"></div>
+<div class="h-full bg-primary transition-all" style="width: 38%" title="Soglia B1/B2 (38%)"></div>
+<div class="h-full bg-amber-500 rounded-r-full transition-all" style="width: 17%" title="Scarico / Tecnico (17%)"></div>
+</div>
+<!-- 3 Mini pill tiles -->
+<div class="grid grid-cols-3 gap-1.5 text-center">
+<div class="bg-surface-container-low border border-outline-variant/60 p-1.5 rounded-xl">
+<div class="flex items-center justify-center gap-1 mb-0.5">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-space text-[10px] font-bold text-on-surface-variant">A1/A2</span>
+</div>
+<div class="font-space text-xs font-bold text-on-surface">1.890m</div>
+<div class="text-[9px] text-outline font-space">45% Aerobico</div>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/60 p-1.5 rounded-xl">
+<div class="flex items-center justify-center gap-1 mb-0.5">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-space text-[10px] font-bold text-on-surface-variant">B1/B2</span>
+</div>
+<div class="font-space text-xs font-bold text-on-surface">1.596m</div>
+<div class="text-[9px] text-outline font-space">38% Soglia</div>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/60 p-1.5 rounded-xl">
+<div class="flex items-center justify-center gap-1 mb-0.5">
+<span class="w-2 h-2 rounded-full bg-amber-500"></span>
+<span class="font-space text-[10px] font-bold text-on-surface-variant">REC/DEF</span>
+</div>
+<div class="font-space text-xs font-bold text-on-surface">714m</div>
+<div class="text-[9px] text-outline font-space">17% Tecnico</div>
+</div>
+</div>
+</div>
+<!-- Card 3: Prescrizioni & Safeguard Medico-Funzionali (Zero-Scroll Flex-1) -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-3 shadow-subtle flex-1 flex flex-col justify-between min-h-0 overflow-hidden">
+<div class="flex items-center justify-between mb-2 shrink-0">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-rose-600 text-[18px]">medical_services</span>
+<span class="font-space text-xs font-bold text-on-surface">Prescrizioni Assistenza</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-space font-bold">3 AVVISI</span>
+</div>
+<!-- List Cards with clean modern FINP pills -->
+<div class="space-y-1.5 overflow-hidden flex-1 flex flex-col justify-between">
+<!-- Item 1: Bortuzzo -->
+<div class="p-2 rounded-xl bg-surface-container-low border border-outline-variant/60 flex items-start gap-2">
+<div class="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[15px]">accessible</span>
+</div>
+<div class="min-w-0 flex-1">
+<div class="flex items-center justify-between">
+<span class="font-space font-bold text-xs text-on-surface truncate">M. Bortuzzo (S4)</span>
+<span class="px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 font-space font-bold text-[9px] border border-amber-200">Sollevatore</span>
+</div>
+<p class="text-[10px] text-on-surface-variant leading-tight mt-0.5 line-clamp-1">Supporto fincatura uscita vasca. Termoregolazione post-serie.</p>
+</div>
+</div>
+<!-- Item 2: Gilli -->
+<div class="p-2 rounded-xl bg-surface-container-low border border-outline-variant/60 flex items-start gap-2">
+<div class="w-6 h-6 rounded-lg bg-sky-100 text-sky-800 flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[15px]">visibility_off</span>
+</div>
+<div class="min-w-0 flex-1">
+<div class="flex items-center justify-between">
+<span class="font-space font-bold text-xs text-on-surface truncate">C. Gilli (S13)</span>
+<span class="px-1.5 py-0.5 rounded-md bg-sky-50 text-sky-700 font-space font-bold text-[9px] border border-sky-200">Tapper 3m</span>
+</div>
+<p class="text-[10px] text-on-surface-variant leading-tight mt-0.5 line-clamp-1">Doppio tocco muretto virata + arrivo. Tapper: F. De Sanctis.</p>
+</div>
+</div>
+<!-- Item 3: Barlaam -->
+<div class="p-2 rounded-xl bg-surface-container-low border border-outline-variant/60 flex items-start gap-2">
+<div class="w-6 h-6 rounded-lg bg-rose-100 text-rose-800 flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[15px]">warning</span>
+</div>
+<div class="min-w-0 flex-1">
+<div class="flex items-center justify-between">
+<span class="font-space font-bold text-xs text-on-surface truncate">S. Barlaam (S9)</span>
+<span class="px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-700 font-space font-bold text-[9px] border border-rose-200">Cuffia Spalla</span>
+</div>
+<p class="text-[10px] text-on-surface-variant leading-tight mt-0.5 line-clamp-1">Limitare palette grandi su serie B2 a max 400m complessivi.</p>
+</div>
+</div>
+</div>
+<!-- Doctor on deck footer -->
+<div class="mt-2 pt-1.5 border-t border-outline-variant/50 flex items-center justify-between text-[10px] font-space">
+<span class="text-on-surface-variant">Staff Sanitario Poolside:</span>
+<span class="font-bold text-primary flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Dr. V. Galli (In Vasca)
+              </span>
+</div>
+</div>
+</div>
+<!-- ======================================================== -->
+<!-- COLONNA 2: PLANIMETRIA 8 CORSIE OLIMPIONICHE (Colspan: 6)-->
+<!-- ======================================================== -->
+<div class="w-full lg:col-span-6 bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-2.5 sm:p-3 shadow-subtle flex flex-col justify-between min-h-0 lg:overflow-hidden">
+<!-- Pool Header Controls -->
+<div class="flex items-center justify-between pb-2 border-b border-outline-variant/60 shrink-0">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">water</span>
+</div>
+<div>
+<h2 class="font-space font-bold text-xs text-on-surface">Tabellone Planimetrico Corsie 1 - 8</h2>
+<p class="font-space text-[10px] text-outline">Vasca Regolamentare 50m • Ripartizioni e ritmi sincronizzati</p>
+</div>
+</div>
+<div class="flex items-center gap-1.5 font-space">
+<button class="h-6 px-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-[10px] font-bold text-on-surface flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[13px]">update</span>
+<span class="">Ripartenza +5s</span>
+</button>
+<button class="h-6 px-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-[10px] font-bold text-on-surface flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[13px]">person_add</span>
+<span class="">Assegna Atleta</span>
+</button>
+<button class="h-6 w-6 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-colors" title="Inverti Flusso">
+<span class="material-symbols-outlined text-[14px]">sync_alt</span>
+</button>
+</div>
+</div>
+<!-- Swimming Pool Lane List (8 Lanes Zero-Scroll) -->
+<div class="flex-1 my-1.5 flex flex-col justify-between gap-1 overflow-hidden">
+<!-- CORSIA 1 -->
+<div class="bg-surface-container-low border border-outline-variant/60 hover:border-primary/40 rounded-xl px-2.5 py-1.5 flex items-center justify-between transition-colors shadow-xs">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="w-6 h-6 rounded-lg bg-primary text-white font-space font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">1</span>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-space font-bold text-xs text-on-surface">Simone Barlaam</span>
+<span class="font-space text-[9px] font-bold bg-[#004e58] text-white px-1.5 py-0.2 rounded">S9 • SB8 • SM9</span>
+<span class="font-space text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-1 rounded">Vasca A</span>
+</div>
+<span class="text-[10px] text-on-surface-variant truncate">10×50m SL a soglia @50" (Target 24"70 - Passo Oro)</span>
+</div>
+</div>
+<div class="flex items-center gap-2.5 shrink-0 font-space">
+<div class="text-right">
+<div class="text-xs font-bold text-primary font-mono">24.62s</div>
+<div class="text-[9px] text-emerald-600 font-bold font-mono">-0.08s PB</div>
+</div>
+<span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span>
+</div>
+</div>
+<!-- CORSIA 2 -->
+<div class="bg-surface-container-low border border-outline-variant/60 hover:border-primary/40 rounded-xl px-2.5 py-1.5 flex items-center justify-between transition-colors shadow-xs">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="w-6 h-6 rounded-lg bg-primary text-white font-space font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">2</span>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-space font-bold text-xs text-on-surface">Alessia Scortechini</span>
+<span class="font-space text-[9px] font-bold bg-[#004e58] text-white px-1.5 py-0.2 rounded">S10 • SB9 • SM10</span>
+</div>
+<span class="text-[10px] text-on-surface-variant truncate">10×50m SL @55" (B1 Pacing + Pinne corte FINP)</span>
+</div>
+</div>
+<div class="flex items-center gap-2.5 shrink-0 font-space">
+<div class="text-right">
+<div class="text-xs font-bold text-primary font-mono">28.05s</div>
+<div class="text-[9px] text-outline font-mono">In Target</div>
+</div>
+<span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span>
+</div>
+</div>
+<!-- CORSIA 3 -->
+<div class="bg-surface-container-low border border-outline-variant/60 hover:border-secondary/40 rounded-xl px-2.5 py-1.5 flex items-center justify-between transition-colors shadow-xs">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="w-6 h-6 rounded-lg bg-secondary text-white font-space font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">3</span>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-space font-bold text-xs text-on-surface">Giulia Terzi</span>
+<span class="font-space text-[9px] font-bold bg-[#004e58] text-white px-1.5 py-0.2 rounded">S7 • SB7 • SM7</span>
+<span class="font-space text-[9px] font-semibold bg-sky-50 text-secondary border border-sky-200 px-1 rounded">Palette FINP</span>
+</div>
+<span class="text-[10px] text-on-surface-variant truncate">8×100m Dorso/SL frazionato @1'40" con palette ergonomiche</span>
+</div>
+</div>
+<div class="flex items-center gap-2.5 shrink-0 font-space">
+<div class="text-right">
+<div class="text-xs font-bold text-secondary font-mono">1:12.4</div>
+<div class="text-[9px] text-secondary font-bold font-mono">Splits OK</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[18px]">trending_up</span>
+</div>
+</div>
+<!-- CORSIA 4 -->
+<div class="bg-surface-container-low border border-outline-variant/60 hover:border-secondary/40 rounded-xl px-2.5 py-1.5 flex items-center justify-between transition-colors shadow-xs">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="w-6 h-6 rounded-lg bg-secondary text-white font-space font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">4</span>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-space font-bold text-xs text-on-surface">Antonio Fantin</span>
+<span class="font-space text-[9px] font-bold bg-[#004e58] text-white px-1.5 py-0.2 rounded">S6 • SB5 • SM6</span>
+</div>
+<span class="text-[10px] text-on-surface-variant truncate">6×200m SL Aerobico A2 @3'15" - Monitoraggio frequenza</span>
+</div>
+</div>
+<div class="flex items-center gap-2.5 shrink-0 font-space">
+<div class="text-right">
+<div class="text-xs font-bold text-secondary font-mono">2:18.9</div>
+<div class="text-[9px] text-outline font-mono">Lap 4/6</div>
+</div>
+<span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span>
+</div>
+</div>
+<!-- CORSIA 5 -->
+<div class="bg-surface-container-low border border-outline-variant/60 hover:border-amber-400 rounded-xl px-2.5 py-1.5 flex items-center justify-between transition-colors shadow-xs">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="w-6 h-6 rounded-lg bg-amber-600 text-white font-space font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">5</span>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-space font-bold text-xs text-on-surface">Carlotta Gilli</span>
+<span class="font-space text-[9px] font-bold bg-[#004e58] text-white px-1.5 py-0.2 rounded">S13 • SB13 • SM13</span>
+<span class="font-space text-[9px] font-bold bg-amber-100 text-amber-900 border border-amber-300 px-1 rounded flex items-center gap-0.5">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span> TAPPER ATTIVO
+                    </span>
+</div>
+<span class="text-[10px] text-on-surface-variant truncate">12×50m Farfalla/Dorso @1'05" - Test sincronizzazione tocco virata</span>
+</div>
+</div>
+<div class="flex items-center gap-2.5 shrink-0 font-space">
+<div class="text-right">
+<div class="text-xs font-bold text-primary font-mono">29.18s</div>
+<div class="text-[9px] text-amber-700 font-bold font-mono">Live Pace</div>
+</div>
+<span class="material-symbols-outlined text-amber-600 text-[18px]">timer</span>
+</div>
+</div>
+<!-- CORSIA 6 -->
+<div class="bg-surface-container-low border border-outline-variant/60 hover:border-outline rounded-xl px-2.5 py-1.5 flex items-center justify-between transition-colors shadow-xs">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="w-6 h-6 rounded-lg bg-surface-container-high text-on-surface font-space font-bold text-xs flex items-center justify-center shrink-0">6</span>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-space font-bold text-xs text-on-surface">Federico Bicelli</span>
+<span class="font-space text-[9px] font-bold bg-[#004e58] text-white px-1.5 py-0.2 rounded">S7 • SB7 • SM7</span>
+</div>
+<span class="text-[10px] text-on-surface-variant truncate">4×400m SL Progressivo A1 -&gt; B1 @6'00"</span>
+</div>
+</div>
+<div class="flex items-center gap-2.5 shrink-0 font-space">
+<div class="text-right">
+<div class="text-xs font-bold text-on-surface font-mono">4:42.1</div>
+<div class="text-[9px] text-outline font-mono">Lap 2/4</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[18px]">schedule</span>
+</div>
+</div>
+<!-- CORSIA 7 -->
+<div class="bg-surface-container-low border border-outline-variant/60 hover:border-rose-400 rounded-xl px-2.5 py-1.5 flex items-center justify-between transition-colors shadow-xs">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="w-6 h-6 rounded-lg bg-rose-700 text-white font-space font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">7</span>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-space font-bold text-xs text-on-surface">Manuel Bortuzzo</span>
+<span class="font-space text-[9px] font-bold bg-[#004e58] text-white px-1.5 py-0.2 rounded">S4 • SB3 • SM4</span>
+<span class="font-space text-[9px] font-bold bg-rose-100 text-rose-900 border border-rose-300 px-1 rounded">SOLLEVATORE</span>
+</div>
+<span class="text-[10px] text-on-surface-variant truncate">10×50m Rana/Stile @1'45" - Analisi propulsione tronco superiore</span>
+</div>
+</div>
+<div class="flex items-center gap-2.5 shrink-0 font-space">
+<div class="text-right">
+<div class="text-xs font-bold text-primary font-mono">48.90s</div>
+<div class="text-[9px] text-rose-700 font-bold font-mono">-0.40s PB</div>
+</div>
+<span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span>
+</div>
+</div>
+<!-- CORSIA 8 -->
+<div class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-2.5 py-1.5 flex items-center justify-between transition-colors shadow-xs">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="w-6 h-6 rounded-lg bg-surface-container-high text-on-surface font-space font-bold text-xs flex items-center justify-center shrink-0">8</span>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-space font-bold text-xs text-on-surface">Corsia Tecnica / Biomeccanica</span>
+<span class="font-space text-[9px] font-bold bg-slate-200 text-slate-800 px-1.5 py-0.2 rounded">CAMERA SUB 4K</span>
+</div>
+<span class="text-[10px] text-on-surface-variant truncate">Riprese cinematiche subacquee assetto e virata per biomeccanica CONI</span>
+</div>
+</div>
+<div class="flex items-center gap-2 shrink-0 font-space">
+<span class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200 font-bold text-[9px] flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></span> REC ON
+                </span>
+</div>
+</div>
+</div>
+<!-- Pool Footer Legend -->
+<div class="pt-2 border-t border-outline-variant/60 flex items-center justify-between font-space text-[10px] text-on-surface-variant shrink-0">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="">Velocità S9-S10</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="">Mezzofondo S6-S8</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-amber-600"></span>
+<span class="">Sensoriali S11-S13</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-rose-700"></span>
+<span class="">Fisiche S1-S5</span>
+</div>
+</div>
+<span class="text-outline">Sensori Assetto FINP v3.2 • Frequenza Rilevamento 100Hz</span>
+</div>
+</div>
+<!-- ======================================================== -->
+<!-- COLONNA 3: TELEMETRIA LIVE, CRONO & LOG (Colspan: 3)     -->
+<!-- ======================================================== -->
+<div class="w-full lg:col-span-3 flex flex-col gap-2.5 min-h-0 lg:overflow-hidden">
+<!-- Card Cronometro Omega Touchpad Live -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-3 shadow-subtle shrink-0"><div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[18px]">biotech</span>
+<span class="font-space text-xs font-bold text-on-surface">Telemetria Biomeccanica FINP</span>
+</div>
+<span class="font-space text-[9px] font-bold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20">SENSORE COR. 1</span>
+</div>
+<!-- Digital Display: DPS & Cadenza -->
+<div class="bg-gradient-to-br from-[#004e58] to-[#006874] text-white rounded-xl p-2.5 flex items-center justify-between mb-2 shadow-accent">
+<div>
+<span class="font-space text-[9px] font-bold text-primary-fixed uppercase tracking-wider block">DPS Rilevato (Distanza/Ciclo)</span>
+<span class="font-space font-bold text-3xl tracking-tight font-mono">2.18m</span>
+</div>
+<div class="text-right">
+<span class="font-space text-[9px] font-bold text-primary-fixed uppercase tracking-wider block">Indice Efficienza</span>
+<span class="font-space font-bold text-sm text-emerald-300 font-mono">+4.2%</span>
+<span class="text-[9px] font-space text-white/70 block">Cadenza 48.5 cpm</span>
+</div>
+</div>
+<!-- Biomechanical Telemetry Breakdown -->
+<div class="space-y-1">
+<div class="flex items-center justify-between text-[9px] font-space font-bold text-outline px-1">
+<span class="">ATLETA / COR.</span>
+<span class="">DPS MEDIO</span>
+<span class="">CADENZA</span>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/60 px-2 py-1 rounded-lg flex items-center justify-between font-space text-xs">
+<span class="font-bold text-on-surface truncate text-[11px]">S. Barlaam (C1)</span>
+<span class="font-mono font-bold text-primary">2.18 m/c</span>
+<span class="font-mono font-bold text-[10px] text-emerald-600">48.5 cpm</span>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/60 px-2 py-1 rounded-lg flex items-center justify-between font-space text-xs">
+<span class="font-bold text-on-surface truncate text-[11px]">C. Gilli (C5)</span>
+<span class="font-mono font-bold text-primary">1.94 m/c</span>
+<span class="font-mono font-bold text-[10px] text-secondary">52.0 cpm</span>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/60 px-2 py-1 rounded-lg flex items-center justify-between font-space text-xs">
+<span class="font-bold text-on-surface truncate text-[11px]">M. Bortuzzo (C7)</span>
+<span class="font-mono font-bold text-primary">1.65 m/c</span>
+<span class="font-mono font-bold text-[10px] text-amber-700">41.8 cpm</span>
+</div>
+</div></div>
+<!-- Card Log Tecnico Regia & Quick Note -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-3 shadow-subtle flex-1 flex flex-col justify-between min-h-0 overflow-hidden">
+<div class="flex items-center justify-between mb-1.5 shrink-0"><div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]">edit_note</span>
+<span class="font-space text-xs font-bold text-on-surface">Registro Osservazioni Coach</span>
+</div>
+<span class="font-space text-[10px] font-bold text-primary flex items-center gap-0.5 cursor-pointer hover:underline" id="add-quick-note">
+<span class="material-symbols-outlined text-[13px]">add</span> Nuova Nota
+</span></div>
+<!-- Scroll-free Feed (3 note) -->
+<div class="space-y-1.5 overflow-hidden flex-1 flex flex-col justify-between my-1" id="notes-container">
+<div class="p-2 rounded-xl bg-surface-container-low border border-outline-variant/60">
+<div class="flex items-center justify-between mb-0.5">
+<span class="font-space text-[9px] font-bold text-secondary">10:42 • CARLOTTA GILLI</span>
+<span class="font-space text-[9px] font-semibold text-emerald-600 bg-emerald-50 px-1 rounded">Tapper OK</span>
+</div>
+<p class="text-[10px] text-on-surface leading-tight">Virata 50m eccellente, tocco sul caschetto a 2.8m dal bordo vasca.</p>
+</div>
+<div class="p-2 rounded-xl bg-surface-container-low border border-outline-variant/60">
+<div class="flex items-center justify-between mb-0.5">
+<span class="font-space text-[9px] font-bold text-primary">10:35 • SIMONE BARLAAM</span>
+<span class="font-space text-[9px] font-semibold text-primary bg-primary/10 px-1 rounded">DPS: 2.15m</span>
+</div>
+<p class="text-[10px] text-on-surface leading-tight">Frequenza bracciata costante (48 bpm). Assetto idrodinamico perfetto.</p>
+</div>
+<div class="p-2 rounded-xl bg-surface-container-low border border-outline-variant/60">
+<div class="flex items-center justify-between mb-0.5">
+<span class="font-space text-[9px] font-bold text-amber-700">10:20 • MANUEL BORTUZZO</span>
+<span class="font-space text-[9px] font-semibold text-amber-700 bg-amber-50 px-1 rounded">Glicemia 118</span>
+</div>
+<p class="text-[10px] text-on-surface leading-tight">Parametri regolari, idratazione integrata al termine della frazione da 1.5k.</p>
+</div>
+</div>
+<!-- Quick Note Input Bar -->
+<div class="mt-1 pt-1.5 border-t border-outline-variant/60 flex gap-1.5 shrink-0">
+<input class="flex-1 bg-surface-container-low border border-outline-variant/70 rounded-xl px-2.5 py-1 text-xs text-on-surface placeholder:text-outline font-space focus:outline-none focus:border-primary" id="coach-input" placeholder="Nota rapida per corsia..." type="text">
+<button class="px-2.5 bg-primary hover:bg-primary-container text-white rounded-xl flex items-center justify-center transition-colors shadow-sm" id="post-note-btn" title="Invia Nota">
+<span class="material-symbols-outlined text-[16px]">send</span>
+</button>
+</div>
+</div>
+<!-- Bottom Security FINP Banner -->
+<div class="bg-gradient-to-r from-primary/10 via-[#00838f]/10 to-transparent border border-primary/20 rounded-2xl p-2.5 flex items-center justify-between shrink-0 shadow-subtle">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-lg bg-primary text-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]">shield</span>
+</div>
+<div class="flex flex-col">
+<span class="font-space text-[9px] font-bold text-on-surface-variant uppercase">Cloud FINP / CONI</span>
+<span class="font-space text-[10px] font-bold text-primary">Protocollo Omologato</span>
+</div>
+</div>
+<span class="font-space text-[9px] font-bold bg-primary text-white px-2 py-0.5 rounded-full">PROTETTO</span>
+</div>
+</div>
+</div>
+</main><nav class="flex lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-container-lowest border-t border-outline-variant/60 justify-around items-center py-2 px-2 shadow-accent"><a href="#" class="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="font-space text-[9px] font-semibold">Dashboard</span></a><a href="#" class="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined text-[20px]">group</span><span class="font-space text-[9px] font-semibold">Atleti</span></a><a href="#" class="flex flex-col items-center gap-0.5 text-primary font-bold"><div class="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center shadow-sm"><span class="material-symbols-outlined text-[18px]">pool</span></div><span class="font-space text-[9px]">Corsie</span></a><a href="#" class="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined text-[20px]">assignment</span><span class="font-space text-[9px] font-semibold">Piani</span></a><a href="#" class="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined text-[20px]">emoji_events</span><span class="font-space text-[9px] font-semibold">Gare</span></a></nav>
+</div>
+<!-- Micro-interactions Script -->
+<script>
+    // Live timer flicker to mimic touchpad updates
+    const timerVal = document.getElementById('live-timer-val');
+    if (timerVal) {
+      const times = ["24.18", "24.16", "24.19", "24.15", "24.21"];
+      let idx = 0;
+      setInterval(() => {
+        idx = (idx + 1) % times.length;
+        timerVal.textContent = times[idx];
+      }, 4000);
+    }
+
+    // Sync button feedback
+    const syncBtn = document.getElementById('sync-portal-btn');
+    if (syncBtn) {
+      syncBtn.addEventListener('click', () => {
+        const originalContent = syncBtn.innerHTML;
+        syncBtn.innerHTML = '<span class="material-symbols-outlined text-[14px] animate-spin">refresh</span><span>Sincro...</span>';
+        setTimeout(() => {
+          syncBtn.innerHTML = '<span class="material-symbols-outlined text-[14px]">check</span><span>Aggiornato</span>';
+          setTimeout(() => {
+            syncBtn.innerHTML = originalContent;
+          }, 1800);
+        }, 900);
+      });
+    }
+
+    // Add note stream
+    const postBtn = document.getElementById('post-note-btn');
+    const coachInput = document.getElementById('coach-input');
+    const notesContainer = document.getElementById('notes-container');
+
+    if (postBtn && coachInput && notesContainer) {
+      const addNote = () => {
+        const text = coachInput.value.trim();
+        if (!text) return;
+        const d = new Date();
+        const timeStr = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+        
+        const newCard = document.createElement('div');
+        newCard.className = 'p-2 rounded-xl bg-surface-container-low border border-outline-variant/60';
+        newCard.innerHTML = `
+          <div class="flex items-center justify-between mb-0.5">
+            <span class="font-space text-[9px] font-bold text-primary">${timeStr} • HEAD COACH</span>
+            <span class="font-space text-[9px] font-semibold text-primary bg-primary/10 px-1 rounded">Live Note</span>
+          </div>
+          <p class="text-[10px] text-on-surface leading-tight">${text}</p>
+        `;
+
+        if (notesContainer.children.length >= 3) {
+          notesContainer.removeChild(notesContainer.lastElementChild);
+        }
+        notesContainer.insertBefore(newCard, notesContainer.firstElementChild);
+        coachInput.value = '';
+      };
+
+      postBtn.addEventListener('click', addNote);
+      coachInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') addNote();
+      });
+    }
+  </script>
+
+
+</body></html>

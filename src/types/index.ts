@@ -196,11 +196,34 @@ export interface MacroGen {
   meso: MesoGen[];
 }
 
+/**
+ * Parametri operativi di una singola seduta.
+ * La durata e' il vincolo principale: il volume viene derivato dalla durata
+ * effettiva e dalla vasca (vedi domain/volumePrescritto.ts).
+ */
+export interface ParametriSeduta {
+  vascaMetri: number;   // 25 o 50
+  durataMin: number;    // minuti di lavoro effettivo
+}
+
 export interface ImpostazioniPiano {
   giorni?: DayOfWeekNum[];
   metriBaseSeduta?: number;
   numeroMacrocicli?: number;
   settimaneCicloCarico?: number;
+  /** Durata di default delle sedute (minuti) se non diversamente specificata. */
+  durataDefaultMin?: number;
+  /** Programmazione iniziale: vasca + durata per giorno della settimana. */
+  parametriPerGiorno?: Partial<Record<DayOfWeekNum, ParametriSeduta>>;
+  /** Override per data specifica (YYYY-MM-DD), applicati sopra la programmazione. */
+  overrideSedute?: Record<string, ParametriSeduta>;
+}
+
+export interface ParametriPiano {
+  giorniAllenamento: DayOfWeekNum[];
+  numeroMacrocicli: number;
+  metriBaseSeduta: number;
+  settimaneCicloCarico: number;
 }
 
 export interface ParametriPiano {
@@ -298,6 +321,12 @@ export interface SchedaSeduta {
   tempiUtilizzati: Tempo[];
   noteCalibrazione: string[];
   tipoSeduta: string;
+  /** Vasca di riferimento della seduta (25 o 50). */
+  vascaMetri?: number;
+  /** Durata pianificata della seduta (minuti). */
+  durataMin?: number;
+  /** Durata stimata dal volume effettivo (minuti). */
+  durataStimataMin?: number;
 }
 
 export type Gravita = 'INFO' | 'ATTENZIONE' | 'ERRORE';

@@ -2,10 +2,12 @@ package com.mattia.nuotoparalimpico
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
+import android.view.WindowInsetsController
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -14,6 +16,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -23,17 +26,38 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var webView: WebView
     private var uploadMessage: ValueCallback<Array<Uri>>? = null
-    private val PICK_FILE_REQUEST = 1001
 
     private var currentTopInset = 0
     private var currentBottomInset = 0
+
+    // ActivityResultLauncher per file picker (API moderna)
+    private val filePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (uploadMessage == null) return@registerForActivityResult
+        val results = WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
+        uploadMessage?.onReceiveValue(results)
+        uploadMessage = null
+    }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // Enable true edge-to-edge display optimized for modern devices like Pixel 10
+        // Il contenuto va sotto la barra di stato, ma usiamo padding intelligente
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // Imposta i colori delle barre di sistema usando l'API moderna (Android 11+)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            window.insetsController?.setSystemBarsAppearance(
+                WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            window.statusBarColor = Color.TRANSPARENT
+            @Suppress("DEPRECATION")
+            window.navigationBarColor = Color.TRANSPARENT
+        }
 
         webView = WebView(this).apply {
             layoutParams = ViewGroup.LayoutParams(
@@ -59,7 +83,7 @@ class MainActivity : ComponentActivity() {
                         return false
                     }
                     try {
-                        startActivityForResult(intent, PICK_FILE_REQUEST)
+                        filePickerLauncher.launch(intent)
                     } catch (e: Exception) {
                         uploadMessage = null
                         return false
@@ -103,17 +127,6 @@ class MainActivity : ComponentActivity() {
             })();
         """
         webView.evaluateJavascript(script, null)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == PICK_FILE_REQUEST) {
-            if (uploadMessage == null) return
-            val results = WebChromeClient.FileChooserParams.parseResult(resultCode, data)
-            uploadMessage?.onReceiveValue(results)
-            uploadMessage = null
-        } else {
-            super.onActivityResult(requestCode, resultCode, data)
-        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

@@ -4,6 +4,7 @@ import { RecordScreen } from './RecordScreen';
 import { RegolamentiScreen } from './RegolamentiScreen';
 import { CalendarioScreen } from './CalendarioScreen';
 import { AutoUpdateService, UpdateStatus } from '../domain/autoUpdateService';
+import { PageHeader } from './PageHeader';
 
 type FontiTab = 'record' | 'regolamenti' | 'calendario';
 
@@ -30,44 +31,58 @@ export const FontiScreen: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-4">
-      <div className="ds-card p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <div className="flex flex-1 min-h-0 flex-col gap-2 overflow-hidden">
+      {/* Intestazione pagina — stile dashboard */}
+      <div className="shrink-0">
+        <PageHeader
+          label="Riferimenti Ufficiali"
+          title="Gare & Record"
+          icon={<Trophy size={13} />}
+          meta="Record FINP, regolamenti federali e calendario gare"
+          right={
+            <button
+              type="button"
+              disabled={checking}
+              onClick={handleVerificaOra}
+              className="ds-btn-ghost !min-h-[40px] !px-2.5 shrink-0"
+              title="Verifica aggiornamenti con i siti ufficiali FINP/WPS"
+            >
+              <RefreshCw size={16} className={checking ? 'animate-spin' : ''} />
+              <span className="hidden sm:inline">{checking ? 'Controllo...' : 'Verifica'}</span>
+            </button>
+          }
+        />
+      </div>
+
+      <div className="shrink-0 ds-card p-2 sm:p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="ds-tabs grid-cols-3">
           {tabs.map(t => (
             <button
               key={t.key}
               type="button"
               onClick={() => setTab(t.key)}
-              className={`ds-tab whitespace-nowrap ${tab === t.key ? 'ds-tab-active' : ''}`}
+              className={`ds-tab ${tab === t.key ? 'ds-tab-active' : ''}`}
             >
-              {t.icon}
-              <span>{t.label}</span>
+              <span className="hidden xs:inline-flex shrink-0">{t.icon}</span>
+              <span className="truncate">{t.label}</span>
             </button>
           ))}
         </div>
 
-        <div className="flex items-center justify-between sm:justify-end gap-2">
+        <div className="flex items-center justify-between sm:justify-end gap-2 min-w-0">
           {updateStatus && (
-            <span className="ds-label !normal-case truncate max-w-[220px]" title={updateStatus.messaggio}>
+            <span className="ds-label !normal-case min-w-0 flex-1 sm:flex-none sm:max-w-[260px] leading-snug" title={updateStatus.messaggio}>
               Ultimo check: {updateStatus.ultimaVerifica}
             </span>
           )}
-          <button
-            type="button"
-            disabled={checking}
-            onClick={handleVerificaOra}
-            className="ds-btn-ghost !border-primary-fixed-dim text-primary-container hover:bg-primary-fixed shrink-0"
-            title="Verifica aggiornamenti con i siti ufficiali FINP/WPS"
-          >
-            <RefreshCw size={18} className={checking ? 'animate-spin' : ''} />
-            <span>{checking ? 'Controllo...' : 'Verifica aggiornamenti'}</span>
-          </button>
         </div>
       </div>
 
-      {tab === 'record' && <RecordScreen />}
-      {tab === 'regolamenti' && <RegolamentiScreen />}
-      {tab === 'calendario' && <CalendarioScreen />}
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        {tab === 'record' && <RecordScreen />}
+        {tab === 'regolamenti' && <RegolamentiScreen />}
+        {tab === 'calendario' && <CalendarioScreen />}
+      </div>
     </div>
   );
 };

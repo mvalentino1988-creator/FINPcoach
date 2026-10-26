@@ -5,6 +5,8 @@ import { formattaData, parseData, previousOrSameMonday, todayISO } from '../doma
 import { formattaTempo, parseTempo, primatiPersonali } from '../domain/tempoUtils';
 import { VolumeIndividuale } from '../domain/volumeIndividuale';
 import { GeneratoreSmartSeduta } from '../domain/generatoreSmartSeduta';
+import { calcolaVolumeSessione } from '../domain/volumePrescritto';
+import { risolviParametriSeduta, seduteSettimana } from '../domain/parametriSeduta';
 import { CalcoloScienzaNuoto } from '../domain/calcoloCSS';
 import { Riepilogo } from '../domain/riepilogo';
 import { SchedaSedutaModal } from './SchedaSedutaModal';
@@ -33,6 +35,10 @@ export const RegistroScreen: React.FC = () => {
     meso,
     log,
     tempi,
+    stagione,
+    condizioni,
+    impostazioni,
+    parametriEffettivi,
     salvaSeduta,
     aggiungiTempo,
     eliminaTempo
@@ -122,7 +128,7 @@ export const RegistroScreen: React.FC = () => {
 
   if (atleti.length === 0) {
     return (
-      <div className="p-8 text-center bg-surface-container-lowest rounded-xl border border-slate-200/70">
+      <div className="p-8 text-center ds-card">
         <User size={36} className="mx-auto text-outline mb-2" />
         <h3 className="font-bold text-on-surface">Nessun atleta registrato</h3>
         <p className="text-xs text-on-surface-variant mt-1">Aggiungi prima gli atleti per registrare presenze e carico.</p>
@@ -166,7 +172,7 @@ export const RegistroScreen: React.FC = () => {
       {/* ==================================== SUBTAB SEDUTA ==================================== */}
       {sezione === 'seduta' && (
         <div className="space-y-4">
-          <div className="p-4 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card space-y-3">
+          <div className="p-4 ds-card shadow-card space-y-3">
             <h3 className="font-bold text-on-surface text-sm flex items-center gap-2">
               <Calendar size={16} className="text-primary-container" />
               <span>Registra Presenze e Carico Effettivo</span>
@@ -201,16 +207,45 @@ export const RegistroScreen: React.FC = () => {
                 const d = dataParsed ?? todayISO();
                 const mic = micro.find(m => m.inizio <= d && m.fine >= d) ?? micro[0];
                 const mes = mic ? meso.find(me => me.id === mic.mesocicloId) : null;
-                const volumeMedia = mic && mic.sedutePreviste > 0
-                  ? Math.round(mic.volumeTargetMetri / mic.sedutePreviste)
-                  : 1800;
+                const giorniAllenamento = impostazioni.giorni ?? parametriEffettivi.giorniAllenamento;
+                const parametri = risolviParametriSeduta(d, impostazioni, stagione);
+                const settimana = seduteSettimana(d, giorniAllenamento).map(iso => ({
+                  data: iso,
+                  parametri: risolviParametriSeduta(iso, impostazioni, stagione),
+                }));
+                const assenzeAtleta = atletaSel
+                  ? assenze.filter(a => a.atletaId === atletaSel.id)
+                  : [];
+                const volumeSettimana = mic
+                  ? (atletaSel
+                      ? VolumeIndividuale.settimana(mic, atletaSel, assenzeAtleta).metri
+                      : mic.volumeTargetMetri)
+                  : 1800 * Math.max(1, giorniAllenamento.length);
+                const volumeMedia = calcolaVolumeSessione({
+                  micro: mic,
+                  atleta: atletaSel,
+                  assenze: assenzeAtleta,
+                  condizioni: atletaSel ? condizioni.filter(c => c.atletaId === atletaSel.id && c.attiva) : [],
+                  tempi: atletaSel ? tempi.filter(t => t.atletaId === atletaSel.id) : [],
+                  logSedute: log,
+                  parametri,
+                  durateSettimana: settimana,
+                  volumeSettimanaFallback: volumeSettimana,
+                }).metriSessione;
 
                 setSchedaGiorno(
                   GeneratoreSmartSeduta.genera(
                     d,
                     volumeMedia,
                     mes?.fase ?? 'PREPARAZIONE_SPECIFICA',
-                    mic?.tipo ?? 'CARICO'
+                    mic?.tipo ?? 'CARICO',
+                    atletaSel,
+                    atletaSel ? condizioni.filter(c => c.atletaId === atletaSel.id && c.attiva) : [],
+                    atletaSel ? tempi.filter(t => t.atletaId === atletaSel.id) : [],
+                    log,
+                    mes,
+                    giorniAllenamento,
+                    parametri
                   )
                 );
               }}
@@ -228,7 +263,7 @@ export const RegistroScreen: React.FC = () => {
           </div>
 
           {/* Athletes checklist */}
-          <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-4 shadow-card space-y-2.5">
+          <div className="ds-card p-4 shadow-card space-y-2.5">
             <div className="flex items-center justify-between text-xs font-bold text-on-surface-variant uppercase tracking-wider pb-2 border-b border-slate-200/70">
               <span>Atleta</span>
               <div className="flex gap-16 mr-3">
@@ -321,7 +356,7 @@ export const RegistroScreen: React.FC = () => {
             <button
               onClick={handleSalvaSeduta}
               disabled={!dataParsed || isNaN(durataInt) || durataInt <= 0}
-              className="w-full mt-3 h-12.5 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-bold rounded-xl text-xs transition shadow-card"
+              className="w-full mt-3 h-12 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-bold rounded-xl text-xs transition shadow-card"
             >
               {giaRegistrata ? 'Aggiorna Seduta nel Registro' : 'Salva Seduta nel Registro'}
             </button>
@@ -333,7 +368,7 @@ export const RegistroScreen: React.FC = () => {
       {sezione === 'tempi' && atletaSel && (
         <div className="space-y-4">
           {/* Athlete Selector */}
-          <div className="p-3 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card flex items-center gap-2 overflow-x-auto">
+          <div className="p-3 ds-card shadow-card flex items-center gap-2 overflow-x-auto">
             <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider shrink-0 pl-1">
               Atleta:
             </span>
@@ -368,7 +403,7 @@ export const RegistroScreen: React.FC = () => {
       {sezione === 'storico' && atletaSel && (
         <div className="space-y-4">
           {/* Athlete Selector */}
-          <div className="p-3 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card flex items-center gap-2 overflow-x-auto">
+          <div className="p-3 ds-card shadow-card flex items-center gap-2 overflow-x-auto">
             <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider shrink-0 pl-1">
               Atleta:
             </span>
@@ -460,7 +495,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
   return (
     <div className="space-y-4">
       {/* Add Form */}
-      <div className="p-4 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card space-y-3">
+      <div className="p-4 ds-card shadow-card space-y-3">
         <h3 className="font-bold text-on-surface text-sm flex items-center gap-2">
           <Plus size={16} className="text-primary-container" />
           <span>Nuovo Tempo · {atleta.nome} {atleta.cognome}</span>
@@ -564,7 +599,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
       </div>
 
       {/* Official PB */}
-      <div className="p-4 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card space-y-3">
+      <div className="p-4 ds-card shadow-card space-y-3">
         <h4 className="font-bold text-on-surface text-xs uppercase tracking-wider flex items-center gap-1.5">
           <Award size={16} className="text-tertiary-container" />
           <span>Primati Personali Ufficiali (Gara)</span>
@@ -583,7 +618,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
                   <span className="font-bold text-on-surface block">
                     {p.stile.replace('_', ' ')} {p.distanzaMetri} m (vasca {p.vascaMetri}m)
                   </span>
-                  <span className="text-[10px] text-on-surface-variant">{formattaData(p.data)}</span>
+                  <span className="text-[11px] text-on-surface-variant">{formattaData(p.data)}</span>
                 </div>
                 <span className="font-bold text-primary-container text-sm">
                   {formattaTempo(p.centesimi)}
@@ -595,7 +630,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
       </div>
 
       {/* Time records list */}
-      <div className="p-4 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card space-y-2">
+      <div className="p-4 ds-card shadow-card space-y-2">
         <h4 className="font-bold text-on-surface text-xs uppercase tracking-wider">
           Storico Tempi ({tempi.length})
         </h4>
@@ -616,7 +651,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
                     </span>
                     <span className="font-bold text-primary-container">{formattaTempo(t.centesimi)}</span>
                   </div>
-                  <div className="text-[10px] text-on-surface-variant">
+                  <div className="text-[11px] text-on-surface-variant">
                     {formattaData(t.data)} · {t.contesto.toLowerCase()} · vasca {t.vascaMetri}m
                     {t.note && ` · ${t.note}`}
                   </div>
@@ -667,7 +702,7 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
   return (
     <div className="space-y-4">
       {/* ACWR Monitor Card */}
-      <div className="p-4 sm:p-5 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card space-y-3">
+      <div className="p-4 sm:p-5 ds-card shadow-card space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-on-surface text-sm flex items-center gap-2">
             <HeartPulse size={18} className="text-error" />
@@ -702,7 +737,7 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
 
         {/* Visual ACWR Sweet Spot Gauge */}
         <div className="pt-2 border-t border-slate-200/70 space-y-1.5">
-          <div className="flex justify-between items-center text-[10px] font-bold text-on-surface-variant">
+          <div className="flex flex-wrap justify-between items-center gap-x-2 gap-y-0.5 text-[11px] font-bold text-on-surface-variant">
             <span>&lt;0.8 Sotto-carico</span>
             <span className="text-primary">0.8 - 1.3 Sweet Spot (Sicuro)</span>
             <span className="text-tertiary">1.3 - 1.5 Attenzione</span>
@@ -723,7 +758,7 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
               }}
             >
               <div className="w-2.5 h-2.5 bg-slate-900 rotate-45 rounded-xs" />
-              <span className="text-[9px] font-bold text-on-surface mt-0.5 whitespace-nowrap">
+              <span className="text-[11px] font-bold text-on-surface mt-0.5 whitespace-nowrap">
                 ▲ {acwr.acwrRapporto.toFixed(2)}
               </span>
             </div>
@@ -732,7 +767,7 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
       </div>
 
       {/* Attendance Metrics */}
-      <div className="p-4 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card flex items-center justify-between text-xs">
+      <div className="p-4 ds-card shadow-card flex items-center justify-between text-xs">
         <span className="font-semibold text-on-surface">
           Presenze Totali: <strong>{presentiCount}</strong> su {log.length} sedute registrate
         </span>

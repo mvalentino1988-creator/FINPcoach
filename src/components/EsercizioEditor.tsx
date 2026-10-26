@@ -103,7 +103,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
   const metriTotali = GestioneTemplate.calcolaMetriTotali(esercizi);
 
   return (
-    <div className="bg-surface-container-lowest rounded-xl p-4 shadow-card border border-slate-200/70">
+    <div className="ds-card p-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-bold text-on-surface flex items-center gap-2">
           <Edit2 size={18} className="text-primary-container" />
@@ -304,7 +304,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
                   type="text"
                   value={es.descrizione || ''}
                   onChange={(e) => modificaEsercizio(es.id, 'descrizione', e.target.value)}
-                  placeholder="es. 3 bracciate forti"
+                  placeholder="es. 3 movimenti forti"
                   className="w-full px-2 h-12 text-sm border border-outline-variant rounded focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>

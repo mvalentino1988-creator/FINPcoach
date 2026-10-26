@@ -90,7 +90,7 @@ export class FINPSpecialistAI {
       } else if (media) {
         riassunto = 'Paraplegia Dorsale / Toracica: assenza di spinta dagli arti inferiori con controllo parziale del tronco superiore.';
         fattori.push('Assetto: galleggiamento arti inferiori passivo, necessita di rollio controllato del tronco.');
-        fattori.push('Propulsione: bracciata efficiente con buona stabilità della cintura scapolare.');
+        fattori.push('Propulsione: movimento efficiente con buona stabilità della cintura scapolare.');
         stima = { classeS: 4, classeSB: 3, classeSM: 4, motivazione: 'Paraplegia dorsale con assenza di gambata e controllo parziale del tronco.', eleggibile: true, affidabilita: aff };
       } else {
         riassunto = 'Paraplegia Lombare / Spina Bifida: stabilità del tronco conservata, assenza o marcata ipotrofia della gambata.';
@@ -110,7 +110,7 @@ export class FINPSpecialistAI {
       if (severa) {
         riassunto = 'Compromissione Neuromotoria Severa: ipertonia/spasticità quadridistrettuale con alterazione coordinativa globale.';
         fattori.push('Asimmetria propulsiva: deviazione della traiettoria di nuotata.');
-        fattori.push("Frequenza di bracciata: svincolo dell'arto affetto rallentato dalla rigidità muscolare.");
+        fattori.push("Frequenza di movimento: svincolo dell'arto affetto rallentato dalla rigidità muscolare.");
         stima = { classeS: 3, classeSB: 2, classeSM: 3, motivazione: 'Compromissione neuromotoria estesa a quattro arti.', eleggibile: true, affidabilita: 'Media' };
       } else if (moderata) {
         riassunto = 'Emiparesi / Diplegia Spastica: asimmetria nella forza tra lato sano e lato affetto, ipertono muscolare accentuato dalla fatica.';
@@ -135,7 +135,7 @@ export class FINPSpecialistAI {
 
       if (nanismo) {
         riassunto = 'Acondroplasia / Riduzione della Statura: proporzioni corporee ridotte con normale forza muscolare relativa.';
-        fattori.push('Frequenza di bracciata: necessità di una frequenza di passo elevata per compensare la minore ampiezza.');
+        fattori.push('Frequenza di passo: necessità di una frequenza elevata per compensare la minore ampiezza.');
         fattori.push('Resistenza idrodinamica: ottima posizione orizzontale in acqua.');
         stima = { classeS: 6, classeSB: 5, classeSM: 6, motivazione: 'Acondroplasia / statura ridotta secondo i criteri di misurazione WPS.', eleggibile: true, affidabilita: 'Media' };
       } else if (menomazione && braccio && gamba) {
@@ -152,7 +152,7 @@ export class FINPSpecialistAI {
         stima = { classeS: 9, classeSB: 8, classeSM: 9, motivazione: 'Amputazione transfemorale o transtibiale di un arto inferiore.', eleggibile: true, affidabilita: 'Media' };
       } else {
         riassunto = 'Limitazione Articolare / Posturale: ridotta mobilità o forza su uno o più distretti articolari.';
-        fattori.push('Ampiezza di bracciata: adattata per evitare sovraccarichi o dolore articolare.');
+        fattori.push('Ampiezza di movimento: adattata per evitare sovraccarichi o dolore articolare.');
         stima = {
           classeS: 10,
           classeSB: 9,
@@ -178,7 +178,7 @@ export class FINPSpecialistAI {
         fattori.push('Orientamento: percezione delle linee sul fondo e dei blocchi di partenza.');
         stima = { classeS: 12, classeSB: 12, classeSM: 12, motivazione: 'Ipovedente con residuo visivo limitato (S12 o S13: serve la valutazione).', eleggibile: true, affidabilita: 'Bassa' };
       }
-      raccomandazioni.push('Mantenere costante il conteggio delle bracciate per vasca per perfezionare il tempo della virata.');
+      raccomandazioni.push('Mantenere costante il ritmo per vasca per perfezionare il tempo della virata.');
     } else if (
       x.pref('intellet', 'cognitiv', 'autis', 'relazional', 'ritard') ||
       x.parola('down', 's14')

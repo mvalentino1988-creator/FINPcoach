@@ -7,11 +7,14 @@ import { ClassiSportive } from '../domain/classiSportive';
 import { FINPSpecialistAI } from '../domain/finpAnalisiMedica';
 import { VolumeIndividuale } from '../domain/volumeIndividuale';
 import { GeneratoreSmartSeduta } from '../domain/generatoreSmartSeduta';
+import { calcolaVolumeSessione } from '../domain/volumePrescritto';
+import { risolviParametriSeduta, seduteSettimana } from '../domain/parametriSeduta';
 import { CalcoloRitmiRipartenze } from '../domain/calcoloRitmiRipartenze';
 import { formattaTempo, parseTempo } from '../domain/tempoUtils';
 import { ElencoAvvisi } from './ElencoAvvisi';
 import { SchedaSedutaModal } from './SchedaSedutaModal';
 import { Sezione } from './Sezione';
+import { PageHeader } from './PageHeader';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { AtletaBiomeccanicaView } from './AtletaBiomeccanicaView';
 import { GareAmmissibiliCard } from './GareAmmissibiliCard';
@@ -48,6 +51,8 @@ export const AtletiScreen: React.FC = () => {
     micro,
     meso,
     parametriEffettivi,
+    stagione,
+    impostazioni,
     aggiungiAtleta,
     aggiornaAtleta,
     eliminaAtleta,
@@ -99,40 +104,42 @@ export const AtletiScreen: React.FC = () => {
   });
 
   return (
-    <div className="space-y-4 relative">
-      {/* Top Action */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h2 className="ds-subtitle">Atleti Squadra FINP</h2>
-          <p className="ds-body">
-            {atleti.length} {atleti.length === 1 ? 'atleta registrato' : 'atleti registrati'} · Classificazione World Para Swimming
-          </p>
-        </div>
-        <button
-          onClick={() => setNuovoOpen(true)}
-          className="ds-btn-primary !px-3.5 shrink-0"
-        >
-          <UserPlus size={18} />
-          <span>Nuovo Atleta</span>
-        </button>
+    <div className="flex flex-1 min-h-0 flex-col gap-2 overflow-hidden">
+      {/* Intestazione pagina — stile dashboard */}
+      <div className="shrink-0">
+        <PageHeader
+          label="Squadra FINP"
+          title="Atleti"
+          icon={<User size={13} />}
+          meta={`${atleti.length} ${atleti.length === 1 ? 'atleta registrato' : 'atleti registrati'} · Classificazione World Para Swimming`}
+          right={
+            <button
+              onClick={() => setNuovoOpen(true)}
+              className="ds-btn-primary !min-h-[40px] !px-3 shrink-0"
+            >
+              <UserPlus size={16} />
+              <span className="hidden xs:inline">Nuovo</span>
+            </button>
+          }
+        />
       </div>
 
       {/* Search & Class Category Filters */}
       {atleti.length > 0 && (
-        <div className="ds-card p-3 space-y-2.5">
+        <div className="shrink-0 ds-card p-2 space-y-1.5">
           <div className="relative">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
             <input
               type="text"
               placeholder="Cerca per cognome o nome..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-3 h-12 bg-surface-container-low border border-slate-200/70 rounded-lg text-sm placeholder:text-on-surface-variant focus:bg-surface-container-lowest focus:border-primary-container transition"
+              className="w-full pl-9 pr-3 h-9 bg-surface-container-low border border-slate-200/70 rounded-lg text-xs sm:text-sm placeholder:text-on-surface-variant focus:bg-surface-container-lowest focus:border-primary-container transition"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="ds-label mr-1">Filtra:</span>
+            <span className="ds-label mr-1 text-[11px]">Filtra:</span>
             {[
               { id: 'ALL', label: 'Tutti' },
               { id: 'S1-S6', label: 'Fisici S1-S6' },
@@ -143,7 +150,7 @@ export const AtletiScreen: React.FC = () => {
               <button
                 key={f.id}
                 onClick={() => setCategoriaFiltro(f.id as any)}
-                className={`min-h-[40px] px-2.5 rounded-full text-label-md font-label-md transition ${
+                className={`min-h-[36px] px-2.5 rounded-full text-xs font-semibold transition ${
                   categoriaFiltro === f.id
                     ? 'bg-primary-container text-on-primary shadow-card'
                     : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
@@ -156,7 +163,9 @@ export const AtletiScreen: React.FC = () => {
         </div>
       )}
 
-      {atleti.length === 0 && (
+      {/* Area elenco scrollabile internamente per bloccare lo scroll di pagina */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        {atleti.length === 0 && (
         <div className="p-8 text-center bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant">
           <User size={36} className="mx-auto text-outline mb-2" />
           <h3 className="font-bold text-on-surface">Nessun atleta inserito</h3>
@@ -167,7 +176,7 @@ export const AtletiScreen: React.FC = () => {
       )}
 
       {atleti.length > 0 && atletiFiltrati.length === 0 && (
-        <div className="p-6 text-center bg-surface-container-lowest rounded-xl border border-slate-200/70">
+        <div className="p-6 text-center ds-card">
           <p className="text-xs text-on-surface-variant">Nessun atleta corrisponde ai filtri di ricerca impostati.</p>
         </div>
       )}
@@ -184,7 +193,7 @@ export const AtletiScreen: React.FC = () => {
       )}
 
       {/* Athletes List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
         {atletiFiltrati.map(a => {
           const mieCondizioni = condizioni.filter(c => c.atletaId === a.id);
           const mieAssenze = assenze.filter(ass => ass.atletaId === a.id);
@@ -200,16 +209,25 @@ export const AtletiScreen: React.FC = () => {
           const formCheck = CalcoloRitmiRipartenze.valutaNecessitaFormCheck(a, mieiTempi, mesoCorrente);
 
           return (
-            <div
-              key={a.id}
-              onClick={() => setSelezionatoId(a.id)}
-              className="bg-surface-container-lowest hover:bg-surface-container-low border border-slate-200/90 rounded-xl p-4 sm:p-5 transition shadow-card cursor-pointer flex flex-col justify-between gap-3 group"
-            >
+        <div
+          key={a.id}
+          role="button"
+          tabIndex={0}
+          aria-label={`Apri scheda di ${a.nome} ${a.cognome}`}
+          onClick={() => setSelezionatoId(a.id)}
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setSelezionatoId(a.id);
+            }
+          }}
+          className="bg-surface-container-lowest hover:bg-surface-container-low border border-slate-200/90 rounded-xl p-3 sm:p-4 transition shadow-card cursor-pointer flex flex-col justify-between gap-2 group"
+        >
               {/* Header row: Avatar, Name, Status, Badges */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="relative shrink-0">
-                    <div className="w-12 h-12 rounded-lg bg-primary-container text-on-primary flex items-center justify-center font-headline-sm text-headline-sm shadow-card">
+                    <div className="w-10 h-10 rounded-lg bg-primary-container text-on-primary flex items-center justify-center font-label-md text-label-md shadow-card">
                       {a.nome?.[0] || 'A'}{a.cognome?.[0] || 'T'}
                     </div>
                     {a.stato === 'UFFICIALE' && (
@@ -221,14 +239,14 @@ export const AtletiScreen: React.FC = () => {
 
                   <div className="flex flex-col min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="ds-title truncate">
+                      <h3 className="ds-title leading-tight">
                         {a.cognome} {a.nome}
                       </h3>
                       <span className="ds-chip !normal-case">
                         {a.stato === 'UFFICIALE' ? 'Nazionale A' : 'In Attesa'}
                       </span>
                     </div>
-                    <p className="text-body-base font-body-base text-on-surface-variant truncate mt-0.5">
+                    <p className="text-body-base font-body-base text-on-surface-variant leading-snug mt-0.5">
                       {eta != null ? `${eta} Anni · ` : ''}Fed. FINP / World Para Swimming
                     </p>
                   </div>
@@ -270,10 +288,10 @@ export const AtletiScreen: React.FC = () => {
               <div className="flex items-center gap-2 pt-1 border-t border-slate-200/70">
                 <button
                   type="button"
-                  className="flex-1 min-h-[48px] flex items-center justify-center gap-1.5 bg-primary-container hover:bg-primary text-on-primary rounded-xl text-xs font-bold transition shadow-card active:scale-[0.98]"
+                  className="flex-1 min-h-[40px] flex items-center justify-center gap-1 bg-primary-container hover:bg-primary text-on-primary rounded-xl text-xs font-bold transition shadow-card active:scale-[0.98]"
                 >
                   <User size={15} />
-                  <span>Scheda Biomeccanica</span>
+                  <span className="text-[11px]">Biomeccanica</span>
                 </button>
                 <button
                   type="button"
@@ -281,15 +299,16 @@ export const AtletiScreen: React.FC = () => {
                     e.stopPropagation();
                     setSelezionatoId(a.id);
                   }}
-                  className="min-h-[48px] px-4 flex items-center justify-center gap-1 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-xl text-xs font-bold transition"
+                  className="min-h-[40px] px-3 flex items-center justify-center gap-1 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-xl text-xs font-bold transition"
                 >
                   <Timer size={15} className="text-secondary" />
-                  <span>Tempi</span>
+                  <span className="text-[11px]">Tempi</span>
                 </button>
               </div>
             </div>
           );
         })}
+        </div>
       </div>
 
       {/* Modal Nuovo Atleta */}
@@ -327,6 +346,8 @@ export const AtletiScreen: React.FC = () => {
           onAggiungiTempo={aggiungiTempo}
           onEliminaTempo={eliminaTempo}
           parametriEffettivi={parametriEffettivi}
+          stagione={stagione}
+          impostazioni={impostazioni}
         />
       )}
     </div>
@@ -395,12 +416,12 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-surface-container-lowest rounded-xl shadow-float max-w-lg w-full p-6 border border-slate-200/70 max-h-[92vh] overflow-y-auto">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-200/70">
-          <h3 className="font-bold text-on-surface text-lg">
+      <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl shadow-float max-w-lg w-full p-4 sm:p-6 border border-slate-200/70 max-h-[92dvh] overflow-y-auto">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/70 gap-2">
+          <h3 className="font-bold text-on-surface text-lg truncate">
             {iniziale ? 'Modifica Atleta' : 'Nuovo Atleta'}
           </h3>
-          <button onClick={onAnnulla} className="p-1 text-on-surface-variant hover:text-on-surface-variant rounded-lg">
+          <button onClick={onAnnulla} aria-label="Annulla" className="p-2 -mr-2 text-on-surface-variant hover:text-on-surface-variant rounded-lg shrink-0">
             <X size={20} />
           </button>
         </div>
@@ -444,29 +465,29 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
 
           <div>
             <label className="block text-xs font-semibold text-on-surface-variant mb-1">
-              Classi FINP / World Para Swimming (S, SB, SM)
+              Classi FINP / World Para Swimming (S, SB, SM) — SB = senza i 10m
             </label>
             <div className="grid grid-cols-3 gap-2">
               <input
                 type="number"
-                placeholder="Classe S"
+                placeholder="S"
                 value={s}
                 onChange={e => setS(e.target.value)}
-                className="px-3 h-12 border rounded-xl border-outline-variant text-center"
+                className="w-full px-2 h-12 border rounded-xl border-outline-variant text-center"
               />
               <input
                 type="number"
-                placeholder="SB (no 10)"
+                placeholder="SB"
                 value={sb}
                 onChange={e => setSb(e.target.value)}
-                className="px-3 h-12 border rounded-xl border-outline-variant text-center"
+                className="w-full px-2 h-12 border rounded-xl border-outline-variant text-center"
               />
               <input
                 type="number"
-                placeholder="Classe SM"
+                placeholder="SM"
                 value={sm}
                 onChange={e => setSm(e.target.value)}
-                className="px-3 h-12 border rounded-xl border-outline-variant text-center"
+                className="w-full px-2 h-12 border rounded-xl border-outline-variant text-center"
               />
             </div>
             {errori.map((err, i) => (
@@ -570,6 +591,8 @@ interface ModalDettaglioProps {
   onAggiungiTempo: (t: Omit<Tempo, 'id'>) => void;
   onEliminaTempo: (id: number) => void;
   parametriEffettivi: any;
+  stagione: any;
+  impostazioni: any;
 }
 
 const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
@@ -589,7 +612,9 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
   onEliminaAssenza,
   onAggiungiTempo,
   onEliminaTempo,
-  parametriEffettivi
+  parametriEffettivi,
+  stagione,
+  impostazioni
 }) => {
   const [modificaOpen, setModificaOpen] = useState(false);
   const [schedaSmart, setSchedaSmart] = useState<SchedaSeduta | null>(null);
@@ -616,9 +641,25 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
     const microCorrente = micro.find((m: any) => !isBefore(oggi, m.inizio) && !isBefore(m.fine, oggi)) ?? micro[0];
     const mesoCorrente = microCorrente ? meso.find((me: any) => me.id === microCorrente.mesocicloId) : null;
 
+    const giorniAllenamento = parametriEffettivi.giorniAllenamento;
+    const parametri = risolviParametriSeduta(oggi, impostazioni, stagione);
+    const settimana = seduteSettimana(oggi, giorniAllenamento).map(iso => ({
+      data: iso,
+      parametri: risolviParametriSeduta(iso, impostazioni, stagione),
+    }));
+
     const volumeSett = microCorrente ? VolumeIndividuale.settimana(microCorrente, atleta, assenze).metri : 1800;
-    const sedute = microCorrente?.sedutePreviste ? Math.max(1, microCorrente.sedutePreviste) : 3;
-    const metriSeduta = Math.round(volumeSett / sedute);
+    const metriSeduta = calcolaVolumeSessione({
+      micro: microCorrente,
+      atleta,
+      assenze,
+      condizioni: condizioni.filter(c => c.atletaId === atleta.id && c.attiva),
+      tempi: tempi.filter(t => t.atletaId === atleta.id),
+      logSedute: log,
+      parametri,
+      durateSettimana: settimana,
+      volumeSettimanaFallback: volumeSett,
+    }).metriSessione;
 
     const s = GeneratoreSmartSeduta.genera(
       oggi,
@@ -630,7 +671,8 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
       tempi,
       log,
       mesoCorrente,
-      parametriEffettivi.giorniAllenamento
+      giorniAllenamento,
+      parametri
     );
 
     setSchedaSmart(s);
@@ -652,9 +694,9 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
       <div className="bg-surface-container-lowest rounded-xl shadow-float max-w-2xl w-full max-h-[92vh] flex flex-col border border-slate-200/70">
         {/* Athlete Top Bio Capsule - Stitch Aquatic Design System */}
         <div className="p-4 sm:p-5 border-b border-slate-200/70 flex flex-col gap-3 shrink-0 bg-surface-container-low rounded-t-2xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="relative">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="relative shrink-0">
                 <div className="w-12 h-12 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold text-base shadow-card ring-2 ring-primary/20">
                   {atleta.nome?.[0] || 'A'}{atleta.cognome?.[0] || 'T'}
                 </div>
@@ -662,50 +704,50 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                   <Check size={12} className="stroke-[3]" />
                 </div>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="font-bold text-on-surface text-lg sm:text-xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="font-bold text-on-surface text-lg sm:text-xl leading-tight max-w-full" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                     {atleta.cognome} {atleta.nome}
                   </h2>
                   {eta != null && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed uppercase">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed uppercase shrink-0">
                       {eta} Anni
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-on-surface-variant font-medium mt-0.5">
+                <div className="text-xs text-on-surface-variant font-medium mt-0.5 leading-snug">
                   Fed. FINP / World Para Swimming · Squadra Nazionale
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 shrink-0">
               <button
                 type="button"
                 onClick={() => setModificaOpen(true)}
-                className="p-2 text-primary-container hover:bg-surface-container rounded-xl transition"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center text-primary-container hover:bg-surface-container rounded-xl transition"
                 title="Modifica anagrafica"
               >
                 <Edit2 size={16} />
               </button>
-              <button onClick={onChiudi} className="p-2 text-on-surface-variant hover:text-on-surface-variant rounded-xl transition">
+              <button onClick={onChiudi} aria-label="Chiudi dettaglio atleta" className="min-w-[44px] min-h-[44px] flex items-center justify-center text-on-surface-variant hover:text-on-surface-variant rounded-xl transition">
                 <X size={20} />
               </button>
             </div>
           </div>
 
           {/* Paralympic Passport & Class Badges */}
-          <div className="flex items-center justify-between bg-surface-container-lowest rounded-xl p-2.5 border border-slate-200/80">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold bg-on-primary-fixed text-primary-fixed px-2.5 py-1 rounded-md uppercase tracking-wider">
+          <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 bg-surface-container-lowest rounded-xl p-2.5 border border-slate-200/80">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-xs font-bold bg-on-primary-fixed text-primary-fixed px-2.5 py-1 rounded-md uppercase tracking-wider shrink-0">
                 {atleta.classeS != null ? `S${atleta.classeS}` : 'S-'}
                 {atleta.classeSB != null ? ` · SB${atleta.classeSB}` : ''}
                 {atleta.classeSM != null ? ` · SM${atleta.classeSM}` : ''}
               </span>
-              <span className="text-xs text-on-surface-variant font-semibold hidden sm:inline">
+              <span className="text-xs text-on-surface-variant font-semibold leading-snug">
                 Passaporto Ufficiale FINP / WPS
               </span>
             </div>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase self-start xs:self-auto shrink-0 ${
               atleta.stato === 'UFFICIALE'
                 ? 'bg-primary-fixed text-primary'
                 : 'bg-tertiary-fixed text-on-tertiary-fixed'
@@ -719,44 +761,44 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
             <button
               type="button"
               onClick={() => setTabDettaglio('biomeccanica')}
-              className={`py-2 px-1 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+              className={`min-h-[44px] py-2 px-1 rounded-lg text-[11px] xs:text-xs font-bold leading-tight transition flex items-center justify-center gap-1.5 ${
                 tabDettaglio === 'biomeccanica'
                   ? 'bg-surface-container-lowest text-primary-container shadow-card'
                   : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
-              <Sliders size={14} />
-              <span className="truncate">Biomeccanica</span>
+              <span className="shrink-0 hidden xs:inline-flex"><Sliders size={14} /></span>
+              <span>Biomeccanica</span>
             </button>
             <button
               type="button"
               onClick={() => setTabDettaglio('progressione')}
-              className={`py-2 px-1 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+              className={`min-h-[44px] py-2 px-1 rounded-lg text-[11px] xs:text-xs font-bold leading-tight transition flex items-center justify-center gap-1.5 ${
                 tabDettaglio === 'progressione'
                   ? 'bg-surface-container-lowest text-primary-container shadow-card'
                   : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
-              <Timer size={14} />
-              <span className="truncate">Progressione</span>
+              <span className="shrink-0 hidden xs:inline-flex"><Timer size={14} /></span>
+              <span>Progressione</span>
             </button>
             <button
               type="button"
               onClick={() => setTabDettaglio('certificati')}
-              className={`py-2 px-1 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+              className={`min-h-[44px] py-2 px-1 rounded-lg text-[11px] xs:text-xs font-bold leading-tight transition flex items-center justify-center gap-1.5 ${
                 tabDettaglio === 'certificati'
                   ? 'bg-surface-container-lowest text-primary-container shadow-card'
                   : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
-              <HeartPulse size={14} />
-              <span className="truncate">Certificati</span>
+              <span className="shrink-0 hidden xs:inline-flex"><HeartPulse size={14} /></span>
+              <span>Certificati</span>
             </button>
           </div>
         </div>
 
         {/* Scrollable Body per Tab */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-sm">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-sm flex-1 min-h-0">
           {avvisi.length > 0 && <ElencoAvvisi avvisi={avvisi} />}
 
           {/* TAB 1: BIOMECCANICA & WPS */}
@@ -816,7 +858,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => applicaClassiStimate(analisi.stimaClassi)}
-                                  className="mt-1 px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-on-primary rounded-md text-[11px] font-bold transition"
+                                  className="mt-1 px-2.5 py-1 bg-tertiary-container hover:brightness-95 text-on-tertiary rounded-md text-[11px] font-bold transition"
                                 >
                                   Applica classi stimate provvisorie
                                 </button>
@@ -869,7 +911,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                       <div key={m.id} className="p-2.5 bg-surface-container-low border border-slate-200/70 rounded-xl text-center">
                         <div className="text-[11px] text-on-surface-variant font-medium">{formattaData(m.inizio)}</div>
                         <div className="text-sm font-bold text-primary-container">{v.metri} m</div>
-                        <div className="text-[10px] text-on-surface-variant capitalize">{m.tipo.toLowerCase()}</div>
+                        <div className="text-[11px] text-on-surface-variant capitalize">{m.tipo.toLowerCase()}</div>
                       </div>
                     );
                   })}
@@ -895,15 +937,16 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                   key={c.id}
                   className="p-3 bg-surface-container-low border border-slate-200/70 rounded-xl flex items-center justify-between gap-3 text-xs"
                 >
-                  <div>
-                    <span className="font-bold text-on-surface block">{c.descrizione}</span>
+                  <div className="min-w-0">
+                    <span className="font-bold text-on-surface block break-words">{c.descrizione}</span>
                     {c.limitazioni && (
-                      <span className="text-on-surface-variant block mt-0.5">Limitazioni: {c.limitazioni}</span>
+                      <span className="text-on-surface-variant block mt-0.5 break-words">Limitazioni: {c.limitazioni}</span>
                     )}
                   </div>
                   <button
                     onClick={() => onEliminaCondizione(c.id)}
-                    className="p-1.5 text-on-surface-variant hover:text-error rounded-lg hover:bg-surface-container transition"
+                    aria-label="Elimina condizione"
+                    className="p-1.5 text-on-surface-variant hover:text-error rounded-lg hover:bg-surface-container transition shrink-0"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -962,15 +1005,16 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                   key={a.id}
                   className="p-3 bg-surface-container-low border border-slate-200/70 rounded-xl flex items-center justify-between gap-3 text-xs"
                 >
-                  <div>
+                  <div className="min-w-0">
                     <span className="font-bold text-on-surface">
                       {formattaData(a.dal)} – {formattaData(a.al)}
                     </span>
-                    {a.motivo && <span className="text-on-surface-variant ml-2">({a.motivo})</span>}
+                    {a.motivo && <span className="text-on-surface-variant ml-2 break-words">({a.motivo})</span>}
                   </div>
                   <button
                     onClick={() => onEliminaAssenza(a.id)}
-                    className="p-1.5 text-on-surface-variant hover:text-error rounded-lg"
+                    aria-label="Elimina assenza"
+                    className="p-1.5 text-on-surface-variant hover:text-error rounded-lg shrink-0"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -979,20 +1023,20 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
 
               {/* Add Absence Form */}
               <div className="p-3 bg-surface-container-low rounded-xl border border-dashed border-outline-variant space-y-2 text-xs">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
                   <input
                     type="text"
                     placeholder="Dal (gg/mm/aaaa)"
                     value={assDal}
                     onChange={e => setAssDal(e.target.value)}
-                    className="h-12 px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg"
+                    className="w-full h-12 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg"
                   />
                   <input
                     type="text"
                     placeholder="Al (gg/mm/aaaa)"
                     value={assAl}
                     onChange={e => setAssAl(e.target.value)}
-                    className="h-12 px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg"
+                    className="w-full h-12 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg"
                   />
                 </div>
                 <input
@@ -1018,7 +1062,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                       setAssMotivo('');
                     }
                   }}
-                  className="w-full h-12 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-on-primary rounded-lg font-bold transition"
+                  className="w-full h-12 bg-tertiary-container hover:brightness-95 disabled:opacity-50 text-on-tertiary rounded-lg font-bold transition"
                 >
                   Registra Assenza
                 </button>
@@ -1054,7 +1098,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
 
           <button
             onClick={onChiudi}
-            className="px-5 h-12 bg-slate-800 hover:bg-slate-900 text-on-primary font-bold rounded-xl text-xs transition"
+            className="px-5 h-12 bg-inverse-surface hover:brightness-110 text-inverse-on-surface font-bold rounded-xl text-xs transition"
           >
             Chiudi
           </button>
@@ -1139,42 +1183,43 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-surface-container-lowest rounded-xl shadow-float max-w-lg w-full p-5 border border-slate-200/70 max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-200/70">
-          <h3 className="font-bold text-on-surface text-base">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-xs">
+      <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl shadow-float max-w-lg w-full p-4 sm:p-5 border border-slate-200/70 max-h-[92dvh] flex flex-col">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/70 gap-2 shrink-0">
+          <h3 className="font-bold text-on-surface text-base truncate">
             Tempi di {atleta.nome} {atleta.cognome} ⏱️
           </h3>
-          <button onClick={onChiudi} className="p-1 text-on-surface-variant hover:text-on-surface-variant rounded-lg">
+          <button onClick={onChiudi} aria-label="Chiudi" className="p-2 -mr-2 text-on-surface-variant hover:text-on-surface-variant rounded-lg shrink-0">
             <X size={18} />
           </button>
         </div>
 
-        <div className="py-3 overflow-y-auto space-y-4 text-xs">
+        <div className="py-3 overflow-y-auto space-y-4 text-xs flex-1 min-h-0">
           {/* Add form */}
           <form onSubmit={handleAdd} className="p-3 bg-surface-container-low border border-slate-200/70 rounded-xl space-y-2.5">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
               <input
                 type="text"
                 placeholder="Data (gg/mm/aaaa)"
                 value={dataTesto}
                 onChange={e => setDataTesto(e.target.value)}
-                className="px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
+                className="w-full px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
               />
               <input
                 type="number"
                 placeholder="Distanza metri"
                 value={distanza}
                 onChange={e => setDistanza(e.target.value)}
-                className="px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
+                className="w-full px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
               <select
                 value={stile}
                 onChange={e => setStile(e.target.value)}
-                className="px-2 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
+                aria-label="Stile"
+                className="w-full min-w-0 px-2 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
               >
                 <option value="STILE_LIBERO">Stile libero</option>
                 <option value="DORSO">Dorso</option>
@@ -1186,7 +1231,8 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
               <select
                 value={contesto}
                 onChange={e => setContesto(e.target.value)}
-                className="px-2 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
+                aria-label="Contesto"
+                className="w-full min-w-0 px-2 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
               >
                 <option value="GARA">Gara ufficiale</option>
                 <option value="ALLENAMENTO">Allenamento</option>
@@ -1225,7 +1271,7 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
                     <span className="font-bold text-on-surface">
                       {t.stile.replace('_', ' ')} {t.distanzaMetri}m: {formattaTempo(t.centesimi)}
                     </span>
-                    <span className="text-[10px] text-on-surface-variant block">
+                    <span className="text-[11px] text-on-surface-variant block">
                       {formattaData(t.data)} · {t.contesto.toLowerCase()}
                       {t.note && ` · ${t.note}`}
                     </span>

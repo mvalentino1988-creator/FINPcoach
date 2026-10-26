@@ -23,22 +23,23 @@ export const OcrPreviewModal: React.FC<Props> = ({ isOpen, initialText, onConfir
   const serieParsed = ParserScheda.parseSerie(text);
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-xs">
-      <div className="bg-surface-container-lowest rounded-xl p-6 max-w-lg w-full shadow-float space-y-4 border border-slate-200/70">
-        <div className="flex items-center justify-between border-b border-slate-200/70 pb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-primary-fixed text-primary-container flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 backdrop-blur-xs">
+      <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl p-4 sm:p-6 max-w-lg w-full shadow-float space-y-4 border border-slate-200/70 max-h-[92dvh] overflow-y-auto">
+        <div className="flex items-start justify-between gap-2 border-b border-slate-200/70 pb-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 shrink-0 rounded-xl bg-primary-fixed text-primary-container flex items-center justify-center">
               <Camera size={18} />
             </div>
-            <div>
-              <h3 className="font-bold text-on-surface text-base">Anteprima OCR & Modifica</h3>
+            <div className="min-w-0">
+              <h3 className="font-bold text-on-surface text-base leading-tight">Anteprima OCR & Modifica</h3>
               <p className="text-xs text-on-surface-variant">Verifica e correggi il testo riconosciuto prima di confermare.</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onCancel}
-            className="p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition"
+            aria-label="Chiudi anteprima OCR"
+            className="p-2 -m-1 shrink-0 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition"
           >
             <X size={18} />
           </button>
@@ -75,7 +76,7 @@ export const OcrPreviewModal: React.FC<Props> = ({ isOpen, initialText, onConfir
           <button
             type="button"
             onClick={() => onConfirm(text)}
-            className="flex-1 flex items-center justify-center gap-1.5 px-4 h-12.5 bg-primary-container hover:bg-primary text-on-primary rounded-xl text-sm font-bold transition shadow-card"
+            className="flex-1 flex items-center justify-center gap-1.5 px-4 h-12 bg-primary-container hover:bg-primary text-on-primary rounded-xl text-sm font-bold transition shadow-card"
           >
             <Check size={16} />
             <span>Conferma e Inserisci</span>
@@ -83,7 +84,7 @@ export const OcrPreviewModal: React.FC<Props> = ({ isOpen, initialText, onConfir
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 h-12.5 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl text-sm font-bold transition"
+            className="px-4 h-12 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl text-sm font-bold transition"
           >
             Annulla
           </button>

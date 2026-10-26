@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ClipboardList, Timer, CheckCircle2, Edit2, Save, X, Trash2, Calendar, Users, User, HelpCircle, ChevronLeft, ChevronRight, Layers, Camera, Loader2, RefreshCw } from 'lucide-react';
-import { OcrWeb } from '../domain/ocrWeb';
+import { OCRService } from '../domain/ocrService';
 import { OcrPreviewModal } from './OcrPreviewModal';
+import { RevisioneSchedaModal } from './RevisioneSchedaModal';
 import { SchedeVascaScreen } from './SchedeVascaScreen';
 import { TempiRipartenzeScreen } from './TempiRipartenzeScreen';
 import { RegistroScreen } from './RegistroScreen';
@@ -16,6 +17,7 @@ import { OcrWorkoutStandardizer } from '../domain/ocrWorkoutStandardizer';
 import { Sezione } from './Sezione';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { ParaSwimmingAnalyticsView } from './ParaSwimmingAnalyticsView';
+import { PageHeader } from './PageHeader';
 
 type DatiTab = 'schede' | 'tempi' | 'registro' | 'biomeccanica';
 
@@ -57,6 +59,17 @@ export const DatiScreen: React.FC = () => {
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrModalOpen, setOcrModalOpen] = useState(false);
   const [ocrRawText, setOcrRawText] = useState('');
+  const [ocrModalitaRilevata, setOcrModalitaRilevata] = useState<'scheda' | 'gara' | 'auto'>('auto');
+  // Testo OCR di una gara: viene passato alla scheda Tempi, che gestisce i tempi.
+  const [pendingGaraText, setPendingGaraText] = useState<string | null>(null);
+  const [revisioneOpen, setRevisioneOpen] = useState(false);
+
+  // Riferimento sempre aggiornato alle schede salvate: evita di scrivere su
+  // uno stato obsoleto quando si applica una correzione dal pannello revisione.
+  const customWorkoutsRef = useRef<CustomWorkout[]>([]);
+  useEffect(() => {
+    customWorkoutsRef.current = customWorkouts;
+  }, [customWorkouts]);
 
   // Carica allenamenti salvati
   useEffect(() => {
@@ -150,50 +163,67 @@ export const DatiScreen: React.FC = () => {
   });
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-1 min-h-0 flex-col gap-2 overflow-hidden">
       {pullToRefresh.isPulling && (
-        <div className="flex items-center justify-center py-2 text-xs text-on-surface-variant">
+        <div className="shrink-0 flex items-center justify-center py-1 text-xs text-on-surface-variant">
           <RefreshCw size={16} className={`mr-2 ${pullToRefresh.isRefreshing ? 'animate-spin' : ''}`} />
           {pullToRefresh.isRefreshing ? 'Aggiornamento...' : 'Rilascia per aggiornare'}
         </div>
       )}
-      {/* Selettore Sezione (Menu a tendina) */}
-      <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-3 shadow-card flex items-center justify-between gap-3">
-        <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider shrink-0">
-          Sezione Dati:
-        </span>
-        <select
-          value={tab}
-          onChange={(e) => setTab(e.target.value as DatiTab)}
-          className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface text-xs"
-        >
-          <option value="schede">🏊‍♂️ Schede Vasca</option>
-          <option value="tempi">⏱️ Tempi & Ripartenze</option>
-          <option value="registro">📋 Registro Presenze & Carico</option>
-          <option value="biomeccanica">📈 Analisi Biomeccanica C(v)</option>
-        </select>
-
-        {tab === 'schede' && (
-          <button
-            type="button"
-            onClick={() => setEditMode(!editMode)}
-            className="flex items-center gap-1.5 px-3 min-h-[48px] bg-primary-container hover:bg-primary text-on-primary rounded-xl text-xs font-bold transition shrink-0 shadow-card"
-          >
-            {editMode ? <X size={15} /> : <Edit2 size={15} />}
-            <span>{editMode ? 'Annulla' : 'Scrivi'}</span>
-          </button>
-        )}
+      {/* Intestazione pagina — stile dashboard */}
+      <div className="shrink-0">
+        <PageHeader
+          label="Archivio Allenatore"
+          title="Dati"
+          icon={<ClipboardList size={13} />}
+          meta="Schede vasca, tempi di ripartenza, registro presenze e analisi biomeccanica"
+          right={
+            tab === 'schede' ? (
+              <button
+                type="button"
+                onClick={() => setEditMode(!editMode)}
+                className="ds-btn-primary !min-h-[40px] !px-3 shrink-0"
+              >
+                {editMode ? <X size={16} /> : <Edit2 size={16} />}
+                <span className="hidden xs:inline">{editMode ? 'Annulla' : 'Scrivi'}</span>
+              </button>
+            ) : undefined
+          }
+        />
       </div>
 
-      {/* Editor Allenamento Personalizzato */}
-      {tab === 'schede' && editMode && (
-        <div className="bg-surface-container-lowest rounded-xl p-4 shadow-card border border-slate-200/70">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-on-surface flex items-center gap-2">
-              <Edit2 size={18} className="text-primary-container" />
-              Scrivi l'allenamento
+      {/* Selettore sezione — segmented control stile design system */}
+      <div className="shrink-0 ds-card p-1.5 sm:p-2">
+        <div className="ds-tabs grid-cols-2 sm:grid-cols-4">
+          {[
+            { key: 'schede', label: 'Schede Vasca', icon: <ClipboardList size={16} /> },
+            { key: 'tempi', label: 'Tempi', icon: <Timer size={16} /> },
+            { key: 'registro', label: 'Registro', icon: <CheckCircle2 size={16} /> },
+            { key: 'biomeccanica', label: 'Biomeccanica', icon: <Layers size={16} /> },
+          ].map(t => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setTab(t.key as DatiTab)}
+              className={`ds-tab ${tab === t.key ? 'ds-tab-active' : ''}`}
+            >
+              <span className="hidden xs:inline-flex shrink-0">{t.icon}</span>
+              <span className="truncate">{t.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        {/* Editor Allenamento Personalizzato */}
+        {tab === 'schede' && editMode && (
+        <div className="ds-card p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h3 className="font-bold text-on-surface flex items-center gap-2 min-w-0">
+              <Edit2 size={18} className="text-primary-container shrink-0" />
+              <span className="truncate">Scrivi l'allenamento</span>
             </h3>
-            <div className="flex gap-1">
+            <div className="flex gap-1 shrink-0">
               <button
                 type="button"
                 onClick={() => setModalitaEditor('testuale')}
@@ -278,11 +308,24 @@ export const DatiScreen: React.FC = () => {
                       const file = e.target.files?.[0];
                       if (!file) return;
                       setOcrLoading(true);
-                      const testoOcr = await OcrWeb.riconosciTestoDaImmagine(file);
-                      setOcrLoading(false);
-                      if (testoOcr) {
-                        setOcrRawText(testoOcr);
-                        setOcrModalOpen(true);
+                      try {
+                        const risultato = await OCRService.riconosci(file, 'auto');
+                        setOcrLoading(false);
+                        if (!risultato.testo) return;
+                        setOcrModalitaRilevata(risultato.modalita);
+                        if (risultato.modalita === 'gara') {
+                          // Il testo e' una gara: i tempi si importano dalla scheda Tempi.
+                          setPendingGaraText(risultato.testo);
+                          setTab('tempi');
+                        } else {
+                          setOcrRawText(risultato.testo);
+                          setOcrModalOpen(true);
+                        }
+                      } catch (err) {
+                        setOcrLoading(false);
+                        console.error('Errore OCR:', err);
+                      } finally {
+                        e.target.value = '';
                       }
                     }}
                   />
@@ -295,8 +338,18 @@ export const DatiScreen: React.FC = () => {
                 className="w-full h-48 p-3 border border-outline-variant rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
               {customWorkout && (
-                <div className="text-xs text-on-surface-variant mt-2">
-                  Metri totali calcolati: <strong className="text-primary-container">{ParserScheda.calcolaMetriDaTesto(customWorkout)} m</strong>
+                <div className="text-xs text-on-surface-variant mt-2 flex items-center justify-between gap-2">
+                  <span>
+                    Metri totali calcolati: <strong className="text-primary-container">{ParserScheda.calcolaMetriDaTesto(customWorkout)} m</strong>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setRevisioneOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg bg-surface-container text-on-surface text-xs font-bold"
+                  >
+                    <HelpCircle size={14} />
+                    <span>Revisione e apprendimento</span>
+                  </button>
                 </div>
               )}
               <div className="flex gap-2 mt-3">
@@ -382,7 +435,7 @@ export const DatiScreen: React.FC = () => {
 
       {/* Lista allenamenti salvati */}
       {tab === 'schede' && !editMode && customWorkouts.length > 0 && (
-        <div className="bg-surface-container-lowest rounded-xl p-4 shadow-card border border-slate-200/70">
+        <div className="ds-card p-4">
           <h3 className="font-bold text-on-surface mb-3 flex items-center gap-2 text-sm">
             <Calendar size={16} className="text-primary-container" />
             Allenamenti salvati
@@ -469,8 +522,8 @@ export const DatiScreen: React.FC = () => {
 
       {/* Calendario */}
       {tab === 'schede' && !editMode && vistaSchede === 'calendario' && !selectedWorkout && (
-        <div className="bg-surface-container-lowest rounded-xl p-4 shadow-card border border-slate-200/70">
-          <div className="flex items-center justify-between mb-4">
+        <div className="ds-card p-2 sm:p-4 max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-2 sm:mb-4">
             <button
               type="button"
               onClick={() => {
@@ -479,11 +532,12 @@ export const DatiScreen: React.FC = () => {
                   setCalendarioData(formattaData(addDays(parsed, -7)));
                 }
               }}
-              className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center hover:bg-surface-container rounded-lg transition"
+              aria-label="Settimana precedente"
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-surface-container rounded-lg transition"
             >
               <ChevronLeft size={20} className="text-on-surface-variant" />
             </button>
-            <h3 className="font-bold text-on-surface">
+            <h3 className="font-bold text-on-surface text-xs sm:text-base text-center">
               {calendarioData}
             </h3>
             <button
@@ -494,76 +548,83 @@ export const DatiScreen: React.FC = () => {
                   setCalendarioData(formattaData(addDays(parsed, 7)));
                 }
               }}
-              className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center hover:bg-surface-container rounded-lg transition"
+              aria-label="Settimana successiva"
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-surface-container rounded-lg transition"
             >
               <ChevronRight size={20} className="text-on-surface-variant" />
             </button>
           </div>
-          
-          {/* Grid dei giorni */}
-          <div className="grid grid-cols-7 gap-2 mb-2">
-            {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(giorno => (
-              <div key={giorno} className="text-center text-xs font-semibold text-on-surface-variant h-12">
-                {giorno}
+
+          {/* Sotto i 360px la griglia scorre in orizzontale: le celle restano
+              almeno 44x44px invece di rimpicciolirsi fino a diventare intoccabili. */}
+          <div className="ds-hscroll -mx-1 px-1">
+            <div className="min-w-[320px] sm:min-w-0">
+              <div className="grid grid-cols-7 gap-0.5 sm:gap-2 mb-1 sm:mb-2">
+                {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(giorno => (
+                  <div key={giorno} className="text-center text-[10px] xs:text-[11px] sm:text-xs font-semibold text-on-surface-variant h-5 sm:h-8 truncate">
+                    {giorno}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          
-          <div className="grid grid-cols-7 gap-2">
-            {(() => {
-              const oggi = todayISO();
-              const dataCalendarioISO = parseData(calendarioData);
-              if (!dataCalendarioISO) return null;
-              
-              const dataCalendario = toDateObj(dataCalendarioISO);
-              const giorni: JSX.Element[] = [];
-              
-              // Trova il primo lunedì del mese
-              const primoGiorno = new Date(dataCalendario.getFullYear(), dataCalendario.getMonth(), 1);
-              const giornoSettimana = (primoGiorno.getDay() + 6) % 7; // 0 = lunedì
-              
-              // Celle vuote prima del primo giorno
-              for (let i = 0; i < giornoSettimana; i++) {
-                giorni.push(<div key={`empty-${i}`} className="aspect-square" />);
-              }
-              
-              // Giorni del mese
-              const giorniMese = new Date(dataCalendario.getFullYear(), dataCalendario.getMonth() + 1, 0).getDate();
-              for (let giorno = 1; giorno <= giorniMese; giorno++) {
-                const dataISO = `${dataCalendario.getFullYear()}-${String(dataCalendario.getMonth() + 1).padStart(2, '0')}-${String(giorno).padStart(2, '0')}`;
-                const dataFormattata = formattaData(dataISO);
-                const workoutGiorno = customWorkouts.find(w => w.data === dataFormattata);
-                const isOggi = dataISO === oggi;
-                
-                giorni.push(
-                  <button
-                    key={giorno}
-                    type="button"
-                    onClick={() => {
-                      if (workoutGiorno) {
-                        setSelectedWorkoutId(workoutGiorno.id);
-                      }
-                    }}
-                    className={`aspect-square rounded-lg flex flex-col items-center justify-center transition ${
-                      workoutGiorno 
-                        ? 'bg-primary-container text-on-primary cursor-pointer hover:bg-primary' 
-                        : isOggi
-                        ? 'bg-surface-container-high text-on-surface'
-                        : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'
-                    }`}
-                  >
-                    <span className="text-sm font-semibold">{giorno}</span>
-                    {workoutGiorno && (
-                      <span className="text-xs mt-1">
-                        {workoutGiorno.metriTotali || ParserScheda.calcolaMetriDaTesto(workoutGiorno.testo)}m
-                      </span>
-                    )}
-                  </button>
-                );
-              }
-              
-              return giorni;
-            })()}
+
+              <div className="grid grid-cols-7 gap-0.5 sm:gap-2">
+                {(() => {
+                  const oggi = todayISO();
+                  const dataCalendarioISO = parseData(calendarioData);
+                  if (!dataCalendarioISO) return null;
+
+                  const dataCalendario = toDateObj(dataCalendarioISO);
+                  const giorni: JSX.Element[] = [];
+
+                  // Trova il primo lunedì del mese
+                  const primoGiorno = new Date(dataCalendario.getFullYear(), dataCalendario.getMonth(), 1);
+                  const giornoSettimana = (primoGiorno.getDay() + 6) % 7; // 0 = lunedì
+
+                  // Celle vuote prima del primo giorno
+                  for (let i = 0; i < giornoSettimana; i++) {
+                    giorni.push(<div key={`empty-${i}`} className="min-h-[40px] xs:min-h-[44px] sm:min-h-[52px]" />);
+                  }
+
+                  // Giorni del mese
+                  const giorniMese = new Date(dataCalendario.getFullYear(), dataCalendario.getMonth() + 1, 0).getDate();
+                  for (let giorno = 1; giorno <= giorniMese; giorno++) {
+                    const dataISO = `${dataCalendario.getFullYear()}-${String(dataCalendario.getMonth() + 1).padStart(2, '0')}-${String(giorno).padStart(2, '0')}`;
+                    const dataFormattata = formattaData(dataISO);
+                    const workoutGiorno = customWorkouts.find(w => w.data === dataFormattata);
+                    const isOggi = dataISO === oggi;
+
+                    giorni.push(
+                      <button
+                        key={giorno}
+                        type="button"
+                        onClick={() => {
+                          if (workoutGiorno) {
+                            setSelectedWorkoutId(workoutGiorno.id);
+                          }
+                        }}
+                        aria-label={`${dataFormattata}${workoutGiorno ? ' — allenamento salvato' : ''}`}
+                        className={`min-h-[40px] xs:min-h-[44px] sm:min-h-[52px] rounded-lg flex flex-col items-center justify-center transition min-w-0 overflow-hidden ${
+                          workoutGiorno
+                            ? 'bg-primary-container text-on-primary cursor-pointer hover:bg-primary'
+                            : isOggi
+                            ? 'bg-surface-container-high text-on-surface'
+                            : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'
+                        }`}
+                      >
+                        <span className="text-[10px] xs:text-[11px] sm:text-sm font-semibold leading-none">{giorno}</span>
+                        {workoutGiorno && (
+                          <span className="text-[10px] xs:text-[11px] sm:text-xs mt-0.5 sm:mt-1 leading-none truncate max-w-full px-0.5">
+                            {workoutGiorno.metriTotali || ParserScheda.calcolaMetriDaTesto(workoutGiorno.testo)}m
+                          </span>
+                        )}
+                      </button>
+                    );
+                  }
+
+                  return giorni;
+                })()}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -637,7 +698,7 @@ export const DatiScreen: React.FC = () => {
         <div>
           {tab === 'schede' && (
             selectedWorkout ? (
-              <div className="bg-surface-container-lowest rounded-xl p-6 shadow-card border border-slate-200/70">
+              <div className="ds-card p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-on-surface text-lg">
                     Allenamento del {selectedWorkout.data}
@@ -729,7 +790,19 @@ export const DatiScreen: React.FC = () => {
               <SchedeVascaScreen />
             )
           )}
-          {tab === 'tempi' && <TempiRipartenzeScreen />}
+          {tab === 'tempi' && (
+            <TempiRipartenzeScreen
+              initialOcrText={pendingGaraText}
+              onInitialOcrConsumed={() => setPendingGaraText(null)}
+              onTestoScheda={(testo) => {
+                setTab('schede');
+                setEditMode(true);
+                setModalitaEditor('testuale');
+                setSelectedWorkoutId(null);
+                setCustomWorkout(testo);
+              }}
+            />
+          )}
           {tab === 'registro' && <RegistroScreen />}
           {tab === 'biomeccanica' && <ParaSwimmingAnalyticsView />}
         </div>
@@ -760,7 +833,24 @@ export const DatiScreen: React.FC = () => {
         onCancel={() => setOcrModalOpen(false)}
       />
 
+      <RevisioneSchedaModal
+        open={revisioneOpen}
+        testo={customWorkout}
+        onClose={() => setRevisioneOpen(false)}
+        onApplica={(testoCorretto) => {
+          setCustomWorkout(testoCorretto);
+          const metriTotali = ParserScheda.calcolaMetriDaTesto(testoCorretto);
+          const updated = customWorkoutsRef.current.map((w) =>
+            w.id === selectedWorkoutId ? { ...w, testo: testoCorretto, metriTotali } : w
+          );
+          customWorkoutsRef.current = updated;
+          setCustomWorkouts(updated);
+          FINPStorage.saveCustomWorkouts(updated);
+        }}
+      />
 
+
+      </div>
     </div>
   );
 };

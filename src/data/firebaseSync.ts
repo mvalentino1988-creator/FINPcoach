@@ -88,6 +88,14 @@ export class FirebaseSync {
   private static initialize(): boolean {
     if (this.app) return true;
 
+    /* Senza chiavi configurate (tipico in sviluppo e per chi non usa il
+       cloud) non si inizializza nulla: evita l'errore auth/invalid-api-key
+       a ogni avvio e non tocca il SDK. */
+    if (!isFirebaseConfigured()) {
+      this.state.status = 'disconnected';
+      return false;
+    }
+
     try {
       if (getApps().length === 0) {
         this.app = initializeApp(firebaseConfig);

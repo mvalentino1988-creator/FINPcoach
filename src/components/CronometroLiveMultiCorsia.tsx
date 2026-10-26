@@ -16,6 +16,7 @@ import {
   Sliders,
   ChevronDown
 } from 'lucide-react';
+import { PageHeader } from './PageHeader';
 
 interface LaneState {
   id: number;
@@ -25,8 +26,6 @@ interface LaneState {
   classe: string;
   lastSplit: string;
   splitList: { lap: number; time: string; timestampMs: number }[];
-  strokeRate: number;
-  dps: number;
   statusNote: string;
   isTapperActive?: boolean;
 }
@@ -48,58 +47,21 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
   };
 
   // Inizializzazione 4 corsie con atleti reali se presenti o default olimpici
+  // Inizializzazione 4 corsie prioritariamente con gli atleti reali della squadra
   const [lanes, setLanes] = useState<LaneState[]>(() => {
-    return [
-      {
-        id: 1,
-        laneNumber: 1,
-        atletaId: atleti[0]?.id ?? null,
-        atletaNome: atleti[0]?.nome ?? 'Simone Barlaam',
-        classe: formatClasse(atleti[0]?.classeS, 'S9'),
+    return [1, 2, 3, 4].map(idx => {
+      const a = atleti[idx - 1];
+      return {
+        id: idx,
+        laneNumber: idx,
+        atletaId: a?.id ?? null,
+        atletaNome: a ? `${a.cognome} ${a.nome}` : `Corsia ${idx}`,
+        classe: a ? formatClasse(a.classeS, 'S9') : 'S9',
         lastSplit: '00:00.00',
         splitList: [],
-        strokeRate: 54,
-        dps: 2.15,
-        statusNote: 'Passo Gara -0.2s'
-      },
-      {
-        id: 2,
-        laneNumber: 2,
-        atletaId: atleti[1]?.id ?? null,
-        atletaNome: atleti[1]?.nome ?? 'Giulia Terzi',
-        classe: formatClasse(atleti[1]?.classeS, 'S7'),
-        lastSplit: '00:00.00',
-        splitList: [],
-        strokeRate: 48,
-        dps: 1.85,
-        statusNote: 'Freq. Costante'
-      },
-      {
-        id: 3,
-        laneNumber: 3,
-        atletaId: atleti[2]?.id ?? null,
-        atletaNome: atleti[2]?.nome ?? 'Carlotta Gilli',
-        classe: formatClasse(atleti[2]?.classeS, 'S13'),
-        lastSplit: '00:00.00',
-        splitList: [],
-        strokeRate: 51,
-        dps: 2.02,
-        statusNote: 'Ipovedente',
-        isTapperActive: true
-      },
-      {
-        id: 4,
-        laneNumber: 4,
-        atletaId: atleti[3]?.id ?? null,
-        atletaNome: atleti[3]?.nome ?? 'Manuel Bortuzzo',
-        classe: formatClasse(atleti[3]?.classeS, 'SB4'),
-        lastSplit: '00:00.00',
-        splitList: [],
-        strokeRate: 42,
-        dps: 1.70,
-        statusNote: 'Assetto Stabile'
-      }
-    ];
+        statusNote: a ? 'Pronto' : 'Libera'
+      };
+    });
   });
 
   // Aggiorna gli atleti nelle corsie quando cambia la lista atleti se prima era vuota
@@ -111,7 +73,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
             return {
               ...lane,
               atletaId: atleti[idx].id,
-              atletaNome: atleti[idx].nome,
+              atletaNome: `${atleti[idx].cognome} ${atleti[idx].nome}`,
               classe: formatClasse(atleti[idx].classeS, lane.classe)
             };
           }
@@ -200,7 +162,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
       centesimi: centesimi,
       contesto: 'ALLENAMENTO',
       vascaMetri: vascaMetri,
-      note: `Split cronometrato Live Deck: Lap ${last.lap} (${last.time}) - SR: ${lane.strokeRate} br/m`
+      note: `Split cronometrato Live Deck: Lap ${last.lap} (${last.time})`
     });
 
     setSalvatoFeedback(`Tempo registrato con successo per ${lane.atletaNome}!`);
@@ -226,31 +188,47 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-1 min-h-0 flex-col gap-2 overflow-hidden">
       {/* Toast feedback */}
       {salvatoFeedback && (
-        <div className="p-3 bg-primary-container text-on-primary font-bold text-xs rounded-xl flex items-center gap-2 shadow-pop animate-fade-in">
+        <div className="shrink-0 p-2 sm:p-3 bg-primary-container text-on-primary font-bold text-xs rounded-xl flex items-center gap-2 shadow-pop animate-fade-in">
           <CheckCircle2 size={16} />
           <span>{salvatoFeedback}</span>
         </div>
       )}
 
+      {/* Intestazione pagina — compatta shrink-0 */}
+      <div className="shrink-0">
+        <PageHeader
+          label="Live Deck"
+          title="Cronometro Multi-Corsia"
+          icon={<Timer size={13} />}
+          meta="Cronometraggio simultaneo a bordo vasca con split e stroke rate"
+          right={
+            <span className={`ds-chip ${isRunning ? 'bg-primary text-on-primary' : 'ds-chip-neutral'} !normal-case`}>
+              <span className={`w-2 h-2 rounded-full ${isRunning ? 'bg-primary-fixed-dim animate-ping' : 'bg-on-surface-variant'}`} />
+              {isRunning ? 'In corso' : 'Pronto'}
+            </span>
+          }
+        />
+      </div>
+
       {/* Master Poolside Bar - Design System Stitch */}
-      <section className="bg-surface-container-lowest rounded-xl p-4 sm:p-5 border border-slate-200/70 shadow-card flex flex-col gap-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <section className="shrink-0 ds-card p-2 sm:p-3 flex flex-col gap-1.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-container text-on-primary font-bold text-xs tracking-wider uppercase">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary-container text-on-primary font-bold text-xs tracking-wider uppercase">
               <span className={`w-2 h-2 rounded-full bg-primary-fixed-dim ${isRunning ? 'animate-ping' : ''}`} />
               Live Deck
             </span>
             <button
               type="button"
               onClick={() => setVascaMetri(v => (v === 50 ? 25 : 50))}
-              className="flex items-center gap-1 px-3 min-h-[44px] rounded-full bg-surface-container text-on-surface font-bold text-xs hover:bg-surface-container-highest transition"
-              title="Cambia vasca (50m / 25m)"
+              className="flex items-center gap-1 px-2.5 min-h-[40px] rounded-full bg-surface-container text-on-surface font-bold text-xs hover:bg-surface-container-highest transition"
+              title="Cambia vasca"
             >
               <Waves size={14} className="text-primary-container" />
-              <span>{vascaMetri}m {vascaMetri === 50 ? 'Olimpionica' : 'Corta'}</span>
+              <span>{vascaMetri}m</span>
             </button>
           </div>
 
@@ -258,9 +236,9 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
             <button
               type="button"
               onClick={toggleMaster}
-              className={`min-h-[48px] px-5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-card transition active:scale-95 ${
+              className={`min-h-[44px] px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-card transition active:scale-95 ${
                 isRunning
-                  ? 'bg-amber-600 hover:bg-amber-700 text-on-primary'
+                  ? 'bg-tertiary-container hover:brightness-95 text-on-tertiary'
                   : 'bg-primary-container hover:bg-primary text-on-primary'
               }`}
             >
@@ -271,7 +249,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
               type="button"
               onClick={resetMaster}
               aria-label="Reset cronometro master"
-              className="min-h-[48px] min-w-[48px] px-3 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface flex items-center justify-center active:scale-95 transition"
+              className="min-h-[44px] min-w-[44px] px-2.5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface flex items-center justify-center active:scale-95 transition"
             >
               <RotateCcw size={18} />
             </button>
@@ -279,18 +257,15 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
         </div>
 
         {/* Master Time & Big Digits */}
-        <div className="flex items-baseline justify-between bg-surface-container-low px-4 py-3 rounded-xl border border-slate-200/60">
+        <div className="flex items-baseline justify-between bg-surface-container-low px-3 py-1.5 rounded-xl border border-slate-200/60">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
-              Master Timer
-            </span>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-surface-container-highest text-primary-container">
               4 CORSIE
             </span>
           </div>
           <div className="flex items-baseline gap-1">
             <span
-              className="text-3xl sm:text-4xl font-bold text-primary-container tracking-tight tabular-nums"
+              className="text-2xl sm:text-3xl font-bold text-primary-container tracking-tight tabular-nums"
               style={{ fontFamily: "'Space Grotesk', sans-serif" }}
             >
               {formatMs(masterTime)}
@@ -299,12 +274,15 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
         </div>
       </section>
 
-      {/* 4-Lane Simultaneous Compact Monitoring Grid */}
-      <section aria-label="Corsie Cronometrate Attive" className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {/* 4-Lane Simultaneous Compact Monitoring Grid: flex-1 a riempimento perfetto */}
+      <section
+        aria-label="Corsie Cronometrate Attive"
+        className="flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2 overflow-y-auto"
+      >
         {lanes.map(lane => (
           <article
             key={lane.id}
-            className="bg-surface-container-lowest rounded-xl p-4 border border-slate-200/70 shadow-card flex flex-col justify-between gap-3 hover:border-primary-fixed-dim transition"
+            className="ds-card p-2.5 sm:p-3 flex flex-col justify-between gap-1.5 hover:border-primary-fixed-dim transition min-h-0"
           >
             {/* Header corsia con atleta e classe */}
             <div className="flex items-start justify-between gap-2">
@@ -318,7 +296,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                     <select
                       value={lane.atletaId ?? ''}
                       onChange={e => handleSelectAtletaCorsia(lane.id, Number(e.target.value))}
-                      className="text-sm font-bold text-on-surface bg-transparent border-b border-transparent hover:border-outline-variant focus:border-primary-container outline-none max-w-[150px] sm:max-w-[180px] truncate"
+                      className="text-sm font-bold text-on-surface bg-transparent border-b border-transparent hover:border-outline-variant focus:border-primary-container outline-none max-w-[120px] sm:max-w-[160px] lg:max-w-[200px] truncate"
                     >
                       {atleti.map(a => (
                         <option key={a.id} value={a.id}>
@@ -343,53 +321,40 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                   )}
                 </div>
 
-                <div className="flex items-baseline gap-2 mt-2">
+                <div className="flex items-baseline gap-2 mt-1">
                   <span
-                    className="text-2xl sm:text-3xl font-bold text-primary-container tabular-nums"
+                    className="text-xl sm:text-2xl font-bold text-primary-container tabular-nums"
                     style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                   >
                     {lane.lastSplit}
                   </span>
                   <span className="text-[10px] font-bold text-on-surface-variant uppercase">
-                    Ultimo Split {vascaMetri}m
+                    Split {vascaMetri}m
                   </span>
                 </div>
 
-                {/* Telemetria e biomeccanica */}
-                <div className="flex items-center gap-3 mt-1 text-on-surface-variant text-xs font-semibold">
-                  <span className="flex items-center gap-1">
-                    <Activity size={13} className="text-primary-container" />
-                    {lane.strokeRate} br/m
-                  </span>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
-                    <Sliders size={13} className="text-primary-container" />
-                    DPS {lane.dps}m
-                  </span>
-                  <span>•</span>
-                  <span className="text-[11px] text-secondary font-bold">
+                {/* Stato corsia */}
+                <div className="flex items-center gap-2 mt-1 text-on-surface-variant text-xs font-semibold">
+                  <span className="text-[11px] text-secondary font-bold min-w-0 truncate">
                     {lane.statusNote}
                   </span>
                 </div>
               </div>
 
-              {/* Tasto LAP gigante poolside (a prova di dita bagnate) */}
+              {/* Tasto LAP poolside */}
               <button
                 type="button"
                 onClick={() => handleLap(lane.id)}
-                className="shrink-0 min-w-[82px] min-h-[54px] px-3 rounded-xl bg-primary-container hover:bg-primary text-on-primary font-bold text-sm flex flex-col items-center justify-center active:scale-95 transition shadow-card"
+                className="shrink-0 min-w-[56px] min-h-[44px] px-2.5 rounded-xl bg-primary-container hover:bg-primary text-on-primary font-bold text-sm flex flex-col items-center justify-center active:scale-95 transition shadow-card"
               >
                 <span className="tracking-tight">LAP</span>
-                <span className="text-[9px] uppercase tracking-widest text-primary-fixed mt-0.5">
-                  SPLIT
-                </span>
               </button>
             </div>
 
             {/* Split List & Salva */}
             {lane.splitList.length > 0 && (
-              <div className="pt-2 border-t border-slate-200/70 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 overflow-x-auto text-xs py-1">
+              <div className="pt-1.5 border-t border-slate-200/70 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 overflow-x-auto text-xs py-0.5">
                   {lane.splitList.slice(0, 3).map(s => (
                     <span
                       key={s.lap}
@@ -409,11 +374,11 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleSalvaNelRegistro(lane)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-surface-container-low hover:bg-primary-fixed text-primary-container font-bold text-xs shrink-0 transition"
-                    title="Salva tempo nel registro dell'atleta"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-low hover:bg-primary-fixed text-primary-container font-bold text-xs shrink-0 transition"
+                    title="Salva"
                   >
                     <Save size={13} />
-                    <span>Registra</span>
+                    <span>Salva</span>
                   </button>
                 )}
               </div>

@@ -15,6 +15,7 @@ import {
 import { AutoPianificatore } from '../domain/autoPianificatore';
 import { Festivita } from '../domain/festivita';
 import { todayISO } from '../domain/dateUtils';
+import { IA_CONFIG_DEFAULT, IAConfig } from '../domain/iaEsterna';
 
 const MODE_KEY = 'finp_mode';
 
@@ -33,7 +34,8 @@ const STORAGE_KEYS = {
   IMPOSTAZIONI: 'finp_impostazioni',
   FIRMA_PIANO: 'finp_firma_piano',
   CLASSI_STIMATE: 'finp_classi_stimate',
-  CUSTOM_WORKOUTS: 'finpcoach_custom_workouts'
+  CUSTOM_WORKOUTS: 'finpcoach_custom_workouts',
+  IA_CONFIG: 'finp_ia_config'
 };
 
 function load<T>(key: string, defaultValue: T): T {
@@ -57,23 +59,11 @@ function save<T>(key: string, value: T): void {
 export class FINPStorage {
   static getMode(): 'demo' | 'live' | null {
     const m = localStorage.getItem(MODE_KEY);
-    if (m === 'demo') return 'demo';
     if (m === 'live') return 'live';
-
-    const raw = localStorage.getItem(STORAGE_KEYS.ATLETI);
-    if (raw) {
-      try {
-        const list = JSON.parse(raw) as Atleta[];
-        const isDemoData = list.some(a => a.nome === 'Marco' && a.cognome === 'Rossi');
-        if (isDemoData) {
-          this.startLiveSquad();
-          return 'live';
-        }
-      } catch (e) {}
+    if (m !== 'demo') {
+      this.applyDemoSeed();
     }
-
-    this.startLiveSquad();
-    return 'live';
+    return 'demo';
   }
 
   static setMode(mode: 'demo' | 'live') {
@@ -218,6 +208,14 @@ export class FINPStorage {
     save(STORAGE_KEYS.IMPOSTAZIONI, imp);
   }
 
+  static getIAConfig(): IAConfig {
+    return { ...IA_CONFIG_DEFAULT, ...load<Partial<IAConfig>>(STORAGE_KEYS.IA_CONFIG, {}) };
+  }
+
+  static saveIAConfig(config: IAConfig) {
+    save(STORAGE_KEYS.IA_CONFIG, config);
+  }
+
   static getFirmaPiano(): number | null {
     return load<number | null>(STORAGE_KEYS.FIRMA_PIANO, null);
   }
@@ -254,6 +252,7 @@ export class FINPStorage {
       microcicli: this.getMicrocicli(),
       impostazioni: this.getImpostazioni(),
       customWorkouts: this.getCustomWorkouts(),
+      iaConfig: this.getIAConfig(),
       mode: this.getMode()
     };
     return JSON.stringify(data, null, 2);
@@ -275,6 +274,7 @@ export class FINPStorage {
       if (data.microcicli) save(STORAGE_KEYS.MICROCICLI, data.microcicli);
       if (data.impostazioni) save(STORAGE_KEYS.IMPOSTAZIONI, data.impostazioni);
       if (data.customWorkouts) save(STORAGE_KEYS.CUSTOM_WORKOUTS, data.customWorkouts);
+      if (data.iaConfig) save(STORAGE_KEYS.IA_CONFIG, data.iaConfig);
       if (data.mode === 'demo' || data.mode === 'live') this.setMode(data.mode);
       return true;
     } catch (e) {

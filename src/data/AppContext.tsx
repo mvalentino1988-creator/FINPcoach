@@ -5,6 +5,7 @@ import {
   Avviso,
   Chiusura,
   CondizioneMedica,
+  DayOfWeekNum,
   Gara,
   ImpostazioniPiano,
   LogSeduta,
@@ -12,6 +13,7 @@ import {
   Mesociclo,
   Microciclo,
   ParametriPiano,
+  ParametriSeduta,
   Stagione,
   Tempo
 } from '../types';
@@ -20,6 +22,7 @@ import { Festivita } from '../domain/festivita';
 import { PianoGenerator } from '../domain/pianoGenerator';
 import { PianoValidator } from '../domain/validatori';
 import { todayISO } from '../domain/dateUtils';
+import { conOverride, conParametriGiorno, senzaOverride } from '../domain/parametriSeduta';
 import { FINPStorage } from './storage';
 import { FirebaseSync, SyncData } from './firebaseSync';
 
@@ -58,6 +61,12 @@ interface AppContextType {
   aggiungiGara: (nome: string, dal: string, al: string, prioritaria: boolean, luogo?: string) => void;
   eliminaGara: (id: number) => void;
   salvaImpostazioni: (imp: ImpostazioniPiano) => void;
+  /** Programmazione vasca/durata per un giorno della settimana (senza rigenerare il piano). */
+  impostaParametriGiorno: (giorno: DayOfWeekNum, parametri: ParametriSeduta) => void;
+  /** Override vasca/durata per una singola data (senza rigenerare il piano). */
+  impostaOverrideSeduta: (data: string, parametri: ParametriSeduta) => void;
+  rimuoviOverrideSeduta: (data: string) => void;
+  impostaDurataDefault: (minuti: number) => void;
   rigeneraPianoCompleto: () => void;
   modificaMicro: (m: Microciclo) => void;
   sbloccaMicro: (m: Microciclo) => void;
@@ -71,6 +80,10 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  if (FINPStorage.getAtleti().length === 0) {
+    FINPStorage.applyDemoSeed();
+  }
+
   const [atleti, setAtleti] = useState<Atleta[]>(() => FINPStorage.getAtleti());
   const [condizioni, setCondizioni] = useState<CondizioneMedica[]>(() => FINPStorage.getCondizioni());
   const [assenze, setAssenze] = useState<Assenza[]>(() => FINPStorage.getAssenze());
@@ -483,6 +496,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTimeout(() => rigeneraPianoInterno(true), 50);
   };
 
+  // Cambi di vasca/durata non devono rigenerare il piano: sono parametri
+  // operativi della seduta, non struttura della periodizzazione.
+  const commitImpostazioni = (imp: ImpostazioniPiano) => {
+    setImpostazioni(imp);
+    FINPStorage.saveImpostazioni(imp);
+  };
+
+  const impostaParametriGiorno = (giorno: DayOfWeekNum, parametri: ParametriSeduta) => {
+    commitImpostazioni(conParametriGiorno(impostazioni, giorno, parametri));
+  };
+
+  const impostaOverrideSeduta = (data: string, parametri: ParametriSeduta) => {
+    commitImpostazioni(conOverride(impostazioni, data, parametri));
+  };
+
+  const rimuoviOverrideSeduta = (data: string) => {
+    commitImpostazioni(senzaOverride(impostazioni, data));
+  };
+
+  const impostaDurataDefault = (minuti: number) => {
+    commitImpostazioni({ ...impostazioni, durataDefaultMin: minuti });
+  };
+
   const rigeneraPianoCompleto = () => {
     rigeneraPianoInterno(false);
   };
@@ -547,6 +583,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         aggiungiGara,
         eliminaGara,
         salvaImpostazioni,
+        impostaParametriGiorno,
+        impostaOverrideSeduta,
+        rimuoviOverrideSeduta,
+        impostaDurataDefault,
         rigeneraPianoCompleto,
         modificaMicro,
         sbloccaMicro,

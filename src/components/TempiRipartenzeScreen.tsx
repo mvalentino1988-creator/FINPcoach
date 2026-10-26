@@ -1,13 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useApp } from '../data/AppContext';
 import { ContestoTempo, Stile, Tempo } from '../types';
 import { formattaData, parseData, todayISO } from '../domain/dateUtils';
-import { formattaTempo, parseTempo, primatiPersonali } from '../domain/tempoUtils';
+import { formattaTempo, parseTempo, primatiPersonali, convertiVasca, calcolaPuntiWPS } from '../domain/tempoUtils';
 import { CalcoloRitmiRipartenze } from '../domain/calcoloRitmiRipartenze';
 import { CalcoloScienzaNuoto } from '../domain/calcoloCSS';
+import { RecordService } from '../domain/recordService';
 import { BadgeCodice } from './BadgeCodice';
 import { CODICI_KEYS } from '../domain/codici';
-import { OcrWeb } from '../domain/ocrWeb';
+import { OCRService } from '../domain/ocrService';
 import { OcrGaraModal } from './OcrGaraModal';
 import { Sezione } from './Sezione';
 import {
@@ -26,10 +27,24 @@ import {
   Camera,
   Loader2,
   X,
-  Bot
+  Bot,
+  ArrowRightLeft
 } from 'lucide-react';
 
-export const TempiRipartenzeScreen: React.FC = () => {
+interface Props {
+  /** Testo OCR di una gara da importare (arriva dalla scheda Schede). */
+  initialOcrText?: string | null;
+  /** Notifica che il testo iniziale e' stato preso in carico. */
+  onInitialOcrConsumed?: () => void;
+  /** Callback quando l'OCR riconosce una scheda di allenamento. */
+  onTestoScheda?: (testo: string) => void;
+}
+
+export const TempiRipartenzeScreen: React.FC<Props> = ({
+  initialOcrText = null,
+  onInitialOcrConsumed,
+  onTestoScheda,
+}) => {
   const { atleti, tempi, micro, meso, aggiungiTempo, eliminaTempo } = useApp();
 
   const [atletaSelId, setAtletaSelId] = useState<number | null>(() => atleti[0]?.id ?? null);
@@ -41,6 +56,18 @@ export const TempiRipartenzeScreen: React.FC = () => {
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrGaraModalOpen, setOcrGaraModalOpen] = useState(false);
   const [ocrRawText, setOcrRawText] = useState('');
+
+  // Testo OCR in arrivo dalla scheda Schede: apre direttamente l'import tempi.
+  const ultimoTestoGestito = useRef<string | null>(null);
+  useEffect(() => {
+    if (!initialOcrText) return;
+    if (ultimoTestoGestito.current === initialOcrText) return;
+    ultimoTestoGestito.current = initialOcrText;
+    setOcrRawText(initialOcrText);
+    setOcrGaraModalOpen(true);
+    onInitialOcrConsumed?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialOcrText]);
 
   // Manual entry form
   const [dataTesto, setDataTesto] = useState<string>(formattaData(todayISO()));
@@ -93,7 +120,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
 
   if (!atletaSel) {
     return (
-      <div className="p-8 text-center bg-surface-container-lowest rounded-xl border border-slate-200/70">
+      <div className="p-8 text-center ds-card">
         <User size={36} className="mx-auto text-outline mb-2" />
         <h3 className="font-bold text-on-surface">Nessun atleta registrato</h3>
         <p className="text-xs text-on-surface-variant mt-1">Aggiungi un atleta nella sezione Atleti per inserire tempi e calcolare ripartenze.</p>
@@ -142,7 +169,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
     <div className="space-y-4">
       {/* Title */}
       <div>
-        <h2 className="text-xl font-bold text-on-surface tracking-tight flex items-center gap-2">
+        <h2 className="ds-title flex items-center gap-2">
           <Timer size={22} className="text-primary-container" />
           <span>Tempi Gara & Calcolo Ripartenze</span>
         </h2>
@@ -152,7 +179,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
       </div>
 
       {/* Athlete Dropdown Selector */}
-      <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-3 shadow-card flex items-center gap-3">
+      <div className="ds-card p-3 shadow-card flex items-center gap-3">
         <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider shrink-0">
           Atleta:
         </span>
@@ -196,7 +223,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
 
       {/* Tabella Ritmi & Ripartenze a 5 secondi (Compatta senza note) */}
       {tabellaRitmi && (
-        <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-4 shadow-card space-y-3">
+        <div className="ds-card p-4 shadow-card space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-slate-200/70">
             <h3 className="font-bold text-on-surface text-xs uppercase tracking-wider">
               Tabella Ritmi A1–D · Passo 100m & Ripartenze
@@ -245,7 +272,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
                   <span className="font-bold text-on-surface block">
                     {p.stile.replace('_', ' ')} {p.distanzaMetri} m ({p.vascaMetri}m)
                   </span>
-                  <span className="text-[10px] text-on-surface-variant">{formattaData(p.data)}</span>
+                  <span className="text-[11px] text-on-surface-variant">{formattaData(p.data)}</span>
                 </div>
                 <span className="font-bold text-primary-container text-sm">
                   {formattaTempo(p.centesimi)}
@@ -257,7 +284,7 @@ export const TempiRipartenzeScreen: React.FC = () => {
       </Sezione>
 
       {/* Add New Time Form (Compact with unified OCR button) */}
-      <div className="bg-surface-container-lowest rounded-xl border border-slate-200/70 p-4 shadow-card space-y-3">
+      <div className="ds-card p-4 shadow-card space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-on-surface text-xs uppercase tracking-wider flex items-center gap-2">
             <Plus size={15} className="text-primary-container" />
@@ -275,11 +302,22 @@ export const TempiRipartenzeScreen: React.FC = () => {
                 const file = e.target.files?.[0];
                 if (!file) return;
                 setOcrLoading(true);
-                const testoOcr = await OcrWeb.riconosciTestoDaImmagine(file);
-                setOcrLoading(false);
-                if (testoOcr) {
-                  setOcrRawText(testoOcr);
+                try {
+                  const risultato = await OCRService.riconosci(file, 'auto');
+                  setOcrLoading(false);
+                  if (!risultato.testo) return;
+                  if (risultato.modalita === 'scheda' && onTestoScheda) {
+                    // Il testo e' una scheda di allenamento: si torna alla scheda Schede.
+                    onTestoScheda(risultato.testo);
+                    return;
+                  }
+                  setOcrRawText(risultato.testo);
                   setOcrGaraModalOpen(true);
+                } catch (err) {
+                  setOcrLoading(false);
+                  console.error('Errore OCR:', err);
+                } finally {
+                  e.target.value = '';
                 }
               }}
             />
@@ -378,32 +416,55 @@ export const TempiRipartenzeScreen: React.FC = () => {
           <p className="text-xs text-on-surface-variant py-2">Nessun tempo registrato per questo atleta.</p>
         ) : (
           <div className="space-y-1.5 pt-1">
-            {tempiAtleta.map(t => (
-              <div
-                key={t.id}
-                className="p-3 bg-surface-container-low border border-slate-200/70 rounded-xl flex items-center justify-between text-xs"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-on-surface">
-                      {t.stile.replace('_', ' ')} {t.distanzaMetri} m
-                    </span>
-                    <span className="font-bold text-primary-container text-sm">{formattaTempo(t.centesimi)}</span>
-                  </div>
-                  <div className="text-[11px] text-on-surface-variant mt-0.5">
-                    {formattaData(t.data)} · {t.contesto.toLowerCase()} · vasca {t.vascaMetri}m
-                    {t.note && ` · ${t.note}`}
-                  </div>
-                </div>
+            {tempiAtleta.map(t => {
+              // Calcolo Punti WPS rispetto al World Record per classe
+              const cl = atletaSel ? RecordService.classePerStile(atletaSel, t.stile) : null;
+              const ev = RecordService.eventoPerTempo(t);
+              const wr = cl ? RecordService.recordInternazionale(t.vascaMetri, ev, 'M', cl, 'WR') || RecordService.recordInternazionale(t.vascaMetri, ev, 'F', cl, 'WR') : null;
+              const wrCent = wr ? RecordService.tempoCentesimi(wr.tm) : null;
+              const puntiWps = wrCent ? calcolaPuntiWPS(t.centesimi, wrCent) : null;
 
-                <button
-                  onClick={() => eliminaTempo(t.id)}
-                  className="p-1.5 text-on-surface-variant hover:text-error rounded-lg hover:bg-surface-container-high"
+              // Conversione automatica 25m <-> 50m
+              const vascaDest = t.vascaMetri === 25 ? 50 : 25;
+              const tempoConvertito = convertiVasca(t.centesimi, t.distanzaMetri, t.vascaMetri as 25 | 50, vascaDest, atletaSel?.classeS ?? 9);
+
+              return (
+                <div
+                  key={t.id}
+                  className="p-3 bg-surface-container-low border border-slate-200/70 rounded-xl flex items-center justify-between text-xs"
                 >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            ))}
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-on-surface">
+                        {t.stile.replace('_', ' ')} {t.distanzaMetri} m
+                      </span>
+                      <span className="font-bold text-primary-container text-sm">{formattaTempo(t.centesimi)}</span>
+                      {puntiWps != null && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-tertiary-fixed text-on-tertiary-fixed">
+                          {puntiWps} Punti WPS
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-on-surface-variant mt-0.5 flex items-center gap-1.5 flex-wrap">
+                      <span>{formattaData(t.data)} · {t.contesto.toLowerCase()} · vasca {t.vascaMetri}m</span>
+                      <span>•</span>
+                      <span className="text-secondary font-semibold flex items-center gap-0.5" title={`Tempo convertito vasca da ${vascaDest}m`}>
+                        <ArrowRightLeft size={10} />
+                        ~{formattaTempo(tempoConvertito)} in vasca {vascaDest}m
+                      </span>
+                      {t.note && <span>• {t.note}</span>}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => eliminaTempo(t.id)}
+                    className="p-1.5 text-on-surface-variant hover:text-error rounded-lg hover:bg-surface-container-high"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
       </Sezione>

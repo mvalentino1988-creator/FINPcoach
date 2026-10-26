@@ -93,3 +93,66 @@ export function primatiPersonali(tempi: Tempo[]): Primato[] {
     return a.vascaMetri - b.vascaMetri;
   });
 }
+
+/**
+ * Calcolo del Punteggio Ufficiale World Para Swimming (WPS Points).
+ * Formula standard World Para Swimming: Punti = 1000 * (WorldRecord / TempoAtleta)^3
+ * Se tempoAtleta <= 0 o record <= 0 restituisce null.
+ */
+export function calcolaPuntiWPS(tempoAtletaCentesimi: number, recordMondoCentesimi: number): number | null {
+  if (tempoAtletaCentesimi <= 0 || recordMondoCentesimi <= 0) return null;
+  const ratio = recordMondoCentesimi / tempoAtletaCentesimi;
+  const punti = Math.round(1000 * Math.pow(ratio, 3));
+  return Math.max(0, punti);
+}
+
+/**
+ * Conversione tempi tra Vasca Corta (25m) e Vasca Lunga (50m) per il nuoto paralimpico.
+ * Nel nuoto paralimpico il fattore virata dipende dalla classe funzionale dell'atleta:
+ * - Classi alte (S8-S14): virata efficiente (~0.7s - 0.9s per virata da 50 a 25)
+ * - Classi basse (S1-S5): virata senza rollio o più lenta (~1.3s - 2.0s per virata da 50 a 25)
+ *
+ * @param tempoCentesimi Tempo di partenza in centesimi di secondo
+ * @param distanzaMetri Distanza della gara (50, 100, 200, 400, 800, 1500)
+ * @param vascaOrigine 25 | 50
+ * @param vascaTarget 25 | 50
+ * @param classeS Classe funzionale dell'atleta (opzionale, default S9)
+ */
+export function convertiVasca(
+  tempoCentesimi: number,
+  distanzaMetri: number,
+  vascaOrigine: 25 | 50,
+  vascaTarget: 25 | 50,
+  classeS: number = 9
+): number {
+  if (vascaOrigine === vascaTarget || tempoCentesimi <= 0 || distanzaMetri <= 0) {
+    return tempoCentesimi;
+  }
+
+  // Numero di virate in 25m vs 50m
+  const virate25 = Math.floor(distanzaMetri / 25) - 1;
+  const virate50 = Math.floor(distanzaMetri / 50) - 1;
+  const deltaVirate = virate25 - virate50; // virate aggiuntive in vasca da 25m
+
+  // Delta tempo per virata aggiuntiva in base alla classe funzionale
+  let secondiPerVirata = 0.8;
+  if (classeS <= 4) {
+    secondiPerVirata = 1.6;
+  } else if (classeS <= 7) {
+    secondiPerVirata = 1.1;
+  } else if (classeS <= 10) {
+    secondiPerVirata = 0.8;
+  } else {
+    secondiPerVirata = 0.7; // S11-S14
+  }
+
+  const deltaCentesimi = Math.round(deltaVirate * secondiPerVirata * 100);
+
+  if (vascaOrigine === 50 && vascaTarget === 25) {
+    // Da 50m a 25m il tempo è più veloce (sottrai il vantaggio delle virate)
+    return Math.max(100, tempoCentesimi - deltaCentesimi);
+  } else {
+    // Da 25m a 50m il tempo è più lento (somma lo svantaggio delle minori virate)
+    return tempoCentesimi + deltaCentesimi;
+  }
+}

@@ -75,7 +75,7 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
         </div>
 
         {/* Scrollable Content */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-5 text-sm">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-5 text-sm flex-1 min-h-0">
           {/* Quick Metrics Header */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-surface-container-low/60 rounded-xl border border-primary-fixed-dim text-cyan-950">
             <div>
@@ -100,7 +100,7 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
           <div className="no-print grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <button
               onClick={handleCopy}
-              className="flex items-center justify-center gap-2 h-12.5 px-4 bg-primary-container hover:bg-primary text-on-primary font-semibold rounded-xl text-xs sm:text-sm transition shadow-card"
+              className="flex items-center justify-center gap-2 h-12 px-4 bg-primary-container hover:bg-primary text-on-primary font-semibold rounded-xl text-xs sm:text-sm transition shadow-card"
             >
               {copiato ? <Check size={17} className="text-emerald-300" /> : <Copy size={17} />}
               <span>{copiato ? 'Copiato!' : 'Copia per WhatsApp / Deck'}</span>
@@ -108,7 +108,7 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
 
             <button
               onClick={() => window.print()}
-              className="flex items-center justify-center gap-2 h-12.5 px-4 bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold rounded-xl text-xs sm:text-sm transition border border-slate-200/70"
+              className="flex items-center justify-center gap-2 h-12 px-4 bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold rounded-xl text-xs sm:text-sm transition border border-slate-200/70"
             >
               <Printer size={17} className="text-primary-container" />
               <span>Stampa Scheda Bordo Vasca</span>

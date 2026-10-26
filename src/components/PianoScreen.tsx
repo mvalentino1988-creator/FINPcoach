@@ -6,6 +6,7 @@ import {
   FaseMesociclo,
   FASE_MESOCICLO_LABEL,
   Microciclo,
+  ParametriSeduta,
   SchedaSeduta,
   TipoMicrociclo,
   TIPO_MICROCICLO_LABEL
@@ -17,6 +18,8 @@ import { IndicatoreCodici } from './IndicatoreCodici';
 import { ElencoAvvisi } from './ElencoAvvisi';
 import { SchedaSedutaModal } from './SchedaSedutaModal';
 import { Sezione } from './Sezione';
+import { PageHeader } from './PageHeader';
+import { normalizzaDurata } from '../domain/parametriSeduta';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import {
   AlertCircle,
@@ -58,6 +61,8 @@ export const PianoScreen: React.FC = () => {
     aggiungiGara,
     eliminaGara,
     salvaImpostazioni,
+    impostaParametriGiorno,
+    impostaDurataDefault,
     rigeneraPianoCompleto,
     modificaMicro,
     sbloccaMicro
@@ -124,9 +129,9 @@ export const PianoScreen: React.FC = () => {
 
   if (!stagione) {
     return (
-      <div className="max-w-xl mx-auto p-6 bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card space-y-5">
+      <div className="max-w-xl mx-auto p-6 ds-card shadow-card space-y-5">
         <div>
-          <h2 className="text-xl font-bold text-on-surface tracking-tight">Nuova Stagione Agonistica FINP</h2>
+          <h2 className="ds-title">Nuova Stagione Agonistica FINP</h2>
           <p className="text-xs text-on-surface-variant mt-1">
             Basta inserire la data di inizio: nome, fine stagione, festività nazionali e piano di carico
             vengono creati in automatico in base alla metodologia paralimpica.
@@ -176,7 +181,7 @@ export const PianoScreen: React.FC = () => {
               }
             }}
             disabled={!inizioParsed || !fineEffettiva || inizioParsed >= fineEffettiva}
-            className="w-full h-12.5 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-bold rounded-xl text-sm transition shadow-card mt-2"
+            className="w-full h-12 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-bold rounded-xl text-sm transition shadow-card mt-2"
           >
             Crea Stagione e Genera Piano
           </button>
@@ -197,46 +202,45 @@ export const PianoScreen: React.FC = () => {
 
   return (
     <div className="space-y-5 relative">
-      {/* Header Banner */}
-      <div className="p-4 sm:p-5 bg-gradient-to-r from-primary-container to-primary text-on-primary rounded-xl shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <span className="text-[11px] uppercase tracking-wider text-primary-fixed font-bold block">
-            Stagione Agonistica FINP
-          </span>
-          <h2 className="text-xl sm:text-2xl font-bold">{stagione?.nome ?? 'Stagione'}</h2>
-          <p className="text-xs text-primary-fixed font-medium mt-0.5">
-            {stagione?.inizio ? formattaData(stagione.inizio) : ''} – {stagione?.fine ? formattaData(stagione.fine) : ''} · Vasca da {stagione?.vascaMetri ?? 25} m
-          </p>
-        </div>
+      {/* Intestazione pagina — stile dashboard */}
+      <PageHeader
+        label="Stagione Agonistica FINP"
+        title={stagione?.nome ?? 'Stagione'}
+        icon={<Calendar size={13} />}
+        meta={`${stagione?.inizio ? formattaData(stagione.inizio) : ''} – ${stagione?.fine ? formattaData(stagione.fine) : ''} · Vasca da ${stagione?.vascaMetri ?? 25} m`}
+        right={
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => {
+                if (stagione) {
+                  setModInizio(formattaData(stagione.inizio));
+                  setModFine(formattaData(stagione.fine));
+                  setModError(null);
+                  setModificaDateOpen(true);
+                }
+              }}
+              className="ds-btn-ghost !min-h-[40px] !px-2.5 shrink-0"
+              title="Modifica date stagione"
+            >
+              <Edit2 size={15} />
+              <span className="hidden sm:inline">Date</span>
+            </button>
 
-        <div className="flex items-center gap-2 self-start sm:self-center">
-          <button
-            onClick={() => {
-              if (stagione) {
-                setModInizio(formattaData(stagione.inizio));
-                setModFine(formattaData(stagione.fine));
-                setModError(null);
-                setModificaDateOpen(true);
-              }
-            }}
-            className="px-3 h-12 bg-white/20 hover:bg-white/30 text-on-primary border border-white/30 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-card"
-          >
-            <Edit2 size={13} />
-            <span>Modifica Date Stagione</span>
-          </button>
-
-          <button
-            onClick={() => {
-              if (window.confirm('Eliminare la stagione? Verranno eliminati chiusure, gare e piano. Gli atleti restano salvati.')) {
-                eliminaStagione();
-              }
-            }}
-            className="px-3 h-12 bg-white/10 hover:bg-error text-white/90 hover:text-on-primary border border-white/20 rounded-xl text-xs font-semibold transition"
-          >
-            Elimina stagione
-          </button>
-        </div>
-      </div>
+            <button
+              onClick={() => {
+                if (window.confirm('Eliminare la stagione? Verranno eliminati chiusure, gare e piano. Gli atleti restano salvati.')) {
+                  eliminaStagione();
+                }
+              }}
+              className="ds-btn-danger !min-h-[40px] !px-2.5 shrink-0"
+              title="Elimina stagione"
+            >
+              <Trash2 size={15} />
+              <span className="hidden sm:inline">Elimina</span>
+            </button>
+          </div>
+        }
+      />
 
       {/* Pull to Refresh Indicator */}
       {pullToRefresh.isPulling && (
@@ -251,27 +255,28 @@ export const PianoScreen: React.FC = () => {
 
       {/* Modal Modifica Date Stagione */}
       {modificaDateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-surface-container-lowest rounded-xl shadow-float max-w-md w-full border border-slate-200/70 overflow-hidden">
-            <div className="p-4 sm:p-5 border-b border-slate-200/70 flex items-center justify-between bg-surface-container-low">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-primary-container text-on-primary flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl shadow-float max-w-md w-full border border-slate-200/70 max-h-[92dvh] flex flex-col overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-slate-200/70 flex items-center justify-between gap-2 bg-surface-container-low shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary-container text-on-primary flex items-center justify-center">
                   <Calendar size={18} />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="font-bold text-on-surface text-sm">Modifica Date Stagione</h3>
                   <span className="text-[11px] text-on-surface-variant">{stagione.nome}</span>
                 </div>
               </div>
               <button
                 onClick={() => setModificaDateOpen(false)}
-                className="p-1 text-on-surface-variant hover:text-on-surface-variant rounded-lg hover:bg-surface-container-high"
+                aria-label="Chiudi modifica date stagione"
+                className="shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface-variant hover:bg-surface-container-high"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="p-4 sm:p-6 space-y-4 text-xs">
+            <div className="p-4 sm:p-6 space-y-4 text-xs overflow-y-auto">
               {modError && (
                 <div className="p-3 bg-error-container text-on-error-container border border-error/40 rounded-xl font-medium">
                   {modError}
@@ -312,7 +317,7 @@ export const PianoScreen: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-3.5 bg-surface-container-low border-t border-slate-200/70 flex items-center justify-end gap-2">
+            <div className="p-3.5 bg-surface-container-low border-t border-slate-200/70 flex items-center justify-end gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => setModificaDateOpen(false)}
@@ -384,20 +389,20 @@ export const PianoScreen: React.FC = () => {
 
           {/* Add Custom Closure */}
           <div className="p-3 bg-surface-container-low border border-dashed border-outline-variant rounded-xl space-y-2">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
               <input
                 type="text"
                 placeholder="Dal (gg/mm/aaaa)"
                 value={cDal}
                 onChange={e => setCDal(e.target.value)}
-                className="px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg"
+                className="w-full px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg"
               />
               <input
                 type="text"
                 placeholder="Al (gg/mm/aaaa)"
                 value={cAl}
                 onChange={e => setCAl(e.target.value)}
-                className="px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg"
+                className="w-full px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg"
               />
             </div>
             <input
@@ -477,8 +482,8 @@ export const PianoScreen: React.FC = () => {
 
       {/* Modal Nuova Gara Ad Hoc */}
       {modalGaraOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-surface-container-lowest rounded-xl shadow-float max-w-md w-full p-5 border border-slate-200/70 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl shadow-float max-w-md w-full p-5 border border-slate-200/70 space-y-4 max-h-[92dvh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-slate-200/70">
               <h3 className="font-bold text-on-surface text-base flex items-center gap-2">
                 <Trophy size={18} className="text-tertiary-container" />
@@ -501,7 +506,7 @@ export const PianoScreen: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
                 <div>
                   <label className="block font-semibold text-on-surface mb-1">Data Inizio *</label>
                   <input
@@ -587,8 +592,63 @@ export const PianoScreen: React.FC = () => {
             I campi lasciati vuoti usano il calcolo intelligente.
           </p>
 
-          {/* Days of week selector */}
+          {/* Programmazione vasca/durata per giorno */}
           <div className="space-y-1.5">
+            <label className="block text-body-bold font-body-bold text-on-surface">
+              Programmazione vasca e durata per giorno
+            </label>
+            <p className="text-xs text-on-surface-variant">
+              Imposta vasca e durata per ogni giorno di allenamento. Usati da "Oggi" e dal calcolo volume.
+            </p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+              {([1, 2, 3, 4, 5, 6, 7] as DayOfWeekNum[]).map((dow) => {
+                const p = impostazioni.parametriPerGiorno?.[dow] || { vascaMetri: stagione?.vascaMetri || 25, durataMin: impostazioni.durataDefaultMin || 90 };
+                return (
+                  <div key={dow} className="rounded-xl border border-slate-200/70 bg-surface-container-low p-2.5 space-y-2 min-w-0">
+                    <div className="flex items-baseline justify-between gap-x-2 gap-y-0.5 min-w-0">
+                      <span className="text-body-bold font-body-bold text-on-surface truncate">{DAY_OF_WEEK_NAMES[dow]}</span>
+                      <span className="ds-label shrink-0">{p.vascaMetri}m · {p.durataMin}'</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {[25, 50].map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => impostaParametriGiorno(dow, { vascaMetri: v, durataMin: p.durataMin })}
+                          className={`flex-1 min-h-[36px] rounded-lg text-xs font-bold ${p.vascaMetri === v ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface'}`}
+                        >
+                          {v}m
+                        </button>
+                      ))}
+                    </div>
+                    <input
+                      type="number"
+                      min={30}
+                      max={210}
+                      step={5}
+                      value={p.durataMin}
+                      onChange={(e) => impostaParametriGiorno(dow, { vascaMetri: p.vascaMetri, durataMin: normalizzaDurata(Number(e.target.value)) })}
+                      className="w-full px-2 h-9 border border-outline-variant rounded-lg text-xs font-bold"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <label className="text-xs text-on-surface-variant">Durata default stagione</label>
+              <input
+                type="number"
+                min={30}
+                max={210}
+                step={5}
+                value={impostazioni.durataDefaultMin || 90}
+                onChange={(e) => impostaDurataDefault(normalizzaDurata(Number(e.target.value)))}
+                className="w-24 px-2 h-9 border border-outline-variant rounded-lg text-xs font-bold"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label className="block text-body-bold font-body-bold text-on-surface">
               Giorni di Allenamento Settimanali{' '}
               <span className="font-normal text-on-surface-variant">
@@ -633,7 +693,7 @@ export const PianoScreen: React.FC = () => {
           </div>
 
           {/* Metric inputs */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
             <div>
               <label className="block font-semibold text-on-surface mb-1">
                 Metri base seduta (auto {parametriEffettivi.metriBaseSeduta}m)
@@ -865,7 +925,7 @@ export const PianoScreen: React.FC = () => {
                   )}
 
                   {/* Microcycles Grid of the selected mesocycle */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {microOfActiveMeso.map(mi => {
                       const isCurrentWeek = !isBefore(oggi, mi.inizio) && !isBefore(mi.fine, oggi);
                       const gareInSettimana = gare.filter(
@@ -1043,7 +1103,7 @@ export const PianoScreen: React.FC = () => {
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                           {microOfMeso.map(mi => {
                             const gareInSettimana = gare.filter(
                               g => !isBefore(mi.fine, g.dal) && !isBefore(g.al, mi.inizio)
@@ -1183,9 +1243,9 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
   const tipi: TipoMicrociclo[] = ['CARICO', 'SCARICO', 'RECUPERO', 'GARA', 'ADATTAMENTO', 'PAUSA'];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-surface-container-lowest rounded-xl shadow-float max-w-md w-full p-5 border border-slate-200/70">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-200/70">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-xs">
+      <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl shadow-float max-w-md w-full p-5 border border-slate-200/70 max-h-[92dvh] overflow-y-auto">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/70 sticky top-0 bg-surface-container-lowest -mx-5 -mt-5 px-5 pt-5 z-10">
           <h3 className="font-bold text-on-surface text-base">
             Settimana del {formattaData(micro.inizio)}
           </h3>
@@ -1197,13 +1257,13 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
         <div className="py-4 space-y-3 text-xs">
           <div>
             <label className="block font-semibold text-on-surface mb-1">Tipo Microciclo</label>
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
               {tipi.map(t => (
                 <button
                   key={t}
                   type="button"
                   onClick={() => setTipo(t)}
-                  className={`p-2 rounded-lg text-center font-bold transition ${
+                  className={`p-2 rounded-lg text-center font-bold transition min-h-[44px] ${
                     tipo === t ? 'bg-primary-container text-on-primary shadow-card' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
@@ -1213,7 +1273,7 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
             <div>
               <label className="block font-semibold text-on-surface mb-1">Sedute Previste</label>
               <input
@@ -1258,7 +1318,7 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
               <button
                 type="button"
                 onClick={() => onSblocca(micro)}
-                className="inline-flex items-center gap-1 px-3 h-12 bg-tertiary-fixed hover:bg-amber-200 text-on-tertiary-fixed rounded-xl text-xs font-bold transition"
+                className="inline-flex items-center gap-1 px-3 h-12 bg-tertiary-fixed hover:brightness-95 text-on-tertiary-fixed rounded-xl text-xs font-bold transition"
               >
                 <Unlock size={14} />
                 <span>Sblocca</span>
