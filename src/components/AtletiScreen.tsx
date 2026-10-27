@@ -18,11 +18,14 @@ import { PageHeader } from './PageHeader';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { AtletaBiomeccanicaView } from './AtletaBiomeccanicaView';
 import { GareAmmissibiliCard } from './GareAmmissibiliCard';
+import { Marquee } from './Marquee';
 import {
   AlertTriangle,
   Calendar,
   Check,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   ClipboardList,
   Edit2,
   FileText,
@@ -68,6 +71,17 @@ export const AtletiScreen: React.FC = () => {
   const [selezionatoId, setSelezionatoId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState<'ALL' | 'S1-S6' | 'S7-S10' | 'S11-S13' | 'S14'>('ALL');
+  const [openAthletes, setOpenAthletes] = useState<Set<number>>(new Set());
+
+  const toggleAccordion = (id: number, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setOpenAthletes(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const oggi = todayISO();
   const atletaSel = atleti.find(a => a.id === selezionatoId);
@@ -126,7 +140,7 @@ export const AtletiScreen: React.FC = () => {
 
       {/* Search & Class Category Filters */}
       {atleti.length > 0 && (
-        <div className="shrink-0 ds-card p-2 space-y-1.5">
+        <div className="shrink-0 ds-card p-2.5 space-y-2">
           <div className="relative">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
             <input
@@ -134,25 +148,25 @@ export const AtletiScreen: React.FC = () => {
               placeholder="Cerca per cognome o nome..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 h-9 bg-surface-container-low border border-slate-200/70 rounded-lg text-xs sm:text-sm placeholder:text-on-surface-variant focus:bg-surface-container-lowest focus:border-primary-container transition"
+              className="w-full pl-9 pr-3 min-h-[44px] bg-surface-container-low border border-slate-200/70 rounded-xl text-xs sm:text-sm placeholder:text-on-surface-variant focus:bg-surface-container-lowest focus:border-primary-container focus:outline-none focus:ring-1 focus:ring-primary/20 transition"
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="ds-label mr-1 text-[11px]">Filtra:</span>
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+            <span className="ds-label mr-1 shrink-0">Filtra:</span>
             {[
               { id: 'ALL', label: 'Tutti' },
-              { id: 'S1-S6', label: 'Fisici S1-S6' },
-              { id: 'S7-S10', label: 'Fisici S7-S10' },
-              { id: 'S11-S13', label: 'Visivi S11-S13' },
-              { id: 'S14', label: 'Intellettivi S14' },
+              { id: 'S1-S6', label: 'S1–S6' },
+              { id: 'S7-S10', label: 'S7–S10' },
+              { id: 'S11-S13', label: 'S11–S13' },
+              { id: 'S14', label: 'S14' },
             ].map(f => (
               <button
                 key={f.id}
                 onClick={() => setCategoriaFiltro(f.id as any)}
-                className={`min-h-[36px] px-2.5 rounded-full text-xs font-semibold transition ${
+                className={`shrink-0 min-h-[36px] px-3 rounded-full text-label-md font-label-md transition whitespace-nowrap ${
                   categoriaFiltro === f.id
-                    ? 'bg-primary-container text-on-primary shadow-card'
+                    ? 'bg-primary text-on-primary shadow-primary-sm'
                     : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
                 }`}
               >
@@ -192,13 +206,12 @@ export const AtletiScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Athletes List */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+      {/* Athletes List Accordion */}
+      <div className="flex flex-col gap-2.5">
         {atletiFiltrati.map(a => {
           const mieCondizioni = condizioni.filter(c => c.atletaId === a.id);
           const mieAssenze = assenze.filter(ass => ass.atletaId === a.id);
           const mieiTempi = tempi.filter(t => t.atletaId === a.id);
-          const avvisi = AtletaValidator.valida(a, mieCondizioni, mieAssenze, oggi);
           const condAttive = mieCondizioni.filter(c => c.attiva).length;
           const eta = a.dataNascita ? yearsBetween(a.dataNascita, oggi) : null;
 
@@ -207,108 +220,123 @@ export const AtletiScreen: React.FC = () => {
             : null;
 
           const formCheck = CalcoloRitmiRipartenze.valutaNecessitaFormCheck(a, mieiTempi, mesoCorrente);
+          const isOpen = openAthletes.has(a.id);
+          const migliorTempo = mieiTempi.length > 0
+            ? formattaTempo([...mieiTempi].sort((x, y) => x.centesimi - y.centesimi)[0].centesimi)
+            : '24"80';
 
           return (
-        <div
-          key={a.id}
-          role="button"
-          tabIndex={0}
-          aria-label={`Apri scheda di ${a.nome} ${a.cognome}`}
-          onClick={() => setSelezionatoId(a.id)}
-          onKeyDown={e => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              setSelezionatoId(a.id);
-            }
-          }}
-          className="bg-surface-container-lowest hover:bg-surface-container-low border border-slate-200/90 rounded-xl p-3 sm:p-4 transition shadow-card cursor-pointer flex flex-col justify-between gap-2 group"
-        >
-              {/* Header row: Avatar, Name, Status, Badges */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="relative shrink-0">
-                    <div className="w-10 h-10 rounded-lg bg-primary-container text-on-primary flex items-center justify-center font-label-md text-label-md shadow-card">
-                      {a.nome?.[0] || 'A'}{a.cognome?.[0] || 'T'}
-                    </div>
-                    {a.stato === 'UFFICIALE' && (
-                      <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-tertiary-container text-on-primary rounded-full flex items-center justify-center text-[11px] shadow-card">
-                        <Check size={12} className="stroke-[3]" />
-                      </span>
-                    )}
+            <div
+              key={a.id}
+              className="bg-surface-container-lowest border border-outline-variant rounded-2xl transition-all shadow-card overflow-hidden"
+            >
+              {/* Accordion Closed Row (~64dp height, clickable) */}
+              <button
+                type="button"
+                onClick={e => toggleAccordion(a.id, e)}
+                className="w-full min-h-[64px] px-3.5 py-2.5 flex items-center justify-between gap-3 text-left hover:bg-surface-container-low transition"
+              >
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  {/* Avatar */}
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-primary-container text-white font-headline text-sm font-bold flex items-center justify-center shadow-sm shrink-0">
+                    {a.nome?.[0] || 'A'}{a.cognome?.[0] || 'T'}
                   </div>
 
-                  <div className="flex flex-col min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="ds-title leading-tight">
-                        {a.cognome} {a.nome}
-                      </h3>
-                      <span className="ds-chip !normal-case">
-                        {a.stato === 'UFFICIALE' ? 'Nazionale A' : 'In Attesa'}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <div className="font-headline font-bold text-sm text-on-surface min-w-0 flex-1">
+                        <Marquee text={`${a.cognome} ${a.nome}`} />
+                      </div>
+                      <span className="px-2 py-0.5 rounded-lg bg-surface-container text-primary font-bold text-xs shrink-0 font-headline">
+                        S{a.classeS ?? '9'}
                       </span>
                     </div>
-                    <p className="text-body-base font-body-base text-on-surface-variant leading-snug mt-0.5">
-                      {eta != null ? `${eta} Anni · ` : ''}Fed. FINP / World Para Swimming
-                    </p>
+                    <div className="text-xs text-on-surface-variant flex items-center gap-2 mt-0.5">
+                      <span>{a.stato === 'UFFICIALE' ? 'Nazionale A' : 'In Attesa'}</span>
+                      {eta != null && <span>· {eta} Anni</span>}
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end shrink-0">
-                  <span className="ds-label">Miglior Tempo</span>
-                  <span className="ds-metric-sm text-primary-container">
-                    {mieiTempi.length > 0 ? formattaTempo([...mieiTempi].sort((x, y) => x.centesimi - y.centesimi)[0].centesimi) : '24"80'}
+                <div className="flex items-center gap-2 shrink-0">
+                  {(condAttive > 0 || formCheck.necessario) && (
+                    <div className="w-7 h-7 rounded-full bg-error-container text-error flex items-center justify-center shrink-0">
+                      <AlertTriangle size={15} />
+                    </div>
+                  )}
+
+                  <div className="text-right">
+                    <div className="text-[10px] font-bold text-on-surface-variant uppercase">Miglior Tempo</div>
+                    <div className="text-base sm:text-lg font-headline font-bold text-tertiary tabular-nums">
+                      {migliorTempo}
+                    </div>
+                  </div>
+
+                  <span className="w-8 h-8 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center shrink-0">
+                    {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                   </span>
                 </div>
-              </div>
+              </button>
 
-              {/* Paralympic Classification Chip Row */}
-              <div className="flex items-center flex-wrap gap-1.5 pt-1">
-                <div className="flex items-center bg-on-primary-fixed text-primary-fixed px-2.5 py-1 rounded-md">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-outline">WPS:</span>
-                  <span className="text-xs font-bold ml-1.5 tracking-tight">
-                    {formatClassi(a)}
-                  </span>
+              {/* Accordion Body (Open State) */}
+              {isOpen && (
+                <div className="p-4 bg-surface-container-low border-t border-outline-variant/60 space-y-3 animate-fade-in text-xs">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center bg-surface-container-lowest text-primary px-3 py-1 rounded-xl border border-outline-variant font-bold">
+                      <span className="text-[10px] uppercase text-on-surface-variant mr-1.5">WPS:</span>
+                      <span>{formatClassi(a)}</span>
+                    </div>
+
+                    <span className="px-3 py-1 rounded-xl bg-surface-container-lowest text-on-surface font-bold border border-outline-variant">
+                      Stato: {a.stato === 'UFFICIALE' ? 'Nazionale A' : 'In Attesa'}
+                    </span>
+                  </div>
+
+                  {condAttive > 0 && (
+                    <div className="p-3 bg-error-container text-on-error-container rounded-xl flex items-start gap-2 border border-error/30 font-bold">
+                      <HeartPulse size={16} className="text-error shrink-0 mt-0.5" />
+                      <div>
+                        <div>{condAttive} {condAttive === 1 ? 'limitazione attiva' : 'limitazioni attive'}</div>
+                        <ul className="list-disc list-inside text-[11px] font-normal opacity-90 mt-1">
+                          {mieCondizioni.filter(c => c.attiva).map(c => (
+                            <li key={c.id}>{c.descrizione || c.limitazioni}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  {formCheck.necessario && (
+                    <div className="p-3 bg-warning-container text-on-warning-container rounded-xl flex items-center gap-2 font-bold border border-warning/30">
+                      <AlertTriangle size={16} className="text-warning shrink-0" />
+                      <span>Form Check Necessario: aggiorna i tempi di riferimento</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-outline-variant/60">
+                    <button
+                      type="button"
+                      onClick={() => setSelezionatoId(a.id)}
+                      className="ds-btn-secondary !min-h-[40px] !px-4 text-xs"
+                    >
+                      <User size={14} />
+                      <span>Biomeccanica</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelezionatoId(a.id)}
+                      className="ds-btn-primary !min-h-[40px] !px-4 text-xs"
+                    >
+                      <Timer size={14} />
+                      <span>Tempi & Scheda</span>
+                    </button>
+                  </div>
                 </div>
-
-                {condAttive > 0 && (
-                  <span className="bg-error-container border border-error/40 text-on-error-container px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1">
-                    <HeartPulse size={12} className="text-error" />
-                    {condAttive} {condAttive === 1 ? 'limitazione' : 'limitazioni'}
-                  </span>
-                )}
-
-                {formCheck.necessario && (
-                  <span className="bg-tertiary-fixed text-on-tertiary-fixed px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1">
-                    <Timer size={12} />
-                    Form Check Necessario
-                  </span>
-                )}
-              </div>
-
-              {/* Action Buttons Touch-Optimized */}
-              <div className="flex items-center gap-2 pt-1 border-t border-slate-200/70">
-                <button
-                  type="button"
-                  className="flex-1 min-h-[40px] flex items-center justify-center gap-1 bg-primary-container hover:bg-primary text-on-primary rounded-xl text-xs font-bold transition shadow-card active:scale-[0.98]"
-                >
-                  <User size={15} />
-                  <span className="text-[11px]">Biomeccanica</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={e => {
-                    e.stopPropagation();
-                    setSelezionatoId(a.id);
-                  }}
-                  className="min-h-[40px] px-3 flex items-center justify-center gap-1 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-xl text-xs font-bold transition"
-                >
-                  <Timer size={15} className="text-secondary" />
-                  <span className="text-[11px]">Tempi</span>
-                </button>
-              </div>
+              )}
             </div>
           );
         })}
-        </div>
+      </div>
       </div>
 
       {/* Modal Nuovo Atleta */}

@@ -235,6 +235,22 @@ export class FINPStorage {
     save(STORAGE_KEYS.CLASSI_STIMATE, Array.from(set));
   }
 
+  static getLayoutScelto(): 'classica' | 'flottante' | 'azione-centrale' {
+    return load<'classica' | 'flottante' | 'azione-centrale'>('finp_layout_scelto', 'classica');
+  }
+
+  static saveLayoutScelto(layout: 'classica' | 'flottante' | 'azione-centrale') {
+    save('finp_layout_scelto', layout);
+  }
+
+  static getThemeMode(): 'sistema' | 'chiaro' | 'scuro' {
+    return load<'sistema' | 'chiaro' | 'scuro'>('finp_theme_mode', 'sistema');
+  }
+
+  static saveThemeMode(mode: 'sistema' | 'chiaro' | 'scuro') {
+    save('finp_theme_mode', mode);
+  }
+
   static exportBackup(): string {
     const data = {
       version: '1.0',

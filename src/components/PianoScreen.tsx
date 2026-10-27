@@ -11,7 +11,7 @@ import {
   TipoMicrociclo,
   TIPO_MICROCICLO_LABEL
 } from '../types';
-import { formattaData, parseData, todayISO, isBefore, addDays, daysBetween } from '../domain/dateUtils';
+import { formattaData, parseData, todayISO, isBefore, addDays, daysBetween, toDateObj, isInRange } from '../domain/dateUtils';
 import { AutoPianificatore } from '../domain/autoPianificatore';
 import { GeneratoreSmartSeduta } from '../domain/generatoreSmartSeduta';
 import { IndicatoreCodici } from './IndicatoreCodici';
@@ -19,9 +19,11 @@ import { ElencoAvvisi } from './ElencoAvvisi';
 import { SchedaSedutaModal } from './SchedaSedutaModal';
 import { Sezione } from './Sezione';
 import { PageHeader } from './PageHeader';
+import { Marquee } from './Marquee';
 import { normalizzaDurata } from '../domain/parametriSeduta';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import {
+  Activity,
   AlertCircle,
   Calendar,
   Check,
@@ -116,6 +118,43 @@ export const PianoScreen: React.FC = () => {
 
   // Form nuova gara
   const [modalGaraOpen, setModalGaraOpen] = useState(false);
+
+  // Season Statistics & Timeline Computation
+  const seasonStats = React.useMemo(() => {
+    if (!stagione) return null;
+    const startStr = stagione.inizio || '2026-09-14';
+    const endStr = stagione.fine || '2027-06-13';
+    const startMs = toDateObj(startStr).getTime();
+    const endMs = toDateObj(endStr).getTime();
+    const currentMs = toDateObj(oggi).getTime();
+    const totalDays = Math.max(1, Math.ceil((endMs - startMs) / (1000 * 60 * 60 * 24)));
+    const elapsedDays = Math.max(0, Math.min(totalDays, Math.ceil((currentMs - startMs) / (1000 * 60 * 60 * 24))));
+    const remainingDays = Math.max(0, totalDays - elapsedDays);
+    const progress = Math.round((elapsedDays / totalDays) * 100);
+    const weekNum = Math.min(39, Math.max(1, Math.ceil(elapsedDays / 7)));
+
+    const microCurr = micro.find(m => !isBefore(oggi, m.inizio) && !isBefore(m.fine, oggi));
+    const mesoCurr = microCurr ? meso.find(me => me.id === microCurr.mesocicloId) : null;
+    const macroCurr = mesoCurr ? macro.find(ma => ma.id === mesoCurr.macrocicloId) : null;
+
+    const nextGara = gare.filter(g => !isBefore(g.dal, oggi)).sort((a, b) => a.dal.localeCompare(b.dal))[0];
+    const garaDiffDays = nextGara ? Math.max(0, Math.ceil((toDateObj(nextGara.dal).getTime() - currentMs) / (1000 * 60 * 60 * 24))) : null;
+
+    const nextChiusura = chiusure.filter(c => !isBefore(c.dal, oggi)).sort((a, b) => a.dal.localeCompare(b.dal))[0];
+
+    return {
+      progress,
+      elapsedDays,
+      remainingDays,
+      weekNum,
+      microCurr,
+      mesoCurr,
+      macroCurr,
+      nextGara,
+      garaDiffDays,
+      nextChiusura
+    };
+  }, [stagione, oggi, micro, meso, macro, gare, chiusure]);
   const [gNome, setGNome] = useState('');
   const [gDal, setGDal] = useState('');
   const [gAl, setGAl] = useState('');
@@ -253,6 +292,120 @@ export const PianoScreen: React.FC = () => {
         </div>
       )}
 
+      {/* SEASON VIBRANT HERO CARD */}
+      {seasonStats && (
+        <section className="ds-card p-4 bg-gradient-to-br from-[#0A2A66] via-[#1457E0] to-[#0A2A66] text-white shadow-primary-sm space-y-4">
+          {/* Row 1: Week info & Season progress */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/20 pb-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-white font-bold text-xs uppercase tracking-wider font-headline">
+                  Settimana {seasonStats.weekNum} di 39
+                </span>
+                {seasonStats.mesoCurr && (
+                  <span className="px-2.5 py-0.5 rounded-full bg-tertiary text-white font-bold text-xs font-headline">
+                    {seasonStats.mesoCurr.fase ? FASE_MESOCICLO_LABEL[seasonStats.mesoCurr.fase] : 'Fase Attiva'}
+                  </span>
+                )}
+              </div>
+              <h2 className="text-lg sm:text-xl font-bold font-headline mt-1">
+                {seasonStats.macroCurr ? seasonStats.macroCurr.nome : 'Stagione 2026/27'}
+                {seasonStats.mesoCurr ? ` · ${FASE_MESOCICLO_LABEL[seasonStats.mesoCurr.fase]}` : ''}
+              </h2>
+            </div>
+
+            {/* Countdown Prossima Gara */}
+            {seasonStats.nextGara && (
+              <div className="bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/20 flex items-center gap-3 shrink-0">
+                <Trophy size={20} className="text-tertiary-fixed shrink-0" />
+                <div>
+                  <div className="text-[10px] text-white/80 uppercase font-bold tracking-wider">Prossima Gara</div>
+                  <div className="font-bold text-xs truncate max-w-[140px]">{seasonStats.nextGara.nome}</div>
+                </div>
+                <div className="text-right pl-2 border-l border-white/20">
+                  <span className="text-xl font-extrabold font-headline tabular-nums">{seasonStats.garaDiffDays}</span>
+                  <span className="text-[9px] block uppercase opacity-80">giorni</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Row 2: Progress Bar */}
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-xs font-bold font-headline text-white/90">
+              <span>Progresso Stagione: {seasonStats.progress}%</span>
+              <span>{seasonStats.elapsedDays} giorni trascorsi ({seasonStats.remainingDays} rimanenti)</span>
+            </div>
+            <div className="w-full bg-white/20 rounded-full h-2.5 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-tertiary to-tertiary-fixed h-full rounded-full transition-all duration-500"
+                style={{ width: `${seasonStats.progress}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Row 3: Horizontal Timeline Bar of Full Season */}
+          <div className="space-y-1 pt-1">
+            <div className="text-[10px] uppercase font-bold tracking-wider text-white/70">Timeline Stagione (Macrocicli e Gare)</div>
+            <div className="relative h-6 bg-black/20 rounded-xl overflow-hidden flex items-center p-0.5">
+              {macro.map((m, i) => (
+                <div
+                  key={m.id}
+                  className="h-full rounded-lg bg-white/20 hover:bg-white/30 transition flex items-center justify-center text-[10px] font-bold text-white/90 border-r border-black/20 truncate px-1 cursor-pointer"
+                  style={{ width: `${100 / Math.max(1, macro.length)}%` }}
+                  title={`${m.nome} (${formattaData(m.inizio)} - ${formattaData(m.fine)})`}
+                  onClick={() => setSelectedMacroId(m.id)}
+                >
+                  {m.nome}
+                </div>
+              ))}
+              {/* Today marker */}
+              <div
+                className="absolute top-0 bottom-0 w-1 bg-tertiary shadow-orange-glow z-10"
+                style={{ left: `${seasonStats.progress}%` }}
+                title={`Oggi: ${formattaData(oggi)}`}
+              />
+            </div>
+          </div>
+
+          {/* Row 4: Mini Weekly Load Chart */}
+          {micro.length > 0 && (
+            <div className="space-y-1.5 pt-1 border-t border-white/10">
+              <div className="flex items-center justify-between text-xs text-white/80 font-bold">
+                <span>Carico Settimanale (Microcicli)</span>
+                <span className="text-[10px] text-tertiary-fixed-dim">{avvisiPiano.length} avvisi carico</span>
+              </div>
+              <div className="h-10 flex items-end gap-1 overflow-x-auto pb-1">
+                {micro.slice(0, 16).map((mc, idx) => {
+                  const maxVol = Math.max(...micro.map(m => m.volumeTargetMetri || 2000));
+                  const hPercent = Math.max(15, Math.round(((mc.volumeTargetMetri || 1500) / maxVol) * 100));
+                  const isCurrent = isInRange(oggi, mc.inizio, mc.fine);
+                  return (
+                    <div
+                      key={mc.id}
+                      className="flex-1 min-w-[12px] flex flex-col items-center gap-0.5 group cursor-pointer"
+                      onClick={() => setMicroSelezionato(mc)}
+                      title={`Micro ${idx + 1}: ${mc.volumeTargetMetri}m (${mc.tipo})`}
+                    >
+                      <div
+                        className={`w-full rounded-t transition-all ${
+                          isCurrent
+                            ? 'bg-tertiary shadow-orange-glow'
+                            : mc.tipo === 'SCARICO'
+                            ? 'bg-secondary'
+                            : 'bg-white/40 group-hover:bg-white'
+                        }`}
+                        style={{ height: `${hPercent}%` }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
       {/* Modal Modifica Date Stagione */}
       {modificaDateOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
@@ -355,7 +508,14 @@ export const PianoScreen: React.FC = () => {
       )}
 
       {/* Chiusure e Festività */}
-      <Sezione titolo="Chiusure e Festività" icon={<Calendar size={16} />} badge={chiusure.length} riepilogoChiuso={`${chiusure.length} registrate`} storageKey="piano_chiusure" defaultAperto={false}>
+      <Sezione
+        titolo="Chiusure e Festività"
+        icon={<Calendar size={16} />}
+        badge={chiusure.length}
+        riepilogoChiuso={seasonStats?.nextChiusura ? `Prossima: ${seasonStats.nextChiusura.motivo} (${formattaData(seasonStats.nextChiusura.dal)})` : `${chiusure.length} registrate`}
+        storageKey="piano_chiusure"
+        defaultAperto={false}
+      >
         <div className="space-y-3 text-xs pt-1">
           <div className="flex flex-wrap gap-2">
             <button
@@ -433,7 +593,14 @@ export const PianoScreen: React.FC = () => {
       </Sezione>
 
       {/* Gare Agonistiche */}
-      <Sezione titolo="Gare Agonistiche" icon={<Trophy size={16} />} badge={gare.length} riepilogoChiuso={`${gare.length} programmate`} storageKey="piano_gare" defaultAperto={false}>
+      <Sezione
+        titolo="Gare Agonistiche"
+        icon={<Trophy size={16} />}
+        badge={gare.length}
+        riepilogoChiuso={seasonStats?.nextGara ? `Prossima: ${seasonStats.nextGara.nome} (${formattaData(seasonStats.nextGara.dal)})` : `${gare.length} programmate`}
+        storageKey="piano_gare"
+        defaultAperto={false}
+      >
         <div className="space-y-3 pt-1 text-xs">
           <div className="flex items-center justify-between">
             <span className="font-bold text-on-surface">Calendario Gare</span>
@@ -576,7 +743,14 @@ export const PianoScreen: React.FC = () => {
       )}
 
       {/* Parametri Auto-Pianificatore & Controlli */}
-      <Sezione titolo="Parametri Auto-Pianificatore & Controlli sul Piano" icon={<Sparkles size={16} />} badge={avvisiPiano.length > 0 ? avvisiPiano.length : undefined} riepilogoChiuso={avvisiPiano.length > 0 ? `${avvisiPiano.length} avvisi sul carico` : "Configurazione e controlli"} storageKey="piano_parametri" defaultAperto={false}>
+      <Sezione
+        titolo="Parametri Auto-Pianificatore & Controlli sul Piano"
+        icon={<Sparkles size={16} />}
+        badge={avvisiPiano.length > 0 ? avvisiPiano.length : undefined}
+        riepilogoChiuso={avvisiPiano.length > 0 ? `${avvisiPiano.length} avvisi sul carico attivi` : "Pianificazione e controlli ottimali"}
+        storageKey="piano_parametri"
+        defaultAperto={false}
+      >
         <div className="space-y-4 pt-1 text-xs">
           {avvisiPiano.length > 0 && (
             <div className="space-y-1.5 pb-3 border-b border-slate-200/70">
@@ -763,7 +937,14 @@ export const PianoScreen: React.FC = () => {
 
 
 
-      <Sezione titolo="Programmazione & Cicli di Carico" icon={<Calendar size={18} />} badge={`${micro.length} sett.`} riepilogoChiuso={`${macro.length} macrocicli · ${meso.length} mesocicli`} storageKey="piano_programmazione" defaultAperto={true}>
+      <Sezione
+        titolo="Programmazione & Cicli di Carico"
+        icon={<Calendar size={18} />}
+        badge={`${micro.length} sett.`}
+        riepilogoChiuso={`Macro: ${macro.length} · Meso: ${meso.length} · Micro: ${micro.length}`}
+        storageKey="piano_programmazione"
+        defaultAperto={true}
+      >
         <div className="space-y-4 pt-1">
           {/* Navigation & Controls Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-200/70">
@@ -1263,7 +1444,7 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
                   key={t}
                   type="button"
                   onClick={() => setTipo(t)}
-                  className={`p-2 rounded-lg text-center font-bold transition min-h-[44px] ${
+                  className={`p-2 rounded-lg text-left font-bold transition min-h-[44px] ${
                     tipo === t ? 'bg-primary-container text-on-primary shadow-card' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                   }`}
                 >

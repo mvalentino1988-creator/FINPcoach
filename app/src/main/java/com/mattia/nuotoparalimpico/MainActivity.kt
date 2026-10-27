@@ -95,9 +95,8 @@ class MainActivity : ComponentActivity() {
 
         // Intelligently feed system window insets as CSS variables into the web app root
         ViewCompat.setOnApplyWindowInsetsListener(webView) { _, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            currentTopInset = insets.top
-            currentBottomInset = insets.bottom
+            currentTopInset = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+            currentBottomInset = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
             updateWebViewInsets()
             windowInsets
         }
@@ -120,10 +119,13 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun updateWebViewInsets() {
+        val density = resources.displayMetrics.density
+        val topDp = if (density > 0f) currentTopInset / density else currentTopInset.toFloat()
+        val bottomDp = if (density > 0f) currentBottomInset / density else currentBottomInset.toFloat()
         val script = """
             (function() {
-                document.documentElement.style.setProperty('--safe-top', '${currentTopInset}px');
-                document.documentElement.style.setProperty('--safe-bottom', '${currentBottomInset}px');
+                document.documentElement.style.setProperty('--safe-top', '${topDp}px');
+                document.documentElement.style.setProperty('--safe-bottom', '${bottomDp}px');
             })();
         """
         webView.evaluateJavascript(script, null)

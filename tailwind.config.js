@@ -1,163 +1,130 @@
 /**
- * FINPcoach — Design System "Aquatic Paralympic"
- * Token set allineato a Stitch (aquatic_paralympic_coaching_system / DESIGN.md).
+ * FINPcoach — Restyling Grafico Totale (Sporty Blue & Orange)
  *
- * Regole d'uso:
- *  - Colori: SEMANTICI (bg-surface-container-lowest, text-on-surface-variant, ...).
- *    Non usare le scale slate/gray: la palette e' calibrata per glare di vasca e WCAG AAA.
- *  - Tipografia: i token `label-*` (caps) per metadati densi (classi S9, record ITA),
- *    `headline-*` per titoli, `body-*` per testo corrente e descrizioni esercizi.
- *  - Spaziatura: ritmo modulare 4/8px (space-xs .25 / space-sm .5 / space-md 1 / space-lg 1.5).
- *
- * @type {import('tailwindcss').Config}
+ * Palette:
+ *  - Blu strutturali: #071A3D (900), #0A2A66 (800), #1457E0 (600), #1E6BFF (500), #4A8DFF (400), #8DB8FF (300), #E3EEFF (100)
+ *  - Azzurro acqua accento: #22C8F0
+ *  - Arancione CTA/Risultati: #E85D04 (600), #FF7A1A (500), #FF9A4D (400), #FFE9D6 (100)
+ *  - Sfondo Dark: #071328
  */
 export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        /* ---- Superfici (architettura a 5 livelli) ---- */
-        surface: '#faf8ff',
-        'surface-bright': '#faf8ff',
-        'surface-dim': '#d2d9f4',
-        'surface-container-lowest': '#ffffff',
-        'surface-container-low': '#f2f3ff',
-        'surface-container': '#eaedff',
-        'surface-container-high': '#e2e7ff',
-        'surface-container-highest': '#dae2fd',
-        'surface-variant': '#dae2fd',
-        'surface-tint': '#016874',
-        background: '#faf8ff',
-        'on-surface': '#131b2e',
-        'on-surface-variant': '#3f484a',
-        'on-background': '#131b2e',
+        surface: 'var(--color-surface, #f4f7fe)',
+        'surface-bright': 'var(--color-surface-bright, #ffffff)',
+        'surface-dim': 'var(--color-surface-dim, #e2e8f0)',
+        'surface-container-lowest': 'var(--color-surface-container-lowest, #ffffff)',
+        'surface-container-low': 'var(--color-surface-container-low, #edf2fc)',
+        'surface-container': 'var(--color-surface-container, #e2eaf8)',
+        'surface-container-high': 'var(--color-surface-container-high, #d4e0f4)',
+        'surface-container-highest': 'var(--color-surface-container-highest, #c4d4f0)',
+        'surface-variant': 'var(--color-surface-variant, #d4e0f4)',
+        background: 'var(--color-background, #f4f7fe)',
+        'on-surface': 'var(--color-on-surface, #071A3D)',
+        'on-surface-variant': 'var(--color-on-surface-variant, #475569)',
+        'on-background': 'var(--color-on-background, #071A3D)',
 
-        /* ---- Primary: Deep Aquatic Teal ---- */
-        primary: '#004e58',
-        'primary-container': '#006874',
+        /* Primary: Deep sporty Blue */
+        primary: '#0A2A66',
+        'primary-container': '#1457E0',
         'on-primary': '#ffffff',
-        'on-primary-container': '#97e4f2',
-        'primary-fixed': '#a2effd',
-        'primary-fixed-dim': '#85d2e0',
-        'on-primary-fixed': '#001f24',
-        'on-primary-fixed-variant': '#004f58',
-        'inverse-primary': '#85d2e0',
+        'on-primary-container': '#ffffff',
+        'primary-fixed': '#1E6BFF',
+        'primary-fixed-dim': '#0A2A66',
+        'on-primary-fixed': '#ffffff',
 
-        /* ---- Secondary: Olympic Deep Blue ---- */
-        secondary: '#006399',
-        'secondary-container': '#7ec2fd',
-        'on-secondary': '#ffffff',
-        'on-secondary-container': '#004f7b',
-        'secondary-fixed': '#cde5ff',
-        'secondary-fixed-dim': '#95ccff',
-        'on-secondary-fixed': '#001d32',
-        'on-secondary-fixed-variant': '#004a75',
+        /* Secondary: Aqua accent */
+        secondary: '#22C8F0',
+        'secondary-container': '#e0f7fc',
+        'on-secondary': '#071A3D',
+        'on-secondary-container': '#003642',
 
-        /* ---- Tertiary: Athletic Coral ---- */
-        tertiary: '#793000',
-        'tertiary-container': '#9e4202',
+        /* Tertiary / CTA: Vibrant Athletic Orange */
+        tertiary: '#FF7A1A',
+        'tertiary-container': '#E85D04',
         'on-tertiary': '#ffffff',
-        'on-tertiary-container': '#ffceb7',
-        'tertiary-fixed': '#ffdbcb',
-        'tertiary-fixed-dim': '#ffb692',
-        'on-tertiary-fixed': '#341100',
-        'on-tertiary-fixed-variant': '#793000',
+        'on-tertiary-container': '#ffffff',
+        'tertiary-fixed': '#FFE9D6',
+        'tertiary-fixed-dim': '#FF9A4D',
+        'on-tertiary-fixed': '#3A1300',
 
-        /* ---- Error / Inverse / Outline ---- */
-        error: '#ba1a1a',
+        /* Semantic colors */
+        success: '#10B981',
+        'on-success': '#ffffff',
+        'success-container': '#D1FAE5',
+        warning: '#F59E0B',
+        'on-warning': '#ffffff',
+        'warning-container': '#FEF3C7',
+        error: '#EF4444',
         'on-error': '#ffffff',
-        'error-container': '#ffdad6',
-        'on-error-container': '#93000a',
-        'inverse-surface': '#283044',
-        'inverse-on-surface': '#eef0ff',
-        outline: '#6f797b',
-        'outline-variant': '#bec8ca',
+        'error-container': '#FEE2E2',
+        info: '#3B82F6',
+
+        /* Load zones A1/A2, B1/B2, Tecnica */
+        'zone-a': '#3B82F6',
+        'zone-b': '#10B981',
+        'zone-c': '#F59E0B',
+        'zone-tec': '#8B5CF6',
+
+        outline: 'var(--color-outline, #cbd5e1)',
+        'outline-variant': 'var(--color-outline-variant, #e2e8f0)',
       },
 
       borderRadius: {
-        DEFAULT: '0.25rem',
-        sm: '0.25rem',
-        lg: '0.5rem',
-        xl: '0.75rem',
-        '2xl': '1rem',
+        DEFAULT: '0.375rem',
+        sm: '0.375rem',
+        lg: '0.75rem',
+        xl: '1rem',
+        '2xl': '1.25rem',
+        '3xl': '1.5rem',
         full: '9999px',
       },
 
       spacing: {
-        /* Gutters fluidi: 12px su telefoni stretti, ~20px su desktop.
-           Un solo token evita il salto brusco al breakpoint sm. */
         gutter: 'clamp(0.75rem, 0.55rem + 0.9vw, 1.25rem)',
         'gutter-mobile': 'clamp(0.75rem, 0.55rem + 0.9vw, 1rem)',
-        margin: '1.5rem',
-        'margin-mobile': '1rem',
         'space-xs': '0.25rem',
         'space-sm': '0.5rem',
         'space-md': '0.875rem',
         'space-lg': '1.25rem',
         'space-xl': '1.75rem',
-        /* Riferimenti rapidi per i tap target poolside */
         'tap': '48px',
         'tap-lg': '52px',
       },
 
       fontFamily: {
         sans: ["'Public Sans'", 'system-ui', 'sans-serif'],
-        'body-base': ["'Public Sans'", 'system-ui', 'sans-serif'],
-        'body-bold': ["'Public Sans'", 'system-ui', 'sans-serif'],
-        'body-lg': ["'Public Sans'", 'system-ui', 'sans-serif'],
-        'headline-sm': ["'Space Grotesk'", 'system-ui', 'sans-serif'],
-        'headline-md': ["'Space Grotesk'", 'system-ui', 'sans-serif'],
-        'headline-lg': ["'Space Grotesk'", 'system-ui', 'sans-serif'],
-        'headline-lg-mobile': ["'Space Grotesk'", 'system-ui', 'sans-serif'],
-        'display-lg': ["'Space Grotesk'", 'system-ui', 'sans-serif'],
-        'label-lg': ["'Space Grotesk'", 'system-ui', 'sans-serif'],
-        'label-md': ["'Space Grotesk'", 'system-ui', 'sans-serif'],
-        'label-caps': ["'Space Grotesk'", 'system-ui', 'sans-serif'],
+        headline: ["'Space Grotesk'", 'system-ui', 'sans-serif'],
         mono: ["ui-monospace", 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
       },
 
       fontSize: {
-        /* Tipografia fluida: cresce con la larghezza del viewport senza salti
-           ai breakpoint. I limiti (min/max) restano quelli del design system. */
         'display-lg': ['clamp(28px, 1.1vw + 22px, 34px)', { lineHeight: '1.15', fontWeight: '700' }],
-        'headline-lg': ['clamp(21px, 0.6vw + 18px, 26px)', { lineHeight: '1.2', fontWeight: '700' }],
-        'headline-lg-mobile': ['clamp(18px, 0.5vw + 16px, 21px)', { lineHeight: '1.25', fontWeight: '700' }],
+        'headline-lg': ['clamp(20px, 0.5vw + 17px, 24px)', { lineHeight: '1.2', fontWeight: '700' }],
         'headline-md': ['clamp(16px, 0.35vw + 15px, 19px)', { lineHeight: '1.3', fontWeight: '600' }],
-        'headline-sm': ['clamp(15px, 0.2vw + 14.4px, 17px)', { lineHeight: '1.35', fontWeight: '600' }],
+        'headline-sm': ['clamp(14px, 0.2vw + 13.5px, 16px)', { lineHeight: '1.35', fontWeight: '600' }],
         'body-lg': ['16px', { lineHeight: '24px', fontWeight: '400' }],
         'body-base': ['14px', { lineHeight: '20px', fontWeight: '400' }],
         'body-bold': ['14px', { lineHeight: '20px', fontWeight: '700' }],
-        'label-lg': ['clamp(13px, 0.1vw + 12.7px, 14px)', { lineHeight: '16px', fontWeight: '600' }],
-        'label-md': ['clamp(11px, 0.12vw + 10.6px, 12px)', { lineHeight: '14px', fontWeight: '700' }],
-        'label-caps': ['clamp(10px, 0.12vw + 9.6px, 11px)', { lineHeight: '14px', fontWeight: '700' }],
+        'label-lg': ['13px', { lineHeight: '16px', fontWeight: '600' }],
+        'label-md': ['12px', { lineHeight: '14px', fontWeight: '700' }],
+        'label-caps': ['11px', { lineHeight: '14px', fontWeight: '700' }],
       },
 
       boxShadow: {
-        /* Level 1 — card: micro-ombra + hairline (nessun blur pesante) */
-        card: '0 1px 2px rgba(15, 23, 42, 0.05)',
-        /* Level 2 — popover / bottom sheet */
-        pop: '0 4px 12px rgba(15, 23, 42, 0.08)',
-        /* Level 3 — dialog / FAB */
-        float: '0 8px 24px rgba(15, 23, 42, 0.12)',
-        'primary-sm': '0 2px 8px rgba(0, 104, 116, 0.20)',
-        'primary-md': '0 4px 14px rgba(0, 104, 116, 0.25)',
-        nav: '0 -1px 12px rgba(0, 0, 0, 0.06)',
-      },
-
-      screens: {
-        xs: '380px',
-        /* Finestra bassa (telefono in landscape, split-screen): compatta
-           header e spaziature verticali senza cambiare la larghezza. */
-        short: { raw: '(max-height: 520px)' },
-      },
-
-      /* Altezze minime per i tap target poolside (regolari di legge FINP) */
-      minHeight: {
-        'tap': '48px',
-        'tap-lg': '52px',
+        card: '0 2px 8px rgba(10, 42, 102, 0.06)',
+        pop: '0 6px 20px rgba(10, 42, 102, 0.12)',
+        float: '0 12px 32px rgba(10, 42, 102, 0.18)',
+        'primary-sm': '0 2px 10px rgba(20, 87, 224, 0.25)',
+        'primary-md': '0 6px 20px rgba(20, 87, 224, 0.35)',
+        'orange-glow': '0 4px 16px rgba(255, 122, 26, 0.35)',
+        nav: '0 -2px 16px rgba(10, 42, 102, 0.08)',
       },
     },
   },

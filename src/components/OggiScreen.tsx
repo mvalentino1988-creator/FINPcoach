@@ -13,8 +13,12 @@ import {
   getDayOfWeek,
   isInRange,
   todayISO,
-  addDays
+  addDays,
+  isBefore,
+  parseData,
+  toDateObj
 } from '../domain/dateUtils';
+import { CalcoloRitmiRipartenze } from '../domain/calcoloRitmiRipartenze';
 import { GeneratoreSmartSeduta } from '../domain/generatoreSmartSeduta';
 import { FINPStorage } from '../data/storage';
 import { ParserScheda } from '../domain/parserScheda';
@@ -47,12 +51,16 @@ import {
   Medal,
   ArrowUpRight,
   ChevronDown,
+  ChevronRight,
+  Trophy,
+  Activity,
   Bot,
   MoreHorizontal,
   X
 } from 'lucide-react';
 import { formattaTempo } from '../domain/tempoUtils';
 import { TabKey } from './Navbar';
+import { Marquee } from './Marquee';
 import { calcolaVolumeSessione, ripartisciSettimana, SedutaSettimana } from '../domain/volumePrescritto';
 import { risolviParametriSeduta, seduteSettimana } from '../domain/parametriSeduta';
 import { ParametriSedutaModal } from './ParametriSedutaModal';
@@ -364,44 +372,101 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
     return activeAlerts;
   }, [atleti, condizioni]);
 
+  // Prossima Gara
+  const prossimaGara = useMemo(() => {
+    const futureGare = (gare || []).filter(g => !isBefore(g.dal, oggi)).sort((a, b) => a.dal.localeCompare(b.dal));
+    if (futureGare.length === 0) return null;
+    const g = futureGare[0];
+    const diffDays = Math.ceil((toDateObj(g.dal).getTime() - toDateObj(oggi).getTime()) / (1000 * 60 * 60 * 24));
+    return { ...g, diffDays: Math.max(0, diffDays) };
+  }, [gare, oggi]);
+
+  // Metri completati nella settimana
+  const metriCompletatiSettimana = useMemo(() => {
+    return (log || [])
+      .filter(l => isInRange(l.data, settimanaISO[0], settimanaISO[settimanaISO.length - 1]))
+      .reduce((sum, item) => sum + (item.metriEffettivi || 0), 0);
+  }, [log, settimanaISO]);
+
+  // Attenzioni Oggi
+  const attenzioniOggi = useMemo(() => {
+    const list: { athleteId: number; athleteName: string; type: 'medico' | 'warning'; text: string }[] = [];
+    (atleti || []).forEach(a => {
+      const conds = (condizioni || []).filter(c => c.atletaId === a.id && c.attiva);
+      conds.forEach(c => {
+        list.push({
+          athleteId: a.id,
+          athleteName: `${a.cognome} ${a.nome?.[0]}.`,
+          type: 'medico',
+          text: c.descrizione || c.limitazioni
+        });
+      });
+      const aTempi = (tempi || []).filter(t => t.atletaId === a.id);
+      const fc = CalcoloRitmiRipartenze.valutaNecessitaFormCheck(a, aTempi, mesoCorrente);
+      if (fc.necessario) {
+        list.push({
+          athleteId: a.id,
+          athleteName: `${a.cognome} ${a.nome?.[0]}.`,
+          type: 'warning',
+          text: 'Form Check necessario'
+        });
+      }
+    });
+    return list;
+  }, [atleti, condizioni, tempi, mesoCorrente]);
+
+  // Ultimi Tempi Registrati
+  const ultimiTempi = useMemo(() => {
+    return [...(tempi || [])].sort((a, b) => b.data.localeCompare(a.data)).slice(0, 3).map(t => {
+      const a = (atleti || []).find(atl => atl.id === t.atletaId);
+      return {
+        ...t,
+        atletaNome: a ? `${a.cognome} ${a.nome?.[0]}.` : 'Atleta'
+      };
+    });
+  }, [tempi, atleti]);
+
   // Should we show the workout?
   const visualizzaSeduta = isGiornoAllenamento || mostraSedutaStraordinaria;
 
   return (
     <div className="relative flex flex-1 min-h-0 flex-col gap-2 overflow-hidden">
-      {/* Intestazione giornata: una riga sola, stato a destra */}
+      {/* Intestazione giornata - allineata al design system */}
       <section className="relative shrink-0 overflow-hidden rounded-2xl bg-surface-container-low p-3 sm:px-4 sm:py-3 border border-slate-200/60">
-        <div className="absolute -right-8 -bottom-10 w-28 h-28 rounded-full bg-secondary-fixed opacity-40 pointer-events-none" />
+        <div className="absolute -right-16 -bottom-16 w-32 h-32 rounded-full bg-secondary-fixed opacity-30 pointer-events-none" />
         <div className="relative z-10 flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <span className="ds-label text-primary block truncate">
-              {dowNome} {formattaData(oggi)}
+            <span className="ds-label text-primary flex items-center gap-1.5 truncate">
+              <Waves size={13} className="shrink-0" />
+              <span className="truncate">
+                {dowNome} · {formattaData(oggi)}
+              </span>
             </span>
-            <h1 className="text-base xs:text-lg sm:text-headline-lg text-on-surface tracking-tight leading-tight mt-0.5 truncate">
+            <h1 className="text-base xs:text-lg sm:text-headline-lg text-on-surface tracking-tight leading-tight mt-0.5 truncate font-bold">
               {microCorrente
-                ? `${TIPO_MICROCICLO_LABEL[microCorrente.tipo]} - ${microCorrente.volumeTargetMetri}m`
+                ? `${TIPO_MICROCICLO_LABEL[microCorrente.tipo]} · ${microCorrente.volumeTargetMetri.toLocaleString()} m`
                 : 'Imposta Stagione'}
             </h1>
           </div>
 
           <div className="shrink-0">
             {chiusuraOggi ? (
-              <span className="ds-chip-coral !px-2.5 !py-1.5 !h-9 !text-[10px] sm:!text-xs !normal-case max-w-[45vw] sm:max-w-none">
+              <span className="ds-chip-coral !px-2.5 !py-1 !min-h-[36px] !text-[10px] sm:!text-xs !normal-case max-w-[48vw] sm:max-w-none shadow-sm">
                 <AlertTriangle size={13} className="shrink-0" />
-                <span className="truncate">Chiusura: {chiusuraOggi.motivo}</span>
+                <span className="truncate">Chiusura · {chiusuraOggi.motivo}</span>
               </span>
             ) : garaOggi ? (
-              <span className="ds-chip bg-tertiary-container text-on-tertiary !px-2.5 !py-1.5 !h-9 !text-[10px] sm:!text-xs !normal-case max-w-[45vw] sm:max-w-none">
+              <span className="ds-chip bg-tertiary-container text-on-tertiary !px-2.5 !py-1 !min-h-[36px] !text-[10px] sm:!text-xs !normal-case max-w-[48vw] sm:max-w-none shadow-sm">
                 <Zap size={13} className="shrink-0" />
-                <span className="truncate">Gara: {garaOggi.nome}</span>
+                <span className="truncate">Gara · {garaOggi.nome}</span>
               </span>
             ) : isGiornoAllenamento ? (
-              <span className="ds-chip bg-primary text-on-primary !px-2.5 !py-1.5 !h-9 !text-[10px] sm:!text-xs !normal-case">
+              <span className="ds-chip bg-primary text-on-primary !px-2.5 !py-1 !min-h-[36px] !text-[10px] sm:!text-xs !normal-case shadow-primary-sm">
                 <Sparkles size={13} className="text-primary-fixed shrink-0" />
                 <span>In Vasca</span>
               </span>
             ) : (
-              <span className="ds-chip-neutral !px-2.5 !py-1.5 !h-9 !text-[10px] sm:!text-xs !normal-case">
+              <span className="ds-chip-neutral !px-2.5 !py-1 !min-h-[36px] !text-[10px] sm:!text-xs !normal-case">
                 <Coffee size={13} className="shrink-0" />
                 <span>Recupero</span>
               </span>
@@ -419,7 +484,7 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
         >
           <Gauge size={18} className="text-primary-fixed shrink-0" />
           <span className="text-[11px] sm:text-sm font-bold leading-tight">Cronometro</span>
-          <span className="hidden sm:block text-[10px] opacity-70 leading-none">Live deck bordo vasca</span>
+          <span className="hidden sm:block text-[10px] opacity-90 leading-none">Live deck bordo vasca</span>
           <ArrowUpRight
             size={14}
             className="absolute right-2 top-2 opacity-50 group-hover:opacity-100 transition"
@@ -430,14 +495,14 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
         <button
           type="button"
           onClick={() => onNavigateTab('regia')}
-          className="group relative flex flex-col items-start justify-between gap-1 rounded-xl sm:rounded-2xl bg-secondary-container px-2.5 py-2 sm:px-4 sm:py-3 min-h-[64px] sm:min-h-[76px] text-left text-on-secondary-container active:scale-[0.98] transition"
+          className="group relative flex flex-col items-start justify-between gap-1 rounded-xl sm:rounded-2xl bg-primary-container px-2.5 py-2 sm:px-4 sm:py-3 min-h-[64px] sm:min-h-[76px] text-left text-on-primary shadow-primary-sm active:scale-[0.98] transition"
         >
-          <SlidersHorizontal size={18} className="shrink-0" />
+          <SlidersHorizontal size={18} className="text-primary-fixed shrink-0" />
           <span className="text-[11px] sm:text-sm font-bold leading-tight">Regia</span>
-          <span className="hidden sm:block text-[10px] opacity-70 leading-none">Corsie &amp; pianificazione</span>
+          <span className="hidden sm:block text-[10px] opacity-90 leading-none">Corsie &amp; pianificazione</span>
           <ArrowUpRight
             size={14}
-            className="absolute right-2 top-2 opacity-40 group-hover:opacity-100 transition"
+            className="absolute right-2 top-2 opacity-50 group-hover:opacity-100 transition"
             aria-hidden="true"
           />
         </button>
@@ -445,14 +510,14 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
         <button
           type="button"
           onClick={() => onNavigateTab('atleti')}
-          className="group relative flex flex-col items-start justify-between gap-1 rounded-xl sm:rounded-2xl bg-tertiary-container px-2.5 py-2 sm:px-4 sm:py-3 min-h-[64px] sm:min-h-[76px] text-left text-on-tertiary active:scale-[0.98] transition"
+          className="group relative flex flex-col items-start justify-between gap-1 rounded-xl sm:rounded-2xl bg-primary-container px-2.5 py-2 sm:px-4 sm:py-3 min-h-[64px] sm:min-h-[76px] text-left text-on-primary shadow-primary-sm active:scale-[0.98] transition"
         >
-          <Medal size={18} className="shrink-0" />
+          <Medal size={18} className="text-primary-fixed shrink-0" />
           <span className="text-[11px] sm:text-sm font-bold leading-tight">Classifiche</span>
-          <span className="hidden sm:block text-[10px] opacity-70 leading-none">Punteggi WPS</span>
+          <span className="hidden sm:block text-[10px] opacity-90 leading-none">Punteggi WPS</span>
           <ArrowUpRight
             size={14}
-            className="absolute right-2 top-2 opacity-40 group-hover:opacity-100 transition"
+            className="absolute right-2 top-2 opacity-50 group-hover:opacity-100 transition"
             aria-hidden="true"
           />
         </button>
@@ -554,49 +619,131 @@ export const OggiScreen: React.FC<Props> = ({ onNavigateTab }) => {
 
 
 
-      {/* TODAY'S WORKOUT CARD */}
+      {/* TODAY'S WORKOUT CARD (COMPACT SINGLE ROW) */}
       {visualizzaSeduta && !schedaOggi && (
-        <div className="ds-card p-3 sm:p-4 flex-1 min-h-0 overflow-y-auto">
-          <div className="flex items-start gap-2.5">
-            <div className="w-9 h-9 rounded-lg bg-surface-container text-on-surface-variant flex items-center justify-center shrink-0">
-              <ClipboardList size={18} />
+        <div className="shrink-0 ds-card p-2.5 sm:p-3 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <ClipboardList size={16} className="text-primary shrink-0" />
+              <span className="font-headline font-bold text-xs text-on-surface truncate">Nessuna scheda per oggi</span>
             </div>
-            <div className="min-w-0">
-              <h3 className="ds-subtitle">Nessuna scheda per oggi</h3>
-              <p className="text-xs sm:text-body-base leading-snug text-on-surface-variant mt-0.5">
-                Scrivi a mano, genera con l'IA oppure parti dalla proposta del sistema.
-              </p>
-            </div>
+            <span className="text-[10px] text-on-surface-variant font-medium hidden xs:inline">Scrivi, genera o usa proposta</span>
           </div>
-          <div className="mt-2.5 grid grid-cols-3 gap-1.5">
+
+          <div className="grid grid-cols-3 gap-1.5">
             <button
               type="button"
               onClick={() => onNavigateTab('dati')}
-              className="ds-btn-primary !min-h-[44px] !px-2 flex-col xs:flex-row gap-1"
+              className="ds-btn-primary !min-h-[38px] !px-2 !py-1 text-xs justify-center"
             >
-              <ClipboardList size={16} />
-              <span className="text-[10px] xs:text-xs leading-tight text-center">Scrivi a mano</span>
+              <ClipboardList size={14} />
+              <span className="text-[11px] truncate">Scrivi a mano</span>
             </button>
 
             <button
               type="button"
               onClick={() => setModalIAOpen(true)}
-              className="ds-btn-ghost !min-h-[44px] !px-2 flex-col xs:flex-row gap-1"
+              className="ds-btn-secondary !min-h-[38px] !px-2 !py-1 text-xs justify-center"
             >
-              <Bot size={16} />
-              <span className="text-[10px] xs:text-xs leading-tight text-center">Genera con IA</span>
+              <Bot size={14} />
+              <span className="text-[11px] truncate">Genera con IA</span>
             </button>
 
             <button
               type="button"
               onClick={() => setMostraProposta(true)}
-              className="ds-btn-ghost !min-h-[44px] !px-2 flex-col xs:flex-row gap-1"
+              className="ds-btn-secondary !min-h-[38px] !px-2 !py-1 text-xs justify-center"
             >
-              <Sparkles size={16} />
-              <span className="text-[10px] xs:text-xs leading-tight text-center">Proposta sistema</span>
+              <Sparkles size={14} />
+              <span className="text-[11px] truncate">Proposta</span>
             </button>
           </div>
         </div>
+      )}
+
+      {/* PROSSIMA GARA (from real data) */}
+      {prossimaGara && (
+        <section className="shrink-0 ds-card p-3 bg-gradient-to-r from-surface-container-low to-surface-container border border-outline-variant flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="w-10 h-10 rounded-xl bg-tertiary-container text-white flex items-center justify-center shrink-0 shadow-orange-glow">
+              <Trophy size={20} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[10px] uppercase font-bold text-tertiary tracking-wider font-headline">Prossima Gara</div>
+              <div className="font-headline font-bold text-xs sm:text-sm text-on-surface min-w-0">
+                <Marquee text={prossimaGara.nome} />
+              </div>
+              <div className="text-[11px] text-on-surface-variant truncate">{formattaData(prossimaGara.dal)} {prossimaGara.luogo ? `· ${prossimaGara.luogo}` : ''}</div>
+            </div>
+          </div>
+          <div className="text-right shrink-0">
+            <span className="text-2xl sm:text-3xl font-extrabold text-tertiary font-headline tabular-nums">{prossimaGara.diffDays}</span>
+            <span className="text-[10px] font-bold text-on-surface-variant block uppercase">giorni</span>
+          </div>
+        </section>
+      )}
+
+      {/* CARICO SETTIMANA (from real data) */}
+      <section className="shrink-0 ds-card p-3 space-y-2">
+        <div className="flex items-center justify-between text-xs font-bold font-headline">
+          <span className="text-primary flex items-center gap-1.5"><Activity size={14} /> Carico Settimana</span>
+          <span className="text-on-surface-variant tabular-nums">{metriCompletatiSettimana} / {volumeSettimanaAtleta} m</span>
+        </div>
+        <div className="w-full bg-surface-container rounded-full h-2 overflow-hidden">
+          <div
+            className="bg-gradient-to-r from-primary to-primary-container h-full rounded-full transition-all duration-300"
+            style={{ width: `${Math.min(100, Math.round((metriCompletatiSettimana / Math.max(1, volumeSettimanaAtleta)) * 100))}%` }}
+          />
+        </div>
+      </section>
+
+      {/* ATTENZIONI DI OGGI (from real medical/form-check data) */}
+      {attenzioniOggi.length > 0 && (
+        <section className="shrink-0 ds-card p-3 space-y-2 border-l-4 border-l-error">
+          <div className="flex items-center gap-1.5 text-xs font-bold font-headline text-error">
+            <HeartPulse size={15} />
+            <span>Attenzioni di Oggi ({attenzioniOggi.length})</span>
+          </div>
+          <div className="space-y-1.5 max-h-32 overflow-y-auto">
+            {attenzioniOggi.map((att, i) => (
+              <div
+                key={i}
+                onClick={() => onNavigateTab('atleti')}
+                className={`p-2 rounded-xl text-xs flex items-center justify-between gap-2 cursor-pointer transition ${
+                  att.type === 'medico' ? 'bg-error-container/60 text-on-error-container border border-error/30' : 'bg-warning-container/60 text-on-warning-container border border-warning/30'
+                }`}
+              >
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className="font-bold shrink-0">{att.athleteName}:</span>
+                  <div className="min-w-0 flex-1">
+                    <Marquee text={att.text} />
+                  </div>
+                </div>
+                <ChevronRight size={14} className="shrink-0 opacity-70" />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ULTIMI TEMPI REGISTRATI (from real data) */}
+      {ultimiTempi.length > 0 && (
+        <section className="shrink-0 ds-card p-3 space-y-1.5">
+          <div className="flex items-center justify-between text-xs font-bold font-headline">
+            <span className="text-primary flex items-center gap-1.5"><Timer size={14} /> Ultimi Tempi Registrati</span>
+          </div>
+          <div className="space-y-1">
+            {ultimiTempi.map(t => (
+              <div key={t.id} className="flex items-center justify-between text-xs p-1.5 rounded-lg bg-surface-container-low border border-outline-variant/50">
+                <span className="font-bold text-on-surface truncate">{t.atletaNome}</span>
+                <div className="flex items-center gap-2 font-mono font-bold text-primary tabular-nums shrink-0">
+                  <span>{t.distanzaMetri}m</span>
+                  <span>{formattaTempo(t.centesimi)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       {visualizzaSeduta && schedaOggi && (

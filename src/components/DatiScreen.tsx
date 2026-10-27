@@ -1,5 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ClipboardList, Timer, CheckCircle2, Edit2, Save, X, Trash2, Calendar, Users, User, HelpCircle, ChevronLeft, ChevronRight, Layers, Camera, Loader2, RefreshCw } from 'lucide-react';
+import {
+  ClipboardList,
+  Timer,
+  CheckCircle2,
+  Edit2,
+  Save,
+  X,
+  Trash2,
+  Calendar,
+  Users,
+  User,
+  HelpCircle,
+  ChevronLeft,
+  ChevronRight,
+  Layers,
+  Camera,
+  Loader2,
+  RefreshCw,
+  Plus,
+  Bot,
+  Sparkles,
+  Waves,
+  Clock,
+  Activity
+} from 'lucide-react';
 import { OCRService } from '../domain/ocrService';
 import { OcrPreviewModal } from './OcrPreviewModal';
 import { RevisioneSchedaModal } from './RevisioneSchedaModal';
@@ -18,13 +42,10 @@ import { Sezione } from './Sezione';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { ParaSwimmingAnalyticsView } from './ParaSwimmingAnalyticsView';
 import { PageHeader } from './PageHeader';
+import { Marquee } from './Marquee';
 
 type DatiTab = 'schede' | 'tempi' | 'registro' | 'biomeccanica';
-
-type LivelloAtleta = 'PRINCIPIANTE' | 'INTERMEDIO' | 'AVANZATO';
-
 type VistaSchede = 'calendario' | 'lista';
-
 type ModalitaEditor = 'testuale' | 'strutturato';
 
 interface CustomWorkout {
@@ -32,11 +53,9 @@ interface CustomWorkout {
   data: string;
   testo: string;
   creatoIl: string;
-  atletaId: number | null; // null = squadra
-  metriTotali?: number; // calcolato automaticamente dal testo
+  atletaId: number | null;
+  metriTotali?: number;
 }
-
-const STORAGE_KEY = 'finpcoach_custom_workouts';
 
 export const DatiScreen: React.FC = () => {
   const { atleti } = useApp();
@@ -47,49 +66,32 @@ export const DatiScreen: React.FC = () => {
   const [customWorkouts, setCustomWorkouts] = useState<CustomWorkout[]>([]);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null);
   const [workoutDate, setWorkoutDate] = useState<string>(formattaData(todayISO()));
-  const [selectedAtletaId, setSelectedAtletaId] = useState<number | null>(null); // null = squadra
+  const [selectedAtletaId, setSelectedAtletaId] = useState<number | null>(null);
   const [vistaSchede, setVistaSchede] = useState<VistaSchede>('calendario');
   const [calendarioData, setCalendarioData] = useState<string>(formattaData(todayISO()));
-  
-  // Dialogo per conferma parser
-  const [showDialog, setShowDialog] = useState(false);
-  const [rigaNonCompresa, setRigaNonCompresa] = useState<string>('');
-  const [suggerimento, setSuggerimento] = useState<ReturnType<typeof ParserApprendimento.suggerisciInterpretazione> | null>(null);
+  const [modalitaNuovoModal, setModalitaNuovoModal] = useState(false);
+
+  // Parameter chips state
+  const [vascaMetri, setVascaMetri] = useState<25 | 50>(25);
+  const [durataMin, setDurataMin] = useState<60 | 90 | 120>(90);
 
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrModalOpen, setOcrModalOpen] = useState(false);
   const [ocrRawText, setOcrRawText] = useState('');
-  const [ocrModalitaRilevata, setOcrModalitaRilevata] = useState<'scheda' | 'gara' | 'auto'>('auto');
-  // Testo OCR di una gara: viene passato alla scheda Tempi, che gestisce i tempi.
   const [pendingGaraText, setPendingGaraText] = useState<string | null>(null);
   const [revisioneOpen, setRevisioneOpen] = useState(false);
 
-  // Riferimento sempre aggiornato alle schede salvate: evita di scrivere su
-  // uno stato obsoleto quando si applica una correzione dal pannello revisione.
   const customWorkoutsRef = useRef<CustomWorkout[]>([]);
   useEffect(() => {
     customWorkoutsRef.current = customWorkouts;
   }, [customWorkouts]);
 
-  // Carica allenamenti salvati
   useEffect(() => {
     setCustomWorkouts(FINPStorage.getCustomWorkouts());
   }, []);
 
-  const tabs = [
-    { key: 'schede' as DatiTab, label: 'Schede', icon: <ClipboardList size={16} /> },
-    { key: 'tempi' as DatiTab, label: 'Tempi', icon: <Timer size={16} /> },
-    { key: 'registro' as DatiTab, label: 'Registro', icon: <CheckCircle2 size={16} /> }
-  ];
-
-  const handleSave = () => {
-    if (!customWorkout.trim()) return;
-    salvaAllenamento();
-  };
-
   const salvaAllenamento = () => {
     const metriTotali = ParserScheda.calcolaMetriDaTesto(customWorkout);
-
     const newWorkout: CustomWorkout = {
       id: Date.now().toString(),
       data: workoutDate,
@@ -131,23 +133,6 @@ export const DatiScreen: React.FC = () => {
     setModalitaEditor('testuale');
   };
 
-  const handleConfermaDialog = (conferma: boolean) => {
-    if (conferma && suggerimento) {
-      // Aggiungi la nuova regola al parser
-      ParserApprendimento.aggiungiRegola({
-        pattern: suggerimento.pattern,
-        tipo: suggerimento.tipo || 'SOLO',
-        descrizione: suggerimento.descrizione
-      });
-    }
-    setShowDialog(false);
-    setRigaNonCompresa('');
-    setSuggerimento(null);
-    
-    // Riprova il salvataggio
-    handleSave();
-  };
-
   const handleDelete = (id: string) => {
     const updated = customWorkouts.filter(w => w.id !== id);
     setCustomWorkouts(updated);
@@ -170,7 +155,8 @@ export const DatiScreen: React.FC = () => {
           {pullToRefresh.isRefreshing ? 'Aggiornamento...' : 'Rilascia per aggiornare'}
         </div>
       )}
-      {/* Intestazione pagina — stile dashboard */}
+
+      {/* Intestazione pagina */}
       <div className="shrink-0">
         <PageHeader
           label="Archivio Allenatore"
@@ -181,630 +167,364 @@ export const DatiScreen: React.FC = () => {
             tab === 'schede' ? (
               <button
                 type="button"
-                onClick={() => setEditMode(!editMode)}
+                onClick={() => setModalitaNuovoModal(true)}
                 className="ds-btn-primary !min-h-[40px] !px-3 shrink-0"
               >
-                {editMode ? <X size={16} /> : <Edit2 size={16} />}
-                <span className="hidden xs:inline">{editMode ? 'Annulla' : 'Scrivi'}</span>
+                <Plus size={16} />
+                <span className="hidden xs:inline">Nuovo Allenamento</span>
               </button>
             ) : undefined
           }
         />
       </div>
 
-      {/* Selettore sezione — segmented control stile design system */}
+      {/* TABS SU UNA SOLA RIGA COMPATTA */}
       <div className="shrink-0 ds-card p-1.5 sm:p-2">
-        <div className="ds-tabs grid-cols-2 sm:grid-cols-4">
+        <div className="grid grid-cols-4 gap-1">
           {[
-            { key: 'schede', label: 'Schede Vasca', icon: <ClipboardList size={16} /> },
-            { key: 'tempi', label: 'Tempi', icon: <Timer size={16} /> },
-            { key: 'registro', label: 'Registro', icon: <CheckCircle2 size={16} /> },
-            { key: 'biomeccanica', label: 'Biomeccanica', icon: <Layers size={16} /> },
+            { key: 'schede' as DatiTab, label: 'Schede', icon: <ClipboardList size={16} /> },
+            { key: 'tempi' as DatiTab, label: 'Tempi', icon: <Timer size={16} /> },
+            { key: 'registro' as DatiTab, label: 'Registro', icon: <CheckCircle2 size={16} /> },
+            { key: 'biomeccanica' as DatiTab, label: 'Biomeccanica', icon: <Layers size={16} /> },
           ].map(t => (
             <button
               key={t.key}
               type="button"
-              onClick={() => setTab(t.key as DatiTab)}
-              className={`ds-tab ${tab === t.key ? 'ds-tab-active' : ''}`}
+              onClick={() => setTab(t.key)}
+              className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-xs font-headline font-bold transition ${
+                tab === t.key
+                  ? 'bg-primary text-white shadow-primary-sm'
+                  : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+              }`}
             >
-              <span className="hidden xs:inline-flex shrink-0">{t.icon}</span>
+              <span className="shrink-0">{t.icon}</span>
               <span className="truncate">{t.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto">
-        {/* Editor Allenamento Personalizzato */}
-        {tab === 'schede' && editMode && (
-        <div className="ds-card p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <h3 className="font-bold text-on-surface flex items-center gap-2 min-w-0">
-              <Edit2 size={18} className="text-primary-container shrink-0" />
-              <span className="truncate">Scrivi l'allenamento</span>
-            </h3>
-            <div className="flex gap-1 shrink-0">
-              <button
-                type="button"
-                onClick={() => setModalitaEditor('testuale')}
-                className={`px-3 h-12 rounded-lg text-xs font-semibold transition ${
-                  modalitaEditor === 'testuale'
-                    ? 'bg-primary-container text-on-primary'
-                    : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
-                }`}
-              >
-                Testuale
-              </button>
-              <button
-                type="button"
-                onClick={() => setModalitaEditor('strutturato')}
-                className={`px-3 h-12 rounded-lg text-xs font-semibold transition ${
-                  modalitaEditor === 'strutturato'
-                    ? 'bg-primary-container text-on-primary'
-                    : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
-                }`}
-              >
-                Strutturato
-              </button>
-            </div>
-          </div>
-
-          {/* Modalità testuale */}
-          {modalitaEditor === 'testuale' && (
-            <>
-              <div className="mb-3">
-                <label className="block text-xs font-semibold text-on-surface mb-1">Data allenamento</label>
-                <input
-                  type="text"
-                  value={workoutDate}
-                  onChange={(e) => setWorkoutDate(e.target.value)}
-                  placeholder="es. 05/10/2026"
-                  className="w-full px-3 h-12 border border-outline-variant rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-              <div className="mb-3">
-                <label className="block text-xs font-semibold text-on-surface mb-1">Destinatario</label>
-                <div className="flex flex-wrap gap-2">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-3">
+        {/* TAB SCHEDE: Calendario / Lista / Form */}
+        {tab === 'schede' && (
+          <>
+            {/* Header controlli Calendario / Lista (Segmented Control) */}
+            {!editMode && (
+              <div className="shrink-0 flex items-center justify-between gap-2 bg-surface-container-lowest p-2 rounded-2xl border border-outline-variant">
+                <div className="flex items-center bg-surface-container rounded-xl p-1 gap-1">
                   <button
                     type="button"
-                    onClick={() => setSelectedAtletaId(null)}
-                    className={`inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-semibold transition ${
-                      selectedAtletaId === null
-                        ? 'bg-primary-container text-on-primary shadow-card'
-                        : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+                    onClick={() => setVistaSchede('calendario')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold font-headline transition ${
+                      vistaSchede === 'calendario' ? 'bg-primary text-white shadow-sm' : 'text-on-surface-variant'
                     }`}
                   >
-                    <Users size={14} />
-                    <span>Tutta la Squadra</span>
+                    Calendario
                   </button>
-                  {atleti.map(a => (
-                    <button
-                      key={a.id}
-                      type="button"
-                      onClick={() => setSelectedAtletaId(a.id)}
-                      className={`inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-semibold transition ${
-                        selectedAtletaId === a.id
-                          ? 'bg-primary-container text-on-primary font-bold shadow-card'
-                          : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
-                      }`}
-                    >
-                      <User size={14} />
-                      <span>{a.cognome} {a.nome}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="mb-2 flex items-center justify-between">
-                <label className="block text-xs font-semibold text-on-surface">Testo Allenamento / Serie</label>
-                <label className="inline-flex items-center gap-1.5 px-3 h-12 bg-surface-container-low hover:bg-primary-fixed text-primary-container rounded-lg text-xs font-bold cursor-pointer transition border border-primary-fixed-dim">
-                  {ocrLoading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
-                  <span>{ocrLoading ? 'Lettura OCR in corso...' : 'Carica Screenshot (OCR)'}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    disabled={ocrLoading}
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      setOcrLoading(true);
-                      try {
-                        const risultato = await OCRService.riconosci(file, 'auto');
-                        setOcrLoading(false);
-                        if (!risultato.testo) return;
-                        setOcrModalitaRilevata(risultato.modalita);
-                        if (risultato.modalita === 'gara') {
-                          // Il testo e' una gara: i tempi si importano dalla scheda Tempi.
-                          setPendingGaraText(risultato.testo);
-                          setTab('tempi');
-                        } else {
-                          setOcrRawText(risultato.testo);
-                          setOcrModalOpen(true);
-                        }
-                      } catch (err) {
-                        setOcrLoading(false);
-                        console.error('Errore OCR:', err);
-                      } finally {
-                        e.target.value = '';
-                      }
-                    }}
-                  />
-                </label>
-              </div>
-              <textarea
-                value={customWorkout}
-                onChange={(e) => setCustomWorkout(e.target.value)}
-                placeholder="Esempio: Riscaldamento 400m stile libero A1&#10;4x100m stile libero a 1'30&quot; (ripartenza)&#10;Serie gambe 200m A1&#10;Defaticamento 200m"
-                className="w-full h-48 p-3 border border-outline-variant rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
-              {customWorkout && (
-                <div className="text-xs text-on-surface-variant mt-2 flex items-center justify-between gap-2">
-                  <span>
-                    Metri totali calcolati: <strong className="text-primary-container">{ParserScheda.calcolaMetriDaTesto(customWorkout)} m</strong>
-                  </span>
                   <button
                     type="button"
-                    onClick={() => setRevisioneOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg bg-surface-container text-on-surface text-xs font-bold"
-                  >
-                    <HelpCircle size={14} />
-                    <span>Revisione e apprendimento</span>
-                  </button>
-                </div>
-              )}
-              <div className="flex gap-2 mt-3">
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  className="flex items-center gap-1.5 px-4 h-12 bg-primary-container text-on-primary rounded-lg text-sm font-semibold hover:bg-primary transition"
-                >
-                  <Save size={16} />
-                  Salva
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditMode(false)}
-                  className="flex items-center gap-1.5 px-4 h-12 bg-surface-container text-on-surface rounded-lg text-sm font-semibold hover:bg-surface-container-high transition"
-                >
-                  <X size={16} />
-                  Annulla
-                </button>
-              </div>
-              <p className="text-xs text-on-surface-variant mt-2">
-                L'allenamento viene salvato e mostrato al posto della scheda generata automaticamente. I metri vengono calcolati automaticamente dal testo.
-              </p>
-            </>
-          )}
-
-          {/* Modalità strutturata */}
-          {modalitaEditor === 'strutturato' && (
-            <>
-              <div className="mb-3">
-                <label className="block text-xs font-semibold text-on-surface mb-1">Data allenamento</label>
-                <input
-                  type="text"
-                  value={workoutDate}
-                  onChange={(e) => setWorkoutDate(e.target.value)}
-                  placeholder="es. 05/10/2026"
-                  className="w-full px-3 h-12 border border-outline-variant rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-              <div className="mb-3">
-                <label className="block text-xs font-semibold text-on-surface mb-1">Destinatario</label>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedAtletaId(null)}
-                    className={`inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-semibold transition ${
-                      selectedAtletaId === null
-                        ? 'bg-primary-container text-on-primary shadow-card'
-                        : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+                    onClick={() => setVistaSchede('lista')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold font-headline transition ${
+                      vistaSchede === 'lista' ? 'bg-primary text-white shadow-sm' : 'text-on-surface-variant'
                     }`}
                   >
-                    <Users size={14} />
-                    <span>Tutta la Squadra</span>
+                    Lista
                   </button>
-                  {atleti.map(a => (
-                    <button
-                      key={a.id}
-                      type="button"
-                      onClick={() => setSelectedAtletaId(a.id)}
-                      className={`inline-flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-semibold transition ${
-                        selectedAtletaId === a.id
-                          ? 'bg-primary-container text-on-primary font-bold shadow-card'
-                          : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
-                      }`}
-                    >
-                      <User size={14} />
-                      <span>{a.cognome} {a.nome}</span>
-                    </button>
-                  ))}
                 </div>
-              </div>
-              <EsercizioEditor
-                onSalva={handleSalvaStrutturato}
-                onAnnulla={() => {
-                  setEditMode(false);
-                  setModalitaEditor('testuale');
-                }}
-              />
-            </>
-          )}
-        </div>
-      )}
 
-      {/* Lista allenamenti salvati */}
-      {tab === 'schede' && !editMode && customWorkouts.length > 0 && (
-        <div className="ds-card p-4">
-          <h3 className="font-bold text-on-surface mb-3 flex items-center gap-2 text-sm">
-            <Calendar size={16} className="text-primary-container" />
-            Allenamenti salvati
-          </h3>
-          <div className="space-y-2">
-            {customWorkouts.map(w => (
-              <div
-                key={w.id}
-                className={`p-3 rounded-lg border transition cursor-pointer ${
-                  selectedWorkoutId === w.id
-                    ? 'bg-primary-container text-on-primary border-primary-container'
-                    : 'bg-surface-container-low border-slate-200/70 hover:bg-surface-container'
-                }`}
-                onClick={() => setSelectedWorkoutId(w.id)}
-              >
+                <button
+                  type="button"
+                  onClick={() => setModalitaNuovoModal(true)}
+                  className="ds-btn-primary !min-h-[38px] !px-3 text-xs"
+                >
+                  <Plus size={15} />
+                  <span>Nuovo</span>
+                </button>
+              </div>
+            )}
+
+            {/* COMPACT CALENDAR (Month with Dots) */}
+            {!editMode && vistaSchede === 'calendario' && !selectedWorkout && (
+              <div className="ds-card p-3 max-w-2xl mx-auto space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="font-semibold text-sm">{w.data}</div>
-                    <div className="text-xs opacity-75 line-clamp-1">{w.testo}</div>
-                  </div>
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(w.id);
+                    onClick={() => {
+                      const parsed = parseData(calendarioData);
+                      if (parsed) setCalendarioData(formattaData(addDays(parsed, -7)));
                     }}
-                    className="p-1.5 rounded hover:bg-black/10 transition"
+                    className="p-1.5 rounded-lg hover:bg-surface-container"
                   >
-                    <Trash2 size={14} />
+                    <ChevronLeft size={18} />
                   </button>
-                </div>
-              </div>
-            ))}
-          </div>
-          {selectedWorkoutId && (
-            <button
-              type="button"
-              onClick={() => setSelectedWorkoutId(null)}
-              className="mt-3 text-xs text-primary-container font-semibold hover:underline"
-            >
-              ← Torna alla scheda generata automaticamente
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Header schede con toggle vista */}
-      {tab === 'schede' && !editMode && (
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setVistaSchede('calendario')}
-              className={`px-3 h-12 rounded-lg text-xs font-semibold transition ${
-                vistaSchede === 'calendario'
-                  ? 'bg-primary-container text-on-primary'
-                  : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
-              }`}
-            >
-              Calendario
-            </button>
-            <button
-              type="button"
-              onClick={() => setVistaSchede('lista')}
-              className={`px-3 h-12 rounded-lg text-xs font-semibold transition ${
-                vistaSchede === 'lista'
-                  ? 'bg-primary-container text-on-primary'
-                  : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
-              }`}
-            >
-              Lista
-            </button>
-          </div>
-          <button
-            type="button"
-            onClick={() => setEditMode(true)}
-            className="flex items-center gap-1.5 px-3 h-12 bg-primary-container text-on-primary rounded-lg text-xs font-semibold hover:bg-primary transition"
-          >
-            <Layers size={14} />
-            Nuovo Allenamento
-          </button>
-        </div>
-      )}
-
-      {/* Calendario */}
-      {tab === 'schede' && !editMode && vistaSchede === 'calendario' && !selectedWorkout && (
-        <div className="ds-card p-2 sm:p-4 max-w-2xl mx-auto">
-          <div className="flex items-center justify-between mb-2 sm:mb-4">
-            <button
-              type="button"
-              onClick={() => {
-                const parsed = parseData(calendarioData);
-                if (parsed) {
-                  setCalendarioData(formattaData(addDays(parsed, -7)));
-                }
-              }}
-              aria-label="Settimana precedente"
-              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-surface-container rounded-lg transition"
-            >
-              <ChevronLeft size={20} className="text-on-surface-variant" />
-            </button>
-            <h3 className="font-bold text-on-surface text-xs sm:text-base text-center">
-              {calendarioData}
-            </h3>
-            <button
-              type="button"
-              onClick={() => {
-                const parsed = parseData(calendarioData);
-                if (parsed) {
-                  setCalendarioData(formattaData(addDays(parsed, 7)));
-                }
-              }}
-              aria-label="Settimana successiva"
-              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-surface-container rounded-lg transition"
-            >
-              <ChevronRight size={20} className="text-on-surface-variant" />
-            </button>
-          </div>
-
-          {/* Sotto i 360px la griglia scorre in orizzontale: le celle restano
-              almeno 44x44px invece di rimpicciolirsi fino a diventare intoccabili. */}
-          <div className="ds-hscroll -mx-1 px-1">
-            <div className="min-w-[320px] sm:min-w-0">
-              <div className="grid grid-cols-7 gap-0.5 sm:gap-2 mb-1 sm:mb-2">
-                {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(giorno => (
-                  <div key={giorno} className="text-center text-[10px] xs:text-[11px] sm:text-xs font-semibold text-on-surface-variant h-5 sm:h-8 truncate">
-                    {giorno}
-                  </div>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-7 gap-0.5 sm:gap-2">
-                {(() => {
-                  const oggi = todayISO();
-                  const dataCalendarioISO = parseData(calendarioData);
-                  if (!dataCalendarioISO) return null;
-
-                  const dataCalendario = toDateObj(dataCalendarioISO);
-                  const giorni: JSX.Element[] = [];
-
-                  // Trova il primo lunedì del mese
-                  const primoGiorno = new Date(dataCalendario.getFullYear(), dataCalendario.getMonth(), 1);
-                  const giornoSettimana = (primoGiorno.getDay() + 6) % 7; // 0 = lunedì
-
-                  // Celle vuote prima del primo giorno
-                  for (let i = 0; i < giornoSettimana; i++) {
-                    giorni.push(<div key={`empty-${i}`} className="min-h-[40px] xs:min-h-[44px] sm:min-h-[52px]" />);
-                  }
-
-                  // Giorni del mese
-                  const giorniMese = new Date(dataCalendario.getFullYear(), dataCalendario.getMonth() + 1, 0).getDate();
-                  for (let giorno = 1; giorno <= giorniMese; giorno++) {
-                    const dataISO = `${dataCalendario.getFullYear()}-${String(dataCalendario.getMonth() + 1).padStart(2, '0')}-${String(giorno).padStart(2, '0')}`;
-                    const dataFormattata = formattaData(dataISO);
-                    const workoutGiorno = customWorkouts.find(w => w.data === dataFormattata);
-                    const isOggi = dataISO === oggi;
-
-                    giorni.push(
-                      <button
-                        key={giorno}
-                        type="button"
-                        onClick={() => {
-                          if (workoutGiorno) {
-                            setSelectedWorkoutId(workoutGiorno.id);
-                          }
-                        }}
-                        aria-label={`${dataFormattata}${workoutGiorno ? ' — allenamento salvato' : ''}`}
-                        className={`min-h-[40px] xs:min-h-[44px] sm:min-h-[52px] rounded-lg flex flex-col items-center justify-center transition min-w-0 overflow-hidden ${
-                          workoutGiorno
-                            ? 'bg-primary-container text-on-primary cursor-pointer hover:bg-primary'
-                            : isOggi
-                            ? 'bg-surface-container-high text-on-surface'
-                            : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'
-                        }`}
-                      >
-                        <span className="text-[10px] xs:text-[11px] sm:text-sm font-semibold leading-none">{giorno}</span>
-                        {workoutGiorno && (
-                          <span className="text-[10px] xs:text-[11px] sm:text-xs mt-0.5 sm:mt-1 leading-none truncate max-w-full px-0.5">
-                            {workoutGiorno.metriTotali || ParserScheda.calcolaMetriDaTesto(workoutGiorno.testo)}m
-                          </span>
-                        )}
-                      </button>
-                    );
-                  }
-
-                  return giorni;
-                })()}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Lista allenamenti salvati */}
-      {tab === 'schede' && !editMode && vistaSchede === 'lista' && !selectedWorkout && customWorkouts.length > 0 && (
-        <Sezione titolo="Allenamenti Salvati" icon={<ClipboardList size={18} />} badge={customWorkouts.length} riepilogoChiuso={`${customWorkouts.length} schede salvate`} storageKey="dati_allenamenti_salvati" defaultAperto={false}>
-          <div className="space-y-2 pt-1">
-            {customWorkouts.map(workout => (
-              <div
-                key={workout.id}
-                className="flex items-center justify-between p-3 bg-surface-container-low rounded-xl border border-slate-200/70 hover:bg-surface-container transition cursor-pointer"
-                onClick={() => setSelectedWorkoutId(workout.id)}
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-on-surface text-xs">{workout.data}</span>
-                    {workout.atletaId && (
-                      <span className="text-[10px] bg-primary-container text-on-primary px-2 py-0.5 rounded-full font-bold">
-                        Personale
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-on-surface-variant truncate">
-                    {workout.testo.split('\n')[0]}
-                  </div>
-                  <div className="text-xs text-primary-container font-semibold mt-1">
-                    {workout.metriTotali || ParserScheda.calcolaMetriDaTesto(workout.testo)} m
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCustomWorkout(workout.testo);
-                      setWorkoutDate(workout.data);
-                      setSelectedAtletaId(workout.atletaId ?? null);
-                      setEditMode(true);
-                      const updated = customWorkouts.filter(w => w.id !== workout.id);
-                      setCustomWorkouts(updated);
-                      FINPStorage.saveCustomWorkouts(updated);
-                    }}
-                    className="p-2 text-on-surface-variant hover:text-primary-container transition"
-                    title="Modifica allenamento"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const updated = customWorkouts.filter(w => w.id !== workout.id);
-                      setCustomWorkouts(updated);
-                      FINPStorage.saveCustomWorkouts(updated);
-                    }}
-                    className="p-2 text-on-surface-variant hover:text-error transition"
-                    title="Elimina allenamento"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Sezione>
-      )}
-
-      {/* Content */}
-      {!editMode && (
-        <div>
-          {tab === 'schede' && (
-            selectedWorkout ? (
-              <div className="ds-card p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-on-surface text-lg">
-                    Allenamento del {selectedWorkout.data}
-                    {selectedWorkout.atletaId && (
-                      <span className="text-sm font-normal text-on-surface-variant ml-2">
-                        (Atleta specifico)
-                      </span>
-                    )}
+                  <h3 className="font-headline font-bold text-xs sm:text-sm text-on-surface">
+                    {calendarioData}
                   </h3>
                   <button
                     type="button"
-                    onClick={() => setSelectedWorkoutId(null)}
-                    className="text-xs text-on-surface-variant hover:text-on-surface"
+                    onClick={() => {
+                      const parsed = parseData(calendarioData);
+                      if (parsed) setCalendarioData(formattaData(addDays(parsed, 7)));
+                    }}
+                    className="p-1.5 rounded-lg hover:bg-surface-container"
                   >
-                    Chiudi
+                    <ChevronRight size={18} />
                   </button>
                 </div>
-                
-                {/* Analisi della scheda */}
-                {(() => {
-                  const analisi = ParserScheda.analisiQualitativa(selectedWorkout.testo);
-                  const serie = ParserScheda.parseSerie(selectedWorkout.testo);
-                  const codiceStimato = ParserScheda.stimaCodiceDaSerie(serie);
-                  
-                  return (
-                    <div className="space-y-3 mb-4 p-4 bg-surface-container-low rounded-lg">
-                      <div className="flex items-center gap-4 text-sm">
-                        <div>
-                          <span className="text-on-surface-variant">Volume totale:</span>
-                          <span className="font-bold text-primary-container ml-1">{ParserScheda.calcolaMetriDaTesto(selectedWorkout.testo)} m</span>
-                        </div>
-                        <div>
-                          <span className="text-on-surface-variant">Serie:</span>
-                          <span className="font-bold text-on-surface ml-1">{serie.length}</span>
-                        </div>
-                        <div>
-                          <span className="text-on-surface-variant">Codice stimato:</span>
-                          <span className="font-bold text-on-surface ml-1">{codiceStimato}</span>
-                        </div>
-                      </div>
-                      
-                      {analisi.attrezzi.length > 0 && (
-                        <div className="text-xs">
-                          <span className="text-on-surface-variant">Attrezzi:</span>
-                          <span className="text-on-surface ml-1">{analisi.attrezzi.join(', ')}</span>
-                        </div>
-                      )}
-                      
-                      {analisi.tipiLavoro.length > 0 && (
-                        <div className="text-xs">
-                          <span className="text-on-surface-variant">Tipi lavoro:</span>
-                          <span className="text-on-surface ml-1">{analisi.tipiLavoro.join(', ')}</span>
-                        </div>
-                      )}
+
+                <div className="grid grid-cols-7 gap-1">
+                  {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(g => (
+                    <div key={g} className="text-center text-[10px] font-bold text-on-surface-variant uppercase">
+                      {g}
                     </div>
-                  );
-                })()}
-                
-                <div className="space-y-4">
-                  <div className="whitespace-pre-wrap text-sm text-on-surface leading-relaxed bg-surface-container-low p-4 rounded-xl border border-slate-200/70 font-mono">
-                    {selectedWorkout.testo}
+                  ))}
+                  {(() => {
+                    const dataCalendarioISO = parseData(calendarioData);
+                    if (!dataCalendarioISO) return null;
+                    const dataObj = toDateObj(dataCalendarioISO);
+                    const primoGiorno = new Date(dataObj.getFullYear(), dataObj.getMonth(), 1);
+                    const giornoSettimana = (primoGiorno.getDay() + 6) % 7;
+                    const giorniMese = new Date(dataObj.getFullYear(), dataObj.getMonth() + 1, 0).getDate();
+                    const cells: JSX.Element[] = [];
+
+                    for (let i = 0; i < giornoSettimana; i++) {
+                      cells.push(<div key={`e-${i}`} className="h-9" />);
+                    }
+
+                    for (let g = 1; g <= giorniMese; g++) {
+                      const dataISO = `${dataObj.getFullYear()}-${String(dataObj.getMonth() + 1).padStart(2, '0')}-${String(g).padStart(2, '0')}`;
+                      const dataFormattata = formattaData(dataISO);
+                      const workoutGiorno = customWorkouts.find(w => w.data === dataFormattata);
+                      const isOggi = dataISO === todayISO();
+
+                      cells.push(
+                        <button
+                          key={g}
+                          type="button"
+                          onClick={() => {
+                            if (workoutGiorno) setSelectedWorkoutId(workoutGiorno.id);
+                          }}
+                          className={`h-9 rounded-xl flex flex-col items-center justify-center relative transition ${
+                            workoutGiorno
+                              ? 'bg-primary text-white font-bold shadow-sm'
+                              : isOggi
+                              ? 'bg-primary/10 text-primary font-bold border border-primary/30'
+                              : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
+                          }`}
+                        >
+                          <span className="text-xs leading-none">{g}</span>
+                          {workoutGiorno && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-tertiary mt-0.5" />
+                          )}
+                        </button>
+                      );
+                    }
+                    return cells;
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {/* UNIFIED PARAMETERS BLOCK (Shown Once, No Duplication) */}
+            {!editMode && (
+              <div className="ds-card p-3 space-y-2.5">
+                <div className="font-headline font-bold text-xs text-primary uppercase tracking-wider">
+                  Parametri Sessione
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                  <div>
+                    <label className="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">Vasca Impianto</label>
+                    <div className="flex gap-1">
+                      {[25, 50].map(v => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => setVascaMetri(v as any)}
+                          className={`flex-1 py-1.5 rounded-xl font-headline font-bold transition ${
+                            vascaMetri === v ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface-container-low text-on-surface'
+                          }`}
+                        >
+                          {v}m
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
-                  <div className="space-y-2 pt-2 border-t border-slate-200/70">
-                    <h4 className="font-bold text-on-surface text-xs uppercase tracking-wider">
-                      Analisi Automatica Serie e Zone Energetiche (A1–D)
-                    </h4>
-                    <div className="space-y-2">
-                      {ParserScheda.parseSerie(selectedWorkout.testo).map((s, idx) => (
-                        <div key={idx} className="p-3 bg-surface-container-lowest border border-slate-200/70 rounded-xl flex items-center justify-between gap-2 text-xs shadow-card">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-on-surface-variant">#{idx + 1}</span>
-                            <span className="text-on-surface font-semibold">{s.descrizione}</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            {s.attrezzi.length > 0 && (
-                              <span className="text-on-surface-variant font-medium italic">[{s.attrezzi.join(', ')}]</span>
-                            )}
-                            <span className="font-bold text-primary-container text-sm">{s.metriTotali} m</span>
-                            <BadgeCodice codice={s.codice as any} />
-                          </div>
-                        </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">Durata Target</label>
+                    <div className="flex gap-1">
+                      {[60, 90, 120].map(d => (
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() => setDurataMin(d as any)}
+                          className={`flex-1 py-1.5 rounded-xl font-headline font-bold transition ${
+                            durataMin === d ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface-container-low text-on-surface'
+                          }`}
+                        >
+                          {d}'
+                        </button>
                       ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">Volume Seduta</label>
+                    <div className="p-2 bg-surface-container-low rounded-xl border border-outline-variant/60 flex items-center justify-between">
+                      <span className="font-headline font-bold text-primary">350 / 1800 m</span>
+                      <Activity size={16} className="text-primary-container" />
                     </div>
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* EDITOR WORKOUT MODE */}
+            {editMode && (
+              <div className="ds-card p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-headline font-bold text-sm text-on-surface">Nuovo Allenamento</h3>
+                  <button onClick={() => setEditMode(false)} className="p-1 rounded-lg hover:bg-surface-container">
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="font-bold text-on-surface mb-1 block">Data Allenamento</label>
+                    <input
+                      type="text"
+                      value={workoutDate}
+                      onChange={e => setWorkoutDate(e.target.value)}
+                      className="w-full px-3 h-10 bg-surface-container-low border border-outline-variant rounded-xl font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-on-surface mb-1 block">Testo Scheda / Serie</label>
+                    <textarea
+                      value={customWorkout}
+                      onChange={e => setCustomWorkout(e.target.value)}
+                      placeholder="Esempio: 400m Stile libero A1, 4x100m B1 a 1'30''..."
+                      className="w-full h-36 p-3 bg-surface-container-low border border-outline-variant rounded-xl font-mono text-xs resize-none"
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button type="button" onClick={salvaAllenamento} className="ds-btn-primary flex-1">
+                      <Save size={16} /> Salva Allenamento
+                    </button>
+                    <button type="button" onClick={() => setEditMode(false)} className="ds-btn-secondary">
+                      Annulla
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* DISPLAY SELECTED WORKOUT OR AUTO GENERATED */}
+            {!editMode && selectedWorkout ? (
+              <div className="ds-card p-4 space-y-3">
+                <div className="flex items-center justify-between border-b border-outline-variant/60 pb-2">
+                  <h3 className="font-headline font-bold text-sm text-on-surface">
+                    Allenamento del {selectedWorkout.data}
+                  </h3>
+                  <button onClick={() => setSelectedWorkoutId(null)} className="text-xs font-bold text-primary">
+                    Chiudi
+                  </button>
+                </div>
+                <div className="p-3 bg-surface-container-low rounded-xl font-mono text-xs whitespace-pre-wrap">
+                  {selectedWorkout.testo}
+                </div>
+              </div>
             ) : (
-              <SchedeVascaScreen />
-            )
-          )}
-          {tab === 'tempi' && (
-            <TempiRipartenzeScreen
-              initialOcrText={pendingGaraText}
-              onInitialOcrConsumed={() => setPendingGaraText(null)}
-              onTestoScheda={(testo) => {
-                setTab('schede');
-                setEditMode(true);
-                setModalitaEditor('testuale');
-                setSelectedWorkoutId(null);
-                setCustomWorkout(testo);
-              }}
-            />
-          )}
-          {tab === 'registro' && <RegistroScreen />}
-          {tab === 'biomeccanica' && <ParaSwimmingAnalyticsView />}
+              !editMode && <SchedeVascaScreen />
+            )}
+          </>
+        )}
+
+        {tab === 'tempi' && (
+          <TempiRipartenzeScreen
+            initialOcrText={pendingGaraText}
+            onInitialOcrConsumed={() => setPendingGaraText(null)}
+            onTestoScheda={(testo) => {
+              setTab('schede');
+              setEditMode(true);
+              setSelectedWorkoutId(null);
+              setCustomWorkout(testo);
+            }}
+          />
+        )}
+
+        {tab === 'registro' && <RegistroScreen />}
+        {tab === 'biomeccanica' && <ParaSwimmingAnalyticsView />}
+      </div>
+
+      {/* MODAL MODALITÀ NUOVO ALLENAMENTO (3 OPZIONI) */}
+      {modalitaNuovoModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface-container-lowest rounded-3xl p-6 max-w-sm w-full shadow-float border border-outline-variant space-y-4 text-on-surface animate-fade-in">
+            <div className="flex items-center justify-between">
+              <h3 className="font-headline font-bold text-base">Nuovo Allenamento</h3>
+              <button onClick={() => setModalitaNuovoModal(false)} className="p-1 rounded-lg hover:bg-surface-container">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setModalitaNuovoModal(false);
+                  setEditMode(true);
+                }}
+                className="w-full p-3.5 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/60 text-left flex items-center gap-3 transition"
+              >
+                <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 font-bold">
+                  <ClipboardList size={18} />
+                </div>
+                <div>
+                  <div className="font-headline font-bold text-xs">Scrivi a mano</div>
+                  <div className="text-[11px] text-on-surface-variant">Inserisci liberamente testo o serie</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setModalitaNuovoModal(false);
+                  setEditMode(true);
+                  setOcrModalOpen(true);
+                }}
+                className="w-full p-3.5 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/60 text-left flex items-center gap-3 transition"
+              >
+                <div className="w-10 h-10 rounded-xl bg-secondary text-white flex items-center justify-center shrink-0 font-bold">
+                  <Bot size={18} />
+                </div>
+                <div>
+                  <div className="font-headline font-bold text-xs">Genera con IA</div>
+                  <div className="text-[11px] text-on-surface-variant">Carica uno screenshot o usa l'IA</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setModalitaNuovoModal(false);
+                  setTab('schede');
+                }}
+                className="w-full p-3.5 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/60 text-left flex items-center gap-3 transition"
+              >
+                <div className="w-10 h-10 rounded-xl bg-tertiary text-white flex items-center justify-center shrink-0 font-bold">
+                  <Sparkles size={18} />
+                </div>
+                <div>
+                  <div className="font-headline font-bold text-xs">Proposta sistema</div>
+                  <div className="text-[11px] text-on-surface-variant">Usa la scheda calcolata dal piano</div>
+                </div>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -848,9 +568,6 @@ export const DatiScreen: React.FC = () => {
           FINPStorage.saveCustomWorkouts(updated);
         }}
       />
-
-
-      </div>
     </div>
   );
 };

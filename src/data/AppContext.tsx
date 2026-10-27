@@ -75,6 +75,11 @@ interface AppContextType {
   aggiungiTempo: (t: Omit<Tempo, 'id'>) => void;
   eliminaTempo: (id: number) => void;
   salvaSeduta: (data: string, items: Omit<LogSeduta, 'id'>[]) => void;
+
+  layoutScelto: 'classica' | 'flottante' | 'azione-centrale';
+  setLayoutScelto: (l: 'classica' | 'flottante' | 'azione-centrale') => void;
+  themeMode: 'sistema' | 'chiaro' | 'scuro';
+  setThemeMode: (m: 'sistema' | 'chiaro' | 'scuro') => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -96,6 +101,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [meso, setMeso] = useState<Mesociclo[]>(() => FINPStorage.getMesocicli());
   const [micro, setMicro] = useState<Microciclo[]>(() => FINPStorage.getMicrocicli());
   const [impostazioni, setImpostazioni] = useState<ImpostazioniPiano>(() => FINPStorage.getImpostazioni());
+  const [layoutScelto, setLayoutSceltoState] = useState<'classica' | 'flottante' | 'azione-centrale'>(() => FINPStorage.getLayoutScelto());
+  const [themeMode, setThemeModeState] = useState<'sistema' | 'chiaro' | 'scuro'>(() => FINPStorage.getThemeMode());
+
+  const setLayoutScelto = (l: 'classica' | 'flottante' | 'azione-centrale') => {
+    setLayoutSceltoState(l);
+    FINPStorage.saveLayoutScelto(l);
+  };
+
+  const setThemeMode = (m: 'sistema' | 'chiaro' | 'scuro') => {
+    setThemeModeState(m);
+    FINPStorage.saveThemeMode(m);
+  };
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const isDark = themeMode === 'scuro' || (themeMode === 'sistema' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    root.classList.toggle('dark', isDark);
+  }, [themeMode]);
 
   // Save changes
   useEffect(() => { FINPStorage.saveAtleti(atleti); }, [atleti]);
@@ -592,7 +615,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         sbloccaMicro,
         aggiungiTempo,
         eliminaTempo,
-        salvaSeduta
+        salvaSeduta,
+        layoutScelto,
+        setLayoutScelto,
+        themeMode,
+        setThemeMode
       }}
     >
       {children}

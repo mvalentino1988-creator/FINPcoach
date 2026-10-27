@@ -12,6 +12,7 @@ import { CronometroLiveMultiCorsia } from './components/CronometroLiveMultiCorsi
 import { RegiaTecnicaCorsie } from './components/RegiaTecnicaCorsie';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { WelcomeScreen } from './components/WelcomeScreen';
+import { OnboardingModal } from './components/OnboardingModal';
 import { FINPStorage } from './data/storage';
 import { useLayoutMetrics } from './hooks/useLayoutMetrics';
 
@@ -21,6 +22,7 @@ export const AppContent: React.FC = () => {
   });
   const [showLogin, setShowLogin] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('finp_onboarded'));
   const [mode, setMode] = useState<'demo' | 'live' | null>(() => {
     const m = FINPStorage.getMode();
     if (!m) {
@@ -29,18 +31,13 @@ export const AppContent: React.FC = () => {
     }
     return m;
   });
-  /* Altezze reali di header e dock: il padding del contenuto le segue, quindi
-     nulla può finire sotto l'header o dietro il dock, a qualsiasi dimensione. */
+
   const layout = useLayoutMetrics();
 
   useEffect(() => {
     sessionStorage.setItem('finp_active_tab', tab);
   }, [tab]);
 
-  /* Modalità a schermo singolo:
-     - 'oggi', 'cronometro', 'regia': sia mobile che desktop non devono mai scorrere.
-     - Su schermi desktop/laptop (>= 1024px o altezza generosa): anche 'fonti', 'dati', 'atleti' possono
-       beneficiare del layout a viewport fisso (flex a tutta altezza senza scroll di pagina). */
   const isBordoVasca = tab === 'oggi' || tab === 'cronometro' || tab === 'regia';
   const fixed = isBordoVasca;
 
@@ -77,12 +74,11 @@ export const AppContent: React.FC = () => {
     return <LoginScreen onLoginSuccess={handleLoginSuccess} onSkip={handleSkipLogin} />;
   }
 
-  /* Le viste "bordo vasca" (regia, cronometro) sono command center a tutto
-     schermo: su desktop non devono stare dentro il contenitore limitato. */
   const wide = tab === 'regia' || tab === 'cronometro';
 
   return (
     <div className={`app-shell ${fixed ? 'app-shell-fixed' : ''}`}>
+      {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
       <Navbar currentTab={tab} onTabChange={setTab} layout={layout} />
 
       <main

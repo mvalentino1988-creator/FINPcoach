@@ -1,21 +1,3 @@
-/* =============================================================================
-   FINPcoach — Design System "Aquatic Paralympic"
-   Layer base + primitive di componente (Stitch / aquatic_paralympic_coaching_system).
-
-   Principi:
-   - Superfici: canvas #faf8ff, card bianca con hairline #E2E8F0, contenitori
-     #f2f3ff / #eaedff / #e2e7ff / #dae2fd.
-   - Elevazione: micro-ombra (0 1px 2px) + hairline; niente drop-shadow pesanti
-     (si wash-out con il glare di vasca).
-   - Tipografia: Space Grotesk per titoli/metriche/tag, Public Sans per i corpi.
-   - Ergonomia: tap target >= 48px sui controlli ad alta frequenza, niente
-     troncamento del testo (white-space: normal) e cifre tabulari sui numeri.
-   - Responsive: ogni misura fissa è calcolata a runtime (--header-h / --dock-h)
-     oppure expressed in unità relative: il layout non dipende da un device.
-   ============================================================================= */
-
-/* I font sono caricati via <link> in index.html (niente @import: blocca il render). */
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -25,30 +7,55 @@
     font-family: 'Public Sans', system-ui, sans-serif;
     color-scheme: light;
 
-    /* Altezza utile reale (mobile browser chrome) */
     --app-vh: 100dvh;
-
-    /* Safe area: inset nativi del device (notch / barra gesture).
-       env() con fallback: 0 su desktop, >0 su device con cutout. */
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: max(env(safe-area-inset-bottom, 0px), 6px);
-
-    /* Misure REALI di header e dock, ricalcolate a runtime da
-       useLayoutMetrics() (font system, safe area, rotazione, zoom).
-       I fallback CSS servono solo per il primo paint. */
-    --header-h: 60px;
-    --dock-h: 0px;
-
-    /* Gutters fluidi: 12px su telefoni stretti, ~20px su desktop.
-       Un solo valore evita il salto brusco al breakpoint sm. */
+    --safe-top: 0px;
+    --safe-bottom: 8px;
+    --header-h: 56px;
+    --dock-h: 56px;
     --gutter: clamp(0.75rem, 0.55rem + 0.9vw, 1.25rem);
+
+    /* Light Theme Palette (Sporty Blue & Orange) */
+    --color-surface: #f4f7fe;
+    --color-surface-bright: #ffffff;
+    --color-surface-dim: #e2e8f0;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #edf2fc;
+    --color-surface-container: #e2eaf8;
+    --color-surface-container-high: #d4e0f4;
+    --color-surface-container-highest: #c4d4f0;
+    --color-surface-variant: #d4e0f4;
+    --color-background: #f4f7fe;
+    --color-on-surface: #071A3D;
+    --color-on-surface-variant: #475569;
+    --color-on-background: #071A3D;
+    --color-outline: #cbd5e1;
+    --color-outline-variant: #e2e8f0;
+  }
+
+  .dark {
+    color-scheme: dark;
+
+    --color-surface: #050e21;
+    --color-surface-bright: #0b1936;
+    --color-surface-dim: #10244f;
+    --color-surface-container-lowest: #071328;
+    --color-surface-container-low: #0a1c3d;
+    --color-surface-container: #0f2652;
+    --color-surface-container-high: #16326b;
+    --color-surface-container-highest: #1e3f85;
+    --color-surface-variant: #16326b;
+    --color-background: #050e21;
+    --color-on-surface: #f1f5f9;
+    --color-on-surface-variant: #94a3b8;
+    --color-on-background: #f1f5f9;
+    --color-outline: #334155;
+    --color-outline-variant: #1e293b;
   }
 
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     scroll-behavior: smooth;
-    /* Lo scroll interno alle ancorature deve fermarsi SOTTO l'header sticky */
     scroll-padding-top: calc(var(--header-h) + 12px);
   }
 
@@ -56,24 +63,14 @@
     margin: 0;
     padding: 0;
     min-height: var(--app-vh);
-    background-color: #faf8ff;
-    color: #131b2e;
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: none;
   }
 
-  /* Migliora layout su schermi più grandi */
-  @media (min-width: 1280px) {
-    body {
-      font-size: 16px;
-    }
-  }
-
-  /* Anti-truncation: un coach a bordo vasca non deve perdere "ripartenza 1'15"".
-     NOTA: niente !important → le utility whitespace-nowrap/truncate restano
-     applicabili per scelta esplicita. */
   button,
   a[role="button"],
   input[type="button"],
@@ -83,7 +80,6 @@
     line-height: 1.25;
   }
 
-  /* Cifre tabulari: split e metriche non devono "ballare" durante l'update. */
   .tabular-nums,
   time,
   output {
@@ -95,30 +91,20 @@
   select,
   textarea {
     font-family: inherit;
-    font-size: 16px; /* evita l'auto-zoom su iOS */
-    min-width: 0; /* i controlli non devono mai spingere il contenitore */
+    font-size: 16px;
+    min-width: 0;
     max-width: 100%;
   }
 
-  /* Le select sono sempre filtri di controllo: area di tap >= 48px (Android/iOS). */
   select {
     min-height: 48px;
   }
 
-  /* Immagini, canvas e SVG non devono mai superare il contenitore. */
-  img,
-  svg,
-  canvas,
-  video {
+  img, svg, canvas, video {
     max-width: 100%;
   }
 
-  /* Stringhe lunghe senza spazi (URL, codici) non devono sfondare il box. */
-  p,
-  span,
-  div,
-  dd,
-  li {
+  p, span, div, dd, li {
     overflow-wrap: break-word;
   }
 
@@ -131,58 +117,36 @@
   }
 
   :focus-visible {
-    outline: 2px solid #006874;
+    outline: 2px solid #FF7A1A;
     outline-offset: 2px;
     border-radius: 4px;
   }
 }
 
 @layer components {
-  /* ---------- Shell: header sticky + dock fisso, niente contenuto nascosto ---------- */
   .app-shell {
-    @apply min-h-[100dvh] flex flex-col bg-surface;
+    @apply min-h-[100dvh] flex flex-col bg-surface text-on-surface;
   }
 
-  /* Il main non usa padding statico: prende l'altezza reale misurata.
-     Nota: niente utility di padding qui dentro — Tailwind (layer utilities)
-     sovrascriverebbe il layer components e il dock tornerebbe a coprire
-     l'ultima riga di contenuto. */
   .app-main {
     flex: 1 0 auto;
     width: 100%;
-    padding-top: 0.5rem;
-    padding-bottom: calc(var(--dock-h) + 0.75rem);
+    padding-top: 0.2rem;
+    padding-bottom: calc(var(--dock-h) + var(--safe-bottom) + 0.5rem);
   }
 
   @media (min-width: 640px) {
     .app-main {
-      padding-top: 1rem;
+      padding-top: 0.4rem;
+      padding-bottom: calc(var(--dock-h) + var(--safe-bottom) + 0.75rem);
     }
   }
 
-  @media (min-width: 1024px) {
-    .app-main {
-      padding-bottom: 1rem;
-    }
-  }
-
-  /* Finestra bassa (landscape): recupera altezza utile senza toccare i gutter. */
-  @media (max-height: 520px) {
-    .app-main {
-      padding-top: 0.25rem;
-    }
-  }
-
-  /* ---------- Dashboard a schermo singolo ----------
-     La dashboard non deve MAI scorrere: occupa esattamente l'altezza utile
-     (viewport - header - dock) e distribuisce il contenuto al suo interno.
-     `overflow: hidden` blocca sia lo scroll verticale sia quello orizzontale. */
   .app-shell-fixed {
     height: 100dvh;
     overflow: hidden;
   }
 
-  /* L'header resta alla sua altezza naturale: non deve essere compresso. */
   .app-shell-fixed > header {
     flex-shrink: 0;
   }
@@ -195,356 +159,82 @@
     flex-direction: column;
   }
 
-  /* Il documento non scorre mentre è visibile la dashboard.
-     Specificità (0,1,1) > utility `min-h-screen` (0,1,0). */
   body.app-no-scroll {
     height: 100dvh;
     min-height: 0;
     overflow: hidden;
   }
 
-  /* Contenitore di pagina: larghezza comoda su desktop, gutter fluido su mobile */
   .ds-page {
     @apply w-full mx-auto px-gutter-mobile sm:px-gutter;
     max-width: 1600px;
   }
 
-  /* ---------- Safe area ---------- */
-  .pb-safe {
-    padding-bottom: var(--safe-bottom);
-  }
-  .pt-safe {
-    padding-top: var(--safe-top);
-  }
-  /* Fallback statici (usati solo se il JS non ha ancora misurato) */
-  .pb-dock {
-    padding-bottom: calc(56px + var(--safe-bottom));
-  }
-  .pt-header {
-    padding-top: calc(60px + var(--safe-top));
-  }
+  .pb-safe { padding-bottom: var(--safe-bottom); }
+  .pt-safe { padding-top: var(--safe-top); }
 
-  /* ---------- Superfici / card ---------- */
+  /* Sporty Card & Gradients */
   .ds-card {
-    @apply bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card;
+    @apply bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-card transition-all duration-200;
   }
   .ds-card-flat {
-    @apply bg-surface-container-low rounded-xl;
-  }
-  .ds-card-tint {
-    @apply bg-surface-container-high rounded-xl;
+    @apply bg-surface-container-low rounded-2xl;
   }
   .ds-card-primary {
-    @apply bg-primary-container text-on-primary rounded-xl;
+    @apply bg-gradient-to-br from-[#0A2A66] to-[#1457E0] text-white rounded-2xl shadow-primary-sm;
   }
-  .ds-card-outline {
-    @apply bg-surface-container-lowest rounded-xl border border-slate-200;
-  }
-  /* Hairline + micro-shadow, senza blur pesante */
-  .ds-divider {
-    @apply h-px w-full bg-slate-200/70;
+  .ds-card-orange {
+    @apply bg-gradient-to-br from-[#E85D04] to-[#FF7A1A] text-white rounded-2xl shadow-orange-glow;
   }
 
-  /* ---------- Bottoni (tap target >= 48px) ---------- */
-  .ds-btn {
-    @apply inline-flex items-center justify-center gap-2 min-h-[48px] min-w-[48px] px-4 rounded-lg
-           font-label-lg text-label-lg transition active:scale-[0.98] select-none;
-  }
   .ds-btn-primary {
-    @apply inline-flex items-center justify-center gap-2 min-h-[48px] min-w-[48px] px-4 rounded-lg
-           font-label-lg text-label-lg transition active:scale-[0.98] select-none
-           bg-primary text-on-primary shadow-primary-sm hover:bg-primary-container;
+    @apply inline-flex items-center justify-center gap-2 min-h-[48px] px-5 py-2.5 rounded-xl
+           bg-gradient-to-r from-[#E85D04] to-[#FF7A1A] text-white font-headline text-sm font-bold
+           shadow-orange-glow hover:brightness-105 active:scale-[0.98] transition-all;
   }
+
   .ds-btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 min-h-[48px] min-w-[48px] px-4 rounded-lg
-           font-label-lg text-label-lg transition active:scale-[0.98] select-none
-           bg-surface-container-high text-on-surface hover:bg-surface-container-highest;
+    @apply inline-flex items-center justify-center gap-2 min-h-[48px] px-5 py-2.5 rounded-xl
+           bg-surface-container text-on-surface font-headline text-sm font-bold
+           border border-outline hover:bg-surface-container-high active:scale-[0.98] transition-all;
   }
+
   .ds-btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 min-h-[48px] min-w-[48px] px-4 rounded-lg
-           font-label-lg text-label-lg transition active:scale-[0.98] select-none
-           bg-surface-container-low text-on-surface border border-slate-200 hover:bg-surface-container;
-  }
-  .ds-btn-quiet {
-    @apply inline-flex items-center justify-center gap-2 min-h-[48px] min-w-[48px] px-4 rounded-lg
-           font-label-lg text-label-lg transition active:scale-[0.98] select-none
-           bg-transparent text-on-surface-variant hover:bg-surface-container-low;
-  }
-  .ds-btn-coral {
-    @apply inline-flex items-center justify-center gap-2 min-h-[48px] min-w-[48px] px-4 rounded-lg
-           font-label-lg text-label-lg transition active:scale-[0.98] select-none
-           bg-tertiary-container text-on-tertiary shadow-sm hover:brightness-95;
-  }
-  .ds-btn-danger {
-    @apply inline-flex items-center justify-center gap-2 min-h-[48px] min-w-[48px] px-4 rounded-lg
-           font-label-lg text-label-lg transition active:scale-[0.98] select-none
-           bg-error text-on-error shadow-sm;
-  }
-  .ds-btn-sm {
-    @apply inline-flex items-center justify-center gap-1.5 min-h-[40px] min-w-0 px-3 rounded-lg
-           font-label-md text-label-md transition active:scale-[0.98] select-none;
-  }
-  .ds-btn-icon {
-    @apply inline-flex items-center justify-center w-12 h-12 rounded-lg shrink-0
-           bg-surface-container-high text-on-surface transition active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 min-h-[44px] px-3 py-2 rounded-xl
+           text-on-surface hover:bg-surface-container font-headline text-xs font-bold transition-all;
   }
 
-  /* ---------- Chip / badge ---------- */
   .ds-chip {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1
-           font-label-caps text-label-caps uppercase tracking-wider;
-  }
-  .ds-chip-primary {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1
-           font-label-caps text-label-caps uppercase tracking-wider
-           bg-primary-fixed text-on-primary-fixed;
-  }
-  .ds-chip-neutral {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1
-           font-label-caps text-label-caps uppercase tracking-wider
-           bg-surface-container text-on-surface-variant;
-  }
-  .ds-chip-outline {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1
-           font-label-caps text-label-caps uppercase tracking-wider
-           bg-surface-container-highest text-on-surface-variant;
-  }
-  .ds-chip-coral {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1
-           font-label-caps text-label-caps uppercase tracking-wider
-           bg-tertiary-fixed text-on-tertiary-fixed;
-  }
-  .ds-chip-blue {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1
-           font-label-caps text-label-caps uppercase tracking-wider
-           bg-secondary-fixed text-on-secondary-fixed;
-  }
-  .ds-chip-inverse {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1
-           font-label-caps text-label-caps uppercase tracking-wider
-           bg-inverse-surface text-primary-fixed;
-  }
-  /* Chip interattivo (pallino premibile): area di tap >= 44px su righe dense. */
-  .ds-chip-tap {
-    @apply inline-flex items-center gap-1 rounded-full px-3 py-1.5 min-h-[44px]
-           font-label-caps text-label-caps uppercase tracking-wider;
+    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold font-headline shadow-sm;
   }
 
-  /* ---------- Tipografia ---------- */
-  .ds-label {
-    @apply font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant;
-  }
-  .ds-title {
-    @apply font-headline-sm text-headline-sm text-on-surface;
-  }
-  .ds-subtitle {
-    @apply font-headline-md text-headline-md text-on-surface;
-  }
-  .ds-body {
-    @apply font-body-base text-body-base text-on-surface-variant;
-  }
-  .ds-body-strong {
-    @apply font-body-bold text-body-bold text-on-surface;
-  }
-  .ds-metric {
-    @apply font-display-lg text-display-lg tracking-tight tabular-nums;
-  }
-  .ds-metric-sm {
-    @apply font-headline-md text-headline-md tracking-tight tabular-nums;
-  }
-
-  /* ---------- Bento stat ---------- */
-  .ds-stat {
-    @apply bg-surface-container-lowest rounded-xl border border-slate-200/70 shadow-card
-           p-3 flex flex-col justify-between gap-1 min-w-0;
-  }
-  .ds-stat-value {
-    @apply font-headline-md text-headline-md tracking-tight tabular-nums;
-  }
-  /* Griglia statistiche: 2 colonne su mobile, scala con lo spazio. */
-  .ds-stat-grid {
-    @apply grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2;
-  }
-
-  /* ---------- Tab switcher segmentato ---------- */
-  .ds-tabs {
-    @apply grid gap-1 bg-surface-container rounded-xl p-1;
-  }
-  .ds-tab {
-    @apply flex items-center justify-center gap-1 min-h-[48px] py-2 px-1 rounded-lg
-           font-label-md text-label-md text-on-surface-variant transition-all;
-  }
-  .ds-tab-active {
-    @apply bg-surface-container-lowest text-primary font-bold shadow-sm;
-  }
-
-  /* ---------- Alert / callout medico ---------- */
-  .ds-alert {
-    @apply rounded-lg p-3 border-l-4;
-  }
-  .ds-alert-title {
-    @apply font-headline-sm text-headline-sm;
-  }
-  .ds-alert-body {
-    @apply font-body-base text-body-base leading-snug mt-0.5;
-  }
-
-  /* Icone nei controlli: mai schiacciate su schermi stretti */
-  .ds-tab > svg,
-  .ds-btn > svg,
-  .ds-btn-primary > svg,
-  .ds-btn-secondary > svg,
-  .ds-btn-ghost > svg,
-  .ds-btn-quiet > svg,
-  .ds-btn-coral > svg,
-  .ds-btn-danger > svg,
-  .ds-btn-sm > svg,
-  .ds-btn-icon > svg,
-  .ds-chip > svg,
-  .ds-chip-primary > svg,
-  .ds-chip-neutral > svg,
-  .ds-chip-outline > svg,
-  .ds-chip-coral > svg,
-  .ds-chip-blue > svg,
-  .ds-chip-inverse > svg,
-  .ds-chip-tap > svg {
-    flex-shrink: 0;
-  }
-  .ds-scroll-x {
-    @apply overflow-x-auto;
-    scrollbar-width: none;
-    scroll-snap-type: x proximity;
-    scroll-padding-inline: 0.25rem;
-    overscroll-behavior-x: contain;
-  }
-  .ds-scroll-x::-webkit-scrollbar {
-    display: none;
-  }
-  .ds-scroll-x > * {
-    scroll-snap-align: start;
-  }
-  .ds-touch-pan {
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-x;
-  }
-
-  /* ---------- Bottom sheet ---------- */
-  .ds-sheet {
-    @apply fixed inset-x-0 bottom-0 z-50 rounded-t-2xl bg-surface-container-lowest
-           border-t border-slate-200 shadow-float px-4 pt-3 pb-safe
-           max-h-[88dvh] overflow-y-auto;
-  }
-  .ds-sheet-scrim {
-    @apply fixed inset-0 z-40 bg-inverse-surface/50 backdrop-blur-[2px];
-  }
-
-  /* ---------- Modali: sempre scrollabili, header/footer ancorati ---------- */
-  .ds-modal-scrim {
-    @apply fixed inset-0 z-50 flex items-end sm:items-center justify-center
-           bg-inverse-surface/50 backdrop-blur-[2px] p-0 sm:p-4;
-  }
-  .ds-modal-panel {
-    @apply bg-surface-container-lowest w-full sm:rounded-2xl rounded-t-2xl
-           max-h-[92dvh] overflow-y-auto shadow-float border border-slate-200/70;
-  }
-  .ds-modal-header {
-    @apply sticky top-0 z-10 bg-surface-container-lowest/95 backdrop-blur
-           px-4 sm:px-6 py-3 border-b border-slate-200/70;
-  }
-  .ds-modal-footer {
-    @apply sticky bottom-0 z-10 bg-surface-container-lowest/95 backdrop-blur
-           px-4 sm:px-6 py-3 border-t border-slate-200/70;
-  }
-
-  /* ---------- Helper di layout ---------- */
-  /* Riga che va a capo invece di schiacciare i figli */
-  .ds-row {
-    @apply flex flex-wrap items-center gap-2 min-w-0;
-  }
-  /* Testo che si rompe ovunque (URL, codici, nomi lunghi) */
-  .ds-break {
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-  /* Contenitore con scroll orizzontale e fade sui bordi */
-  .ds-hscroll {
-    @apply overflow-x-auto overscroll-x-contain;
-    scrollbar-width: none;
-    scroll-snap-type: x proximity;
-    scroll-padding-inline: 0.25rem;
-  }
-  .ds-hscroll::-webkit-scrollbar {
-    display: none;
-  }
-  .ds-hscroll > * {
-    scroll-snap-align: start;
-  }
-
-  /* Griglia auto-adattiva: il numero di colonne dipende dallo spazio reale,
-     non da breakpoint fissi. Evita sia celle da 30px sia card larghissime.
-     Uso: <div class="ds-auto-grid" style={{ '--ds-min': '18rem' }}> */
-  .ds-auto-grid {
-    display: grid;
-    gap: var(--ds-gap, 0.75rem);
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--ds-min, 16rem)), 1fr));
-  }
-  .ds-auto-grid-tight {
-    --ds-min: 11rem;
-    --ds-gap: 0.5rem;
-  }
-  .ds-auto-grid-wide {
-    --ds-min: 22rem;
-    --ds-gap: 1rem;
+  .ds-divider {
+    @apply h-px w-full bg-outline-variant/60;
   }
 }
 
-/* =============================================================================
-   Zone fisiologiche FINP (badge codice allenamento)
-   ============================================================================= */
-.zone-pill-a1 { background-color: #e0f2fe; color: #0369a1; }
-.zone-pill-a2 { background-color: #ccfbf1; color: #0f766e; }
-.zone-pill-b1 { background-color: #dbeafe; color: #1d4ed8; }
-.zone-pill-b2 { background-color: #e0e7ff; color: #4338ca; }
-.zone-pill-c1 { background-color: #fef3c7; color: #b45309; }
-.zone-pill-c2 { background-color: #ffedd5; color: #c2410c; }
-.zone-pill-c3 { background-color: #fce7f3; color: #be185d; }
-.zone-pill-d  { background-color: #fee2e2; color: #b91c1c; }
-
-/* =============================================================================
-   Callout medico / sicurezza (WCAG AAA)
-   ============================================================================= */
-.alert-dysreflexia {
-  background-color: #fff1f2;
-  border: 1px solid #fecdd3;
-  border-left: 4px solid #e11d48;
-  color: #881337;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.alert-safeguard {
-  background-color: #fffbeb;
-  border: 1px solid #fde68a;
-  border-left: 4px solid #f59e0b;
-  color: #78350f;
+.animate-fade-in {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.alert-validated {
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-left: 4px solid #22c55e;
-  color: #14532d;
+@keyframes marquee {
+  0%, 15% { transform: translateX(0); }
+  85%, 100% { transform: translateX(calc(-100% + 80px)); }
 }
 
-/* =============================================================================
-   Densità verticale: su telefono i blocchi si avvicinano, cosi si scorre meno.
-   Regole fuori dai layer: vincono sulle utility Tailwind senza !important.
-   ============================================================================= */
-@media (max-width: 639px) {
-  .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.875rem; }
-  .space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
-  .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.625rem; }
-  .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem; }
-  .space-y-2\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem; }
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 9s ease-in-out infinite alternate;
+}
 
-  /* Un filo di respiro in meno anche nei contenitori generici */
-  .ds-topic { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+    overflow-x: auto;
+  }
 }
