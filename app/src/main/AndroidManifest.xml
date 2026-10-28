@@ -2,16 +2,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
-      Rete solo per scaricare pagine pubbliche (regolamenti FINP e World Para Swimming).
-      I dati degli atleti NON vengono mai inviati: restano solo sul dispositivo.
+        Rete: serve per scaricare pagine pubbliche (regolamenti FINP e World Para Swimming)
+        e per l'eventuale sincronizzazione Firebase, solo se attivata dall'utente.
+        Senza sincronizzazione i dati degli atleti restano solo sul dispositivo.
     -->
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Vibrazione (navigator.vibrate) per le ripartenze del cronometro a bordo vasca -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <!-- Per OCR da immagini -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
 
     <application
         android:name=".NuotoParalimpicoApp"
@@ -22,9 +28,15 @@
         android:theme="@style/Theme.NuotoParalimpico"
         android:supportsRtl="true">
 
+        <!--
+            configChanges: ruotando il telefono l'activity NON viene ricreata,
+            quindi la WebView non si ricarica e un cronometro in corso non si perde.
+            uiMode è volutamente escluso: al cambio tema di sistema l'app si riallinea.
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden"
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.NuotoParalimpico">
             <intent-filter>
@@ -33,4 +45,5 @@
             </intent-filter>
         </activity>
     </application>
+
 </manifest>

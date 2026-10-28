@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AppProvider } from './data/AppContext';
 import { FirebaseSync } from './data/firebaseSync';
 import { Navbar, TabKey } from './components/Navbar';
@@ -15,6 +15,7 @@ import { WelcomeScreen } from './components/WelcomeScreen';
 import { OnboardingModal } from './components/OnboardingModal';
 import { FINPStorage } from './data/storage';
 import { useLayoutMetrics } from './hooks/useLayoutMetrics';
+import { pushBackHandler } from './lib/backHandler';
 
 export const AppContent: React.FC = () => {
   const [tab, setTab] = useState<TabKey>(() => {
@@ -31,12 +32,27 @@ export const AppContent: React.FC = () => {
     }
     return m;
   });
-
   const layout = useLayoutMetrics();
 
   useEffect(() => {
     sessionStorage.setItem('finp_active_tab', tab);
   }, [tab]);
+
+  // Tasto indietro di Android: da qualsiasi schermata si torna a "Oggi";
+  // da "Oggi" il tasto non viene consumato e l'app esce.
+  // Il ref evita di ri-registrare il gestore a ogni cambio tab, così i popup
+  // aperti (registrati dopo) restano sopra e si chiudono per primi.
+  const tabRef = useRef<TabKey>(tab);
+  tabRef.current = tab;
+  useEffect(() => {
+    return pushBackHandler(() => {
+      if (tabRef.current !== 'oggi') {
+        setTab('oggi');
+        return true;
+      }
+      return false;
+    });
+  }, []);
 
   const isBordoVasca = tab === 'oggi' || tab === 'cronometro' || tab === 'regia';
   const fixed = isBordoVasca;
@@ -48,7 +64,6 @@ export const AppContent: React.FC = () => {
   useEffect(() => {
     const syncEnabled = localStorage.getItem('finp_sync_enabled') === 'true';
     const user = FirebaseSync.getCurrentUser();
-
     if (syncEnabled && !user) {
       setShowLogin(true);
     } else if (user) {
@@ -79,21 +94,25 @@ export const AppContent: React.FC = () => {
   return (
     <div className={`app-shell ${fixed ? 'app-shell-fixed' : ''}`}>
       {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
+
+      {/* Da lg: sidebar a sinistra. Sotto lg: header in alto e dock in basso. */}
       <Navbar currentTab={tab} onTabChange={setTab} layout={layout} />
 
-      <main
-        className={`app-main w-full mx-auto px-gutter-mobile sm:px-gutter ${
-          wide ? 'max-w-none' : 'max-w-[1600px]'
-        }`}
-      >
-        {tab === 'oggi' && <OggiScreen onNavigateTab={setTab} />}
-        {tab === 'piano' && <PianoScreen />}
-        {tab === 'cronometro' && <CronometroLiveMultiCorsia />}
-        {tab === 'regia' && <RegiaTecnicaCorsie />}
-        {tab === 'atleti' && <AtletiScreen />}
-        {tab === 'fonti' && <FontiScreen />}
-        {tab === 'dati' && <DatiScreen />}
-      </main>
+      <div className="app-content">
+        <main
+          className={`app-main w-full mx-auto px-gutter-mobile sm:px-gutter ${
+            wide ? 'max-w-none' : 'max-w-[1600px] lg:max-w-[2000px]'
+          }`}
+        >
+          {tab === 'oggi' && <OggiScreen onNavigateTab={setTab} />}
+          {tab === 'piano' && <PianoScreen />}
+          {tab === 'cronometro' && <CronometroLiveMultiCorsia />}
+          {tab === 'regia' && <RegiaTecnicaCorsie />}
+          {tab === 'atleti' && <AtletiScreen />}
+          {tab === 'fonti' && <FontiScreen />}
+          {tab === 'dati' && <DatiScreen />}
+        </main>
+      </div>
     </div>
   );
 };

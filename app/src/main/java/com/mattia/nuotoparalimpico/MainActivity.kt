@@ -2,12 +2,14 @@ package com.mattia.nuotoparalimpico
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
-import android.view.WindowInsetsController
+import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -26,7 +28,6 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var webView: WebView
     private var uploadMessage: ValueCallback<Array<Uri>>? = null
-
     private var currentTopInset = 0
     private var currentBottomInset = 0
 
@@ -42,17 +43,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Enable true edge-to-edge display optimized for modern devices like Pixel 10
-        // Il contenuto va sotto la barra di stato, ma usiamo padding intelligente
+        // Edge-to-edge: il contenuto va sotto le barre di sistema, i margini arrivano
+        // alla web app come variabili CSS (--safe-top / --safe-bottom).
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // Imposta i colori delle barre di sistema usando l'API moderna (Android 11+)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-            window.insetsController?.setSystemBarsAppearance(
-                WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
-                WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-            )
-        } else {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             @Suppress("DEPRECATION")
             window.statusBarColor = Color.TRANSPARENT
             @Suppress("DEPRECATION")
@@ -68,6 +63,11 @@ class MainActivity : ComponentActivity() {
             settings.domStorageEnabled = true
             settings.allowFileAccess = true
             settings.allowContentAccess = true
+
+            // Ponte minimale verso la web app: la pagina carica solo risorse dell'app
+            // (le navigazioni esterne vengono aperte nel browser), quindi l'esposizione è limitata.
+            addJavascriptInterface(AndroidBridge(), "AndroidBridge")
+
             webViewClient = BundledAppWebViewClient()
             webChromeClient = object : WebChromeClient() {
                 override fun onShowFileChooser(
@@ -93,7 +93,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Intelligently feed system window insets as CSS variables into the web app root
+        // Passa i margini di sistema alla web app come variabili CSS
         ViewCompat.setOnApplyWindowInsetsListener(webView) { _, windowInsets ->
             currentTopInset = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top
             currentBottomInset = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
@@ -103,19 +103,39 @@ class MainActivity : ComponentActivity() {
 
         setContentView(webView)
 
+        // Icone delle barre di sistema: partono dal tema di sistema.
+        // Se in app scegli un tema diverso, la web app le aggiorna tramite AndroidBridge.
+        val systemIsDark =
+            (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        applySystemBarsAppearance(dark = systemIsDark)
+
         if (savedInstanceState == null || webView.restoreState(savedInstanceState) == null) {
             webView.loadUrl(APP_URL)
         }
 
+        // Tasto indietro: prima lo gestisce la web app (chiude popup, torna a "Oggi"),
+        // poi la cronologia della WebView, infine si esce.
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (webView.canGoBack()) {
-                    webView.goBack()
-                } else {
-                    finish()
+                webView.evaluateJavascript(
+                    "(function(){return !!(window.__finpHandleBack && window.__finpHandleBack());})()"
+                ) { consumed ->
+                    if (consumed == "true") return@evaluateJavascript
+                    if (webView.canGoBack()) {
+                        webView.goBack()
+                    } else {
+                        finish()
+                    }
                 }
             }
         })
+    }
+
+    /** Icone chiare su sfondo scuro e viceversa, per barra di stato e barra di navigazione. */
+    private fun applySystemBarsAppearance(dark: Boolean) {
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        controller.isAppearanceLightStatusBars = !dark
+        controller.isAppearanceLightNavigationBars = !dark
     }
 
     private fun updateWebViewInsets() {
@@ -124,8 +144,8 @@ class MainActivity : ComponentActivity() {
         val bottomDp = if (density > 0f) currentBottomInset / density else currentBottomInset.toFloat()
         val script = """
             (function() {
-                document.documentElement.style.setProperty('--safe-top', '${topDp}px');
-                document.documentElement.style.setProperty('--safe-bottom', '${bottomDp}px');
+              document.documentElement.style.setProperty('--safe-top', '${topDp}px');
+              document.documentElement.style.setProperty('--safe-bottom', '${bottomDp}px');
             })();
         """
         webView.evaluateJavascript(script, null)
@@ -141,7 +161,16 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
+    /** Funzioni native richiamabili dalla web app (window.AndroidBridge). */
+    private inner class AndroidBridge {
+        @JavascriptInterface
+        fun setSystemBarsDark(dark: Boolean) {
+            runOnUiThread { applySystemBarsAppearance(dark) }
+        }
+    }
+
     private inner class BundledAppWebViewClient : WebViewClient() {
+
         override fun onPageFinished(view: WebView, url: String) {
             super.onPageFinished(view, url)
             updateWebViewInsets()
@@ -160,6 +189,7 @@ class MainActivity : ComponentActivity() {
                 path.startsWith("/assets/") -> path.removePrefix("/assets/")
                 else -> "web/${path.removePrefix("/")}"
             }
+
             if (assetPath.split('/').any { it == "." || it == ".." }) {
                 return response404()
             }

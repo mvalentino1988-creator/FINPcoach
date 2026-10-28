@@ -12,7 +12,6 @@ import {
   MoreHorizontal,
   X,
   CloudDownload,
-  Sparkles,
   Sun,
   Moon,
   Monitor,
@@ -21,6 +20,7 @@ import {
 import { BackupModal } from './BackupModal';
 import { Marquee } from './Marquee';
 import type { LayoutMetrics } from '../hooks/useLayoutMetrics';
+import { pushBackHandler } from '../lib/backHandler';
 
 export type TabKey = 'oggi' | 'piano' | 'cronometro' | 'regia' | 'atleti' | 'fonti' | 'dati';
 
@@ -29,6 +29,25 @@ interface Props {
   onTabChange: (tab: TabKey) => void;
   layout: LayoutMetrics;
 }
+
+interface NavItem {
+  key: TabKey;
+  /** Nome esteso (header, sidebar) */
+  label: string;
+  /** Nome breve (dock del telefono) */
+  short: string;
+  Icon: React.ComponentType<{ size?: number }>;
+}
+
+const ITEMS: Record<TabKey, NavItem> = {
+  oggi: { key: 'oggi', label: 'Dashboard', short: 'Oggi', Icon: LayoutDashboard },
+  cronometro: { key: 'cronometro', label: 'Cronometro', short: 'Crono', Icon: Timer },
+  regia: { key: 'regia', label: 'Pianificatore', short: 'Regia', Icon: Sliders },
+  atleti: { key: 'atleti', label: 'Atleti', short: 'Atleti', Icon: Users },
+  piano: { key: 'piano', label: 'Allenamenti', short: 'Piano', Icon: CalendarDays },
+  fonti: { key: 'fonti', label: 'Gare', short: 'Gare', Icon: Trophy },
+  dati: { key: 'dati', label: 'Dati', short: 'Dati', Icon: Database },
+};
 
 const CONTESTO: Record<TabKey, string> = {
   oggi: 'Oggi',
@@ -40,41 +59,40 @@ const CONTESTO: Record<TabKey, string> = {
   dati: 'Dati',
 };
 
+/** Ciò che serve in vasca, durante l'allenamento */
+const GRUPPO_VASCA: TabKey[] = ['oggi', 'cronometro', 'regia'];
+/** Ciò che serve per preparare e gestire */
+const GRUPPO_GESTIONE: TabKey[] = ['atleti', 'piano', 'fonti', 'dati'];
+/** Ordine di striscia (tablet) e scorciatoie da tastiera 1-7 */
+const ORDINE: TabKey[] = [...GRUPPO_VASCA, ...GRUPPO_GESTIONE];
+/** Voci sempre visibili nel dock del telefono; le altre stanno sotto "Altro" */
+const DOCK_KEYS: TabKey[] = ['oggi', 'cronometro', 'regia', 'atleti'];
+
 export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => {
   const { layoutScelto, setLayoutScelto, themeMode, setThemeMode } = useApp();
   const [backupOpen, setBackupOpen] = useState(false);
   const [altroOpen, setAltroOpen] = useState(false);
   const [aspettoOpen, setAspettoOpen] = useState(false);
 
-  // Handle Android Back button / popstate for Altro modal
+  // Tasto indietro di Android: chiude prima il popup aperto, poi (in App) si torna a "Oggi".
   useEffect(() => {
-    const handlePopState = (e: PopStateEvent) => {
-      if (altroOpen) {
-        e.preventDefault();
-        setAltroOpen(false);
+    if (!altroOpen && !aspettoOpen && !backupOpen) return undefined;
+    return pushBackHandler(() => {
+      if (backupOpen) {
+        setBackupOpen(false);
+        return true;
       }
-    };
-    if (altroOpen) {
-      window.history.pushState({ altroOpen: true }, '');
-      window.addEventListener('popstate', handlePopState);
-    }
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [altroOpen]);
-
-  const primary: { key: TabKey; label: string; short: string; icon: React.ReactNode }[] = [
-    { key: 'oggi', label: 'Dashboard', short: 'Oggi', icon: <LayoutDashboard size={22} /> },
-    { key: 'atleti', label: 'Atleti', short: 'Atleti', icon: <Users size={22} /> },
-    { key: 'piano', label: 'Allenamenti', short: 'Piano', icon: <CalendarDays size={22} /> },
-    { key: 'fonti', label: 'Gare', short: 'Gare', icon: <Trophy size={22} /> },
-  ];
-
-  const secondary: { key: TabKey; label: string; desc: string; icon: React.ReactNode }[] = [
-    { key: 'cronometro', label: 'Cronometro', desc: 'Cronometro multi-corsia a bordo vasca', icon: <Timer size={20} /> },
-    { key: 'regia', label: 'Pianificatore', desc: 'Regia tecnica e assegnazione corsie', icon: <Sliders size={20} /> },
-    { key: 'dati', label: 'Dati', desc: 'Schede vasca, tempi di ripartenza, registro', icon: <Database size={20} /> },
-  ];
+      if (aspettoOpen) {
+        setAspettoOpen(false);
+        return true;
+      }
+      if (altroOpen) {
+        setAltroOpen(false);
+        return true;
+      }
+      return false;
+    });
+  }, [altroOpen, aspettoOpen, backupOpen]);
 
   const vai = (tab: TabKey) => {
     onTabChange(tab);
@@ -86,15 +104,116 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
     }
   };
 
-  const stripTabs = [...primary, ...secondary];
+  // Scorciatoie desktop: 1-7 cambiano schermata (ignorate mentre si scrive in un campo).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (!window.matchMedia('(min-width: 1024px)').matches) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+      const n = Number(e.key);
+      if (Number.isInteger(n) && n >= 1 && n <= ORDINE.length) {
+        e.preventDefault();
+        vai(ORDINE[n - 1]);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const dockItems = DOCK_KEYS.map(k => ITEMS[k]);
+  const altroItems = ORDINE.filter(k => !DOCK_KEYS.includes(k)).map(k => ITEMS[k]);
+  const altroAttivo = altroOpen || altroItems.some(i => i.key === currentTab);
+
+  /** Voce della sidebar desktop */
+  const renderSidebarItem = (key: TabKey) => {
+    const item = ITEMS[key];
+    const active = currentTab === key;
+    const numero = ORDINE.indexOf(key) + 1;
+    return (
+      <button
+        key={key}
+        type="button"
+        onClick={() => vai(key)}
+        aria-current={active ? 'page' : undefined}
+        title={`${item.label} (tasto ${numero})`}
+        className={`w-full flex items-center gap-3 px-3 h-11 rounded-xl text-sm font-bold transition ${
+          active
+            ? 'bg-gradient-to-r from-primary to-primary-container text-white shadow-primary-sm'
+            : 'text-on-surface hover:bg-surface-container'
+        }`}
+      >
+        <item.Icon size={20} />
+        <span className="truncate">{item.label}</span>
+        <span
+          aria-hidden="true"
+          className={`ml-auto text-[11px] font-semibold tabular-nums ${active ? 'text-white/70' : 'text-on-surface-variant'}`}
+        >
+          {numero}
+        </span>
+      </button>
+    );
+  };
 
   return (
     <>
       {backupOpen && <BackupModal onClose={() => setBackupOpen(false)} />}
 
+      {/* SIDEBAR DESKTOP (da 1024px) */}
+      <aside
+        aria-label="Menu principale"
+        className="hidden lg:flex flex-col shrink-0 w-60 xl:w-64 sticky top-0 self-start h-[100dvh] overflow-y-auto bg-surface-container-lowest border-r border-outline-variant/60 px-3 pb-4"
+        style={{ paddingTop: 'max(1rem, var(--safe-top, 0px))' }}
+      >
+        <button
+          type="button"
+          onClick={() => vai('oggi')}
+          className="flex items-center gap-2.5 px-2 min-h-[44px] text-left"
+        >
+          <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-container text-white flex items-center justify-center shrink-0 shadow-primary-sm">
+            <Waves size={20} />
+          </span>
+          <span className="font-headline text-lg text-on-surface tracking-tight font-bold">
+            FINP<span className="text-secondary">coach</span>
+          </span>
+        </button>
+
+        <nav aria-label="Sezioni principali" className="mt-5 flex flex-col gap-5">
+          <div className="flex flex-col gap-1">
+            <span className="px-3 pb-1 text-xs font-semibold text-on-surface-variant">Bordo vasca</span>
+            {GRUPPO_VASCA.map(renderSidebarItem)}
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="px-3 pb-1 text-xs font-semibold text-on-surface-variant">Gestione</span>
+            {GRUPPO_GESTIONE.map(renderSidebarItem)}
+          </div>
+        </nav>
+
+        <div className="mt-auto pt-5 flex flex-col gap-1 border-t border-outline-variant/60">
+          <button
+            type="button"
+            onClick={() => setBackupOpen(true)}
+            className="w-full flex items-center gap-3 px-3 h-11 rounded-xl text-sm font-bold text-on-surface hover:bg-surface-container transition"
+          >
+            <CloudDownload size={20} />
+            <span>Backup e dati</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setAspettoOpen(true)}
+            className="w-full flex items-center gap-3 px-3 h-11 rounded-xl text-sm font-bold text-on-surface hover:bg-surface-container transition"
+          >
+            <LayoutGrid size={20} />
+            <span>Aspetto</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* HEADER (telefono e tablet, sotto 1024px) */}
       <header
         ref={layout.headerRef}
-        className="sticky top-0 z-40 bg-surface/92 backdrop-blur-xl border-b border-outline-variant/60"
+        className="lg:hidden sticky top-0 z-40 bg-surface/92 backdrop-blur-xl border-b border-outline-variant/60"
         style={{ paddingTop: 'var(--safe-top, 0px)' }}
       >
         <div className="mx-auto max-w-[1600px] px-gutter-mobile sm:px-gutter py-1.5 flex items-center justify-between gap-2">
@@ -130,15 +249,17 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
           </div>
         </div>
 
+        {/* Striscia tab per tablet / telefono in orizzontale (640-1023px) */}
         <nav aria-label="Sezioni principali" className="hidden sm:block relative border-t border-outline-variant/50 px-gutter">
           <div className="ds-hscroll flex items-center gap-1.5 py-1.5">
-            {stripTabs.map(tab => {
-              const active = currentTab === tab.key;
+            {ORDINE.map(key => {
+              const tab = ITEMS[key];
+              const active = currentTab === key;
               return (
                 <button
-                  key={tab.key}
+                  key={key}
                   type="button"
-                  onClick={() => vai(tab.key)}
+                  onClick={() => vai(key)}
                   aria-current={active ? 'page' : undefined}
                   className={`flex-none flex items-center gap-1.5 px-3.5 h-9 rounded-xl text-xs font-bold transition ${
                     active
@@ -146,7 +267,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
                       : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
-                  {tab.icon}
+                  <tab.Icon size={20} />
                   <span className="whitespace-nowrap">{tab.label}</span>
                 </button>
               );
@@ -155,7 +276,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
         </nav>
       </header>
 
-      {/* MOBILE BOTTOM NAV - 3 VARIANTS */}
+      {/* DOCK MOBILE (sotto 640px) - tre stili a scelta */}
       {layoutScelto === 'flottante' ? (
         <nav
           ref={layout.dockRef}
@@ -163,8 +284,8 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
           className="sm:hidden fixed bottom-3 inset-x-4 z-40 bg-surface/95 backdrop-blur-xl rounded-3xl shadow-float border border-outline-variant px-2 py-1.5"
           style={{ paddingBottom: 'max(6px, var(--safe-bottom, 8px))' }}
         >
-          <div className="h-12 flex items-center justify-around gap-1">
-            {primary.map(tab => {
+          <div className="h-14 flex items-center justify-around gap-1">
+            {dockItems.map(tab => {
               const active = currentTab === tab.key;
               return (
                 <button
@@ -173,11 +294,11 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
                   onClick={() => vai(tab.key)}
                   aria-current={active ? 'page' : undefined}
                   aria-label={tab.label}
-                  className={`flex items-center justify-center p-2 rounded-2xl transition-all ${
+                  className={`flex items-center justify-center min-w-[48px] min-h-[48px] p-2 rounded-2xl transition-all ${
                     active ? 'bg-primary text-white shadow-primary-sm px-3' : 'text-on-surface-variant'
                   }`}
                 >
-                  {tab.icon}
+                  <tab.Icon size={24} />
                   {active && <span className="text-xs font-bold font-headline ml-1.5">{tab.short}</span>}
                 </button>
               );
@@ -186,12 +307,12 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
               type="button"
               onClick={() => setAltroOpen(true)}
               aria-label="Altre sezioni"
-              className={`flex items-center justify-center p-2 rounded-2xl transition-all ${
-                altroOpen ? 'bg-primary text-white shadow-primary-sm px-3' : 'text-on-surface-variant'
+              className={`flex items-center justify-center min-w-[48px] min-h-[48px] p-2 rounded-2xl transition-all ${
+                altroAttivo ? 'bg-primary text-white shadow-primary-sm px-3' : 'text-on-surface-variant'
               }`}
             >
-              <MoreHorizontal size={22} />
-              {altroOpen && <span className="text-xs font-bold font-headline ml-1.5">Altro</span>}
+              <MoreHorizontal size={24} />
+              {altroAttivo && <span className="text-xs font-bold font-headline ml-1.5">Altro</span>}
             </button>
           </div>
         </nav>
@@ -203,50 +324,65 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
           style={{ paddingBottom: 'var(--safe-bottom, 8px)' }}
         >
           <div className="h-16 px-3 flex items-center justify-between gap-1 relative">
-            <button
-              type="button"
-              onClick={() => vai('oggi')}
-              className={`flex flex-col items-center justify-center flex-1 py-1 ${currentTab === 'oggi' ? 'text-primary font-bold' : 'text-on-surface-variant'}`}
-            >
-              <LayoutDashboard size={20} />
-              <span className="text-[10px] font-headline mt-0.5">Oggi</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => vai('atleti')}
-              className={`flex flex-col items-center justify-center flex-1 py-1 ${currentTab === 'atleti' ? 'text-primary font-bold' : 'text-on-surface-variant'}`}
-            >
-              <Users size={20} />
-              <span className="text-[10px] font-headline mt-0.5">Atleti</span>
-            </button>
+            {(['oggi', 'atleti'] as TabKey[]).map(key => {
+              const tab = ITEMS[key];
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => vai(key)}
+                  aria-current={currentTab === key ? 'page' : undefined}
+                  className={`flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 ${
+                    currentTab === key ? 'text-primary font-bold' : 'text-on-surface-variant'
+                  }`}
+                >
+                  <tab.Icon size={22} />
+                  <span className="text-[11px] font-headline mt-0.5">{tab.short}</span>
+                </button>
+              );
+            })}
 
-            {/* Central FAB Action */}
+            {/* Pulsante centrale: Cronometro */}
             <div className="relative -top-4 px-2">
               <button
                 type="button"
                 onClick={() => vai('cronometro')}
                 aria-label="Cronometro"
-                className="w-14 h-14 rounded-full bg-gradient-to-r from-tertiary-container to-tertiary text-white flex items-center justify-center shadow-orange-glow hover:scale-105 transition-all"
+                className={`w-14 h-14 rounded-full bg-gradient-to-r from-tertiary-container to-tertiary text-white flex items-center justify-center shadow-orange-glow hover:scale-105 transition-all ${
+                  currentTab === 'cronometro' ? 'ring-4 ring-primary/40' : ''
+                }`}
               >
                 <Timer size={26} />
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={() => vai('piano')}
-              className={`flex flex-col items-center justify-center flex-1 py-1 ${currentTab === 'piano' ? 'text-primary font-bold' : 'text-on-surface-variant'}`}
-            >
-              <CalendarDays size={20} />
-              <span className="text-[10px] font-headline mt-0.5">Piano</span>
-            </button>
+            {(['regia'] as TabKey[]).map(key => {
+              const tab = ITEMS[key];
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => vai(key)}
+                  aria-current={currentTab === key ? 'page' : undefined}
+                  className={`flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 ${
+                    currentTab === key ? 'text-primary font-bold' : 'text-on-surface-variant'
+                  }`}
+                >
+                  <tab.Icon size={22} />
+                  <span className="text-[11px] font-headline mt-0.5">{tab.short}</span>
+                </button>
+              );
+            })}
+
             <button
               type="button"
               onClick={() => setAltroOpen(true)}
-              className={`flex flex-col items-center justify-center flex-1 py-1 ${altroOpen ? 'text-primary font-bold' : 'text-on-surface-variant'}`}
+              className={`flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 ${
+                altroAttivo ? 'text-primary font-bold' : 'text-on-surface-variant'
+              }`}
             >
-              <MoreHorizontal size={20} />
-              <span className="text-[10px] font-headline mt-0.5">Altro</span>
+              <MoreHorizontal size={22} />
+              <span className="text-[11px] font-headline mt-0.5">Altro</span>
             </button>
           </div>
         </nav>
@@ -258,8 +394,8 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
           className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-surface/95 backdrop-blur-xl shadow-nav border-t border-outline-variant/60"
           style={{ paddingBottom: 'var(--safe-bottom, 8px)' }}
         >
-          <div className="h-14 px-2 flex items-center justify-center gap-1">
-            {primary.map(tab => {
+          <div className="h-16 px-2 flex items-center justify-center gap-1">
+            {dockItems.map(tab => {
               const active = currentTab === tab.key;
               return (
                 <button
@@ -268,12 +404,12 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
                   onClick={() => vai(tab.key)}
                   aria-current={active ? 'page' : undefined}
                   aria-label={tab.label}
-                  className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 min-h-[48px] py-1 rounded-xl transition-all ${
+                  className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 min-h-[52px] py-1 rounded-xl transition-all ${
                     active ? 'text-primary font-bold bg-primary/10' : 'text-on-surface-variant'
                   }`}
                 >
-                  {tab.icon}
-                  <span className="font-headline text-[10px] tracking-tight truncate max-w-full px-0.5">
+                  <tab.Icon size={24} />
+                  <span className="font-headline text-[11px] tracking-tight truncate max-w-full px-0.5">
                     {tab.short}
                   </span>
                 </button>
@@ -284,18 +420,18 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
               onClick={() => setAltroOpen(true)}
               aria-label="Altre sezioni"
               aria-expanded={altroOpen}
-              className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 min-h-[48px] py-1 rounded-xl transition-all ${
-                altroOpen ? 'text-primary font-bold bg-primary/10' : 'text-on-surface-variant'
+              className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 min-h-[52px] py-1 rounded-xl transition-all ${
+                altroAttivo ? 'text-primary font-bold bg-primary/10' : 'text-on-surface-variant'
               }`}
             >
-              <MoreHorizontal size={22} />
-              <span className="font-headline text-[10px] tracking-tight">Altro</span>
+              <MoreHorizontal size={24} />
+              <span className="font-headline text-[11px] tracking-tight">Altro</span>
             </button>
           </div>
         </nav>
       )}
 
-      {/* ALTRO CENTERED MODAL POPUP (Scale + Fade, 2-Column Grid) */}
+      {/* POPUP "ALTRO" (telefono): Piano, Gare, Dati, Aspetto, Backup */}
       {altroOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
@@ -308,7 +444,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
             aria-label="Altre sezioni"
           >
             <div className="flex items-center justify-between">
-              <span className="font-headline text-lg font-bold text-on-surface">Altre Sezioni</span>
+              <span className="font-headline text-lg font-bold text-on-surface">Altre sezioni</span>
               <button
                 type="button"
                 onClick={() => setAltroOpen(false)}
@@ -319,27 +455,28 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
               </button>
             </div>
 
-            {/* 2-Column Grid */}
             <div className="grid grid-cols-2 gap-3">
-              {secondary
-                .filter(tab => tab.key !== 'cronometro') // Remove Live Deck / Cronometro from Altro
-                .map(tab => (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    onClick={() => vai(tab.key)}
-                    className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl text-center border transition group ${
-                      currentTab === tab.key
-                        ? 'bg-primary text-white border-primary shadow-primary-sm'
-                        : 'bg-surface-container-low border-outline-variant/60 text-on-surface hover:bg-surface-container'
+              {altroItems.map(tab => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => vai(tab.key)}
+                  className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl text-center border transition group ${
+                    currentTab === tab.key
+                      ? 'bg-primary text-white border-primary shadow-primary-sm'
+                      : 'bg-surface-container-low border-outline-variant/60 text-on-surface hover:bg-surface-container'
+                  }`}
+                >
+                  <span
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${
+                      currentTab === tab.key ? 'bg-white/20 text-white' : 'bg-primary-container text-white'
                     }`}
                   >
-                    <span className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${currentTab === tab.key ? 'bg-white/20 text-white' : 'bg-primary-container text-white'}`}>
-                      {tab.icon}
-                    </span>
-                    <span className="font-headline font-bold text-xs truncate max-w-full">{tab.label}</span>
-                  </button>
-                ))}
+                    <tab.Icon size={22} />
+                  </span>
+                  <span className="font-headline font-bold text-xs truncate max-w-full">{tab.label}</span>
+                </button>
+              ))}
 
               <button
                 type="button"
@@ -366,26 +503,31 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
                 <span className="w-12 h-12 rounded-2xl bg-tertiary text-white flex items-center justify-center shadow-sm">
                   <Database size={22} />
                 </span>
-                <span className="font-headline font-bold text-xs truncate max-w-full">Backup & Dati</span>
+                <span className="font-headline font-bold text-xs truncate max-w-full">Backup e dati</span>
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ASPETTO MODAL (Settings) */}
+      {/* POPUP "ASPETTO": tema e stile della navigazione inferiore */}
       {aspettoOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-surface-container-lowest rounded-3xl p-6 max-w-md w-full shadow-float border border-outline-variant space-y-5 text-on-surface animate-fade-in">
             <div className="flex items-center justify-between">
-              <h3 className="font-headline text-lg font-bold">Aspetto & Navigazione</h3>
-              <button onClick={() => setAspettoOpen(false)} className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-surface-container">
+              <h3 className="font-headline text-lg font-bold">Aspetto e navigazione</h3>
+              <button
+                type="button"
+                onClick={() => setAspettoOpen(false)}
+                aria-label="Chiudi"
+                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-surface-container"
+              >
                 <X size={18} />
               </button>
             </div>
 
             <div className="space-y-3">
-              <label className="text-xs font-bold uppercase tracking-wider text-primary">Tema Grafico</label>
+              <span className="block text-xs font-bold text-primary">Tema</span>
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { id: 'sistema', label: 'Sistema', icon: <Monitor size={16} /> },
@@ -407,15 +549,18 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
                   </button>
                 ))}
               </div>
+              <p className="text-[11px] text-on-surface-variant">
+                «Sistema» segue il tema chiaro o scuro del dispositivo.
+              </p>
             </div>
 
             <div className="space-y-3">
-              <label className="text-xs font-bold uppercase tracking-wider text-primary">Stile Navigazione Inferiore</label>
+              <span className="block text-xs font-bold text-primary">Barra di navigazione del telefono</span>
               <div className="space-y-2">
                 {[
                   { id: 'classica', title: 'Classica', desc: 'Barra standard a tutta larghezza' },
                   { id: 'flottante', title: 'Flottante', desc: 'Pillola staccata con effetto blur' },
-                  { id: 'azione-centrale', title: 'Azione Centrale', desc: 'Pulsante rapido centrale in evidenza' },
+                  { id: 'azione-centrale', title: 'Azione centrale', desc: 'Pulsante rapido del cronometro al centro' },
                 ].map(item => (
                   <button
                     key={item.id}
@@ -442,7 +587,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
               onClick={() => setAspettoOpen(false)}
               className="w-full ds-btn-primary py-3 rounded-xl text-center justify-center"
             >
-              Salva e Chiudi
+              Salva e chiudi
             </button>
           </div>
         </div>

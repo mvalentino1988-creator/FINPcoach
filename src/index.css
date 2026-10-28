@@ -1,3 +1,17 @@
+/*
+ * Font inclusi nel bundle (funzionano offline, anche nella WebView Android).
+ * Installazione: npm i @fontsource/public-sans @fontsource/space-grotesk material-symbols
+ * Le @import devono stare prima di tutto il resto.
+ */
+@import '@fontsource/public-sans/400.css';
+@import '@fontsource/public-sans/600.css';
+@import '@fontsource/public-sans/700.css';
+@import '@fontsource/space-grotesk/600.css';
+@import '@fontsource/space-grotesk/700.css';
+/* Icone "Material Symbols". Se nel codice non usi mai la classe material-symbols-outlined,
+   togli questa riga e il pacchetto: pesa alcuni MB. */
+@import 'material-symbols/outlined.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,7 +20,6 @@
   :root {
     font-family: 'Public Sans', system-ui, sans-serif;
     color-scheme: light;
-
     --app-vh: 100dvh;
     --safe-top: 0px;
     --safe-bottom: 8px;
@@ -34,7 +47,6 @@
 
   .dark {
     color-scheme: dark;
-
     --color-surface: #050e21;
     --color-surface-bright: #0b1936;
     --color-surface-dim: #10244f;
@@ -80,6 +92,16 @@
     line-height: 1.25;
   }
 
+  /* Evita lo zoom da doppio tocco sui comandi (il pizzico per ingrandire resta attivo) */
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+
   .tabular-nums,
   time,
   output {
@@ -108,12 +130,38 @@
     overflow-wrap: break-word;
   }
 
+  /* Touch (telefono, tablet): scrollbar nascoste */
   ::-webkit-scrollbar {
     width: 0;
     height: 0;
   }
+
   * {
     scrollbar-width: none;
+  }
+
+  /* Mouse (desktop): scrollbar sottili ma visibili, per sapere che c'è altro contenuto */
+  @media (hover: hover) and (pointer: fine) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-outline) transparent;
+    }
+
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--color-outline);
+      border-radius: 8px;
+      border: 2px solid transparent;
+      background-clip: content-box;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
   }
 
   :focus-visible {
@@ -124,8 +172,27 @@
 }
 
 @layer components {
+  /*
+   * Shell dell'app.
+   * - sotto 1024px: colonna (header in alto, contenuto, dock in basso)
+   * - da 1024px: riga (sidebar a sinistra, contenuto a destra)
+   */
   .app-shell {
     @apply min-h-[100dvh] flex flex-col bg-surface text-on-surface;
+  }
+
+  @media (min-width: 1024px) {
+    .app-shell {
+      flex-direction: row;
+    }
+  }
+
+  /* Colonna di destra: contiene <main> e si prende tutto lo spazio rimasto */
+  .app-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .app-main {
@@ -142,6 +209,13 @@
     }
   }
 
+  @media (min-width: 1024px) {
+    .app-main {
+      padding-top: 0.75rem;
+      padding-bottom: 1rem;
+    }
+  }
+
   .app-shell-fixed {
     height: 100dvh;
     overflow: hidden;
@@ -149,6 +223,11 @@
 
   .app-shell-fixed > header {
     flex-shrink: 0;
+  }
+
+  .app-shell-fixed .app-content {
+    min-height: 0;
+    overflow: hidden;
   }
 
   .app-shell-fixed .app-main {
@@ -177,12 +256,15 @@
   .ds-card {
     @apply bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-card transition-all duration-200;
   }
+
   .ds-card-flat {
     @apply bg-surface-container-low rounded-2xl;
   }
+
   .ds-card-primary {
     @apply bg-gradient-to-br from-[#0A2A66] to-[#1457E0] text-white rounded-2xl shadow-primary-sm;
   }
+
   .ds-card-orange {
     @apply bg-gradient-to-br from-[#E85D04] to-[#FF7A1A] text-white rounded-2xl shadow-orange-glow;
   }
