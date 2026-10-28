@@ -3,17 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./swim-icon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <!-- Zoom consentito (accessibilità). Il doppio tocco accidentale è evitato via CSS (touch-action). -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>FINPcoach - Nuoto Paralimpico</title>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <!-- Font e icone sono inclusi nel bundle (vedi src/index.css): funzionano anche senza rete a bordo vasca. -->
     <meta name="description" content="Piattaforma gestionale e tecnica per allenatori FINP: gestione atleti con analisi medica e stima classi, programmazione stagionale intelligente, calcolo andature/ripartenze e schede vasca." />
-    <script type="module" crossorigin src="./assets/index-C_aMZipo.js"></script>
+    <script type="module" crossorigin src="./assets/index-_JYQZ8Fi.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/vendor-react-C8w-UNLI.js">
     <link rel="modulepreload" crossorigin href="./assets/vendor-firebase-C9x8sd7G.js">
-    <link rel="stylesheet" crossorigin href="./assets/index-amB7tlmO.css">
+    <link rel="stylesheet" crossorigin href="./assets/index-B5bvfw3x.css">
   </head>
-  <body class="bg-surface text-on-surface font-body-base antialiased min-h-screen">
+  <body class="bg-surface text-on-surface antialiased min-h-screen">
     <div id="root"></div>
+    <script>
+      // Nell'app Android: allinea le icone della barra di stato al tema effettivamente in uso
+      // (tema di sistema o scelta manuale in "Aspetto"). Nel browser non fa nulla.
+      (function () {
+        function sync() {
+          try {
+            if (window.AndroidBridge && window.AndroidBridge.setSystemBarsDark) {
+              window.AndroidBridge.setSystemBarsDark(document.documentElement.classList.contains('dark'));
+            }
+          } catch (e) { /* ignora */ }
+        }
+        new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        window.addEventListener('load', sync);
+      })();
+    </script>
   </body>
 </html>

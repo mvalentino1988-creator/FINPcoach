@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useApp } from '../data/AppContext';
 import {
   DayOfWeekNum,
@@ -43,6 +43,60 @@ import {
   Waves,
   X
 } from 'lucide-react';
+
+const NuovaStagioneForm: React.FC<any> = ({
+  inizioStagione, setInizioStagione, fineStagione, setFineStagione, nomeStagione, setNomeStagione, inizioParsed, fineEffettiva, nomeAuto, nomeEffettivo, creaStagione
+}) => {
+  return (
+    <div className="space-y-4 max-w-xl mx-auto p-6 ds-card">
+      <h2 className="font-headline text-lg font-bold text-on-surface">Crea Nuova Stagione Agonistica</h2>
+      <div className="space-y-3 text-xs">
+        <div>
+          <label className="block font-bold mb-1">Data Inizio (gg/mm/aaaa)</label>
+          <input
+            type="text"
+            value={inizioStagione}
+            onChange={e => setInizioStagione(formatDataInput(e.target.value))}
+            className="w-full px-3 h-10 bg-surface-container-low border border-outline-variant rounded-xl font-bold"
+          />
+        </div>
+        <div>
+          <label className="block font-bold mb-1">Data Fine (gg/mm/aaaa)</label>
+          <input
+            type="text"
+            value={fineStagione}
+            onChange={e => setFineStagione(formatDataInput(e.target.value))}
+            placeholder={fineEffettiva ? formattaData(fineEffettiva) : ''}
+            className="w-full px-3 h-10 bg-surface-container-low border border-outline-variant rounded-xl font-bold"
+          />
+        </div>
+        <div>
+          <label className="block font-bold mb-1">Nome Stagione</label>
+          <input
+            type="text"
+            value={nomeStagione}
+            onChange={e => setNomeStagione(e.target.value)}
+            placeholder={nomeAuto}
+            className="w-full px-3 h-10 bg-surface-container-low border border-outline-variant rounded-xl font-bold"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            const ini = parseData(inizioStagione);
+            const fin = parseData(fineStagione) || parseData(fineEffettiva);
+            if (ini && fin) {
+              creaStagione(nomeEffettivo || 'Stagione Agonistica', ini, fin);
+            }
+          }}
+          className="w-full ds-btn-primary justify-center py-3"
+        >
+          Crea Stagione e Piano Automatico
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export const PianoScreen: React.FC = () => {
   const {
@@ -149,8 +203,10 @@ export const PianoScreen: React.FC = () => {
   // Season Statistics & Timeline Computation
   const seasonStats = React.useMemo(() => {
     if (!stagione) return null;
-    const startStr = stagione.inizio || '2026-09-14';
-    const endStr = stagione.fine || '2027-06-13';
+    const startStr = stagione.inizio;
+    const endStr = stagione.fine;
+    if (!startStr || !endStr) return null;
+
     const startMs = toDateObj(startStr).getTime();
     const endMs = toDateObj(endStr).getTime();
     const currentMs = toDateObj(oggi).getTime();
@@ -158,7 +214,8 @@ export const PianoScreen: React.FC = () => {
     const elapsedDays = Math.max(0, Math.min(totalDays, Math.ceil((currentMs - startMs) / (1000 * 60 * 60 * 24))));
     const remainingDays = Math.max(0, totalDays - elapsedDays);
     const progress = Math.round((elapsedDays / totalDays) * 100);
-    const weekNum = Math.min(39, Math.max(1, Math.ceil(elapsedDays / 7)));
+    const totalWeeks = Math.max(1, Math.ceil(totalDays / 7));
+    const weekNum = Math.min(totalWeeks, Math.max(1, Math.ceil(elapsedDays / 7)));
 
     const microCurr = micro.find(m => !isBefore(oggi, m.inizio) && !isBefore(m.fine, oggi));
     const mesoCurr = microCurr ? meso.find(me => me.id === microCurr.mesocicloId) : null;
@@ -174,6 +231,7 @@ export const PianoScreen: React.FC = () => {
       elapsedDays,
       remainingDays,
       weekNum,
+      totalWeeks,
       microCurr,
       mesoCurr,
       macroCurr,
@@ -181,7 +239,7 @@ export const PianoScreen: React.FC = () => {
       garaDiffDays,
       nextChiusura
     };
-  }, [stagione, oggi, micro, meso, macro, gare, chiusure]);
+  }, [stagione, oggi, micro, meso, macro, gare, chiusure, rigeneraPianoCompleto]);
   const [gNome, setGNome] = useState('');
   const [gDal, setGDal] = useState('');
   const [gAl, setGAl] = useState('');
@@ -194,74 +252,30 @@ export const PianoScreen: React.FC = () => {
   const [cicloTxt, setCicloTxt] = useState(impostazioni.settimaneCicloCarico?.toString() ?? '');
 
   if (!stagione) {
-    return (
-      <div className="max-w-xl mx-auto p-6 ds-card shadow-card space-y-5">
-        <div>
-          <h2 className="ds-title">Nuova Stagione Agonistica FINP</h2>
-          <p className="text-xs text-on-surface-variant mt-1">
-            Basta inserire la data di inizio: nome, fine stagione, festività nazionali e piano di carico
-            vengono creati in automatico in base alla metodologia paralimpica.
-          </p>
-        </div>
-
-        <div className="space-y-3 text-sm">
-          <div>
-            <label className="block text-xs font-semibold text-on-surface-variant mb-1">Inizio stagione (Seleziona da calendario) *</label>
-            <input
-              type="date"
-              value={inizioStagione}
-              onChange={e => {
-                setInizioStagione(e.target.value);
-                const p = parseData(e.target.value);
-                if (p) setFineStagione(AutoPianificatore.fineStagioneSuggerita(p));
-              }}
-              className="w-full px-3 h-12 border rounded-xl border-outline-variant font-bold bg-surface-container-low text-on-surface"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-on-surface-variant mb-1">Fine stagione (Seleziona da calendario)</label>
-            <input
-              type="date"
-              value={fineStagione}
-              onChange={e => setFineStagione(e.target.value)}
-              className="w-full px-3 h-12 border rounded-xl border-outline-variant font-bold bg-surface-container-low text-on-surface"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-on-surface-variant mb-1">Nome stagione (auto)</label>
-            <input
-              type="text"
-              placeholder={nomeAuto}
-              value={nomeStagione}
-              onChange={e => setNomeStagione(e.target.value)}
-              className="w-full px-3 h-12 border rounded-xl border-outline-variant font-semibold"
-            />
-          </div>
-
-          <button
-            onClick={() => {
-              if (inizioParsed && fineEffettiva && inizioParsed < fineEffettiva) {
-                creaStagione(nomeEffettivo, inizioParsed, fineEffettiva);
-              }
-            }}
-            disabled={!inizioParsed || !fineEffettiva || inizioParsed >= fineEffettiva}
-            className="w-full h-12 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-bold rounded-xl text-sm transition shadow-card mt-2"
-          >
-            Crea Stagione e Genera Piano
-          </button>
-        </div>
-      </div>
-    );
+    return <NuovaStagioneForm
+      inizioStagione={inizioStagione}
+      setInizioStagione={setInizioStagione}
+      fineStagione={fineStagione}
+      setFineStagione={setFineStagione}
+      nomeStagione={nomeStagione}
+      setNomeStagione={setNomeStagione}
+      inizioParsed={inizioParsed}
+      fineEffettiva={fineEffettiva}
+      nomeAuto={nomeAuto}
+      nomeEffettivo={nomeEffettivo}
+      creaStagione={creaStagione}
+    />;
   }
 
   const volumeMax = micro.length > 0 ? Math.max(...micro.map(m => m.volumeTargetMetri)) : 0;
 
-  // Pull to refresh
+  // Pull to refresh - disattivato su mouse, ricalcolo semplice invece di reload
+  const isPointerFine = typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   const pullToRefresh = usePullToRefresh({
     onRefresh: async () => {
-      window.location.reload();
+      if (isPointerFine) return;
+      // Ricalcolo semplice invece di reload
+      rigeneraPianoCompleto();
     },
     threshold: 100
   });
@@ -336,7 +350,7 @@ export const PianoScreen: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-white font-bold text-xs uppercase tracking-wider font-headline">
-                  Settimana {seasonStats.weekNum} di 39
+                  Settimana {seasonStats.weekNum} di {seasonStats.totalWeeks}
                 </span>
                 {seasonStats.mesoCurr && (
                   <span className="px-2.5 py-0.5 rounded-full bg-tertiary text-white font-bold text-xs font-headline">
@@ -802,105 +816,66 @@ export const PianoScreen: React.FC = () => {
             </div>
           )}
 
-          <p className="text-xs text-on-surface-variant">
+          <p className="text-xs text-on-surface-variant mb-2">
             Il piano si adatta automaticamente all'età media, ai dati storici di carico e alle gare.
-            I campi lasciati vuoti usano il calcolo intelligente.
+            Seleziona i giorni di allenamento e configura vasca, durata e corsie per i soli giorni attivi.
           </p>
 
-          {/* SELEZIONE CORSIE DISPONIBILI E ATLETI PRESENTI */}
-          <div className="p-3.5 bg-surface-container-low rounded-2xl border border-primary/20 space-y-3">
-            <div className="font-headline font-bold text-xs text-primary uppercase tracking-wider flex items-center gap-1.5">
-              <Sliders size={16} />
-              <span>Corsie Disponibili & Atleti Presenti di Default</span>
-            </div>
-
-            <div className="space-y-2">
-              <label className="font-bold text-on-surface text-xs block">Numero Corsie Disponibili in Vasca:</label>
-              <div className="flex items-center gap-2">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+          {/* 1. Giorni di Allenamento Settimanali (PRIMA) */}
+          <div className="space-y-2 pb-3 border-b border-outline-variant/60">
+            <label className="block font-headline font-bold text-sm text-on-surface">
+              Giorni di Allenamento Settimanali{' '}
+              <span className="font-normal text-xs text-on-surface-variant">
+                {impostazioni.giorni == null ? '(attualmente automatici)' : '(impostati a mano)'}
+              </span>
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => salvaImpostazioni({ ...impostazioni, giorni: undefined })}
+                className={`min-h-[40px] px-3 rounded-full text-label-md font-label-md transition ${
+                  impostazioni.giorni == null
+                    ? 'bg-primary-container text-on-primary font-bold'
+                    : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
+                }`}
+              >
+                Auto
+              </button>
+              {([1, 2, 3, 4, 5, 6, 7] as DayOfWeekNum[]).map(dow => {
+                const active = parametriEffettivi.giorniAllenamento.includes(dow);
+                return (
                   <button
-                    key={n}
+                    key={dow}
                     type="button"
-                    onClick={() => setNumCorsieDisponibili(n)}
-                    className={`flex-1 h-9 rounded-xl font-headline font-bold text-xs transition ${
-                      numCorsieDisponibili === n ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+                    onClick={() => {
+                      const current = parametriEffettivi.giorniAllenamento;
+                      const next = active ? current.filter(d => d !== dow) : [...current, dow];
+                      salvaImpostazioni({
+                        ...impostazioni,
+                        giorni: next.length > 0 ? (next.sort((a, b) => a - b) as DayOfWeekNum[]) : undefined
+                      });
+                    }}
+                    className={`min-h-[40px] px-3 rounded-full text-label-md font-label-md transition ${
+                      active ? 'bg-primary-fixed text-on-primary-fixed border border-primary-fixed-dim font-bold' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
                     }`}
                   >
-                    {n}
+                    {DAY_OF_WEEK_NAMES[dow]}
                   </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="font-bold text-on-surface text-xs block">
-                Atleti Presenti di Default ({atletiPresentiIds.length}/{atleti.length}):
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-36 overflow-y-auto pr-1">
-                {atleti.map(a => {
-                  const isPres = atletiPresentiIds.includes(a.id);
-                  return (
-                    <button
-                      key={a.id}
-                      type="button"
-                      onClick={() => toggleAtletaPresente(a.id)}
-                      className={`p-2 rounded-xl border text-left flex items-center justify-between text-xs transition ${
-                        isPres ? 'bg-primary/10 border-primary text-primary font-bold' : 'bg-surface-container-lowest border-outline-variant/60 text-on-surface'
-                      }`}
-                    >
-                      <span className="truncate">{a.cognome} {a.nome?.[0]}. (S{a.classeS ?? '9'})</span>
-                      {isPres && <Check size={14} className="text-primary shrink-0" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* DISPOSIZIONE IDEALE CORSIE CALCOLATA AUTOMATICAMENTE */}
-            <div className="space-y-1.5 pt-2 border-t border-outline-variant/60">
-              <div className="font-headline font-bold text-xs text-primary flex items-center gap-1.5">
-                <Sparkles size={14} />
-                <span>Disposizione Ideale Corsie (Calcolata dall'Algoritmo):</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                {Array.from({ length: numCorsieDisponibili }).map((_, cIdx) => {
-                  const laneNum = cIdx + 1;
-                  const assignedAthletes = atleti
-                    .filter(a => atletiPresentiIds.includes(a.id))
-                    .filter((_, aIdx) => aIdx % numCorsieDisponibili === cIdx);
-
-                  return (
-                    <div key={laneNum} className="p-2 rounded-xl bg-surface-container-lowest border border-outline-variant text-[11px] space-y-1">
-                      <div className="font-bold text-primary flex items-center justify-between">
-                        <span>Corsia {laneNum}</span>
-                        <span className="text-[10px] text-on-surface-variant font-mono">{assignedAthletes.length} atleti</span>
-                      </div>
-                      {assignedAthletes.length === 0 ? (
-                        <div className="text-on-surface-variant italic">Corsia libera</div>
-                      ) : (
-                        <div className="font-medium text-on-surface space-y-0.5">
-                          {assignedAthletes.map(ath => (
-                            <div key={ath.id} className="truncate">• {ath.cognome} {ath.nome} (S{ath.classeS ?? '9'})</div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Programmazione vasca, durata, corsie e atleti per giorno */}
-          <div className="space-y-2">
+          {/* 2. Programmazione Giornaliera (DOPO, mostra SOLO i giorni selezionati) */}
+          <div className="space-y-2 pt-1">
             <label className="block font-headline font-bold text-sm text-on-surface">
               Programmazione Giornaliera (Vasca, Durata, Corsie & Atleti Presenti)
             </label>
             <p className="text-xs text-on-surface-variant">
-              Imposta vasca, durata, corsie disponibili e atleti presenti di default per ciascun giorno di allenamento.
+              Configura vasca, durata, corsie e atleti presenti per ciascuno dei giorni di allenamento selezionati.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {([1, 2, 3, 4, 5, 6, 7] as DayOfWeekNum[]).map((dow) => {
+              {parametriEffettivi.giorniAllenamento.map((dow) => {
                 const p = impostazioni.parametriPerGiorno?.[dow] || {
                   vascaMetri: stagione?.vascaMetri || 25,
                   durataMin: impostazioni.durataDefaultMin || 90,
@@ -1019,7 +994,7 @@ export const PianoScreen: React.FC = () => {
                 );
               })}
             </div>
-            <div className="flex items-center gap-2 pt-1">
+            <div className="flex items-center gap-2 pt-2">
               <label className="text-xs text-on-surface-variant font-bold">Durata default stagione:</label>
               <input
                 type="number"
@@ -1030,50 +1005,6 @@ export const PianoScreen: React.FC = () => {
                 onChange={(e) => impostaDurataDefault(normalizzaDurata(Number(e.target.value)))}
                 className="w-24 px-2 h-9 border border-outline-variant rounded-lg text-xs font-bold"
               />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <label className="block text-body-bold font-body-bold text-on-surface">
-              Giorni di Allenamento Settimanali{' '}
-              <span className="font-normal text-on-surface-variant">
-                {impostazioni.giorni == null ? '(attualmente automatici)' : '(impostati a mano)'}
-              </span>
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              <button
-                type="button"
-                onClick={() => salvaImpostazioni({ ...impostazioni, giorni: undefined })}
-                className={`min-h-[40px] px-3 rounded-full text-label-md font-label-md transition ${
-                  impostazioni.giorni == null
-                    ? 'bg-primary-container text-on-primary'
-                    : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
-                }`}
-              >
-                Auto
-              </button>
-              {([1, 2, 3, 4, 5, 6, 7] as DayOfWeekNum[]).map(dow => {
-                const active = parametriEffettivi.giorniAllenamento.includes(dow);
-                return (
-                  <button
-                    key={dow}
-                    type="button"
-                    onClick={() => {
-                      const current = parametriEffettivi.giorniAllenamento;
-                      const next = active ? current.filter(d => d !== dow) : [...current, dow];
-                      salvaImpostazioni({
-                        ...impostazioni,
-                        giorni: next.length > 0 ? (next.sort((a, b) => a - b) as DayOfWeekNum[]) : undefined
-                      });
-                    }}
-                    className={`min-h-[40px] px-3 rounded-full text-label-md font-label-md transition ${
-                      active ? 'bg-primary-fixed text-on-primary-fixed border border-primary-fixed-dim font-bold' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
-                    }`}
-                  >
-                    {DAY_OF_WEEK_NAMES[dow]}
-                  </button>
-                );
-              })}
             </div>
           </div>
 

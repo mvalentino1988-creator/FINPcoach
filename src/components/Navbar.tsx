@@ -22,7 +22,7 @@ import { Marquee } from './Marquee';
 import type { LayoutMetrics } from '../hooks/useLayoutMetrics';
 import { pushBackHandler } from '../lib/backHandler';
 
-export type TabKey = 'oggi' | 'piano' | 'cronometro' | 'regia' | 'atleti' | 'fonti' | 'dati';
+export type TabKey = 'oggi' | 'cronometro' | 'regia' | 'atleti' | 'fonti' | 'dati' | 'piano';
 
 interface Props {
   currentTab: TabKey;
@@ -32,40 +32,34 @@ interface Props {
 
 interface NavItem {
   key: TabKey;
-  /** Nome esteso (header, sidebar) */
   label: string;
-  /** Nome breve (dock del telefono) */
   short: string;
-  Icon: React.ComponentType<{ size?: number }>;
+  Icon: React.ComponentType<{ size?: number | string }>;
 }
 
 const ITEMS: Record<TabKey, NavItem> = {
   oggi: { key: 'oggi', label: 'Dashboard', short: 'Oggi', Icon: LayoutDashboard },
   cronometro: { key: 'cronometro', label: 'Cronometro', short: 'Crono', Icon: Timer },
-  regia: { key: 'regia', label: 'Pianificatore', short: 'Regia', Icon: Sliders },
+  regia: { key: 'regia', label: 'Regia', short: 'Regia', Icon: Sliders },
   atleti: { key: 'atleti', label: 'Atleti', short: 'Atleti', Icon: Users },
-  piano: { key: 'piano', label: 'Allenamenti', short: 'Piano', Icon: CalendarDays },
-  fonti: { key: 'fonti', label: 'Gare', short: 'Gare', Icon: Trophy },
-  dati: { key: 'dati', label: 'Dati', short: 'Dati', Icon: Database },
+  dati: { key: 'dati', label: 'Archivio Dati', short: 'Dati', Icon: Database },
+  fonti: { key: 'fonti', label: 'Gare & Record', short: 'Gare', Icon: Trophy },
+  piano: { key: 'piano', label: 'Periodizzazione', short: 'Piano', Icon: CalendarDays },
 };
 
 const CONTESTO: Record<TabKey, string> = {
   oggi: 'Oggi',
-  piano: 'Piano',
-  atleti: 'Atleti',
-  fonti: 'Gare',
   cronometro: 'Cronometro',
   regia: 'Regia',
-  dati: 'Dati',
+  atleti: 'Atleti',
+  dati: 'Archivio Dati',
+  fonti: 'Gare & Record',
+  piano: 'Periodizzazione',
 };
 
-/** Ciò che serve in vasca, durante l'allenamento */
 const GRUPPO_VASCA: TabKey[] = ['oggi', 'cronometro', 'regia'];
-/** Ciò che serve per preparare e gestire */
-const GRUPPO_GESTIONE: TabKey[] = ['atleti', 'piano', 'fonti', 'dati'];
-/** Ordine di striscia (tablet) e scorciatoie da tastiera 1-7 */
+const GRUPPO_GESTIONE: TabKey[] = ['atleti', 'dati', 'fonti', 'piano'];
 const ORDINE: TabKey[] = [...GRUPPO_VASCA, ...GRUPPO_GESTIONE];
-/** Voci sempre visibili nel dock del telefono; le altre stanno sotto "Altro" */
 const DOCK_KEYS: TabKey[] = ['oggi', 'cronometro', 'regia', 'atleti'];
 
 export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => {
@@ -74,7 +68,6 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
   const [altroOpen, setAltroOpen] = useState(false);
   const [aspettoOpen, setAspettoOpen] = useState(false);
 
-  // Tasto indietro di Android: chiude prima il popup aperto, poi (in App) si torna a "Oggi".
   useEffect(() => {
     if (!altroOpen && !aspettoOpen && !backupOpen) return undefined;
     return pushBackHandler(() => {
@@ -104,7 +97,6 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
     }
   };
 
-  // Scorciatoie desktop: 1-7 cambiano schermata (ignorate mentre si scrive in un campo).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -119,14 +111,12 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const dockItems = DOCK_KEYS.map(k => ITEMS[k]);
   const altroItems = ORDINE.filter(k => !DOCK_KEYS.includes(k)).map(k => ITEMS[k]);
   const altroAttivo = altroOpen || altroItems.some(i => i.key === currentTab);
 
-  /** Voce della sidebar desktop */
   const renderSidebarItem = (key: TabKey) => {
     const item = ITEMS[key];
     const active = currentTab === key;
@@ -160,7 +150,6 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
     <>
       {backupOpen && <BackupModal onClose={() => setBackupOpen(false)} />}
 
-      {/* SIDEBAR DESKTOP (da 1024px) */}
       <aside
         aria-label="Menu principale"
         className="hidden lg:flex flex-col shrink-0 w-60 xl:w-64 sticky top-0 self-start h-[100dvh] overflow-y-auto bg-surface-container-lowest border-r border-outline-variant/60 px-3 pb-4"
@@ -181,11 +170,11 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
 
         <nav aria-label="Sezioni principali" className="mt-5 flex flex-col gap-5">
           <div className="flex flex-col gap-1">
-            <span className="px-3 pb-1 text-xs font-semibold text-on-surface-variant">Bordo vasca</span>
+            <span className="px-3 pb-1 text-xs font-semibold text-on-surface-variant">Operatività Quotidiana</span>
             {GRUPPO_VASCA.map(renderSidebarItem)}
           </div>
           <div className="flex flex-col gap-1">
-            <span className="px-3 pb-1 text-xs font-semibold text-on-surface-variant">Gestione</span>
+            <span className="px-3 pb-1 text-xs font-semibold text-on-surface-variant">Gestione Squadra</span>
             {GRUPPO_GESTIONE.map(renderSidebarItem)}
           </div>
         </nav>
@@ -210,7 +199,6 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
         </div>
       </aside>
 
-      {/* HEADER (telefono e tablet, sotto 1024px) */}
       <header
         ref={layout.headerRef}
         className="lg:hidden sticky top-0 z-40 bg-surface/92 backdrop-blur-xl border-b border-outline-variant/60"
@@ -249,7 +237,6 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
           </div>
         </div>
 
-        {/* Striscia tab per tablet / telefono in orizzontale (640-1023px) */}
         <nav aria-label="Sezioni principali" className="hidden sm:block relative border-t border-outline-variant/50 px-gutter">
           <div className="ds-hscroll flex items-center gap-1.5 py-1.5">
             {ORDINE.map(key => {
@@ -276,7 +263,6 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
         </nav>
       </header>
 
-      {/* DOCK MOBILE (sotto 640px) - tre stili a scelta */}
       {layoutScelto === 'flottante' ? (
         <nav
           ref={layout.dockRef}
@@ -324,7 +310,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
           style={{ paddingBottom: 'var(--safe-bottom, 8px)' }}
         >
           <div className="h-16 px-3 flex items-center justify-between gap-1 relative">
-            {(['oggi', 'atleti'] as TabKey[]).map(key => {
+            {(['oggi', 'cronometro'] as TabKey[]).map(key => {
               const tab = ITEMS[key];
               return (
                 <button
@@ -342,7 +328,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
               );
             })}
 
-            {/* Pulsante centrale: Cronometro */}
+            {/* Pulsante centrale: Cronometro rapido */}
             <div className="relative -top-4 px-2">
               <button
                 type="button"
@@ -431,7 +417,6 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
         </nav>
       )}
 
-      {/* POPUP "ALTRO" (telefono): Piano, Gare, Dati, Aspetto, Backup */}
       {altroOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
@@ -510,7 +495,6 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
         </div>
       )}
 
-      {/* POPUP "ASPETTO": tema e stile della navigazione inferiore */}
       {aspettoOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-surface-container-lowest rounded-3xl p-6 max-w-md w-full shadow-float border border-outline-variant space-y-5 text-on-surface animate-fade-in">
@@ -558,9 +542,9 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
               <span className="block text-xs font-bold text-primary">Barra di navigazione del telefono</span>
               <div className="space-y-2">
                 {[
-                  { id: 'classica', title: 'Classica', desc: 'Barra standard a tutta larghezza' },
+                  { id: 'classica', title: 'Classica', desc: 'Barra a tutta larghezza' },
                   { id: 'flottante', title: 'Flottante', desc: 'Pillola staccata con effetto blur' },
-                  { id: 'azione-centrale', title: 'Azione centrale', desc: 'Pulsante rapido del cronometro al centro' },
+                  { id: 'azione-centrale', title: 'Azione centrale', desc: 'Pulsante rapido al centro' },
                 ].map(item => (
                   <button
                     key={item.id}

@@ -1,6 +1,6 @@
 /*
  * Font inclusi nel bundle (funzionano offline, anche nella WebView Android).
- * Installazione: npm i @fontsource/public-sans @fontsource/space-grotesk material-symbols
+ * Installazione: npm i @fontsource/public-sans @fontsource/space-grotesk
  * Le @import devono stare prima di tutto il resto.
  */
 @import '@fontsource/public-sans/400.css';
@@ -8,9 +8,6 @@
 @import '@fontsource/public-sans/700.css';
 @import '@fontsource/space-grotesk/600.css';
 @import '@fontsource/space-grotesk/700.css';
-/* Icone "Material Symbols". Se nel codice non usi mai la classe material-symbols-outlined,
-   togli questa riga e il pacchetto: pesa alcuni MB. */
-@import 'material-symbols/outlined.css';
 
 @tailwind base;
 @tailwind components;

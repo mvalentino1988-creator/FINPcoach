@@ -118,8 +118,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     const root = document.documentElement;
-    const isDark = themeMode === 'scuro' || (themeMode === 'sistema' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    root.classList.toggle('dark', isDark);
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const updateTheme = () => {
+      const isDark = themeMode === 'scuro' || (themeMode === 'sistema' && mediaQuery.matches);
+      root.classList.toggle('dark', isDark);
+    };
+
+    updateTheme();
+    mediaQuery.addEventListener('change', updateTheme);
+    return () => mediaQuery.removeEventListener('change', updateTheme);
   }, [themeMode]);
 
   // Save changes

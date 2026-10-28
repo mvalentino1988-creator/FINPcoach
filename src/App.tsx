@@ -38,10 +38,6 @@ export const AppContent: React.FC = () => {
     sessionStorage.setItem('finp_active_tab', tab);
   }, [tab]);
 
-  // Tasto indietro di Android: da qualsiasi schermata si torna a "Oggi";
-  // da "Oggi" il tasto non viene consumato e l'app esce.
-  // Il ref evita di ri-registrare il gestore a ogni cambio tab, così i popup
-  // aperti (registrati dopo) restano sopra e si chiudono per primi.
   const tabRef = useRef<TabKey>(tab);
   tabRef.current = tab;
   useEffect(() => {
@@ -95,7 +91,6 @@ export const AppContent: React.FC = () => {
     <div className={`app-shell ${fixed ? 'app-shell-fixed' : ''}`}>
       {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
 
-      {/* Da lg: sidebar a sinistra. Sotto lg: header in alto e dock in basso. */}
       <Navbar currentTab={tab} onTabChange={setTab} layout={layout} />
 
       <div className="app-content">

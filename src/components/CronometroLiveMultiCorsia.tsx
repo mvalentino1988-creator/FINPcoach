@@ -130,7 +130,16 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     };
   }, [isRunning]);
 
-  const toggleMaster = () => setIsRunning(prev => !prev);
+  const toggleMaster = () => {
+    const next = !isRunning;
+    setIsRunning(next);
+    if (next) {
+      navigator.vibrate?.(200);
+      localStorage.setItem('finp_stopwatch_running', 'true');
+    } else {
+      localStorage.setItem('finp_stopwatch_running', 'false');
+    }
+  };
 
   const resetMaster = () => {
     setIsRunning(false);

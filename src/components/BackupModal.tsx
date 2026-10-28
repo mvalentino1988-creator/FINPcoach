@@ -248,78 +248,74 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
             </p>
           </div>
 
-          {/* Firebase Sync Section */}
-          {isConfigured && (
-            <div className="p-3 bg-gradient-to-r from-surface-container-low to-blue-50 rounded-xl border border-primary-fixed-dim">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  {syncEnabled ? (
-                    <Cloud size={18} className="text-primary-container" />
-                  ) : (
-                    <CloudOff size={18} className="text-on-surface-variant" />
-                  )}
-                  <span className="font-bold text-on-surface text-xs">Sincronizzazione Cloud</span>
-                </div>
-                <button
-                  onClick={handleToggleSync}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    syncEnabled ? 'bg-primary-container' : 'bg-surface-container-highest'
+          {/* Firebase Sync Section (Always Visible) */}
+          <div className="p-3 bg-gradient-to-r from-surface-container-low to-blue-50 rounded-xl border border-primary-fixed-dim space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {syncEnabled && FirebaseSync.getCurrentUser() ? (
+                  <Cloud size={18} className="text-primary-container" />
+                ) : (
+                  <CloudOff size={18} className="text-on-surface-variant" />
+                )}
+                <span className="font-bold text-on-surface text-xs">Sincronizzazione Cloud (Firebase)</span>
+              </div>
+              <button
+                onClick={handleToggleSync}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  syncEnabled ? 'bg-primary-container' : 'bg-surface-container-highest'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-surface-container-lowest transition-transform ${
+                    syncEnabled ? 'translate-x-6' : 'translate-x-1'
                   }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-surface-container-lowest transition-transform ${
-                      syncEnabled ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
+                />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-[10px]">
+                <span className="text-on-surface-variant">
+                  {FirebaseSync.getCurrentUser() ? `Utente: ${FirebaseSync.getCurrentUser()?.email}` : 'Non autenticato'}
+                </span>
+                {FirebaseSync.getCurrentUser() && (
+                  <button
+                    onClick={handleLogout}
+                    className="text-error hover:text-error font-medium flex items-center gap-1"
+                  >
+                    <LogOut size={12} />
+                    Logout
+                  </button>
+                )}
               </div>
 
-              {syncEnabled && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-on-surface-variant">
-                      {syncStatus === 'synced' && lastSync ? `Ultimo sync: ${new Date(lastSync).toLocaleString('it-IT')}` : 'Non sincronizzato'}
-                    </span>
-                    {FirebaseSync.getCurrentUser() && (
-                      <button
-                        onClick={handleLogout}
-                        className="text-error hover:text-error font-medium flex items-center gap-1"
-                      >
-                        <LogOut size={12} />
-                        Logout
-                      </button>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      if (!FirebaseSync.getCurrentUser()) {
-                        setShowLogin(true);
-                        return;
-                      }
-                      handleManualSync();
-                    }}
-                    disabled={syncing}
-                    className="w-full h-10 bg-primary-container hover:bg-primary text-on-primary rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {syncing ? (
-                      <>
-                        <Loader2 size={14} className="animate-spin" />
-                        Sincronizzazione...
-                      </>
-                    ) : FirebaseSync.getCurrentUser() ? (
-                      <>
-                        <RefreshCw size={14} />
-                        Sincronizza Ora
-                      </>
-                    ) : (
-                      'Accedi per sincronizzare'
-                    )}
-                  </button>
-                </div>
-              )}
+              <button
+                onClick={() => {
+                  if (!FirebaseSync.getCurrentUser()) {
+                    setShowLogin(true);
+                    return;
+                  }
+                  handleManualSync();
+                }}
+                disabled={syncing}
+                className="w-full h-10 bg-primary-container hover:bg-primary text-on-primary rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {syncing ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Sincronizzazione...
+                  </>
+                ) : FirebaseSync.getCurrentUser() ? (
+                  <>
+                    <RefreshCw size={14} />
+                    Sincronizza Ora
+                  </>
+                ) : (
+                  'Accedi con Account Firebase'
+                )}
+              </button>
             </div>
-          )}
+          </div>
 
           <div className="space-y-2.5 pt-1">
             {/* Download Backup */}

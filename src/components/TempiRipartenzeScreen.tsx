@@ -11,6 +11,7 @@ import { CODICI_KEYS } from '../domain/codici';
 import { OCRService } from '../domain/ocrService';
 import { OcrGaraModal } from './OcrGaraModal';
 import { Sezione } from './Sezione';
+import { TestCalibrazioneModal } from './TestCalibrazioneModal';
 import {
   AlertTriangle,
   Award,
@@ -28,6 +29,7 @@ import {
   Loader2,
   X,
   Bot,
+  Sparkles,
   ArrowRightLeft
 } from 'lucide-react';
 
@@ -56,6 +58,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrGaraModalOpen, setOcrGaraModalOpen] = useState(false);
   const [ocrRawText, setOcrRawText] = useState('');
+  const [testModalOpen, setTestModalOpen] = useState(false);
 
   // Testo OCR in arrivo dalla scheda Schede: apre direttamente l'import tempi.
   const ultimoTestoGestito = useRef<string | null>(null);
@@ -196,13 +199,34 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
 
       {/* Form Check Alert Card */}
       {formCheck && formCheck.necessario && (
-        <div className="p-3.5 bg-surface-container-low/80 border border-tertiary-fixed-dim rounded-xl space-y-1 text-xs text-amber-950">
-          <div className="flex items-center gap-2 font-bold text-on-tertiary-fixed text-sm">
-            <Timer size={16} className="text-tertiary-container" />
-            <span>{formCheck.titoloTest}</span>
+        <div className="p-3.5 bg-surface-container-low/80 border border-tertiary-fixed-dim rounded-xl space-y-2 text-xs text-amber-950">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 font-bold text-on-tertiary-fixed text-sm">
+              <Timer size={16} className="text-tertiary-container" />
+              <span>{formCheck.titoloTest}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setTestModalOpen(true)}
+              className="ds-btn-primary !min-h-[36px] !px-3 text-xs shrink-0"
+            >
+              <Sparkles size={14} />
+              <span>Esegui Test Ora</span>
+            </button>
           </div>
           <p className="text-on-tertiary-fixed">{formCheck.motivazione}</p>
         </div>
+      )}
+
+      {testModalOpen && (
+        <TestCalibrazioneModal
+          atleta={atletaSel}
+          onClose={() => setTestModalOpen(false)}
+          onSalvaTempo={(t) => {
+            aggiungiTempo(t);
+            setTestModalOpen(false);
+          }}
+        />
       )}
 
       {/* CSS Critical Swim Speed Card */}
