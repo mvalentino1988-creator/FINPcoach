@@ -11,7 +11,7 @@ import {
   TipoMicrociclo,
   TIPO_MICROCICLO_LABEL
 } from '../types';
-import { formattaData, parseData, todayISO, isBefore, addDays, daysBetween, toDateObj, isInRange } from '../domain/dateUtils';
+import { formattaData, parseData, todayISO, isBefore, addDays, daysBetween, toDateObj, isInRange, formatDataInput } from '../domain/dateUtils';
 import { AutoPianificatore } from '../domain/autoPianificatore';
 import { GeneratoreSmartSeduta } from '../domain/generatoreSmartSeduta';
 import { IndicatoreCodici } from './IndicatoreCodici';
@@ -36,6 +36,7 @@ import {
   RefreshCw,
   Sparkles,
   Star,
+  Sliders,
   Trash2,
   Trophy,
   Unlock,
@@ -45,6 +46,7 @@ import {
 
 export const PianoScreen: React.FC = () => {
   const {
+    atleti,
     stagione,
     chiusure,
     gare,
@@ -58,9 +60,11 @@ export const PianoScreen: React.FC = () => {
     modificaDateStagione,
     eliminaStagione,
     aggiungiChiusura,
+    modificaChiusura,
     eliminaChiusura,
     aggiungiFestivitaNazionali,
     aggiungiGara,
+    modificaGara,
     eliminaGara,
     salvaImpostazioni,
     impostaParametriGiorno,
@@ -87,6 +91,29 @@ export const PianoScreen: React.FC = () => {
       dates.push(addDays(start, offset));
     }
     return dates;
+  };
+
+  // Edit Event/Race Modal
+  const [editEventModal, setEditEventModal] = useState<{
+    open: boolean;
+    type: 'gara' | 'chiusura';
+    id: number;
+    title: string;
+    dal: string;
+    al: string;
+    luogo: string;
+    prioritaria: boolean;
+  } | null>(null);
+
+  // Modal Parametri Piano e Disposizione Corsie
+  const [modalParametriPianoOpen, setModalParametriPianoOpen] = useState(false);
+  const [numCorsieDisponibili, setNumCorsieDisponibili] = useState<number>(4);
+  const [atletiPresentiIds, setAtletiPresentiIds] = useState<number[]>(() => atleti.map(a => a.id));
+
+  const toggleAtletaPresente = (id: number) => {
+    setAtletiPresentiIds(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
   };
 
   // Modifica date stagione esistente
@@ -249,6 +276,15 @@ export const PianoScreen: React.FC = () => {
         meta={`${stagione?.inizio ? formattaData(stagione.inizio) : ''} – ${stagione?.fine ? formattaData(stagione.fine) : ''} · Vasca da ${stagione?.vascaMetri ?? 25} m`}
         right={
           <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setModalParametriPianoOpen(true)}
+              className="ds-btn-secondary !min-h-[40px] !px-2.5 shrink-0 text-xs"
+              title="Configura parametri e corsie"
+            >
+              <Sliders size={15} />
+              <span className="hidden sm:inline">Parametri & Corsie</span>
+            </button>
+
             <button
               onClick={() => {
                 if (stagione) {
@@ -449,7 +485,7 @@ export const PianoScreen: React.FC = () => {
                   <input
                     type="text"
                     value={modInizio}
-                    onChange={e => setModInizio(e.target.value)}
+                    onChange={e => setModInizio(formatDataInput(e.target.value))}
                     placeholder="es. 01/09/2026"
                     className="w-full px-3 h-12 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface focus:bg-surface-container-lowest focus:border-primary-container"
                   />
@@ -462,7 +498,7 @@ export const PianoScreen: React.FC = () => {
                   <input
                     type="text"
                     value={modFine}
-                    onChange={e => setModFine(e.target.value)}
+                    onChange={e => setModFine(formatDataInput(e.target.value))}
                     placeholder="es. 30/06/2027"
                     className="w-full px-3 h-12 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface focus:bg-surface-container-lowest focus:border-primary-container"
                   />
@@ -507,70 +543,130 @@ export const PianoScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Chiusure e Festività */}
+      {/* Eventi & Gare della Stagione (Unificati) */}
       <Sezione
-        titolo="Chiusure e Festività"
-        icon={<Calendar size={16} />}
-        badge={chiusure.length}
-        riepilogoChiuso={seasonStats?.nextChiusura ? `Prossima: ${seasonStats.nextChiusura.motivo} (${formattaData(seasonStats.nextChiusura.dal)})` : `${chiusure.length} registrate`}
-        storageKey="piano_chiusure"
+        titolo="Eventi & Gare della Stagione"
+        icon={<Trophy size={16} />}
+        badge={chiusure.length + gare.length}
+        riepilogoChiuso={`${gare.length} gare · ${chiusure.length} chiusure/festività`}
+        storageKey="piano_eventi_gare"
         defaultAperto={false}
       >
-        <div className="space-y-3 text-xs pt-1">
-          <div className="flex flex-wrap gap-2">
+        <div className="space-y-3 pt-1 text-xs">
+          {/* Quick Action Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex gap-1.5">
+              <button
+                type="button"
+                onClick={aggiungiFestivitaNazionali}
+                className="px-3 py-1.5 bg-surface-container-low hover:bg-surface-container text-primary rounded-xl font-bold border border-outline-variant/60"
+              >
+                + Festività Nazionali
+              </button>
+            </div>
             <button
               type="button"
-              onClick={aggiungiFestivitaNazionali}
-              className="px-3 h-12 bg-surface-container-low hover:bg-primary-fixed text-primary-container border border-primary-fixed-dim rounded-lg font-bold"
+              onClick={() => setModalGaraOpen(true)}
+              className="ds-btn-primary !min-h-[36px] !px-3 text-xs"
             >
-              + Aggiungi Festività Nazionali Italiane
+              <Plus size={14} />
+              <span>Aggiungi Gara 🏆</span>
             </button>
           </div>
 
-          <div className="space-y-1.5 max-h-48 overflow-y-auto">
-            {chiusure.map(c => (
+          {/* Unified Event List (Races + Closures) */}
+          <div className="space-y-1.5 max-h-60 overflow-y-auto pr-0.5">
+            {[
+              ...gare.map(g => ({ id: `gara-${g.id}`, rawId: g.id, type: 'gara' as const, date: g.dal, endDate: g.al, title: g.nome, detail: g.luogo, priority: g.prioritaria })),
+              ...chiusure.map(c => ({ id: `chiusura-${c.id}`, rawId: c.id, type: 'chiusura' as const, date: c.dal, endDate: c.al, title: c.motivo, detail: 'Chiusura vasca', priority: false }))
+            ]
+            .sort((a, b) => a.date.localeCompare(b.date))
+            .map(evt => (
               <div
-                key={c.id}
-                className="p-2 bg-surface-container-low border border-slate-200/70 rounded-lg flex items-center justify-between"
+                key={evt.id}
+                className={`p-2.5 rounded-xl border flex items-center justify-between text-xs transition ${
+                  evt.type === 'gara'
+                    ? evt.priority ? 'bg-tertiary-fixed/30 border-tertiary-fixed-dim' : 'bg-surface-container-low border-outline-variant'
+                    : 'bg-error-container/40 border-error/30'
+                }`}
               >
-                <span>
-                  {c.dal === c.al ? formattaData(c.dal) : `${formattaData(c.dal)} – ${formattaData(c.al)}`}:{' '}
-                  <strong className="text-on-surface">{c.motivo}</strong>
-                </span>
-                <button
-                  onClick={() => eliminaChiusura(c.id)}
-                  className="text-on-surface-variant hover:text-error p-1"
-                >
-                  <Trash2 size={14} />
-                </button>
+                <div className="flex items-center gap-2 min-w-0">
+                  {evt.type === 'gara' ? (
+                    <Trophy size={16} className={evt.priority ? 'text-tertiary' : 'text-primary'} />
+                  ) : (
+                    <Calendar size={16} className="text-error" />
+                  )}
+                  <div className="min-w-0">
+                    <div className="font-bold text-on-surface truncate">
+                      {evt.title} {evt.priority && <span className="text-tertiary font-bold">(A-Race)</span>}
+                    </div>
+                    <div className="text-[11px] text-on-surface-variant">
+                      {formattaData(evt.date)}{evt.endDate && evt.endDate !== evt.date ? ` – ${formattaData(evt.endDate)}` : ''} {evt.detail ? `· ${evt.detail}` : ''}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditEventModal({
+                        open: true,
+                        type: evt.type,
+                        id: evt.rawId,
+                        title: evt.title,
+                        dal: formattaData(evt.date),
+                        al: evt.endDate ? formattaData(evt.endDate) : formattaData(evt.date),
+                        luogo: evt.detail || '',
+                        prioritaria: evt.priority
+                      });
+                    }}
+                    className="p-1.5 text-on-surface-variant hover:text-primary rounded-lg"
+                    title="Modifica"
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (evt.type === 'gara') eliminaGara(evt.rawId);
+                      else eliminaChiusura(evt.rawId);
+                    }}
+                    className="p-1.5 text-on-surface-variant hover:text-error rounded-lg"
+                    title="Elimina"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
 
-          {/* Add Custom Closure */}
+          {/* Form Aggiungi Chiusura Custom */}
           <div className="p-3 bg-surface-container-low border border-dashed border-outline-variant rounded-xl space-y-2">
-            <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
+            <div className="font-headline font-bold text-xs text-primary">Aggiungi Chiusura Vasca Personalizzata</div>
+            <div className="grid grid-cols-2 gap-2">
               <input
                 type="text"
                 placeholder="Dal (gg/mm/aaaa)"
                 value={cDal}
-                onChange={e => setCDal(e.target.value)}
-                className="w-full px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg"
+                onChange={e => setCDal(formatDataInput(e.target.value))}
+                className="w-full px-3 h-10 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
               />
               <input
                 type="text"
                 placeholder="Al (gg/mm/aaaa)"
                 value={cAl}
-                onChange={e => setCAl(e.target.value)}
-                className="w-full px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg"
+                onChange={e => setCAl(formatDataInput(e.target.value))}
+                className="w-full px-3 h-10 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
               />
             </div>
             <input
               type="text"
-              placeholder="Motivo (es. Chiusura natalizia impianto, festa patronale...)"
+              placeholder="Motivo (es. Chiusura impianti)"
               value={cMotivo}
               onChange={e => setCMotivo(e.target.value)}
-              className="w-full px-3 h-12 bg-surface-container-lowest border border-outline-variant rounded-lg"
+              className="w-full px-3 h-10 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
             />
             <button
               type="button"
@@ -584,65 +680,10 @@ export const PianoScreen: React.FC = () => {
                   setCMotivo('');
                 }
               }}
-              className="w-full h-12 bg-primary-container hover:bg-primary text-on-primary rounded-lg font-bold"
+              className="w-full ds-btn-secondary !min-h-[38px] text-xs justify-center"
             >
-              Aggiungi Chiusura Vasca
+              Salva Chiusura
             </button>
-          </div>
-        </div>
-      </Sezione>
-
-      {/* Gare Agonistiche */}
-      <Sezione
-        titolo="Gare Agonistiche"
-        icon={<Trophy size={16} />}
-        badge={gare.length}
-        riepilogoChiuso={seasonStats?.nextGara ? `Prossima: ${seasonStats.nextGara.nome} (${formattaData(seasonStats.nextGara.dal)})` : `${gare.length} programmate`}
-        storageKey="piano_gare"
-        defaultAperto={false}
-      >
-        <div className="space-y-3 pt-1 text-xs">
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-on-surface">Calendario Gare</span>
-            <button
-              type="button"
-              onClick={() => setModalGaraOpen(true)}
-              className="px-3 py-2 bg-primary-container hover:bg-primary text-on-primary rounded-xl font-bold transition shadow-card flex items-center gap-1.5"
-            >
-              <Plus size={14} />
-              <span>Aggiungi Nuova Gara 🏆</span>
-            </button>
-          </div>
-
-          <div className="space-y-1.5">
-            {gare.length === 0 ? (
-              <p className="text-xs text-on-surface-variant py-1">Nessuna gara inserita nel calendario.</p>
-            ) : (
-              gare.map(g => (
-                <div
-                  key={g.id}
-                  className="p-3 bg-surface-container-low border border-slate-200/70 rounded-xl flex items-center justify-between text-xs"
-                >
-                  <div className="flex items-center gap-2">
-                    {g.prioritaria && <Star size={16} className="text-tertiary-container fill-tertiary-container shrink-0" />}
-                    <div>
-                      <span className="font-bold text-on-surface block">
-                        {g.nome} {g.prioritaria && <span className="text-tertiary font-semibold">(A-Race Prioritaria)</span>}
-                      </span>
-                      <span className="text-on-surface-variant text-[11px]">
-                        {formattaData(g.dal)}{g.al && g.al !== g.dal ? ` – ${formattaData(g.al)}` : ''}
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => eliminaGara(g.id)}
-                    className="p-1 text-on-surface-variant hover:text-error rounded"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
-              ))
-            )}
           </div>
         </div>
       </Sezione>
@@ -680,7 +721,7 @@ export const PianoScreen: React.FC = () => {
                     type="text"
                     placeholder="gg/mm/aaaa"
                     value={gDal}
-                    onChange={e => setGDal(e.target.value)}
+                    onChange={e => setGDal(formatDataInput(e.target.value))}
                     className="w-full px-3 h-12 bg-surface-container-low border border-outline-variant rounded-xl"
                   />
                 </div>
@@ -690,7 +731,7 @@ export const PianoScreen: React.FC = () => {
                     type="text"
                     placeholder="gg/mm/aaaa"
                     value={gAl}
-                    onChange={e => setGAl(e.target.value)}
+                    onChange={e => setGAl(formatDataInput(e.target.value))}
                     className="w-full px-3 h-12 bg-surface-container-low border border-outline-variant rounded-xl"
                   />
                 </div>
@@ -766,50 +807,220 @@ export const PianoScreen: React.FC = () => {
             I campi lasciati vuoti usano il calcolo intelligente.
           </p>
 
-          {/* Programmazione vasca/durata per giorno */}
-          <div className="space-y-1.5">
-            <label className="block text-body-bold font-body-bold text-on-surface">
-              Programmazione vasca e durata per giorno
+          {/* SELEZIONE CORSIE DISPONIBILI E ATLETI PRESENTI */}
+          <div className="p-3.5 bg-surface-container-low rounded-2xl border border-primary/20 space-y-3">
+            <div className="font-headline font-bold text-xs text-primary uppercase tracking-wider flex items-center gap-1.5">
+              <Sliders size={16} />
+              <span>Corsie Disponibili & Atleti Presenti di Default</span>
+            </div>
+
+            <div className="space-y-2">
+              <label className="font-bold text-on-surface text-xs block">Numero Corsie Disponibili in Vasca:</label>
+              <div className="flex items-center gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setNumCorsieDisponibili(n)}
+                    className={`flex-1 h-9 rounded-xl font-headline font-bold text-xs transition ${
+                      numCorsieDisponibili === n ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="font-bold text-on-surface text-xs block">
+                Atleti Presenti di Default ({atletiPresentiIds.length}/{atleti.length}):
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-36 overflow-y-auto pr-1">
+                {atleti.map(a => {
+                  const isPres = atletiPresentiIds.includes(a.id);
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => toggleAtletaPresente(a.id)}
+                      className={`p-2 rounded-xl border text-left flex items-center justify-between text-xs transition ${
+                        isPres ? 'bg-primary/10 border-primary text-primary font-bold' : 'bg-surface-container-lowest border-outline-variant/60 text-on-surface'
+                      }`}
+                    >
+                      <span className="truncate">{a.cognome} {a.nome?.[0]}. (S{a.classeS ?? '9'})</span>
+                      {isPres && <Check size={14} className="text-primary shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* DISPOSIZIONE IDEALE CORSIE CALCOLATA AUTOMATICAMENTE */}
+            <div className="space-y-1.5 pt-2 border-t border-outline-variant/60">
+              <div className="font-headline font-bold text-xs text-primary flex items-center gap-1.5">
+                <Sparkles size={14} />
+                <span>Disposizione Ideale Corsie (Calcolata dall'Algoritmo):</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                {Array.from({ length: numCorsieDisponibili }).map((_, cIdx) => {
+                  const laneNum = cIdx + 1;
+                  const assignedAthletes = atleti
+                    .filter(a => atletiPresentiIds.includes(a.id))
+                    .filter((_, aIdx) => aIdx % numCorsieDisponibili === cIdx);
+
+                  return (
+                    <div key={laneNum} className="p-2 rounded-xl bg-surface-container-lowest border border-outline-variant text-[11px] space-y-1">
+                      <div className="font-bold text-primary flex items-center justify-between">
+                        <span>Corsia {laneNum}</span>
+                        <span className="text-[10px] text-on-surface-variant font-mono">{assignedAthletes.length} atleti</span>
+                      </div>
+                      {assignedAthletes.length === 0 ? (
+                        <div className="text-on-surface-variant italic">Corsia libera</div>
+                      ) : (
+                        <div className="font-medium text-on-surface space-y-0.5">
+                          {assignedAthletes.map(ath => (
+                            <div key={ath.id} className="truncate">• {ath.cognome} {ath.nome} (S{ath.classeS ?? '9'})</div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Programmazione vasca, durata, corsie e atleti per giorno */}
+          <div className="space-y-2">
+            <label className="block font-headline font-bold text-sm text-on-surface">
+              Programmazione Giornaliera (Vasca, Durata, Corsie & Atleti Presenti)
             </label>
             <p className="text-xs text-on-surface-variant">
-              Imposta vasca e durata per ogni giorno di allenamento. Usati da "Oggi" e dal calcolo volume.
+              Imposta vasca, durata, corsie disponibili e atleti presenti di default per ciascun giorno di allenamento.
             </p>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {([1, 2, 3, 4, 5, 6, 7] as DayOfWeekNum[]).map((dow) => {
-                const p = impostazioni.parametriPerGiorno?.[dow] || { vascaMetri: stagione?.vascaMetri || 25, durataMin: impostazioni.durataDefaultMin || 90 };
+                const p = impostazioni.parametriPerGiorno?.[dow] || {
+                  vascaMetri: stagione?.vascaMetri || 25,
+                  durataMin: impostazioni.durataDefaultMin || 90,
+                  numeroCorsie: 4,
+                  atletiPresentiIds: atleti.map(a => a.id)
+                };
+                const dayLanes = p.numeroCorsie || 4;
+                const dayPresent = p.atletiPresentiIds || atleti.map(a => a.id);
+
                 return (
-                  <div key={dow} className="rounded-xl border border-slate-200/70 bg-surface-container-low p-2.5 space-y-2 min-w-0">
-                    <div className="flex items-baseline justify-between gap-x-2 gap-y-0.5 min-w-0">
-                      <span className="text-body-bold font-body-bold text-on-surface truncate">{DAY_OF_WEEK_NAMES[dow]}</span>
-                      <span className="ds-label shrink-0">{p.vascaMetri}m · {p.durataMin}'</span>
+                  <div key={dow} className="rounded-2xl border border-outline-variant bg-surface-container-low p-3 space-y-2.5 min-w-0">
+                    <div className="flex items-center justify-between border-b border-outline-variant/60 pb-1.5">
+                      <span className="font-headline font-bold text-sm text-on-surface">{DAY_OF_WEEK_NAMES[dow]}</span>
+                      <span className="ds-label text-primary font-mono">{p.vascaMetri}m · {p.durataMin}' · {dayLanes} corsie</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      {[25, 50].map((v) => (
-                        <button
-                          key={v}
-                          type="button"
-                          onClick={() => impostaParametriGiorno(dow, { vascaMetri: v, durataMin: p.durataMin })}
-                          className={`flex-1 min-h-[36px] rounded-lg text-xs font-bold ${p.vascaMetri === v ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface'}`}
-                        >
-                          {v}m
-                        </button>
-                      ))}
+
+                    {/* Vasca 25/50 */}
+                    <div>
+                      <label className="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">Vasca Impianto</label>
+                      <div className="flex items-center gap-1">
+                        {[25, 50].map((v) => (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => impostaParametriGiorno(dow, { ...p, vascaMetri: v })}
+                            className={`flex-1 h-8 rounded-lg text-xs font-bold font-headline transition ${p.vascaMetri === v ? 'bg-primary text-white shadow-sm' : 'bg-surface-container text-on-surface'}`}
+                          >
+                            {v}m
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <input
-                      type="number"
-                      min={30}
-                      max={210}
-                      step={5}
-                      value={p.durataMin}
-                      onChange={(e) => impostaParametriGiorno(dow, { vascaMetri: p.vascaMetri, durataMin: normalizzaDurata(Number(e.target.value)) })}
-                      className="w-full px-2 h-9 border border-outline-variant rounded-lg text-xs font-bold"
-                    />
+
+                    {/* Durata Minuti */}
+                    <div>
+                      <label className="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">Durata Seduta (minuti)</label>
+                      <input
+                        type="number"
+                        min={30}
+                        max={210}
+                        step={5}
+                        value={p.durataMin}
+                        onChange={(e) => impostaParametriGiorno(dow, { ...p, durataMin: normalizzaDurata(Number(e.target.value)) })}
+                        className="w-full px-2.5 h-8 border border-outline-variant rounded-lg text-xs font-bold bg-surface-container-lowest"
+                      />
+                    </div>
+
+                    {/* Numero Corsie per questo giorno */}
+                    <div>
+                      <label className="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">Numero Corsie Disponibili</label>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+                          <button
+                            key={n}
+                            type="button"
+                            onClick={() => impostaParametriGiorno(dow, { ...p, numeroCorsie: n })}
+                            className={`flex-1 h-7 rounded-md text-[10px] font-bold transition ${dayLanes === n ? 'bg-primary text-white' : 'bg-surface-container text-on-surface'}`}
+                          >
+                            {n}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Atleti Presenti per questo giorno */}
+                    <div>
+                      <label className="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">
+                        Atleti Presenti ({dayPresent.length}/{atleti.length})
+                      </label>
+                      <div className="grid grid-cols-2 gap-1 max-h-24 overflow-y-auto pr-0.5">
+                        {atleti.map(a => {
+                          const isPres = dayPresent.includes(a.id);
+                          return (
+                            <button
+                              key={a.id}
+                              type="button"
+                              onClick={() => {
+                                const nextList = isPres ? dayPresent.filter(id => id !== a.id) : [...dayPresent, a.id];
+                                impostaParametriGiorno(dow, { ...p, atletiPresentiIds: nextList });
+                              }}
+                              className={`px-1.5 py-1 rounded-md text-[10px] border truncate flex items-center justify-between transition ${
+                                isPres ? 'bg-primary/10 border-primary text-primary font-bold' : 'bg-surface-container-lowest border-outline-variant/60 text-on-surface-variant'
+                              }`}
+                            >
+                              <span className="truncate">{a.cognome} {a.nome?.[0]}.</span>
+                              {isPres && <Check size={12} className="shrink-0" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Disposizione Ideale Corsie per questo giorno */}
+                    <div className="pt-2 border-t border-outline-variant/60 text-[10px]">
+                      <div className="font-bold text-primary mb-1 flex items-center gap-1 font-headline">
+                        <Sparkles size={11} />
+                        <span>Disposizione Corsie {DAY_OF_WEEK_NAMES[dow]}:</span>
+                      </div>
+                      <div className="space-y-0.5 max-h-20 overflow-y-auto font-mono">
+                        {Array.from({ length: dayLanes }).map((_, cIdx) => {
+                          const laneNum = cIdx + 1;
+                          const assignedAthletes = atleti
+                            .filter(a => dayPresent.includes(a.id))
+                            .filter((_, aIdx) => aIdx % dayLanes === cIdx);
+
+                          return (
+                            <div key={laneNum} className="truncate text-on-surface-variant">
+                              <strong className="text-primary">C{laneNum}:</strong>{' '}
+                              {assignedAthletes.length === 0 ? 'Libera' : assignedAthletes.map(ath => ath.cognome).join(', ')}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 );
               })}
             </div>
             <div className="flex items-center gap-2 pt-1">
-              <label className="text-xs text-on-surface-variant">Durata default stagione</label>
+              <label className="text-xs text-on-surface-variant font-bold">Durata default stagione:</label>
               <input
                 type="number"
                 min={30}
@@ -1159,15 +1370,6 @@ export const PianoScreen: React.FC = () => {
                                   </span>
                                 )}
                               </div>
-
-                              <button
-                                type="button"
-                                onClick={() => setSchedaSmart(schedaAnteprima)}
-                                className="text-label-md font-label-md text-primary-container hover:underline flex items-center gap-1 bg-surface-container-lowest px-3 min-h-[44px] rounded-lg border border-slate-200/70 shrink-0"
-                              >
-                                <Waves size={13} />
-                                <span>Scheda Smart</span>
-                              </button>
                             </div>
 
                             <div className="text-body-base font-body-base text-on-surface-variant flex items-center justify-between gap-2">
@@ -1187,11 +1389,46 @@ export const PianoScreen: React.FC = () => {
                               </div>
                             )}
 
-                            {/* Energy codes preview */}
-                            <IndicatoreCodici
-                              ripartizione={schedaAnteprima.ripartizioneCodici}
-                              volumeTotale={schedaAnteprima.volumeTotaleMetri}
-                            />
+                            {/* Recommended training energy codes per single session */}
+                            <div className="pt-1.5 border-t border-outline-variant/60 space-y-1.5">
+                              <span className="text-[10px] font-bold text-primary uppercase tracking-wider block font-headline">
+                                Codici Consigliati per Seduta:
+                              </span>
+                              <div className="space-y-1.5 max-h-44 overflow-y-auto pr-0.5">
+                                {generaDateSedute(mi.inizio, mi.fine, mi.sedutePreviste).map((dataSeduta, sIdx) => {
+                                  const schedaSedutaGiorno = GeneratoreSmartSeduta.genera(
+                                    dataSeduta,
+                                    metriSeduta,
+                                    activeMeso?.fase ?? 'PREPARAZIONE_SPECIFICA',
+                                    mi.tipo
+                                  );
+                                  return (
+                                    <div
+                                      key={sIdx}
+                                      className="p-2 rounded-xl bg-surface-container-lowest border border-outline-variant/60 space-y-1 hover:border-primary transition"
+                                    >
+                                      <div className="flex items-center justify-between text-xs font-bold">
+                                        <span className="text-primary font-headline">
+                                          Seduta {sIdx + 1} ({formattaData(dataSeduta)})
+                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={() => setSchedaSmart(schedaSedutaGiorno)}
+                                          className="text-[10px] text-primary hover:underline font-bold flex items-center gap-1 bg-surface-container px-2 py-0.5 rounded-md"
+                                        >
+                                          <Waves size={10} />
+                                          <span>Scheda</span>
+                                        </button>
+                                      </div>
+                                      <IndicatoreCodici
+                                        ripartizione={schedaSedutaGiorno.ripartizioneCodici}
+                                        volumeTotale={schedaSedutaGiorno.volumeTotaleMetri}
+                                      />
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
 
                             {gareInSettimana.map(g => (
                               <div key={g.id} className="text-[11px] font-bold text-on-tertiary-fixed flex items-center gap-1 bg-tertiary-fixed/60 p-1.5 rounded-lg">
@@ -1203,35 +1440,6 @@ export const PianoScreen: React.FC = () => {
                             {mi.note && (
                               <p className="text-[11px] text-on-surface-variant italic">{mi.note}</p>
                             )}
-                          </div>
-
-                          {/* Sedute del giorno cliccabili direttamente dal calendario */}
-                          <div className="pt-2 border-t border-slate-200/70 space-y-1">
-                            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
-                              Schede Giornaliere (Varietà):
-                            </span>
-                            <div className="flex flex-wrap gap-1">
-                              {generaDateSedute(mi.inizio, mi.fine, mi.sedutePreviste).map((dataSeduta, sIdx) => {
-                                const schedaSedutaGiorno = GeneratoreSmartSeduta.genera(
-                                  dataSeduta,
-                                  metriSeduta,
-                                  activeMeso?.fase ?? 'PREPARAZIONE_SPECIFICA',
-                                  mi.tipo
-                                );
-                                return (
-                                  <button
-                                    key={sIdx}
-                                    type="button"
-                                    onClick={() => setSchedaSmart(schedaSedutaGiorno)}
-                                    className="ds-chip-tap !px-3 bg-surface-container-low hover:bg-primary-container hover:text-on-primary text-primary-container rounded-md text-[11px] font-bold transition border border-primary-fixed-dim items-center gap-1 shadow-card"
-                                    title={`Apri scheda per il ${formattaData(dataSeduta)}`}
-                                  >
-                                    <Waves size={11} />
-                                    <span>S.{sIdx + 1} ({formattaData(dataSeduta).substring(0, 5)})</span>
-                                  </button>
-                                );
-                              })}
-                            </div>
                           </div>
 
                           <button
@@ -1393,6 +1601,226 @@ export const PianoScreen: React.FC = () => {
           scheda={schedaSmart}
           onChiudi={() => setSchedaSmart(null)}
         />
+      )}
+
+      {/* Modal Modifica Evento / Gara */}
+      {editEventModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in text-on-surface">
+          <div className="bg-surface-container-lowest rounded-3xl p-5 max-w-md w-full shadow-float border border-outline-variant space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-outline-variant/60">
+              <h3 className="font-headline font-bold text-base flex items-center gap-2">
+                <Edit2 size={18} className="text-primary" />
+                <span>Modifica {editEventModal.type === 'gara' ? 'Gara' : 'Chiusura/Festività'}</span>
+              </h3>
+              <button onClick={() => setEditEventModal(null)} className="p-1 rounded-lg hover:bg-surface-container">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="font-bold block mb-1">Titolo / Nome *</label>
+                <input
+                  type="text"
+                  value={editEventModal.title}
+                  onChange={e => setEditEventModal({ ...editEventModal, title: e.target.value })}
+                  className="w-full px-3 h-10 bg-surface-container-low border border-outline-variant rounded-xl font-bold"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-bold block mb-1">Dal *</label>
+                  <input
+                    type="text"
+                    value={editEventModal.dal}
+                    onChange={e => setEditEventModal({ ...editEventModal, dal: formatDataInput(e.target.value) })}
+                    className="w-full px-3 h-10 bg-surface-container-low border border-outline-variant rounded-xl font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold block mb-1">Al</label>
+                  <input
+                    type="text"
+                    value={editEventModal.al}
+                    onChange={e => setEditEventModal({ ...editEventModal, al: formatDataInput(e.target.value) })}
+                    className="w-full px-3 h-10 bg-surface-container-low border border-outline-variant rounded-xl font-bold"
+                  />
+                </div>
+              </div>
+
+              {editEventModal.type === 'gara' && (
+                <>
+                  <div>
+                    <label className="font-bold block mb-1">Luogo / Impianto</label>
+                    <input
+                      type="text"
+                      value={editEventModal.luogo}
+                      onChange={e => setEditEventModal({ ...editEventModal, luogo: e.target.value })}
+                      className="w-full px-3 h-10 bg-surface-container-low border border-outline-variant rounded-xl"
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 p-2.5 bg-surface-container-low rounded-xl border border-outline-variant cursor-pointer font-bold">
+                    <input
+                      type="checkbox"
+                      checked={editEventModal.prioritaria}
+                      onChange={e => setEditEventModal({ ...editEventModal, prioritaria: e.target.checked })}
+                      className="w-4 h-4 accent-tertiary"
+                    />
+                    <span>Gara Prioritaria (A-Race)</span>
+                  </label>
+                </>
+              )}
+
+              <div className="flex gap-2 pt-2 border-t border-outline-variant/60">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const d1 = parseData(editEventModal.dal);
+                    const d2 = parseData(editEventModal.al) ?? d1;
+                    if (d1 && editEventModal.title.trim()) {
+                      if (editEventModal.type === 'gara') {
+                        modificaGara({
+                          id: editEventModal.id,
+                          stagioneId: stagione?.id ?? 1,
+                          nome: editEventModal.title.trim(),
+                          dal: d1,
+                          al: d2 ?? d1,
+                          luogo: editEventModal.luogo || '',
+                          prioritaria: !!editEventModal.prioritaria
+                        });
+                      } else {
+                        modificaChiusura({
+                          id: editEventModal.id,
+                          stagioneId: stagione?.id ?? 1,
+                          dal: d1,
+                          al: d2 ?? d1,
+                          motivo: editEventModal.title.trim()
+                        });
+                      }
+                      setEditEventModal(null);
+                    }
+                  }}
+                  className="ds-btn-primary flex-1 justify-center"
+                >
+                  Salva Modifiche
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditEventModal(null)}
+                  className="ds-btn-secondary"
+                >
+                  Annulla
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Parametri Piano & Disposizione Ideale Corsie */}
+      {modalParametriPianoOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 text-on-surface animate-fade-in">
+          <div className="bg-surface-container-lowest rounded-3xl p-5 max-w-lg w-full shadow-float border border-outline-variant space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-2 border-b border-outline-variant/60">
+              <h3 className="font-headline font-bold text-base flex items-center gap-2">
+                <Sliders size={18} className="text-primary" />
+                <span>Parametri Piano & Disposizione Corsie</span>
+              </h3>
+              <button onClick={() => setModalParametriPianoOpen(false)} className="p-1 rounded-lg hover:bg-surface-container">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              {/* Selezione Numero Corsie Disponibili */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-primary uppercase tracking-wider block">Numero Corsie Disponibili</label>
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setNumCorsieDisponibili(n)}
+                      className={`flex-1 h-9 rounded-xl font-headline font-bold transition ${
+                        numCorsieDisponibili === n ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Selezione Atleti Presenti di Default */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-primary uppercase tracking-wider block">
+                  Atleti Presenti di Default ({atletiPresentiIds.length}/{atleti.length})
+                </label>
+                <div className="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto pr-1">
+                  {atleti.map(a => {
+                    const isPres = atletiPresentiIds.includes(a.id);
+                    return (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => toggleAtletaPresente(a.id)}
+                        className={`p-2 rounded-xl border text-left flex items-center justify-between transition ${
+                          isPres ? 'bg-primary/10 border-primary text-primary font-bold' : 'bg-surface-container-low border-outline-variant/60 text-on-surface'
+                        }`}
+                      >
+                        <span className="truncate">{a.cognome} {a.nome?.[0]}. (S{a.classeS ?? '9'})</span>
+                        {isPres && <Check size={14} className="text-primary shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Calcolo Automatico Disposizione Ideale Corsie */}
+              <div className="p-3 bg-surface-container-low rounded-2xl border border-primary/20 space-y-2">
+                <div className="font-headline font-bold text-primary flex items-center gap-1.5">
+                  <Sparkles size={15} />
+                  <span>Disposizione Ideale Corsie (Calcolo Automatico)</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {Array.from({ length: numCorsieDisponibili }).map((_, cIdx) => {
+                    const laneNum = cIdx + 1;
+                    const assignedAthletes = atleti
+                      .filter(a => atletiPresentiIds.includes(a.id))
+                      .filter((_, aIdx) => aIdx % numCorsieDisponibili === cIdx);
+
+                    return (
+                      <div key={laneNum} className="p-2 rounded-xl bg-surface-container-lowest border border-outline-variant text-[11px] space-y-1">
+                        <div className="font-bold text-primary flex items-center justify-between">
+                          <span>Corsia {laneNum}</span>
+                          <span className="text-[10px] text-on-surface-variant">{assignedAthletes.length} atleti</span>
+                        </div>
+                        {assignedAthletes.length === 0 ? (
+                          <div className="text-on-surface-variant italic">Libera</div>
+                        ) : (
+                          <div className="font-medium text-on-surface space-y-0.5">
+                            {assignedAthletes.map(ath => (
+                              <div key={ath.id} className="truncate">• {ath.cognome} {ath.nome} (S{ath.classeS ?? '9'})</div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setModalParametriPianoOpen(false)}
+                className="w-full ds-btn-primary justify-center py-3"
+              >
+                Conferma e Chiudi
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

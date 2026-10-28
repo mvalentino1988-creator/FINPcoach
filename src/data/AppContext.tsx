@@ -56,9 +56,11 @@ interface AppContextType {
   modificaDateStagione: (inizio: string, fine: string) => void;
   eliminaStagione: () => void;
   aggiungiChiusura: (dal: string, al: string, motivo: string) => void;
+  modificaChiusura: (c: Chiusura) => void;
   eliminaChiusura: (id: number) => void;
   aggiungiFestivitaNazionali: () => void;
   aggiungiGara: (nome: string, dal: string, al: string, prioritaria: boolean, luogo?: string) => void;
+  modificaGara: (g: Gara) => void;
   eliminaGara: (id: number) => void;
   salvaImpostazioni: (imp: ImpostazioniPiano) => void;
   /** Programmazione vasca/durata per un giorno della settimana (senza rigenerare il piano). */
@@ -492,6 +494,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTimeout(() => rigeneraPianoInterno(true), 50);
   };
 
+  const modificaChiusura = (chiusura: Chiusura) => {
+    setChiusure(prev => prev.map(c => (c.id === chiusura.id ? chiusura : c)));
+    setTimeout(() => rigeneraPianoInterno(true), 50);
+  };
+
   const aggiungiFestivitaNazionali = () => {
     if (!stagione) return;
     const giaPresenti = new Set(chiusure.map(c => c.dal));
@@ -506,6 +513,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!stagione) return;
     const nextId = gare.length > 0 ? Math.max(...gare.map(it => it.id)) + 1 : 1;
     setGare(prev => [...prev, { id: nextId, stagioneId: stagione.id, nome, dal, al, luogo, prioritaria }]);
+    setTimeout(() => rigeneraPianoInterno(true), 50);
+  };
+
+  const modificaGara = (gara: Gara) => {
+    setGare(prev => prev.map(g => (g.id === gara.id ? gara : g)));
     setTimeout(() => rigeneraPianoInterno(true), 50);
   };
 
@@ -601,9 +613,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         modificaDateStagione,
         eliminaStagione,
         aggiungiChiusura,
+        modificaChiusura,
         eliminaChiusura,
         aggiungiFestivitaNazionali,
         aggiungiGara,
+        modificaGara,
         eliminaGara,
         salvaImpostazioni,
         impostaParametriGiorno,

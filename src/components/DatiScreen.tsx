@@ -32,7 +32,7 @@ import { TempiRipartenzeScreen } from './TempiRipartenzeScreen';
 import { RegistroScreen } from './RegistroScreen';
 import { EsercizioEditor } from './EsercizioEditor';
 import { BadgeCodice } from './BadgeCodice';
-import { formattaData, todayISO, parseData, addDays, isBefore, daysBetween, toDateObj } from '../domain/dateUtils';
+import { formattaData, todayISO, parseData, addDays, isBefore, daysBetween, toDateObj, formatDataInput } from '../domain/dateUtils';
 import { useApp } from '../data/AppContext';
 import { ParserScheda } from '../domain/parserScheda';
 import { ParserApprendimento } from '../domain/parserApprendimento';
@@ -395,7 +395,7 @@ export const DatiScreen: React.FC = () => {
                     <input
                       type="text"
                       value={workoutDate}
-                      onChange={e => setWorkoutDate(e.target.value)}
+                      onChange={e => setWorkoutDate(formatDataInput(e.target.value))}
                       className="w-full px-3 h-10 bg-surface-container-low border border-outline-variant rounded-xl font-bold"
                     />
                   </div>

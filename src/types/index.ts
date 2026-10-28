@@ -204,6 +204,8 @@ export interface MacroGen {
 export interface ParametriSeduta {
   vascaMetri: number;   // 25 o 50
   durataMin: number;    // minuti di lavoro effettivo
+  numeroCorsie?: number; // 1 to 8 (default 4)
+  atletiPresentiIds?: number[]; // list of present athlete IDs
 }
 
 export interface ImpostazioniPiano {
