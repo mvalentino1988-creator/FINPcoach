@@ -369,7 +369,7 @@ export const PianoScreen: React.FC = () => {
               <div className="bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/20 flex items-center gap-3 shrink-0">
                 <Trophy size={20} className="text-tertiary-fixed shrink-0" />
                 <div>
-                  <div className="text-[10px] text-white/80 uppercase font-bold tracking-wider">Prossima Gara</div>
+                  <div className="text-[12px] text-white/90 uppercase font-bold tracking-wider">Prossima Gara</div>
                   <div className="font-bold text-xs truncate max-w-[140px]">{seasonStats.nextGara.nome}</div>
                 </div>
                 <div className="text-right pl-2 border-l border-white/20">
@@ -396,12 +396,12 @@ export const PianoScreen: React.FC = () => {
 
           {/* Row 3: Horizontal Timeline Bar of Full Season */}
           <div className="space-y-1 pt-1">
-            <div className="text-[10px] uppercase font-bold tracking-wider text-white/70">Timeline Stagione (Macrocicli e Gare)</div>
+            <div className="text-[12px] uppercase font-bold tracking-wider text-white/90">Timeline Stagione (Macrocicli e Gare)</div>
             <div className="relative h-6 bg-black/20 rounded-xl overflow-hidden flex items-center p-0.5">
               {macro.map((m, i) => (
                 <div
                   key={m.id}
-                  className="h-full rounded-lg bg-white/20 hover:bg-white/30 transition flex items-center justify-center text-[10px] font-bold text-white/90 border-r border-black/20 truncate px-1 cursor-pointer"
+                  className="h-full rounded-lg bg-white/20 hover:bg-white/30 transition flex items-center justify-center text-[12px] font-bold text-white/90 border-r border-black/20 truncate px-1 cursor-pointer"
                   style={{ width: `${100 / Math.max(1, macro.length)}%` }}
                   title={`${m.nome} (${formattaData(m.inizio)} - ${formattaData(m.fine)})`}
                   onClick={() => setSelectedMacroId(m.id)}
@@ -418,12 +418,12 @@ export const PianoScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* Row 4: Mini Weekly Load Chart */}
+          {/* Row 4: Mini Weekly Volume Chart */}
           {micro.length > 0 && (
             <div className="space-y-1.5 pt-1 border-t border-white/10">
-              <div className="flex items-center justify-between text-xs text-white/80 font-bold">
-                <span>Carico Settimanale (Microcicli)</span>
-                <span className="text-[10px] text-tertiary-fixed-dim">{avvisiPiano.length} avvisi carico</span>
+              <div className="flex items-center justify-between text-xs text-white/90 font-bold">
+                <span>Volume Settimanale (Metri Target)</span>
+                <span className="text-[12px] text-tertiary-fixed">{avvisiPiano.length} avvisi sul piano</span>
               </div>
               <div className="h-10 flex items-end gap-1 overflow-x-auto pb-1">
                 {micro.slice(0, 16).map((mc, idx) => {
@@ -769,7 +769,7 @@ export const PianoScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setModalGaraOpen(false)}
-                className="px-4 h-12 text-on-surface-variant hover:bg-surface-container rounded-xl font-semibold text-xs"
+                className="px-4 h-12 text-on-surface hover:bg-surface-container rounded-xl font-semibold text-xs"
               >
                 Annulla
               </button>
@@ -894,7 +894,7 @@ export const PianoScreen: React.FC = () => {
 
                     {/* Vasca 25/50 */}
                     <div>
-                      <label className="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">Vasca Impianto</label>
+                      <label className="text-[12px] font-bold text-on-surface-variant uppercase block mb-1">Vasca Impianto</label>
                       <div className="flex items-center gap-1">
                         {[25, 50].map((v) => (
                           <button
@@ -911,7 +911,7 @@ export const PianoScreen: React.FC = () => {
 
                     {/* Durata Minuti */}
                     <div>
-                      <label className="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">Durata Seduta (minuti)</label>
+                      <label className="text-[12px] font-bold text-on-surface-variant uppercase block mb-1">Durata Seduta (minuti)</label>
                       <input
                         type="number"
                         min={30}
@@ -925,14 +925,14 @@ export const PianoScreen: React.FC = () => {
 
                     {/* Numero Corsie per questo giorno */}
                     <div>
-                      <label className="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">Numero Corsie Disponibili</label>
+                      <label className="text-[12px] font-bold text-on-surface-variant uppercase block mb-1">Numero Corsie Disponibili</label>
                       <div className="flex items-center gap-1">
                         {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
                           <button
                             key={n}
                             type="button"
                             onClick={() => impostaParametriGiorno(dow, { ...p, numeroCorsie: n })}
-                            className={`flex-1 h-7 rounded-md text-[10px] font-bold transition ${dayLanes === n ? 'bg-primary text-white' : 'bg-surface-container text-on-surface'}`}
+                            className={`flex-1 h-7 rounded-md text-[12px] font-bold transition ${dayLanes === n ? 'bg-primary text-white' : 'bg-surface-container text-on-surface'}`}
                           >
                             {n}
                           </button>
@@ -942,7 +942,7 @@ export const PianoScreen: React.FC = () => {
 
                     {/* Atleti Presenti per questo giorno */}
                     <div>
-                      <label className="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">
+                      <label className="text-[12px] font-bold text-on-surface-variant uppercase block mb-1">
                         Atleti Presenti ({dayPresent.length}/{atleti.length})
                       </label>
                       <div className="grid grid-cols-2 gap-1 max-h-24 overflow-y-auto pr-0.5">
@@ -956,7 +956,7 @@ export const PianoScreen: React.FC = () => {
                                 const nextList = isPres ? dayPresent.filter(id => id !== a.id) : [...dayPresent, a.id];
                                 impostaParametriGiorno(dow, { ...p, atletiPresentiIds: nextList });
                               }}
-                              className={`px-1.5 py-1 rounded-md text-[10px] border truncate flex items-center justify-between transition ${
+                              className={`px-1.5 py-1 rounded-md text-[12px] border truncate flex items-center justify-between transition ${
                                 isPres ? 'bg-primary/10 border-primary text-primary font-bold' : 'bg-surface-container-lowest border-outline-variant/60 text-on-surface-variant'
                               }`}
                             >
@@ -969,7 +969,7 @@ export const PianoScreen: React.FC = () => {
                     </div>
 
                     {/* Disposizione Ideale Corsie per questo giorno */}
-                    <div className="pt-2 border-t border-outline-variant/60 text-[10px]">
+                    <div className="pt-2 border-t border-outline-variant/60 text-[12px]">
                       <div className="font-bold text-primary mb-1 flex items-center gap-1 font-headline">
                         <Sparkles size={11} />
                         <span>Disposizione Corsie {DAY_OF_WEEK_NAMES[dow]}:</span>
@@ -1281,7 +1281,7 @@ export const PianoScreen: React.FC = () => {
                         >
                           <div className="space-y-2">
                             {isCurrentWeek && (
-                              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary-container text-on-primary text-[10px] font-bold uppercase tracking-wider mb-0.5">
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary-container text-on-primary text-[12px] font-bold uppercase tracking-wider mb-0.5">
                                 <Sparkles size={11} className="text-primary-fixed" />
                                 <span>Settimana di Oggi (In Corso)</span>
                               </div>
@@ -1322,7 +1322,7 @@ export const PianoScreen: React.FC = () => {
 
                             {/* Recommended training energy codes per single session */}
                             <div className="pt-1.5 border-t border-outline-variant/60 space-y-1.5">
-                              <span className="text-[10px] font-bold text-primary uppercase tracking-wider block font-headline">
+                              <span className="text-[12px] font-bold text-primary uppercase tracking-wider block font-headline">
                                 Codici Consigliati per Seduta:
                               </span>
                               <div className="space-y-1.5 max-h-44 overflow-y-auto pr-0.5">
@@ -1345,7 +1345,7 @@ export const PianoScreen: React.FC = () => {
                                         <button
                                           type="button"
                                           onClick={() => setSchedaSmart(schedaSedutaGiorno)}
-                                          className="text-[10px] text-primary hover:underline font-bold flex items-center gap-1 bg-surface-container px-2 py-0.5 rounded-md"
+                                          className="text-[12px] text-primary hover:underline font-bold flex items-center gap-1 bg-surface-container px-2 py-0.5 rounded-md"
                                         >
                                           <Waves size={10} />
                                           <span>Scheda</span>
@@ -1725,7 +1725,7 @@ export const PianoScreen: React.FC = () => {
                       <div key={laneNum} className="p-2 rounded-xl bg-surface-container-lowest border border-outline-variant text-[11px] space-y-1">
                         <div className="font-bold text-primary flex items-center justify-between">
                           <span>Corsia {laneNum}</span>
-                          <span className="text-[10px] text-on-surface-variant">{assignedAthletes.length} atleti</span>
+                          <span className="text-[12px] text-on-surface-variant">{assignedAthletes.length} atleti</span>
                         </div>
                         {assignedAthletes.length === 0 ? (
                           <div className="text-on-surface-variant italic">Libera</div>

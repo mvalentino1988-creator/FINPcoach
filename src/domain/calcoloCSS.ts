@@ -26,10 +26,42 @@ export class CalcoloScienzaNuoto {
   }
 
   /**
+   * Calcola il CSS con protocolli ridotti per classi basse (S1-S4).
+   * Supporta protocolli 200m-50m o 100m-25m per evitare 400m massimali controindicati.
+   */
+  static calcolaCSSRidotto(
+    tempoLungoCentesimi: number,
+    tempoBreveCentesimi: number,
+    distanzaLungaMetri: 200 | 100,
+    distanzaBreveMetri: 50 | 25
+  ): RisultatoCSS | null {
+    const tLungoSec = tempoLungoCentesimi / 100.0;
+    const tBreveSec = tempoBreveCentesimi / 100.0;
+    const deltaTempo = tLungoSec - tBreveSec;
+    if (deltaTempo <= 0) return null;
+
+    const deltaDistanza = distanzaLungaMetri - distanzaBreveMetri;
+    const cssMs = deltaDistanza / deltaTempo;
+    const passo100Sec = 100.0 / cssMs;
+    const passo100Centesimi = Math.round(passo100Sec * 100);
+
+    return {
+      cssVelocitaMs: cssMs,
+      passo100mCentesimi: passo100Centesimi,
+      passo100mFormatted: formattaTempo(passo100Centesimi),
+      spiegazioneMetodologica: `Velocità Critica CSS (Protocollo ridotto ${distanzaLungaMetri}m-${distanzaBreveMetri}m) = ${cssMs.toFixed(2)} m/s. Rappresenta la massima velocità aerobica sostenibile senza accumulo esponenziale di lattato (Passo Soglia B1).`
+    };
+  }
+
+  /**
    * Calcola il rapporto di carico Acuto:Cronico (ACWR - Acute:Chronic Workload Ratio)
    * utilizzato in medicina dello sport per prevenire infortuni alla spalla ed overtraining.
    */
-  static calcolaACWR(caricoSettimanaCorrente: number, carichiPrecedenti: number[]): RisultatoACWR {
+  static calcolaACWR(
+    caricoSettimanaCorrente: number,
+    carichiPrecedenti: number[],
+    asimmetriaPropulsiva?: boolean // True per atleti con trazione esclusiva di braccia (paraplegie, amputazioni arti inferiori)
+  ): RisultatoACWR {
     const ultime4 = carichiPrecedenti.slice(0, 4);
     let cronicoMedio: number;
     if (ultime4.length === 0) {
@@ -44,6 +76,7 @@ export class CalcoloScienzaNuoto {
 
     let livello: string;
     let avviso: string | null = null;
+    let avvisoSpalla: string | null = null;
 
     if (rapporto > 1.45) {
       livello = 'Rischio Elevato ⚠️';
@@ -59,12 +92,18 @@ export class CalcoloScienzaNuoto {
       avviso = `Rapporto carico ACWR = ${rapportoFormatted}. Volume significativamente ridotto rispetto alla media abituale.`;
     }
 
+    // Alert specifico per spalla in caso di asimmetria propulsiva
+    if (asimmetriaPropulsiva && rapporto > 1.15) {
+      avvisoSpalla = `⚠️ ATLETA CON ASIMMETRIA PROPULSIVA: Carico sulla spalla dominante superiore al 15% rispetto alla media. Rischio sovraccarico scapolo-omerale elevato. Considerare serie compensatorie o riduzione volume unilateralmente.`;
+    }
+
     return {
       caricoAcuto: caricoSettimanaCorrente,
       caricoCronicoMedio: cronicoMedio,
       acwrRapporto: rapporto,
       livelloRischio: livello,
-      avvisoInfortunio: avviso
+      avvisoInfortunio: avviso,
+      avvisoSpalla
     };
   }
 

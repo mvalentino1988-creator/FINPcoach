@@ -83,6 +83,7 @@ export interface Atleta {
   fattoreVolume: number; // 0.1 - 1.0 (default 1.0)
   note: string;
   volumeAuto: boolean;   // true = calcolato dall'app
+  codiciEccezione?: string[]; // Codici di eccezione WPS (es. '*', 'T', 'A', 'Y', 'E', '7', '9')
 }
 
 export interface CondizioneMedica {
@@ -295,6 +296,7 @@ export interface RisultatoACWR {
   acwrRapporto: number;
   livelloRischio: string;
   avvisoInfortunio: string | null;
+  avvisoSpalla?: string | null; // Alert specifico per sovraccarico scapolo-omerale
 }
 
 export interface TrattoSeduta {

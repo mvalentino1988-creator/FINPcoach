@@ -11,7 +11,7 @@ export interface PageHeaderProps {
 
 export const PageHeader: React.FC<PageHeaderProps> = ({ label, title, meta, icon, right }) => {
   return (
-    <section className="rounded-xl bg-surface-container-low px-3 py-2 sm:px-4 sm:py-2.5 border border-slate-200/60">
+    <section className="rounded-xl bg-surface-container-low px-3 py-2 sm:px-4 sm:py-2.5 border border-outline-variant">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">

@@ -367,7 +367,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
       {/* 4+ Lanes Grid / List */}
       <section
         aria-label="Corsie Cronometrate"
-        className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-2 overflow-y-auto"
+        className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-2 overflow-y-auto pb-14 sm:pb-6"
       >
         {lanes.map(lane => (
           <article
@@ -389,17 +389,17 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleLaneLap(lane.id)}
-                  className="px-3 py-1.5 rounded-lg bg-tertiary text-white text-xs font-bold font-headline shadow-sm hover:brightness-105 active:scale-95 transition min-h-[40px]"
+                  className="px-3.5 py-2 rounded-xl bg-tertiary text-white text-xs sm:text-sm font-bold font-headline shadow-sm hover:brightness-105 active:scale-95 transition min-h-[48px] flex items-center justify-center"
                 >
                   LAP Corsia
                 </button>
                 <button
                   type="button"
                   onClick={() => handleAddAthleteToLane(lane.id)}
-                  className="w-9 h-9 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary flex items-center justify-center font-bold"
+                  className="min-w-[48px] min-h-[48px] rounded-xl bg-surface-container hover:bg-surface-container-high text-primary flex items-center justify-center font-bold"
                   title="Aggiungi atleta in corsia"
                 >
-                  <Plus size={16} />
+                  <Plus size={18} />
                 </button>
               </div>
             </div>

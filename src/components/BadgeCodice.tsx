@@ -19,7 +19,7 @@ export const BadgeCodice: React.FC<Props> = ({ codice, className = '' }) => {
         type="button"
         onClick={() => setModalOpen(true)}
         style={{ backgroundColor: info.containerBg, color: info.textColor }}
-        className={`inline-flex items-center px-3 min-h-[36px] rounded-full font-label-caps text-label-caps uppercase tracking-wider transition hover:opacity-90 shadow-card ${className}`}
+        className={`inline-flex items-center px-3 min-h-[48px] rounded-full font-label-caps text-label-caps uppercase tracking-wider transition hover:opacity-90 shadow-card ${className}`}
         title="Clicca per info fisiologiche sul codice"
         aria-label={`Codice allenamento ${info.codice}: ${info.nome}. Tocca per i dettagli fisiologici.`}
       >

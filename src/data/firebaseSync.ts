@@ -1,24 +1,20 @@
 import {
   initializeApp,
-  getApps,
-  FirebaseApp
+  getApps
 } from 'firebase/app';
 import {
   getFirestore,
-  Firestore,
   doc,
   setDoc,
   getDoc,
-  onSnapshot,
-  Unsubscribe
+  onSnapshot
 } from 'firebase/firestore';
 import {
   getAuth,
-  Auth,
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
-  onAuthStateChanged,
-  User
+  onAuthStateChanged
 } from 'firebase/auth';
 import firebaseConfig, { isFirebaseConfigured } from './firebaseConfig';
 import {
@@ -70,10 +66,10 @@ export interface SyncState {
  * FirebaseSync - Gestisce la sincronizzazione con Firebase Firestore
  */
 export class FirebaseSync {
-  private static app: FirebaseApp | null = null;
-  private static db: Firestore | null = null;
-  private static auth: Auth | null = null;
-  private static unsubscribe: Unsubscribe | null = null;
+  private static app: any = null;
+  private static db: any = null;
+  private static auth: any = null;
+  private static unsubscribe: any = null;
   private static listeners: Set<(data: SyncData) => void> = new Set();
   private static state: SyncState = {
     status: 'disconnected',
@@ -136,6 +132,28 @@ export class FirebaseSync {
   }
 
   /**
+   * Registrazione nuovo account con email e password
+   */
+  static async register(email: string, password: string): Promise<{ success: boolean; error?: string }> {
+    if (!this.initialize()) {
+      return { success: false, error: 'Firebase non configurato' };
+    }
+
+    try {
+      this.state.status = 'connecting';
+      const userCredential = await createUserWithEmailAndPassword(this.auth!, email, password);
+      this.state.userId = userCredential.user.uid;
+      this.state.status = 'synced';
+      return { success: true };
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      this.state.status = 'error';
+      this.state.error = this.getAuthErrorMessage(error.code);
+      return { success: false, error: this.state.error };
+    }
+  }
+
+  /**
    * Logout
    */
   static async logout(): Promise<void> {
@@ -157,14 +175,14 @@ export class FirebaseSync {
   /**
    * Ottieni l'utente corrente
    */
-  static getCurrentUser(): User | null {
+  static getCurrentUser(): any {
     return this.auth?.currentUser || null;
   }
 
   /**
    * Iscriviti ai cambiamenti dello stato di autenticazione
    */
-  static onAuthStateChange(callback: (user: User | null) => void): () => void {
+  static onAuthStateChange(callback: (user: any) => void): () => void {
     try {
       if (!this.initialize() || !this.auth) {
         callback(null);
@@ -283,14 +301,14 @@ export class FirebaseSync {
     const docRef = doc(this.db, 'users', userId);
     this.unsubscribe = onSnapshot(
       docRef,
-      (doc) => {
+      (doc: any) => {
         if (doc.exists()) {
           callback(doc.data() as SyncData);
         } else {
           callback(null);
         }
       },
-      (error) => {
+      (error: any) => {
         console.error('Subscribe error:', error);
         this.state.status = 'error';
         this.state.error = 'Errore sincronizzazione real-time';

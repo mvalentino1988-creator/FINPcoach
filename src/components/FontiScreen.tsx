@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Trophy, BookOpen, CalendarDays, RefreshCw, CheckCircle2 } from 'lucide-react';
-import { RecordScreen } from './RecordScreen';
-import { RegolamentiScreen } from './RegolamentiScreen';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { Trophy, BookOpen, CalendarDays, RefreshCw, CheckCircle2, Waves } from 'lucide-react';
 import { CalendarioScreen } from './CalendarioScreen';
 import { AutoUpdateService, UpdateStatus } from '../domain/autoUpdateService';
 import { PageHeader } from './PageHeader';
+
+const RecordScreen = lazy(() => import('./RecordScreen').then(m => ({ default: m.RecordScreen })));
+const RegolamentiScreen = lazy(() => import('./RegolamentiScreen').then(m => ({ default: m.RegolamentiScreen })));
 
 type FontiTab = 'record' | 'regolamenti' | 'calendario';
 
@@ -54,6 +55,25 @@ export const FontiScreen: React.FC = () => {
         />
       </div>
 
+      {/* Fonti & Gare Hero Card */}
+      <section className="shrink-0 rounded-2xl bg-gradient-to-br from-[#0A2A66] via-[#1457E0] to-[#0A2A66] text-white p-3.5 sm:p-4 shadow-primary-sm space-y-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-white/85">Archivio Ufficiale</span>
+            <h2 className="text-sm sm:text-base font-bold font-headline">Record, Regolamenti e Calendario FINP</h2>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs shrink-0">
+            <span className="px-2.5 py-1 rounded-full bg-white/20 text-white font-bold text-[11px]">
+              Edizione 2026
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between text-[11px] text-white/90 pt-1 border-t border-white/20">
+          <span>🏆 Tabelle Nazionali & WPS</span>
+          <span className="font-bold text-tertiary-fixed">Aggiornato</span>
+        </div>
+      </section>
+
       <div className="shrink-0 ds-card p-2 sm:p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="ds-tabs grid-cols-3">
           {tabs.map(t => (
@@ -79,9 +99,18 @@ export const FontiScreen: React.FC = () => {
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto">
-        {tab === 'record' && <RecordScreen />}
-        {tab === 'regolamenti' && <RegolamentiScreen />}
-        {tab === 'calendario' && <CalendarioScreen />}
+        <Suspense fallback={
+          <div className="flex flex-col items-center justify-center p-12 text-center min-h-[320px]">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary-container text-white flex items-center justify-center shadow-primary-sm mb-3 animate-pulse">
+              <Waves size={24} />
+            </div>
+            <span className="text-xs font-bold font-headline text-on-surface-variant">Caricamento in corso...</span>
+          </div>
+        }>
+          {tab === 'record' && <RecordScreen />}
+          {tab === 'regolamenti' && <RegolamentiScreen />}
+          {tab === 'calendario' && <CalendarioScreen />}
+        </Suspense>
       </div>
     </div>
   );

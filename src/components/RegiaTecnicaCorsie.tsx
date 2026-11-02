@@ -1,27 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../data/AppContext';
 import {
   Activity,
-  AlertTriangle,
-  Award,
-  Calendar,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
-  Layers,
   Printer,
   ShieldAlert,
   Sliders,
-  Sparkles,
-  Users,
   Waves,
   Zap,
-  EyeOff,
   ArrowLeft,
   HeartPulse
 } from 'lucide-react';
 import { PageHeader } from './PageHeader';
 import { Marquee } from './Marquee';
+import { IndicatoreCodici } from './IndicatoreCodici';
+import { FINPStorage } from '../data/storage';
+import { ParserScheda } from '../domain/parserScheda';
+import { formattaData, todayISO } from '../domain/dateUtils';
+import { CodiceAllenamentoKey } from '../types';
 
 export const RegiaTecnicaCorsie: React.FC = () => {
   const { atleti, condizioni } = useApp();
@@ -39,7 +37,24 @@ export const RegiaTecnicaCorsie: React.FC = () => {
 
   const [vascaAttiva, setVascaAttiva] = useState<'50m' | '25m'>('50m');
   const [prescrizioniEspanso, setPrescrizioniEspanso] = useState(false);
-  const [caricoDettaglio, setCaricoDettaglio] = useState(false);
+  const [ripartizioneAperta, setRipartizioneAperta] = useState(false);
+
+  const sedutaOggi = useMemo(() => {
+    const oggi = todayISO();
+    const dataIt = formattaData(oggi);
+    const workout = FINPStorage.getCustomWorkouts().find(
+      w => w.data === dataIt || w.data === oggi
+    );
+    if (!workout) return null;
+    const serie = ParserScheda.parseSerie(workout.testo);
+    const volume = workout.metriTotali || ParserScheda.calcolaMetriDaTesto(workout.testo);
+    const ripartizione: Partial<Record<CodiceAllenamentoKey, number>> = {};
+    for (const s of serie) {
+      const codice = s.codice as CodiceAllenamentoKey;
+      ripartizione[codice] = (ripartizione[codice] ?? 0) + s.metriTotali;
+    }
+    return { volume, ripartizione };
+  }, []);
 
   // Active medical conditions
   const miePrescrizioni = condizioni.filter(c => c.attiva);
@@ -70,7 +85,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
           label="Pianificatore"
           title={`Regia Tecnica · Vasca ${vascaAttiva}`}
           icon={<Sliders size={13} />}
-          meta="Assegnazione corsie, prescrizioni mediche e controllo carico"
+          meta="Corsie, prescrizioni mediche e ripartizione della seduta"
           right={
             <div className="flex items-center gap-1.5">
               {showBack && (
@@ -86,17 +101,17 @@ export const RegiaTecnicaCorsie: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setVascaAttiva(v => (v === '50m' ? '25m' : '50m'))}
-                className="ds-btn-secondary !min-h-[38px] !px-2.5 text-xs shrink-0"
+                className="ds-btn-secondary !min-h-[48px] !px-3.5 text-xs shrink-0 font-bold"
               >
-                <Waves size={14} />
+                <Waves size={15} />
                 <span>Vasca {vascaAttiva}</span>
               </button>
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="ds-btn-primary !min-h-[38px] !px-2.5 text-xs shrink-0"
+                className="ds-btn-primary !min-h-[48px] !px-3.5 text-xs shrink-0 font-bold"
               >
-                <Printer size={14} />
+                <Printer size={15} />
                 <span>Stampa</span>
               </button>
             </div>
@@ -161,43 +176,36 @@ export const RegiaTecnicaCorsie: React.FC = () => {
         )}
       </section>
 
-      {/* 3. CARICO FISIOLOGICO (UNA SOLA RIGA SEGMENTATA) */}
       <section className="shrink-0 ds-card p-2.5 space-y-1.5">
         <button
           type="button"
-          onClick={() => setCaricoDettaglio(v => !v)}
+          onClick={() => setRipartizioneAperta(v => !v)}
           className="w-full flex items-center justify-between text-xs font-bold font-headline text-on-surface"
         >
           <span className="flex items-center gap-1.5 text-primary">
-            <Activity size={15} /> Carico Fisiologico (4.200m)
+            <Activity size={15} /> Intensità della seduta
           </span>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-on-surface-variant font-mono">A1/A2: 45% · B1/B2: 38% · Tec: 17%</span>
-            {caricoDettaglio ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            <span className="text-[11px] text-on-surface-variant font-medium">
+              {sedutaOggi
+                ? `Volume ${sedutaOggi.volume >= 1000 ? `${(sedutaOggi.volume / 1000).toFixed(1).replace('.', ',')} km` : `${sedutaOggi.volume} m`}`
+                : 'Nessuna scheda oggi'}
+            </span>
+            {ripartizioneAperta ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </div>
         </button>
 
-        <div className="w-full h-2.5 rounded-full overflow-hidden flex bg-surface-container">
-          <div className="h-full bg-zone-a" style={{ width: '45%' }} title="A1/A2: 1.890m (45%)" />
-          <div className="h-full bg-zone-b" style={{ width: '38%' }} title="B1/B2: 1.596m (38%)" />
-          <div className="h-full bg-zone-tec" style={{ width: '17%' }} title="Tecnica: 714m (17%)" />
-        </div>
-
-        {caricoDettaglio && (
-          <div className="grid grid-cols-3 gap-2 pt-1.5 border-t border-outline-variant/60 text-xs animate-fade-in">
-            <div className="p-2 rounded-xl bg-zone-a/10 border border-zone-a/30">
-              <div className="font-bold text-zone-a">A1 / A2 Aerobico</div>
-              <div className="font-mono font-bold text-on-surface">1.890m (45%)</div>
-            </div>
-            <div className="p-2 rounded-xl bg-zone-b/10 border border-zone-b/30">
-              <div className="font-bold text-zone-b">B1 / B2 Soglia</div>
-              <div className="font-mono font-bold text-on-surface">1.596m (38%)</div>
-            </div>
-            <div className="p-2 rounded-xl bg-zone-tec/10 border border-zone-tec/30">
-              <div className="font-bold text-zone-tec">Tecnica / Def</div>
-              <div className="font-mono font-bold text-on-surface">714m (17%)</div>
-            </div>
-          </div>
+        {sedutaOggi && sedutaOggi.volume > 0 ? (
+          <IndicatoreCodici
+            ripartizione={sedutaOggi.ripartizione}
+            volumeTotale={sedutaOggi.volume}
+            dettaglio={ripartizioneAperta}
+          />
+        ) : (
+          <p className="text-[11px] text-on-surface-variant leading-snug">
+            Qui compare la quota di lavoro per codice (A1, B1, …) quando c’è una scheda per oggi.
+            Non è un “carico” in metri: i metri sono il volume della seduta, i codici dicono l’intensità.
+          </p>
         )}
       </section>
 
@@ -210,7 +218,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
           <span className="text-xs font-bold text-primary font-headline">4 Corsie</span>
         </div>
 
-        <div className="flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 overflow-y-auto pr-0.5">
+        <div className="flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 overflow-y-auto pr-0.5 pb-14 sm:pb-6">
           {corsie.map(c => (
             <div
               key={c.numero}

@@ -64,6 +64,9 @@ export default {
         error: '#EF4444',
         'on-error': '#ffffff',
         'error-container': '#FEE2E2',
+        'on-error-container': '#7f1d1d',
+        'on-warning-container': '#78350f',
+        'on-success-container': '#065f46',
         info: '#3B82F6',
 
         /* Load zones A1/A2, B1/B2, Tecnica */

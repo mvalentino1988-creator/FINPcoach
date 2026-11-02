@@ -37,7 +37,7 @@ export const OnboardingModal: React.FC<Props> = ({ onComplete }) => {
             {[
               { id: 'classica', title: 'Classica', desc: 'Barra a tutta larghezza con icone ed etichette' },
               { id: 'flottante', title: 'Flottante', desc: 'Pillola staccata con effetto blur e design moderno' },
-              { id: 'azione-centrale', title: 'Azione Centrale', desc: 'Pulsante rapido "In Vasca" in evidenza al centro' },
+              { id: 'azione-centrale', title: 'Azione Centrale', desc: 'Cronometro in evidenza al centro della barra' },
             ].map(item => (
               <button
                 key={item.id}

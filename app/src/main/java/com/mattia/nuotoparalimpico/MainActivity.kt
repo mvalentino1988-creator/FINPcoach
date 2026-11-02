@@ -211,7 +211,7 @@ class MainActivity : ComponentActivity() {
             request: WebResourceRequest
         ): Boolean {
             val uri = request.url
-            if (uri.scheme == "https" && uri.host == ASSET_HOST) return false
+            if (uri.scheme == "https" && (uri.host == ASSET_HOST || uri.host == REMOTE_HOST)) return false
             startActivity(Intent(Intent.ACTION_VIEW, uri))
             return true
         }
@@ -253,6 +253,7 @@ class MainActivity : ComponentActivity() {
     private companion object {
         const val TAG = "FINPcoach"
         const val ASSET_HOST = "appassets.androidplatform.net"
+        const val REMOTE_HOST = "mvalentino1988-creator.github.io"
         const val APP_URL = "https://$ASSET_HOST/assets/web/index.html"
     }
 }

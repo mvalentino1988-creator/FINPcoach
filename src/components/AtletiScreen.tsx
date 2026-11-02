@@ -129,7 +129,7 @@ export const AtletiScreen: React.FC = () => {
           right={
             <button
               onClick={() => setNuovoOpen(true)}
-              className="ds-btn-primary !min-h-[40px] !px-3 shrink-0"
+              className="ds-btn-primary !min-h-[48px] !px-4 shrink-0"
             >
               <UserPlus size={16} />
               <span className="hidden xs:inline">Nuovo</span>
@@ -137,6 +137,25 @@ export const AtletiScreen: React.FC = () => {
           }
         />
       </div>
+
+      {/* Team Summary Hero Card */}
+      <section className="shrink-0 rounded-2xl bg-gradient-to-br from-[#0A2A66] via-[#1457E0] to-[#0A2A66] text-white p-3.5 sm:p-4 shadow-primary-sm space-y-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-white/85">Gestione Rosa</span>
+            <h2 className="text-sm sm:text-base font-bold font-headline">Atleti e Classificazioni WPS</h2>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs shrink-0">
+            <span className="px-2.5 py-1 rounded-full bg-white/20 text-white font-bold text-[11px]">
+              {atleti.length} Atleti
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between text-[11px] text-white/90 pt-1 border-t border-white/20">
+          <span>🏊 Settore Nuoto Paralimpico FINP</span>
+          <span className="font-bold text-tertiary-fixed">{condizioni.filter(c => c.attiva).length} Prescrizioni Mediche</span>
+        </div>
+      </section>
 
       {/* Search & Class Category Filters */}
       {atleti.length > 0 && (
@@ -148,7 +167,7 @@ export const AtletiScreen: React.FC = () => {
               placeholder="Cerca per cognome o nome..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 min-h-[44px] bg-surface-container-low border border-slate-200/70 rounded-xl text-xs sm:text-sm placeholder:text-on-surface-variant focus:bg-surface-container-lowest focus:border-primary-container focus:outline-none focus:ring-1 focus:ring-primary/20 transition"
+              className="w-full pl-9 pr-3 min-h-[48px] bg-surface-container-low border border-slate-200/70 rounded-xl text-xs sm:text-sm placeholder:text-on-surface-variant focus:bg-surface-container-lowest focus:border-primary-container focus:outline-none focus:ring-1 focus:ring-primary/20 transition"
             />
           </div>
 
@@ -164,7 +183,7 @@ export const AtletiScreen: React.FC = () => {
               <button
                 key={f.id}
                 onClick={() => setCategoriaFiltro(f.id as any)}
-                className={`shrink-0 min-h-[36px] px-3 rounded-full text-label-md font-label-md transition whitespace-nowrap ${
+                className={`shrink-0 min-h-[48px] sm:min-h-[44px] px-3.5 rounded-full text-label-md font-bold transition whitespace-nowrap ${
                   categoriaFiltro === f.id
                     ? 'bg-primary text-on-primary shadow-primary-sm'
                     : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
@@ -221,9 +240,10 @@ export const AtletiScreen: React.FC = () => {
 
           const formCheck = CalcoloRitmiRipartenze.valutaNecessitaFormCheck(a, mieiTempi, mesoCorrente);
           const isOpen = openAthletes.has(a.id);
-          const migliorTempo = mieiTempi.length > 0
+          const haTempi = mieiTempi.length > 0;
+          const migliorTempo = haTempi
             ? formattaTempo([...mieiTempi].sort((x, y) => x.centesimi - y.centesimi)[0].centesimi)
-            : '24"80';
+            : '—';
 
           return (
             <div
@@ -266,8 +286,8 @@ export const AtletiScreen: React.FC = () => {
                   )}
 
                   <div className="text-right">
-                    <div className="text-[10px] font-bold text-on-surface-variant uppercase">Miglior Tempo</div>
-                    <div className="text-base sm:text-lg font-headline font-bold text-tertiary tabular-nums">
+                    <div className="text-[12px] font-bold text-on-surface-variant uppercase">Miglior Tempo</div>
+                    <div className={`text-base sm:text-lg font-headline font-bold tabular-nums ${haTempi ? 'text-tertiary' : 'text-on-surface-variant'}`}>
                       {migliorTempo}
                     </div>
                   </div>
@@ -283,7 +303,7 @@ export const AtletiScreen: React.FC = () => {
                 <div className="p-4 bg-surface-container-low border-t border-outline-variant/60 space-y-3 animate-fade-in text-xs">
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="flex items-center bg-surface-container-lowest text-primary px-3 py-1 rounded-xl border border-outline-variant font-bold">
-                      <span className="text-[10px] uppercase text-on-surface-variant mr-1.5">WPS:</span>
+                      <span className="text-[12px] uppercase text-on-surface-variant mr-1.5">WPS:</span>
                       <span>{formatClassi(a)}</span>
                     </div>
 
@@ -317,7 +337,7 @@ export const AtletiScreen: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setSelezionatoId(a.id)}
-                      className="ds-btn-secondary !min-h-[40px] !px-4 text-xs"
+                      className="ds-btn-secondary !min-h-[48px] !px-4 text-xs"
                     >
                       <User size={14} />
                       <span>Biomeccanica</span>
@@ -325,7 +345,7 @@ export const AtletiScreen: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setSelezionatoId(a.id)}
-                      className="ds-btn-primary !min-h-[40px] !px-4 text-xs"
+                      className="ds-btn-primary !min-h-[48px] !px-4 text-xs"
                     >
                       <Timer size={14} />
                       <span>Tempi & Scheda</span>
@@ -404,6 +424,7 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
     iniziale?.fattoreVolume ? Math.round(iniziale.fattoreVolume * 100).toString() : '100'
   );
   const [note, setNote] = useState(iniziale?.note ?? '');
+  const [codiciEccezione, setCodiciEccezione] = useState<string[]>(iniziale?.codiciEccezione ?? []);
 
   const cS = s.trim() ? parseInt(s, 10) : null;
   const cSB = sb.trim() ? parseInt(sb, 10) : null;
@@ -438,7 +459,8 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
       stato: ufficiale ? 'UFFICIALE' : 'IN_ATTESA',
       fattoreVolume: volumeAuto ? (iniziale?.fattoreVolume ?? 1.0) : fattVal / 100.0,
       volumeAuto,
-      note: note.trim()
+      note: note.trim(),
+      codiciEccezione: codiciEccezione.length > 0 ? codiciEccezione : undefined
     });
   };
 
@@ -568,6 +590,42 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
           </div>
 
           <div>
+            <label className="block text-xs font-semibold text-on-surface-variant mb-1">
+              Codici di Eccezione WPS
+              <span className="text-[10px] text-on-surface-variant font-normal ml-1">
+                (es. * T A Y E 7 9 - Regole speciali per partenze, virate, tapper)
+              </span>
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {['*', 'T', 'A', 'Y', 'E', '7', '9'].map(codice => (
+                <button
+                  key={codice}
+                  type="button"
+                  onClick={() => {
+                    setCodiciEccezione(prev =>
+                      prev.includes(codice)
+                        ? prev.filter(c => c !== codice)
+                        : [...prev, codice]
+                    );
+                  }}
+                  className={`w-10 h-10 rounded-lg font-headline font-bold text-sm transition ${
+                    codiciEccezione.includes(codice)
+                      ? 'bg-primary text-white shadow-primary-sm'
+                      : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
+                  }`}
+                >
+                  {codice}
+                </button>
+              ))}
+            </div>
+            {codiciEccezione.length > 0 && (
+              <div className="mt-2 text-[11px] text-primary font-semibold">
+                Codici attivi: {codiciEccezione.join(', ')}
+              </div>
+            )}
+          </div>
+
+          <div>
             <label className="block text-xs font-semibold text-on-surface-variant mb-1">Note / Menomazione</label>
             <textarea
               rows={2}
@@ -582,7 +640,7 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
             <button
               type="button"
               onClick={onAnnulla}
-              className="px-4 h-12 text-on-surface-variant hover:bg-surface-container font-semibold rounded-xl text-xs transition"
+              className="px-4 h-12 text-on-surface hover:bg-surface-container font-semibold rounded-xl text-xs transition"
             >
               Annulla
             </button>
@@ -738,7 +796,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                     {atleta.cognome} {atleta.nome}
                   </h2>
                   {eta != null && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed uppercase shrink-0">
+                    <span className="text-[12px] font-bold px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed uppercase shrink-0">
                       {eta} Anni
                     </span>
                   )}
@@ -752,12 +810,12 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
               <button
                 type="button"
                 onClick={() => setModificaOpen(true)}
-                className="min-w-[44px] min-h-[44px] flex items-center justify-center text-primary-container hover:bg-surface-container rounded-xl transition"
+                className="min-w-[48px] min-h-[48px] flex items-center justify-center text-primary-container hover:bg-surface-container rounded-xl transition"
                 title="Modifica anagrafica"
               >
                 <Edit2 size={16} />
               </button>
-              <button onClick={onChiudi} aria-label="Chiudi dettaglio atleta" className="min-w-[44px] min-h-[44px] flex items-center justify-center text-on-surface-variant hover:text-on-surface-variant rounded-xl transition">
+              <button onClick={onChiudi} aria-label="Chiudi dettaglio atleta" className="min-w-[48px] min-h-[48px] flex items-center justify-center text-on-surface-variant hover:text-on-surface-variant rounded-xl transition">
                 <X size={20} />
               </button>
             </div>
@@ -775,7 +833,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                 Passaporto Ufficiale FINP / WPS
               </span>
             </div>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase self-start xs:self-auto shrink-0 ${
+            <span className={`text-[12px] font-bold px-2 py-0.5 rounded uppercase self-start xs:self-auto shrink-0 ${
               atleta.stato === 'UFFICIALE'
                 ? 'bg-primary-fixed text-primary'
                 : 'bg-tertiary-fixed text-on-tertiary-fixed'
@@ -784,12 +842,35 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
             </span>
           </div>
 
+          {/* WPS Exception Codes Display */}
+          {atleta.codiciEccezione && atleta.codiciEccezione.length > 0 && (
+            <div className="bg-warning-container text-on-warning-container rounded-xl p-2.5 border border-warning/30">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle size={14} className="shrink-0" />
+                <span className="text-xs font-bold uppercase tracking-wider">Codici di Eccezione WPS</span>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {atleta.codiciEccezione.map(codice => (
+                  <span
+                    key={codice}
+                    className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-warning text-on-warning font-headline font-bold text-sm"
+                  >
+                    {codice}
+                  </span>
+                ))}
+              </div>
+              <div className="text-[11px] mt-1 opacity-90">
+                Regole speciali per partenze, virate, uso tapper
+              </div>
+            </div>
+          )}
+
           {/* Ergonomic Horizontal Tabs - Stitch Design System */}
           <div className="grid grid-cols-3 gap-1 bg-surface-container rounded-xl p-1 text-center">
             <button
               type="button"
               onClick={() => setTabDettaglio('biomeccanica')}
-              className={`min-h-[44px] py-2 px-1 rounded-lg text-[11px] xs:text-xs font-bold leading-tight transition flex items-center justify-center gap-1.5 ${
+              className={`min-h-[48px] py-2 px-1 rounded-lg text-[11px] xs:text-xs font-bold leading-tight transition flex items-center justify-center gap-1.5 ${
                 tabDettaglio === 'biomeccanica'
                   ? 'bg-surface-container-lowest text-primary-container shadow-card'
                   : 'text-on-surface-variant hover:text-on-surface'
@@ -801,7 +882,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
             <button
               type="button"
               onClick={() => setTabDettaglio('progressione')}
-              className={`min-h-[44px] py-2 px-1 rounded-lg text-[11px] xs:text-xs font-bold leading-tight transition flex items-center justify-center gap-1.5 ${
+              className={`min-h-[48px] py-2 px-1 rounded-lg text-[11px] xs:text-xs font-bold leading-tight transition flex items-center justify-center gap-1.5 ${
                 tabDettaglio === 'progressione'
                   ? 'bg-surface-container-lowest text-primary-container shadow-card'
                   : 'text-on-surface-variant hover:text-on-surface'
@@ -813,7 +894,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
             <button
               type="button"
               onClick={() => setTabDettaglio('certificati')}
-              className={`min-h-[44px] py-2 px-1 rounded-lg text-[11px] xs:text-xs font-bold leading-tight transition flex items-center justify-center gap-1.5 ${
+              className={`min-h-[48px] py-2 px-1 rounded-lg text-[11px] xs:text-xs font-bold leading-tight transition flex items-center justify-center gap-1.5 ${
                 tabDettaglio === 'certificati'
                   ? 'bg-surface-container-lowest text-primary-container shadow-card'
                   : 'text-on-surface-variant hover:text-on-surface'
@@ -874,7 +955,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                                 <span className="font-bold text-on-tertiary-fixed">
                                   Stima WPS: S{analisi.stimaClassi.classeS} · SB{analisi.stimaClassi.classeSB} · SM{analisi.stimaClassi.classeSM}
                                 </span>
-                                <span className="text-[10px] text-tertiary font-semibold uppercase">
+                                <span className="text-[12px] text-tertiary font-semibold uppercase">
                                   Affidabilità: {analisi.stimaClassi.affidabilita}
                                 </span>
                               </div>

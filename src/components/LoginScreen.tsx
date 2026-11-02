@@ -11,6 +11,8 @@ interface Props {
 export const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onSkip }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,23 +31,36 @@ export const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onSkip }) => {
     return () => unsubscribe();
   }, [onLoginSuccess]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       setError('Inserisci email e password');
       return;
     }
 
+    if (isRegistering) {
+      if (password.length < 6) {
+        setError('La password deve contenere almeno 6 caratteri');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError('Le password non coincidono');
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
 
-    const result = await FirebaseSync.login(email, password);
+    const result = isRegistering
+      ? await FirebaseSync.register(email, password)
+      : await FirebaseSync.login(email, password);
     
     if (result.success) {
       setSuccess(true);
       setTimeout(() => onLoginSuccess(), 500);
     } else {
-      setError(result.error || 'Errore durante il login');
+      setError(result.error || (isRegistering ? 'Errore durante la registrazione' : 'Errore durante il login'));
     }
     
     setLoading(false);
@@ -120,6 +135,24 @@ export const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onSkip }) => {
               </p>
             </div>
 
+            {/* Mode Tabs (Accedi vs Registrati) */}
+            <div className="grid grid-cols-2 p-1 bg-surface-container rounded-xl mb-4 text-xs font-bold font-headline">
+              <button
+                type="button"
+                onClick={() => { setIsRegistering(false); setError(null); }}
+                className={`py-2 rounded-lg transition ${!isRegistering ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
+              >
+                Accedi
+              </button>
+              <button
+                type="button"
+                onClick={() => { setIsRegistering(true); setError(null); }}
+                className={`py-2 rounded-lg transition ${isRegistering ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
+              >
+                Crea Account
+              </button>
+            </div>
+
             {/* Error message */}
             {error && (
               <div className="bg-error-container border border-error/40 rounded-xl p-3 mb-4 flex items-start gap-2">
@@ -128,8 +161,8 @@ export const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onSkip }) => {
               </div>
             )}
 
-            {/* Login form */}
-            <form onSubmit={handleLogin} className="space-y-4">
+            {/* Login / Register form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-on-surface mb-1.5">Email</label>
                 <div className="relative">
@@ -146,7 +179,9 @@ export const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onSkip }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-on-surface mb-1.5">Password</label>
+                <label className="block text-xs font-bold text-on-surface mb-1.5">
+                  Password {isRegistering && <span className="font-normal text-on-surface-variant">(min. 6 caratteri)</span>}
+                </label>
                 <div className="relative">
                   <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
                   <input
@@ -167,6 +202,23 @@ export const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onSkip }) => {
                 </div>
               </div>
 
+              {isRegistering && (
+                <div>
+                  <label className="block text-xs font-bold text-on-surface mb-1.5">Conferma Password</label>
+                  <div className="relative">
+                    <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full h-12 pl-10 pr-4 border border-slate-200/70 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={loading}
@@ -175,18 +227,29 @@ export const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onSkip }) => {
                 {loading ? (
                   <>
                     <Loader2 size={18} className="animate-spin" />
-                    Accesso in corso...
+                    {isRegistering ? 'Creazione account in corso...' : 'Accesso in corso...'}
                   </>
                 ) : (
-                  'Accedi'
+                  isRegistering ? 'Registrati e Sincronizza' : 'Accedi'
                 )}
               </button>
             </form>
 
+            {/* Switch mode button */}
+            <div className="text-center mt-3">
+              <button
+                type="button"
+                onClick={() => { setIsRegistering(!isRegistering); setError(null); }}
+                className="text-xs text-primary font-bold hover:underline"
+              >
+                {isRegistering ? 'Hai già un account? Accedi qui' : 'Non hai un account? Registrati ora'}
+              </button>
+            </div>
+
             {/* Skip button */}
             <button
               onClick={onSkip}
-              className="w-full mt-3 py-3 text-sm text-on-surface-variant hover:text-on-surface font-medium transition"
+              className="w-full mt-2 py-2 text-sm text-on-surface-variant hover:text-on-surface font-medium transition"
             >
               Continua senza sincronizzazione
             </button>

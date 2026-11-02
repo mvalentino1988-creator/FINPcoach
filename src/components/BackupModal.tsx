@@ -3,7 +3,7 @@ import { FINPStorage } from '../data/storage';
 import { FirebaseSync, SyncStatus } from '../data/firebaseSync';
 import { isFirebaseConfigured } from '../data/firebaseConfig';
 import { LoginScreen } from './LoginScreen';
-import { Download, Upload, RefreshCw, X, CheckCircle, AlertTriangle, ShieldCheck, Database, Cloud, CloudOff, LogOut, Loader2, Trash2 } from 'lucide-react';
+import { Download, Upload, RefreshCw, X, CheckCircle, AlertTriangle, ShieldCheck, Database, Cloud, CloudOff, LogOut, Loader2, Trash2, Info } from 'lucide-react';
 
 interface Props {
   onClose: () => void;
@@ -249,7 +249,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
           </div>
 
           {/* Firebase Sync Section (Always Visible) */}
-          <div className="p-3 bg-gradient-to-r from-surface-container-low to-blue-50 rounded-xl border border-primary-fixed-dim space-y-3">
+          <div className="p-3 bg-gradient-to-r from-surface-container-low to-blue-50/50 rounded-xl border border-primary-fixed-dim space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {syncEnabled && FirebaseSync.getCurrentUser() ? (
@@ -257,7 +257,12 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
                 ) : (
                   <CloudOff size={18} className="text-on-surface-variant" />
                 )}
-                <span className="font-bold text-on-surface text-xs">Sincronizzazione Cloud (Firebase)</span>
+                <div>
+                  <div className="font-bold text-on-surface text-xs">Sincronizzazione Cloud (Firebase)</div>
+                  <div className="text-[10px] text-on-surface-variant">
+                    {isConfigured ? (syncEnabled && FirebaseSync.getCurrentUser() ? '🟢 Connesso e sincronizzato' : '🟠 Configurato, accesso richiesto') : '⚪ Modalità Offline Locale'}
+                  </div>
+                </div>
               </div>
               <button
                 onClick={handleToggleSync}
@@ -276,7 +281,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
             <div className="space-y-2">
               <div className="flex items-center justify-between text-[10px]">
                 <span className="text-on-surface-variant">
-                  {FirebaseSync.getCurrentUser() ? `Utente: ${FirebaseSync.getCurrentUser()?.email}` : 'Non autenticato'}
+                  {FirebaseSync.getCurrentUser() ? `Account: ${FirebaseSync.getCurrentUser()?.email}` : (isConfigured ? 'Nessun account collegato' : 'Credenziali .env assenti')}
                 </span>
                 {FirebaseSync.getCurrentUser() && (
                   <button
@@ -303,18 +308,37 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
                 {syncing ? (
                   <>
                     <Loader2 size={14} className="animate-spin" />
-                    Sincronizzazione...
+                    Sincronizzazione in corso...
                   </>
                 ) : FirebaseSync.getCurrentUser() ? (
                   <>
                     <RefreshCw size={14} />
-                    Sincronizza Ora
+                    Sincronizza Ora nel Cloud
                   </>
                 ) : (
-                  'Accedi con Account Firebase'
+                  'Accedi o Registrati con Firebase'
                 )}
               </button>
             </div>
+          </div>
+
+          {/* Versione App & Note Aggiornamenti */}
+          <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant/60 space-y-1.5 text-[11px]">
+            <div className="flex items-center justify-between font-bold text-on-surface">
+              <span className="flex items-center gap-1.5">
+                <Info size={14} className="text-primary" />
+                Versione FINPcoach
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-surface-container text-primary font-mono text-[10px]">
+                v0.2.0
+              </span>
+            </div>
+            <p className="text-on-surface-variant leading-relaxed">
+              • <strong>Web Browser:</strong> gli aggiornamenti si applicano in automatico ad ogni riavvio o ricaricamento della pagina.
+            </p>
+            <p className="text-on-surface-variant leading-relaxed">
+              • <strong>App Android (APK):</strong> per aggiornare l'app sui dispositivi già installati, scarica il nuovo file APK rilasciato o abilita la sincronizzazione cloud per condividere i dati tra dispositivi.
+            </p>
           </div>
 
           <div className="space-y-2.5 pt-1">

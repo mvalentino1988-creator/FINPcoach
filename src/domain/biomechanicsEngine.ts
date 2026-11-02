@@ -6,7 +6,7 @@ export interface AthleticPerformance {
   id: string;
   atletaId?: number;
   data: string; // YYYY-MM-DD
-  classeParalimpica: string; // "S1" - "S10"
+  classeParalimpica: string; // "S1" - "S14"
   stile: Stile;
   distanza: number; // 50, 100, 200, 400
   tempoSecondi: number;
@@ -56,7 +56,11 @@ export class BiomechanicsEngine {
     S7: 1.84,
     S8: 1.95,
     S9: 2.05,
-    S10: 2.18
+    S10: 2.18,
+    S11: 1.98,
+    S12: 2.12,
+    S13: 2.16,
+    S14: 2.10
   };
 
   private static FATTORE_DISTANZA(distanzaMetri: number): number {
@@ -82,7 +86,7 @@ export class BiomechanicsEngine {
     if (stile === 'FARFALLA') fatStile = 0.96;
     if (stile === 'MISTI') fatStile = 0.88;
 
-    const tutteClassi = ['S1', 'S3', 'S5', 'S7', 'S9', 'S10'];
+    const tutteClassi = ['S1', 'S3', 'S5', 'S7', 'S9', 'S10', 'S11', 'S12', 'S13', 'S14'];
     const classiS = (filtroClasseS && tutteClassi.includes(filtroClasseS))
       ? [filtroClasseS]
       : (filtroClasseS ? [filtroClasseS] : tutteClassi);

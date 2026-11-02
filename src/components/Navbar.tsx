@@ -163,8 +163,8 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
           <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-container text-white flex items-center justify-center shrink-0 shadow-primary-sm">
             <Waves size={20} />
           </span>
-          <span className="font-headline text-lg text-on-surface tracking-tight font-bold">
-            FINP<span className="text-secondary">coach</span>
+            <span className="font-headline text-lg text-on-surface tracking-tight font-bold">
+            FINP<span className="text-primary-container">coach</span>
           </span>
         </button>
 
@@ -215,7 +215,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
             </span>
             <span className="flex items-center gap-2 min-w-0">
               <span className="font-headline text-base text-on-surface tracking-tight font-bold truncate">
-                FINP<span className="text-secondary">coach</span>
+                FINP<span className="text-primary-container">coach</span>
               </span>
               <span className="text-xs font-bold text-primary bg-surface-container px-2.5 py-0.5 rounded-full border border-outline-variant/60 min-w-[70px] max-w-[120px]">
                 <Marquee text={CONTESTO[currentTab]} />
@@ -239,7 +239,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
 
         <nav aria-label="Sezioni principali" className="hidden sm:block relative border-t border-outline-variant/50 px-gutter">
           <div className="ds-hscroll flex items-center gap-1.5 py-1.5">
-            {ORDINE.map(key => {
+            {ORDINE.filter(key => !(layoutScelto === 'azione-centrale' && key === 'cronometro')).map(key => {
               const tab = ITEMS[key];
               const active = currentTab === key;
               return (
@@ -306,20 +306,21 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
         <nav
           ref={layout.dockRef}
           aria-label="Navigazione principale"
-          className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-surface/95 backdrop-blur-xl shadow-nav border-t border-outline-variant/60"
+          className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-surface/95 backdrop-blur-xl shadow-nav border-t border-outline-variant/60 pt-5"
           style={{ paddingBottom: 'var(--safe-bottom, 8px)' }}
         >
-          <div className="h-16 px-3 flex items-center justify-between gap-1 relative">
-            {(['oggi', 'cronometro'] as TabKey[]).map(key => {
+          <div className="h-16 px-1 grid grid-cols-5 items-end">
+            {(['oggi', 'atleti'] as TabKey[]).map(key => {
               const tab = ITEMS[key];
+              const active = currentTab === key;
               return (
                 <button
                   key={key}
                   type="button"
                   onClick={() => vai(key)}
-                  aria-current={currentTab === key ? 'page' : undefined}
-                  className={`flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 ${
-                    currentTab === key ? 'text-primary font-bold' : 'text-on-surface-variant'
+                  aria-current={active ? 'page' : undefined}
+                  className={`flex flex-col items-center justify-center min-h-[52px] py-1 px-2 rounded-xl transition-all ${
+                    active ? 'bg-primary/10 text-primary font-bold' : 'text-on-surface-variant'
                   }`}
                 >
                   <tab.Icon size={22} />
@@ -328,30 +329,38 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
               );
             })}
 
-            {/* Pulsante centrale: Cronometro rapido */}
-            <div className="relative -top-4 px-2">
+            <div className="relative flex flex-col items-center justify-end min-h-[52px] pb-1">
               <button
                 type="button"
                 onClick={() => vai('cronometro')}
                 aria-label="Cronometro"
-                className={`w-14 h-14 rounded-full bg-gradient-to-r from-tertiary-container to-tertiary text-white flex items-center justify-center shadow-orange-glow hover:scale-105 transition-all ${
-                  currentTab === 'cronometro' ? 'ring-4 ring-primary/40' : ''
+                aria-current={currentTab === 'cronometro' ? 'page' : undefined}
+                className={`absolute -top-7 w-14 h-14 rounded-full bg-gradient-to-r from-tertiary-container to-tertiary text-on-tertiary flex items-center justify-center shadow-orange-glow hover:scale-105 transition-all ${
+                  currentTab === 'cronometro' ? 'ring-4 ring-primary/35' : ''
                 }`}
               >
                 <Timer size={26} />
               </button>
+              <span
+                className={`text-[11px] font-headline mt-auto ${
+                  currentTab === 'cronometro' ? 'text-primary font-bold' : 'text-on-surface-variant'
+                }`}
+              >
+                Crono
+              </span>
             </div>
 
             {(['regia'] as TabKey[]).map(key => {
               const tab = ITEMS[key];
+              const active = currentTab === key;
               return (
                 <button
                   key={key}
                   type="button"
                   onClick={() => vai(key)}
-                  aria-current={currentTab === key ? 'page' : undefined}
-                  className={`flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 ${
-                    currentTab === key ? 'text-primary font-bold' : 'text-on-surface-variant'
+                  aria-current={active ? 'page' : undefined}
+                  className={`flex flex-col items-center justify-center min-h-[52px] py-1 px-2 rounded-xl transition-all ${
+                    active ? 'bg-primary/10 text-primary font-bold' : 'text-on-surface-variant'
                   }`}
                 >
                   <tab.Icon size={22} />
@@ -363,7 +372,9 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
             <button
               type="button"
               onClick={() => setAltroOpen(true)}
-              className={`flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 ${
+              aria-label="Altre sezioni"
+              aria-expanded={altroOpen}
+              className={`flex flex-col items-center justify-center min-h-[52px] py-1 ${
                 altroAttivo ? 'text-primary font-bold' : 'text-on-surface-variant'
               }`}
             >
@@ -454,7 +465,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
                 >
                   <span
                     className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${
-                      currentTab === tab.key ? 'bg-white/20 text-white' : 'bg-primary-container text-white'
+                      currentTab === tab.key ? 'bg-white/20 text-white' : 'bg-primary-container text-on-primary-container'
                     }`}
                   >
                     <tab.Icon size={22} />
@@ -544,7 +555,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
                 {[
                   { id: 'classica', title: 'Classica', desc: 'Barra a tutta larghezza' },
                   { id: 'flottante', title: 'Flottante', desc: 'Pillola staccata con effetto blur' },
-                  { id: 'azione-centrale', title: 'Azione centrale', desc: 'Pulsante rapido al centro' },
+                  { id: 'azione-centrale', title: 'Azione centrale', desc: 'Cronometro al centro, senza duplicati' },
                 ].map(item => (
                   <button
                     key={item.id}

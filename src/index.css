@@ -54,11 +54,11 @@
     --color-surface-container-highest: #1e3f85;
     --color-surface-variant: #16326b;
     --color-background: #050e21;
-    --color-on-surface: #f1f5f9;
-    --color-on-surface-variant: #94a3b8;
-    --color-on-background: #f1f5f9;
-    --color-outline: #334155;
-    --color-outline-variant: #1e293b;
+    --color-on-surface: #f8fafc;
+    --color-on-surface-variant: #cbd5e1;
+    --color-on-background: #f8fafc;
+    --color-outline: #475569;
+    --color-outline-variant: #334155;
   }
 
   html {
@@ -241,6 +241,24 @@
     overflow: hidden;
   }
 
+  /* Su dispositivi orizzontali compatti (landscape con altezza ridotta <= 550px),
+     evita il blocco rigido per permettere lo scorrimento naturale ed evitare tagli */
+  @media (max-height: 550px) {
+    body.app-no-scroll {
+      height: auto;
+      min-height: 100dvh;
+      overflow-y: auto;
+    }
+    .app-shell-fixed {
+      height: auto;
+      min-height: 100dvh;
+      overflow: visible;
+    }
+    .app-shell-fixed .app-main {
+      overflow: visible;
+    }
+  }
+
   .ds-page {
     @apply w-full mx-auto px-gutter-mobile sm:px-gutter;
     max-width: 1600px;
@@ -279,12 +297,40 @@
   }
 
   .ds-btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 min-h-[44px] px-3 py-2 rounded-xl
+    @apply inline-flex items-center justify-center gap-2 min-h-[48px] px-3 py-2 rounded-xl
            text-on-surface hover:bg-surface-container font-headline text-xs font-bold transition-all;
   }
 
   .ds-chip {
     @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold font-headline shadow-sm;
+  }
+
+  .ds-chip-coral {
+    @apply ds-chip bg-error-container text-on-error-container;
+  }
+
+  .ds-chip-neutral {
+    @apply ds-chip bg-surface-container text-on-surface;
+  }
+
+  .ds-title {
+    @apply font-headline text-headline-lg font-bold text-on-surface;
+  }
+
+  .ds-subtitle {
+    @apply font-headline text-headline-sm font-bold text-on-surface;
+  }
+
+  .ds-body {
+    @apply text-sm text-on-surface-variant leading-relaxed;
+  }
+
+  .ds-label {
+    @apply text-[11px] font-bold uppercase tracking-wider text-on-surface-variant font-headline;
+  }
+
+  .ds-stat {
+    @apply rounded-2xl border border-outline-variant bg-surface-container-lowest p-3 flex flex-col gap-1 shadow-card;
   }
 
   .ds-divider {
@@ -315,5 +361,39 @@
   .animate-marquee {
     animation: none;
     overflow-x: auto;
+  }
+}
+
+/* ============================================================================
+   TABLET LANDSCAPE OPTIMIZATIONS (768px - 1024px)
+   ============================================================================ */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  /* Improve touch targets on tablet landscape */
+  .ds-btn-primary,
+  .ds-btn-secondary,
+  .ds-btn-ghost {
+    min-height: 52px;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  /* Optimize grid layouts for tablet landscape */
+  .app-main {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Improve spacing for side-by-side layouts */
+  .grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  /* Two-column layout for better space utilization */
+  @supports (display: grid) {
+    .tablet-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
   }
 }

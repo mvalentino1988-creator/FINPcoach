@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import {
   ClipboardList,
   Timer,
@@ -40,9 +40,10 @@ import { FINPStorage } from '../data/storage';
 import { OcrWorkoutStandardizer } from '../domain/ocrWorkoutStandardizer';
 import { Sezione } from './Sezione';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
-import { ParaSwimmingAnalyticsView } from './ParaSwimmingAnalyticsView';
 import { PageHeader } from './PageHeader';
 import { Marquee } from './Marquee';
+
+const ParaSwimmingAnalyticsView = lazy(() => import('./ParaSwimmingAnalyticsView').then(m => ({ default: m.ParaSwimmingAnalyticsView })));
 
 type DatiTab = 'schede' | 'tempi' | 'registro' | 'biomeccanica';
 type VistaSchede = 'calendario' | 'lista';
@@ -333,7 +334,7 @@ export const DatiScreen: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
                   <div>
-                    <label className="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">Vasca Impianto</label>
+                    <label className="text-[12px] font-bold text-on-surface-variant uppercase block mb-1">Vasca Impianto</label>
                     <div className="flex gap-1">
                       {[25, 50].map(v => (
                         <button
@@ -351,7 +352,7 @@ export const DatiScreen: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">Durata Target</label>
+                    <label className="text-[12px] font-bold text-on-surface-variant uppercase block mb-1">Durata Target</label>
                     <div className="flex gap-1">
                       {[60, 90, 120].map(d => (
                         <button
@@ -369,7 +370,7 @@ export const DatiScreen: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">Volume Seduta</label>
+                    <label className="text-[12px] font-bold text-on-surface-variant uppercase block mb-1">Volume Seduta</label>
                     <div className="p-2 bg-surface-container-low rounded-xl border border-outline-variant/60 flex items-center justify-between">
                       <span className="font-headline font-bold text-primary">350 / 1800 m</span>
                       <Activity size={16} className="text-primary-container" />
@@ -457,7 +458,18 @@ export const DatiScreen: React.FC = () => {
         )}
 
         {tab === 'registro' && <RegistroScreen />}
-        {tab === 'biomeccanica' && <ParaSwimmingAnalyticsView />}
+        {tab === 'biomeccanica' && (
+          <Suspense fallback={
+            <div className="flex flex-col items-center justify-center p-12 text-center min-h-[320px]">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary-container text-white flex items-center justify-center shadow-primary-sm mb-3 animate-pulse">
+                <Waves size={24} />
+              </div>
+              <span className="text-xs font-bold font-headline text-on-surface-variant">Caricamento in corso...</span>
+            </div>
+          }>
+            <ParaSwimmingAnalyticsView />
+          </Suspense>
+        )}
       </div>
 
       {/* MODAL MODALITÀ NUOVO ALLENAMENTO (3 OPZIONI) */}
