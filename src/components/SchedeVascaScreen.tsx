@@ -18,7 +18,9 @@ import {
   User,
   Users,
   Waves,
-  Bot
+  Bot,
+  Sliders,
+  X
 } from 'lucide-react';
 import { risolviParametriSeduta, seduteSettimana } from '../domain/parametriSeduta';
 import { calcolaVolumeSessione, SedutaSettimana } from '../domain/volumePrescritto';
@@ -51,6 +53,7 @@ export const SchedeVascaScreen: React.FC = () => {
   // e non viene mai salvata in automatico.
   const [scheda, setScheda] = useState<SchedaSeduta | null>(null);
   const [schedaSalvata, setSchedaSalvata] = useState(false);
+  const [configEspansa, setConfigEspansa] = useState(true);
 
   const oggi = parseData(dataTesto) ?? todayISO();
   const atletaSel = atleti.find(a => a.id === atletaSelId) ?? null;
@@ -122,6 +125,7 @@ export const SchedeVascaScreen: React.FC = () => {
   /** La proposta smart viene generata solo su richiesta esplicita dell'allenatore. */
   const generaProposta = () => {
     setSchedaSalvata(false);
+    setConfigEspansa(false);
     setScheda(
       GeneratoreSmartSeduta.genera(
         oggi,
@@ -234,161 +238,176 @@ export const SchedeVascaScreen: React.FC = () => {
         </p>
       </div>
 
-      {/* Configuration bar */}
+      {/* Configuration bar (Collapsible) */}
       <div className="p-3 ds-card shadow-card space-y-2.5">
-        {/* Recipient Chips */}
-        <div>
-          <label className="block text-[10px] font-bold text-on-surface uppercase tracking-wider mb-1">
-            Destinatario
-          </label>
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              onClick={() => setAtletaSelId(null)}
-              className={`inline-flex items-center gap-1 px-2.5 h-10 rounded-lg text-[11px] font-bold transition ${
-                atletaSelId === null
-                  ? 'bg-primary-container text-on-primary shadow-card'
-                  : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
-              }`}
-            >
-              <Users size={13} />
-              <span>Squadra</span>
-            </button>
+        <button
+          type="button"
+          onClick={() => setConfigEspansa(v => !v)}
+          className="w-full flex items-center justify-between text-xs font-bold font-headline text-on-surface"
+        >
+          <span className="flex items-center gap-1.5 text-primary">
+            <Sliders size={15} /> Parametri & Destinatario {scheda ? '· (Scheda pronta)' : ''}
+          </span>
+          <span>{configEspansa ? '▲ Comprimi' : '▼ Modifica parametri'}</span>
+        </button>
 
-            {atleti.map(a => (
-              <button
-                key={a.id}
-                type="button"
-                onClick={() => setAtletaSelId(a.id)}
-                className={`inline-flex items-center gap-1 px-2.5 h-10 rounded-lg text-[11px] font-semibold transition ${
-                  atletaSelId === a.id
-                    ? 'bg-primary-container text-on-primary font-bold shadow-card'
-                    : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
-                }`}
-              >
-                <User size={13} />
-                <span>{a.cognome} {a.nome}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+        {configEspansa && (
+          <div className="space-y-3 pt-2 border-t border-outline-variant/50 animate-fade-in">
+            {/* Recipient Chips */}
+            <div>
+              <label className="block text-xs font-bold text-on-surface uppercase tracking-wider mb-1">
+                Destinatario
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setAtletaSelId(null)}
+                  className={`inline-flex items-center gap-1 px-3 min-h-[48px] rounded-lg text-xs font-bold transition ${
+                    atletaSelId === null
+                      ? 'bg-primary-container text-on-primary shadow-card'
+                      : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+                  }`}
+                >
+                  <Users size={13} />
+                  <span>Squadra</span>
+                </button>
 
-        {/* Date and Target Distance — 4 campi: 1 col su telefono, 2 su tablet, 4 su desktop */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 text-xs pt-2 border-t border-slate-200/70">
-          <div>
-            <label className="block font-semibold text-on-surface mb-0.5 text-[10px] uppercase tracking-wide">Data</label>
-            <input
-              type="text"
-              value={dataTesto}
-              onChange={e => setDataTesto(e.target.value)}
-              className="w-full px-2 h-10 border border-outline-variant rounded-lg font-medium text-xs"
-            />
-          </div>
-          <div>
-            <label className="block font-semibold text-on-surface mb-0.5 text-[10px] uppercase tracking-wide">Vasca / Durata</label>
-            <div className="flex items-center gap-1.5 px-2 h-10 rounded-lg bg-surface-container-low border border-slate-200/70">
-              <Waves size={14} className="text-primary shrink-0" />
-              <span className="text-xs font-bold">{parametriSeduta.vascaMetri}m</span>
-              <span className="text-xs text-on-surface-variant">· {parametriSeduta.durataMin}'</span>
-            </div>
-          </div>
-          <div>
-            <label className="block font-semibold text-on-surface mb-1">Volume seduta</label>
-            <div className="flex items-center gap-1.5 px-2 h-10 rounded-lg bg-surface-container-low border border-slate-200/70">
-              <Timer size={14} className="text-primary shrink-0" />
-              <span className="text-xs font-bold">{volumeSessione} m</span>
-              <span className="text-[10px] text-on-surface-variant truncate">/ {volumeSettimanaAtleta} m</span>
-            </div>
-            {volume.note.length > 0 && (
-              <p className="text-[11px] text-on-surface-variant mt-0.5 line-clamp-1">{volume.note[0]}</p>
-            )}
-          </div>
-          <div>
-            <label className="block font-semibold text-on-surface mb-0.5 text-[10px] uppercase tracking-wide truncate">
-              {atletaSel ? 'Volume sett. atleta' : 'Volume sett. squadra'}
-            </label>
-            {atletaSel ? (
-              <div className="px-2 h-10 bg-surface-container-low border border-slate-200/70 rounded-lg font-bold text-primary-container text-xs flex items-center">
-                {volumeSettimanaAtleta} m
+                {atleti.map(a => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => setAtletaSelId(a.id)}
+                    className={`inline-flex items-center gap-1 px-3 min-h-[48px] rounded-lg text-xs font-semibold transition ${
+                      atletaSelId === a.id
+                        ? 'bg-primary-container text-on-primary font-bold shadow-card'
+                        : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+                    }`}
+                  >
+                    <User size={13} />
+                    <span>{a.cognome} {a.nome}</span>
+                  </button>
+                ))}
               </div>
-            ) : (
-              <input
-                type="number"
-                step="50"
-                value={metriManual}
-                onChange={e => {
-                  setMetriManual(e.target.value);
-                  setScheda(null);
-                }}
-                className="w-full px-2 h-10 border border-outline-variant rounded-lg font-bold text-primary-container text-xs"
-              />
+            </div>
+
+            {/* Date and Target Distance */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-2 border-t border-slate-200/70">
+              <div>
+                <label className="block font-semibold text-on-surface mb-0.5 text-xs uppercase tracking-wide">Data</label>
+                <input
+                  type="text"
+                  value={dataTesto}
+                  onChange={e => setDataTesto(e.target.value)}
+                  className="w-full px-3 min-h-[48px] border border-outline-variant rounded-lg font-medium text-xs"
+                />
+              </div>
+              <div>
+                <label className="block font-semibold text-on-surface mb-0.5 text-xs uppercase tracking-wide">Vasca / Durata</label>
+                <div className="flex items-center gap-1.5 px-3 min-h-[48px] rounded-lg bg-surface-container-low border border-slate-200/70">
+                  <Waves size={14} className="text-primary shrink-0" />
+                  <span className="text-xs font-bold">{parametriSeduta.vascaMetri}m</span>
+                  <span className="text-xs text-on-surface-variant">· {parametriSeduta.durataMin}'</span>
+                </div>
+              </div>
+              <div>
+                <label className="block font-semibold text-on-surface mb-1">Volume seduta</label>
+                <div className="flex items-center gap-1.5 px-3 min-h-[48px] rounded-lg bg-surface-container-low border border-slate-200/70">
+                  <Timer size={14} className="text-primary shrink-0" />
+                  <span className="text-xs font-bold">{volumeSessione} m</span>
+                  <span className="text-xs text-on-surface-variant truncate">/ {volumeSettimanaAtleta} m</span>
+                </div>
+                {volume.note.length > 0 && (
+                  <p className="text-xs text-on-surface-variant mt-0.5 line-clamp-1">{volume.note[0]}</p>
+                )}
+              </div>
+              <div>
+                <label className="block font-semibold text-on-surface mb-0.5 text-xs uppercase tracking-wide truncate">
+                  {atletaSel ? 'Volume sett. atleta' : 'Volume sett. squadra'}
+                </label>
+                {atletaSel ? (
+                  <div className="px-3 min-h-[48px] bg-surface-container-low border border-slate-200/70 rounded-lg font-bold text-primary-container text-xs flex items-center">
+                    {volumeSettimanaAtleta} m
+                  </div>
+                ) : (
+                  <input
+                    type="number"
+                    step="50"
+                    value={metriManual}
+                    onChange={e => {
+                      setMetriManual(e.target.value);
+                      setScheda(null);
+                    }}
+                    className="w-full px-3 min-h-[48px] border border-outline-variant rounded-lg font-bold text-primary-container text-xs"
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap justify-end gap-1.5">
+              <button type="button" onClick={generaProposta} className="ds-btn-ghost !min-h-[44px] !px-3 text-xs">
+                <Sparkles size={15} />
+                <span>Genera proposta</span>
+              </button>
+              <button type="button" onClick={() => setModalIAOpen(true)} className="ds-btn-primary !min-h-[44px] !px-3 text-xs">
+                <Bot size={15} />
+                <span>Genera con IA</span>
+              </button>
+            </div>
+
+            {/* Vasca & Durata Giornaliera (override persistito sulla data) */}
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200/70 text-xs">
+              <div>
+                <label className="block font-semibold text-on-surface mb-0.5 text-xs uppercase tracking-wide">Vasca impianto</label>
+                <div className="flex gap-1.5">
+                  {[25, 50].map(v => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => applicaVasca(v)}
+                      className={`flex-1 min-h-[48px] rounded-lg font-bold text-xs transition border ${
+                        parametriSeduta.vascaMetri === v
+                          ? 'bg-primary-container text-on-primary border-primary-container shadow-card'
+                          : 'bg-surface-container-low text-on-surface border-slate-200/70 hover:bg-surface-container'
+                      }`}
+                    >
+                      {v === 50 ? 'Vasca 50m' : 'Vasca 25m'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-on-surface mb-0.5 text-xs uppercase tracking-wide">Durata target</label>
+                <div className="flex gap-1.5">
+                  {[60, 90, 120].map(d => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => applicaDurata(d)}
+                      className={`flex-1 min-h-[48px] rounded-lg font-bold text-xs transition border ${
+                        parametriSeduta.durataMin === d
+                          ? 'bg-primary-container text-on-primary border-primary-container shadow-card'
+                          : 'bg-surface-container-low text-on-surface border-slate-200/70 hover:bg-surface-container'
+                      }`}
+                    >
+                      {d} min
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {hasOverride && (
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-tertiary-fixed-dim bg-surface-container-low p-3 text-xs font-medium text-on-surface-variant">
+                <span>
+                  Vasca/durata personalizzate per {formattaData(oggi)} (override locale, ricalibra gli altri giorni della settimana).
+                </span>
+                <button type="button" onClick={resetParametriData} className="ds-btn-ghost !py-1 !px-3 shrink-0">
+                  <Check size={14} />
+                  <span>Ripristina piano</span>
+                </button>
+              </div>
             )}
-          </div>
-        </div>
-
-        <div className="flex flex-wrap justify-end gap-1.5">
-          <button type="button" onClick={generaProposta} className="ds-btn-ghost !min-h-[40px] !px-3 text-xs">
-            <Sparkles size={15} />
-            <span>Genera proposta</span>
-          </button>
-          <button type="button" onClick={() => setModalIAOpen(true)} className="ds-btn-primary !min-h-[40px] !px-3 text-xs">
-            <Bot size={15} />
-            <span>Genera con IA</span>
-          </button>
-        </div>
-
-        {/* Vasca & Durata Giornaliera (override persistito sulla data) */}
-        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/70 text-xs">
-          <div>
-            <label className="block font-semibold text-on-surface mb-0.5 text-[10px] uppercase tracking-wide">Vasca impianto</label>
-            <div className="flex gap-1.5">
-              {[25, 50].map(v => (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => applicaVasca(v)}
-                  className={`flex-1 h-10 rounded-lg font-bold text-[11px] transition border ${
-                    parametriSeduta.vascaMetri === v
-                      ? 'bg-primary-container text-on-primary border-primary-container shadow-card'
-                      : 'bg-surface-container-low text-on-surface border-slate-200/70 hover:bg-surface-container'
-                  }`}
-                >
-                  {v === 50 ? 'Vasca 50m' : 'Vasca 25m'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block font-semibold text-on-surface mb-0.5 text-[10px] uppercase tracking-wide">Durata target</label>
-            <div className="flex gap-1.5">
-              {[60, 90, 120].map(d => (
-                <button
-                  key={d}
-                  type="button"
-                  onClick={() => applicaDurata(d)}
-                  className={`flex-1 h-10 rounded-lg font-bold text-[11px] transition border ${
-                    parametriSeduta.durataMin === d
-                      ? 'bg-primary-container text-on-primary border-primary-container shadow-card'
-                      : 'bg-surface-container-low text-on-surface border-slate-200/70 hover:bg-surface-container'
-                  }`}
-                >
-                  {d} min
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {hasOverride && (
-          <div className="flex items-center justify-between gap-2 rounded-xl border border-tertiary-fixed-dim bg-surface-container-low p-2 text-[11px] font-medium text-on-surface-variant">
-            <span>
-              Vasca/durata personalizzate per {formattaData(oggi)} (override locale, ricalibra gli altri giorni della settimana).
-            </span>
-            <button type="button" onClick={resetParametriData} className="ds-btn-ghost !py-1 !px-2 shrink-0">
-              <Check size={14} />
-              <span>Ripristina piano</span>
-            </button>
           </div>
         )}
       </div>
@@ -402,7 +421,7 @@ export const SchedeVascaScreen: React.FC = () => {
             Le schede non vengono create in automatico. Genera una proposta con i parametri della data selezionata,
             oppure usa l'IA esterna. La scheda viene salvata solo con un'azione esplicita.
           </p>
-          <div className="flex flex-wrap justify-center gap-2 pt-1">
+          <div className="flex flex-wrap justify-center gap-3 pt-1">
             <button type="button" onClick={generaProposta} className="ds-btn-primary">
               <Sparkles size={16} />
               <span>Genera proposta</span>
@@ -435,7 +454,7 @@ export const SchedeVascaScreen: React.FC = () => {
             <button
               type="button"
               onClick={salvaProposta}
-              className="self-start sm:self-center inline-flex items-center gap-2 px-3 h-10 bg-secondary-container hover:bg-secondary text-on-secondary-container rounded-xl text-xs font-bold transition shadow-card"
+              className="self-start sm:self-center inline-flex items-center gap-3 px-3 min-h-[48px] bg-secondary-container hover:bg-secondary text-on-secondary-container rounded-xl text-xs font-bold transition shadow-card"
             >
               <Check size={16} />
               <span>{schedaSalvata ? 'Salvata' : 'Salva scheda'}</span>
@@ -443,17 +462,26 @@ export const SchedeVascaScreen: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowDetails(!showDetails)}
-              className="self-start sm:self-center inline-flex items-center gap-2 px-3 h-10 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl text-xs font-bold transition"
+              className="self-start sm:self-center inline-flex items-center gap-3 px-3 min-h-[48px] bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl text-xs font-bold transition"
             >
               {showDetails ? 'Semplifica' : 'Dettagli'}
             </button>
             <button
               type="button"
               onClick={handleCopy}
-              className="self-start sm:self-center inline-flex items-center gap-2 px-3 h-10 bg-primary-container hover:bg-primary text-on-primary rounded-xl text-xs font-bold transition shadow-card"
+              className="self-start sm:self-center inline-flex items-center gap-3 px-3 min-h-[48px] bg-primary-container hover:bg-primary text-on-primary rounded-xl text-xs font-bold transition shadow-card"
             >
               {copiato ? <Check size={16} className="text-emerald-300" /> : <Copy size={16} />}
               <span>{copiato ? 'Copiato!' : 'Copia'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setScheda(null)}
+              className="self-start sm:self-center inline-flex items-center gap-2 px-3 min-h-[48px] bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl text-xs font-bold transition"
+              title="Chiudi questa scheda"
+            >
+              <X size={16} />
+              <span>Chiudi</span>
             </button>
           </div>
         </div>
@@ -525,7 +553,7 @@ export const SchedeVascaScreen: React.FC = () => {
             <span>Serie per Bordo Vasca</span>
           </h4>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-3">
             {scheda.tratti.map((tratto, idx) => (
               <div
                 key={idx}
@@ -547,14 +575,14 @@ export const SchedeVascaScreen: React.FC = () => {
                 )}
 
                 {tratto.ripartenza && (
-                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-on-tertiary-fixed bg-surface-container-low px-2 py-0.5 rounded-md border border-tertiary-fixed-dim">
+                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-on-tertiary-fixed bg-surface-container-low px-3 py-0.5 rounded-md border border-tertiary-fixed-dim">
                     <span>⏱️ Ripartenza:</span>
                     <span>{tratto.ripartenza}</span>
                   </div>
                 )}
 
                 {showDetails && tratto.notaSpecifica && (
-                  <div className="text-[11px] text-on-surface-variant font-medium italic">
+                  <div className="text-xs text-on-surface-variant font-medium italic">
                     • Focus: {tratto.notaSpecifica}
                   </div>
                 )}

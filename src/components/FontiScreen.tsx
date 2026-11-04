@@ -32,69 +32,46 @@ export const FontiScreen: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-1 min-h-0 flex-col gap-2 overflow-hidden">
-      {/* Intestazione pagina — stile dashboard */}
-      <div className="shrink-0">
-        <PageHeader
-          label="Riferimenti Ufficiali"
-          title="Gare & Record"
-          icon={<Trophy size={13} />}
-          meta="Record FINP, regolamenti federali e calendario gare"
-          right={
-            <button
-              type="button"
-              disabled={checking}
-              onClick={handleVerificaOra}
-              className="ds-btn-ghost !min-h-[40px] !px-2.5 shrink-0"
-              title="Verifica aggiornamenti con i siti ufficiali FINP/WPS"
-            >
-              <RefreshCw size={16} className={checking ? 'animate-spin' : ''} />
-              <span className="hidden sm:inline">{checking ? 'Controllo...' : 'Verifica'}</span>
-            </button>
-          }
-        />
-      </div>
-
-      {/* Fonti & Gare Hero Card */}
-      <section className="shrink-0 rounded-2xl bg-gradient-to-br from-[#0A2A66] via-[#1457E0] to-[#0A2A66] text-white p-3.5 sm:p-4 shadow-primary-sm space-y-2">
-        <div className="flex items-center justify-between">
+    <div className="flex flex-1 min-h-0 flex-col gap-3 overflow-hidden">
+      {/* Fonti & Gare Hero Card with integrated Verifica button */}
+      <section className="shrink-0 rounded-2xl bg-gradient-to-br from-[#0A2A66] via-[#1457E0] to-[#0A2A66] text-white p-3.5 sm:p-4 shadow-primary-sm space-y-3">
+        <div className="flex items-center justify-between gap-3">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-white/85">Archivio Ufficiale</span>
             <h2 className="text-sm sm:text-base font-bold font-headline">Record, Regolamenti e Calendario FINP</h2>
           </div>
-          <div className="flex items-center gap-1.5 text-xs shrink-0">
-            <span className="px-2.5 py-1 rounded-full bg-white/20 text-white font-bold text-[11px]">
-              Edizione 2026
-            </span>
-          </div>
+          <button
+            type="button"
+            disabled={checking}
+            onClick={handleVerificaOra}
+            className="px-3.5 py-2 rounded-xl bg-tertiary text-on-tertiary font-bold text-xs flex items-center gap-1.5 shadow-sm hover:scale-105 transition shrink-0 disabled:opacity-50"
+            title="Verifica aggiornamenti con i siti ufficiali FINP/WPS"
+          >
+            <RefreshCw size={15} className={checking ? 'animate-spin' : ''} />
+            <span>{checking ? 'Controllo...' : 'Verifica'}</span>
+          </button>
         </div>
-        <div className="flex items-center justify-between text-[11px] text-white/90 pt-1 border-t border-white/20">
-          <span>🏆 Tabelle Nazionali & WPS</span>
-          <span className="font-bold text-tertiary-fixed">Aggiornato</span>
+        <div className="flex items-center justify-between text-[11px] text-white/90 pt-1.5 border-t border-white/20">
+          <span>🏆 Tabelle Nazionali & WPS · Edizione 2026</span>
+          <span className="font-bold text-tertiary-fixed">
+            {updateStatus ? `Ultimo check: ${updateStatus.ultimaVerifica}` : 'Aggiornato'}
+          </span>
         </div>
       </section>
 
-      <div className="shrink-0 ds-card p-2 sm:p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div className="ds-tabs grid-cols-3">
-          {tabs.map(t => (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => setTab(t.key)}
-              className={`ds-tab ${tab === t.key ? 'ds-tab-active' : ''}`}
-            >
-              <span className="hidden xs:inline-flex shrink-0">{t.icon}</span>
-              <span className="truncate">{t.label}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center justify-between sm:justify-end gap-2 min-w-0">
-          {updateStatus && (
-            <span className="ds-label !normal-case min-w-0 flex-1 sm:flex-none sm:max-w-[260px] leading-snug" title={updateStatus.messaggio}>
-              Ultimo check: {updateStatus.ultimaVerifica}
-            </span>
-          )}
+      {/* TABS A MENU A TENDINA PULITO E LEGGIBILE */}
+      <div className="shrink-0 ds-card p-2 sm:p-2.5">
+        <div className="flex items-center gap-2">
+          <span className="ds-label shrink-0">Sezione:</span>
+          <select
+            value={tab}
+            onChange={e => setTab(e.target.value as FontiTab)}
+            className="w-full min-h-[44px] bg-surface-container-low border border-outline-variant rounded-xl px-3 font-headline font-bold text-xs sm:text-sm text-on-surface focus:border-primary"
+          >
+            <option value="record">🏆 Record FINP / Italia / Europa / Mondo</option>
+            <option value="regolamenti">📖 Regolamenti Federali & Circolari</option>
+            <option value="calendario">📅 Calendario Gare Agonistiche</option>
+          </select>
         </div>
       </div>
 

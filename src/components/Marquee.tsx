@@ -35,13 +35,14 @@ export const Marquee: React.FC<MarqueeProps> = ({ text, className = '' }) => {
     >
       <div
         ref={textRef}
-        className={`inline-block ${isOverflowing && !paused ? 'animate-marquee' : ''}`}
+        className={`inline-flex items-center gap-8 ${isOverflowing && !paused ? 'animate-marquee' : ''}`}
         style={{
           willChange: 'transform',
           animationPlayState: paused ? 'paused' : 'running',
         }}
       >
-        {text}
+        <span>{text}</span>
+        {isOverflowing && <span>{text}</span>}
       </div>
       {isOverflowing && (
         <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-surface-container-lowest to-transparent pointer-events-none" />

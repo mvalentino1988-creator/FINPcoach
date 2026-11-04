@@ -154,8 +154,8 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
       <div className="w-full sm:max-w-2xl bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl shadow-xl border border-slate-200/70 max-h-[94vh] overflow-y-auto">
-        <div className="flex items-center justify-between gap-2 p-4 border-b border-slate-200/70 sticky top-0 bg-surface-container-lowest">
-          <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center justify-between gap-3 p-4 border-b border-slate-200/70 sticky top-0 bg-surface-container-lowest">
+          <div className="flex items-center gap-3 min-w-0">
             <span className="w-9 h-9 rounded-lg bg-primary text-on-primary flex items-center justify-center shrink-0">
               <Bot size={18} />
             </span>
@@ -238,7 +238,7 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
             <textarea
               readOnly
               value={promptGenerato}
-              className="w-full h-40 p-2 border border-outline-variant rounded-lg text-xs font-mono resize-none"
+              className="w-full h-40 p-3 border border-outline-variant rounded-lg text-xs font-mono resize-none"
             />
             {copiato && <p className="text-body-base font-body-base text-primary">Prompt copiato negli appunti.</p>}
           </div>
@@ -276,7 +276,7 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
               <textarea
                 value={testoIA}
                 onChange={(e) => setTestoIA(e.target.value)}
-                className="w-full h-40 p-2 border border-outline-variant rounded-lg text-xs font-mono resize-none"
+                className="w-full h-40 p-3 border border-outline-variant rounded-lg text-xs font-mono resize-none"
               />
             </div>
           )}

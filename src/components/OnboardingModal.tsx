@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../data/AppContext';
-import { LayoutDashboard, Sparkles, Check, Moon, Sun, Monitor } from 'lucide-react';
+import { Waves, Check, Moon, Sun, Monitor, Sparkles } from 'lucide-react';
 
 interface Props {
   onComplete: () => void;
@@ -9,7 +9,7 @@ interface Props {
 export const OnboardingModal: React.FC<Props> = ({ onComplete }) => {
   const { layoutScelto, setLayoutScelto, themeMode, setThemeMode } = useApp();
   const [selectedLayout, setSelectedLayout] = useState<'classica' | 'flottante' | 'azione-centrale'>(layoutScelto);
-  const [selectedTheme, setSelectedTheme] = useState<'sistema' | 'chiaro' | 'scuro'>(themeMode);
+  const [selectedTheme,  setSelectedTheme]  = useState<'sistema' | 'chiaro' | 'scuro'>(themeMode);
 
   const handleSave = () => {
     setLayoutScelto(selectedLayout);
@@ -19,61 +19,81 @@ export const OnboardingModal: React.FC<Props> = ({ onComplete }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-surface-container-lowest rounded-3xl p-6 max-w-lg w-full shadow-float border border-outline-variant space-y-6 animate-fade-in text-on-surface">
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary-container text-white mx-auto flex items-center justify-center shadow-primary-sm">
-            <Sparkles size={24} />
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-4">
+      <div className="bg-surface-container-lowest rounded-3xl p-6 max-w-lg w-full shadow-float border border-outline-variant space-y-6 animate-slide-up text-on-surface">
+
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <div className="w-14 h-14 rounded-3xl bg-gradient-blue mx-auto flex items-center justify-center shadow-primary-sm">
+            <Waves size={26} className="text-white" />
           </div>
-          <h2 className="text-xl font-bold font-headline">Benvenuto in FINPcoach</h2>
-          <p className="text-sm text-on-surface-variant">
-            Personalizza l'aspetto e la navigazione del tuo assistente di nuoto paralimpico.
-          </p>
+          <div>
+            <h2 className="font-headline text-xl font-bold text-on-surface">
+              Benvenuto in FINP<span className="text-tertiary">coach</span>
+            </h2>
+            <p className="text-sm text-on-surface-variant mt-1">
+              Personalizza aspetto e navigazione del tuo assistente per il nuoto paralimpico.
+            </p>
+          </div>
         </div>
 
-        <div className="space-y-3">
-          <label className="text-xs font-bold uppercase tracking-wider text-primary">Stile Navigazione Inferiore</label>
-          <div className="grid grid-cols-1 gap-2.5">
+        {/* Stile navigazione */}
+        <div className="space-y-2.5">
+          <label className="text-xs font-bold uppercase tracking-widest text-primary block">
+            Stile Navigazione
+          </label>
+          <div className="grid grid-cols-1 gap-2">
             {[
-              { id: 'classica', title: 'Classica', desc: 'Barra a tutta larghezza con icone ed etichette' },
-              { id: 'flottante', title: 'Flottante', desc: 'Pillola staccata con effetto blur e design moderno' },
-              { id: 'azione-centrale', title: 'Azione Centrale', desc: 'Cronometro in evidenza al centro della barra' },
+              { id: 'classica',        title: 'Classica',        desc: 'Barra a tutta larghezza con icone ed etichette' },
+              { id: 'flottante',       title: 'Flottante',       desc: 'Pillola staccata con effetto glass e blur' },
+              { id: 'azione-centrale', title: 'Azione Centrale', desc: 'Cronometro evidenziato al centro della barra' },
             ].map(item => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => setSelectedLayout(item.id as any)}
-                className={`flex items-start justify-between p-3.5 rounded-2xl text-left border transition ${
+                className={`flex items-start justify-between p-4 rounded-2xl text-left border transition-all group ${
                   selectedLayout === item.id
-                    ? 'border-primary bg-primary/5 text-primary font-bold'
-                    : 'border-outline-variant bg-surface-container-low text-on-surface hover:bg-surface-container'
+                    ? 'border-primary bg-primary text-primary'
+                    : 'border-outline-variant bg-surface-container-low text-on-surface hover:bg-surface-container hover:border-outline-variant'
                 }`}
               >
                 <div>
-                  <div className="font-headline text-sm">{item.title}</div>
+                  <div className={`font-headline text-sm font-bold ${selectedLayout === item.id ? 'text-primary' : 'text-on-surface'}`}>
+                    {item.title}
+                  </div>
                   <div className="text-xs text-on-surface-variant mt-0.5">{item.desc}</div>
                 </div>
-                {selectedLayout === item.id && <Check size={18} className="text-primary mt-0.5 shrink-0" />}
+                <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                  selectedLayout === item.id
+                    ? 'border-primary bg-primary'
+                    : 'border-outline-variant bg-transparent'
+                }`}>
+                  {selectedLayout === item.id && <Check size={12} className="text-white" />}
+                </span>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="space-y-3">
-          <label className="text-xs font-bold uppercase tracking-wider text-primary">Tema Grafico</label>
+        {/* Tema */}
+        <div className="space-y-2.5">
+          <label className="text-xs font-bold uppercase tracking-widest text-primary block">
+            Tema Grafico
+          </label>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { id: 'sistema', label: 'Sistema', icon: <Monitor size={16} /> },
-              { id: 'chiaro', label: 'Chiaro', icon: <Sun size={16} /> },
-              { id: 'scuro', label: 'Scuro', icon: <Moon size={16} /> },
+              { id: 'sistema', label: 'Sistema', icon: <Monitor size={20} /> },
+              { id: 'chiaro',  label: 'Chiaro',  icon: <Sun size={20} /> },
+              { id: 'scuro',   label: 'Scuro',   icon: <Moon size={20} /> },
             ].map(item => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => setSelectedTheme(item.id as any)}
-                className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border text-xs font-bold transition ${
+                className={`flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border text-xs font-bold font-headline transition-all ${
                   selectedTheme === item.id
-                    ? 'border-primary bg-primary text-white shadow-primary-sm'
+                    ? 'border-primary bg-gradient-blue text-white shadow-primary-sm'
                     : 'border-outline-variant bg-surface-container-low text-on-surface hover:bg-surface-container'
                 }`}
               >
@@ -84,11 +104,13 @@ export const OnboardingModal: React.FC<Props> = ({ onComplete }) => {
           </div>
         </div>
 
+        {/* CTA */}
         <button
           type="button"
           onClick={handleSave}
-          className="w-full ds-btn-primary py-3.5 rounded-2xl text-center justify-center"
+          className="w-full ds-btn-primary py-4 rounded-2xl justify-center text-sm"
         >
+          <Sparkles size={18} />
           Inizia ad Allenare
         </button>
       </div>

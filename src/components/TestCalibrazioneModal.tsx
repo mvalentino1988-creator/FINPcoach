@@ -69,9 +69,9 @@ export const TestCalibrazioneModal: React.FC<Props> = ({ atleta, onClose, onSalv
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in text-on-surface">
       <div className="bg-surface-container-lowest rounded-3xl p-6 max-w-md w-full shadow-float border border-outline-variant space-y-5">
-        <div className="flex items-center justify-between pb-3 border-b border-outline-variant/60">
+        <div className="flex items-center justify-between pb-3 border-b border-outline-variant">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-primary-container text-white flex items-center justify-center shadow-primary-sm">
+            <div className="w-10 min-h-[48px] rounded-2xl bg-gradient-to-br from-primary to-primary-container text-white flex items-center justify-center shadow-primary-sm">
               <Award size={20} />
             </div>
             <div>
@@ -79,12 +79,12 @@ export const TestCalibrazioneModal: React.FC<Props> = ({ atleta, onClose, onSalv
               <p className="text-xs text-on-surface-variant">{atleta.cognome} {atleta.nome} (S{classeS})</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-surface-container">
+          <button onClick={onClose} className="p-3 rounded-full hover:bg-surface-container">
             <X size={20} />
           </button>
         </div>
 
-        <div className="p-3.5 bg-primary/5 rounded-2xl border border-primary/20 space-y-1.5">
+        <div className="p-3.5 bg-primary rounded-2xl border border-primary/20 space-y-1.5">
           <div className="font-headline font-bold text-xs text-primary flex items-center gap-1.5">
             <Sparkles size={14} />
             <span>{testInfo.titolo}</span>
@@ -120,7 +120,7 @@ export const TestCalibrazioneModal: React.FC<Props> = ({ atleta, onClose, onSalv
               autoFocus
             />
             {centesimi && (
-              <div className="text-[11px] text-success font-bold mt-1">
+              <div className="text-xs text-success font-bold mt-1">
                 Tempo valido riconosciuto: {formattaTempo(centesimi)}
               </div>
             )}
@@ -132,11 +132,11 @@ export const TestCalibrazioneModal: React.FC<Props> = ({ atleta, onClose, onSalv
               type="text"
               value={notaTest}
               onChange={e => setNotaTest(e.target.value)}
-              className="w-full px-3 h-10 bg-surface-container-low border border-outline-variant rounded-xl"
+              className="w-full px-3 min-h-[48px] bg-surface-container-low border border-outline-variant rounded-xl"
             />
           </div>
 
-          <div className="flex gap-2 pt-2 border-t border-outline-variant/60">
+          <div className="flex gap-3 pt-2 border-t border-outline-variant">
             <button
               type="submit"
               disabled={!centesimi}

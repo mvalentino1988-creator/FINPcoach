@@ -41,7 +41,7 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
           {showBack && (
             <button
               onClick={onBack}
-              className="shrink-0 w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low active:scale-95 transition"
+              className="shrink-0 w-10 min-h-[48px] flex items-center justify-center rounded-full hover:bg-surface-container-low active:scale-95 transition"
               aria-label="Indietro"
             >
               <ChevronLeft size={20} className="text-on-surface" />
@@ -102,7 +102,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
 
   return (
     <section
-      className="relative overflow-hidden rounded-2xl p-4 border border-slate-200/60"
+      className="relative overflow-hidden rounded-3xl p-5 border border-outline-variant transition-all duration-250 hover:shadow-pop"
       style={{
         backgroundColor: COLORS.surfaceContainerLow,
         boxShadow: SHADOWS.card,
@@ -110,27 +110,27 @@ export const HeroCard: React.FC<HeroCardProps> = ({
     >
       {/* Decorative circle - positioned to NOT clip content */}
       <div
-        className="absolute -right-12 -bottom-12 w-32 h-32 rounded-full opacity-30 pointer-events-none"
+        className="absolute -right-16 -bottom-16 w-40 h-40 rounded-full opacity-25 pointer-events-none"
         style={{
           backgroundColor: accentColors[accent].bg,
         }}
       />
 
-      <div className="relative z-10 flex items-center justify-between gap-3">
+      <div className="relative z-10 flex items-center justify-between gap-4">
         <div className="min-w-0 flex-1">
           <h2
             className="truncate"
             style={{
               ...TYPOGRAPHY.headlineLarge,
               color: COLORS.onSurface,
-              lineHeight: '1.2',
+              lineHeight: '1.15',
             }}
           >
             {title}
           </h2>
           {subtitle && (
             <p
-              className="mt-1"
+              className="mt-1.5"
               style={{
                 ...TYPOGRAPHY.bodyMedium,
                 color: COLORS.onSurfaceVariant,
@@ -143,7 +143,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
           {badge}
           {rightAction}
         </div>
@@ -172,14 +172,14 @@ export const SectionCard: React.FC<SectionCardProps> = ({
 }) => {
   return (
     <section
-      className={`rounded-2xl border border-slate-200/60 ${className}`}
+      className={`rounded-3xl border border-outline-variant transition-all duration-250 hover:shadow-pop ${className}`}
       style={{
         backgroundColor: COLORS.surfaceContainerLowest,
         boxShadow: SHADOWS.card,
       }}
     >
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/40">
-        <div className="flex items-center gap-2 min-w-0">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-outline-variant">
+        <div className="flex items-center gap-3 min-w-0">
           <h3
             className="truncate"
             style={{
@@ -191,7 +191,7 @@ export const SectionCard: React.FC<SectionCardProps> = ({
           </h3>
           {badge && (
             <span
-              className="shrink-0 px-2 py-0.5 rounded-full text-xs font-bold"
+              className="shrink-0 px-3 py-1 rounded-full text-xs font-bold"
               style={{
                 backgroundColor: COLORS.primaryContainer,
                 color: COLORS.onPrimary,
@@ -203,7 +203,7 @@ export const SectionCard: React.FC<SectionCardProps> = ({
         </div>
         {rightAction && <div className="shrink-0">{rightAction}</div>}
       </div>
-      <div className="p-4">{children}</div>
+      <div className="p-5">{children}</div>
     </section>
   );
 };
@@ -276,13 +276,13 @@ interface StatTileProps {
 export const StatTile: React.FC<StatTileProps> = ({ label, value, icon, trend = 'neutral' }) => {
   return (
     <div
-      className="rounded-xl p-3 border border-slate-200/60"
+      className="rounded-2xl p-4 border border-outline-variant transition-all duration-250 hover:shadow-pop"
       style={{
         backgroundColor: COLORS.surfaceContainerLowest,
         boxShadow: SHADOWS.card,
       }}
     >
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center justify-between mb-2">
         <span
           className="uppercase tracking-wider"
           style={{
@@ -331,7 +331,7 @@ export const PrimaryButton: React.FC<BaseButtonProps> = ({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl font-bold transition active:scale-95 ${className}`}
+      className={`inline-flex items-center justify-center gap-3 rounded-xl font-bold transition active:scale-95 ${className}`}
       style={{
         backgroundColor: disabled ? COLORS.surfaceContainer : COLORS.primaryContainer,
         color: disabled ? COLORS.onSurfaceVariant : COLORS.onPrimary,
@@ -359,7 +359,7 @@ export const SecondaryButton: React.FC<BaseButtonProps> = ({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl font-bold transition active:scale-95 ${className}`}
+      className={`inline-flex items-center justify-center gap-3 rounded-xl font-bold transition active:scale-95 ${className}`}
       style={{
         backgroundColor: disabled ? COLORS.surfaceContainer : COLORS.surfaceContainerHigh,
         color: disabled ? COLORS.onSurfaceVariant : COLORS.onSurface,

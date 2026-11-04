@@ -30,10 +30,10 @@ export const BadgeCodice: React.FC<Props> = ({ codice, className = '' }) => {
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-inverse-surface/50 backdrop-blur-[2px]">
           <div className="ds-sheet sm:rounded-xl sm:max-w-sm sm:w-full sm:shadow-float p-5 sm:p-5 max-h-[80vh] overflow-y-auto">
             <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-200/70">
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-3 min-w-0">
                 <span
                   style={{ backgroundColor: info.containerBg, color: info.textColor }}
-                  className="px-2.5 py-1 rounded-full font-label-caps text-label-caps uppercase shrink-0"
+                  className="px-3 py-1 rounded-full font-label-caps text-label-caps uppercase shrink-0"
                 >
                   {info.codice}
                 </span>

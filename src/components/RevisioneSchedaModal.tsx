@@ -98,8 +98,8 @@ export const RevisioneSchedaModal: React.FC<Props> = ({ open, testo, onClose, on
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
       <div className="w-full sm:max-w-2xl bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl shadow-xl border border-slate-200/70 max-h-[94vh] overflow-y-auto">
-        <div className="flex items-center justify-between gap-2 p-4 border-b border-slate-200/70 sticky top-0 bg-surface-container-lowest">
-          <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center justify-between gap-3 p-4 border-b border-slate-200/70 sticky top-0 bg-surface-container-lowest">
+          <div className="flex items-center gap-3 min-w-0">
             <span className="w-9 h-9 rounded-lg bg-primary text-on-primary flex items-center justify-center shrink-0">
               <Brain size={18} />
             </span>
@@ -158,7 +158,7 @@ export const RevisioneSchedaModal: React.FC<Props> = ({ open, testo, onClose, on
                                 : `${suggerimento.distanza}`;
                           correggiRiga(idx, val);
                         }}
-                        className="self-start inline-flex items-center gap-1.5 px-2.5 h-9 rounded-lg bg-surface-container text-xs font-bold text-on-surface"
+                        className="self-start inline-flex items-center gap-1.5 px-3 h-9 rounded-lg bg-surface-container text-xs font-bold text-on-surface"
                       >
                         <Sparkles size={14} />
                         <span>{suggerimento.descrizione}</span>
@@ -185,7 +185,7 @@ export const RevisioneSchedaModal: React.FC<Props> = ({ open, testo, onClose, on
             );
           })}
 
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-3 pt-2">
             <button type="button" onClick={applicaTutto} className="ds-btn-primary flex-1">
               Applica scheda corretta
             </button>

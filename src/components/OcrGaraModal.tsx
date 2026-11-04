@@ -112,7 +112,7 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
             ) : (
               <div className="space-y-2">
                 {righe.map((r) => (
-                  <div key={r.id} className={`p-3 rounded-xl border transition flex flex-col sm:flex-row sm:items-center gap-2 text-xs ${r.selezionato ? 'bg-surface-container-low/40 border-primary-fixed-dim' : 'bg-surface-container-low border-slate-200/70 opacity-60'}`}>
+                  <div key={r.id} className={`p-3 rounded-xl border transition flex flex-col sm:flex-row sm:items-center gap-3 text-xs ${r.selezionato ? 'bg-surface-container-low/40 border-primary-fixed-dim' : 'bg-surface-container-low border-slate-200/70 opacity-60'}`}>
                     <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
@@ -124,7 +124,7 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
                         type="text"
                         value={r.data}
                         onChange={(e) => handleAggiornaRiga(r.id, 'data', e.target.value)}
-                        className="w-24 px-2 py-1 border border-outline-variant rounded font-semibold text-center"
+                        className="w-24 px-3 py-1 border border-outline-variant rounded font-semibold text-center"
                         placeholder="Data"
                       />
                     </div>
@@ -134,14 +134,14 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
                         type="text"
                         value={r.luogo}
                         onChange={(e) => handleAggiornaRiga(r.id, 'luogo', e.target.value)}
-                        className="px-2 py-1 border border-outline-variant rounded font-medium"
+                        className="px-3 py-1 border border-outline-variant rounded font-medium"
                         placeholder="Luogo / Gara"
                       />
 
                       <select
                         value={r.stile}
                         onChange={(e) => handleAggiornaRiga(r.id, 'stile', e.target.value)}
-                        className="px-2 py-1 border border-outline-variant rounded font-medium"
+                        className="px-3 py-1 border border-outline-variant rounded font-medium"
                       >
                         {STILI.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                       </select>
@@ -151,7 +151,7 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
                           type="number"
                           value={r.distanzaMetri}
                           onChange={(e) => handleAggiornaRiga(r.id, 'distanzaMetri', parseInt(e.target.value) || 100)}
-                          className="w-16 px-2 py-1 border border-outline-variant rounded font-bold text-center"
+                          className="w-16 px-3 py-1 border border-outline-variant rounded font-bold text-center"
                         />
                         <span className="text-on-surface-variant font-bold">m</span>
                         <select
@@ -169,7 +169,7 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
                           type="text"
                           value={r.tempoTesto}
                           onChange={(e) => handleAggiornaRiga(r.id, 'tempoTesto', e.target.value)}
-                          className="flex-1 px-2 py-1 border border-outline-variant rounded font-bold text-primary-container text-center"
+                          className="flex-1 px-3 py-1 border border-outline-variant rounded font-bold text-primary-container text-center"
                           placeholder="Tempo"
                         />
                         <button
@@ -188,7 +188,7 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
           )}
         </div>
 
-        <div className="flex gap-2 pt-3 border-t border-slate-200/70 shrink-0">
+        <div className="flex gap-3 pt-3 border-t border-slate-200/70 shrink-0">
           <button
             type="button"
             onClick={handleConferma}

@@ -25,8 +25,8 @@ export const OcrPreviewModal: React.FC<Props> = ({ isOpen, initialText, onConfir
   return (
     <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 backdrop-blur-xs">
       <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl p-4 sm:p-6 max-w-lg w-full shadow-float space-y-4 border border-slate-200/70 max-h-[92dvh] overflow-y-auto">
-        <div className="flex items-start justify-between gap-2 border-b border-slate-200/70 pb-3">
-          <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-start justify-between gap-3 border-b border-slate-200/70 pb-3">
+          <div className="flex items-center gap-3 min-w-0">
             <div className="w-8 h-8 shrink-0 rounded-xl bg-primary-fixed text-primary-container flex items-center justify-center">
               <Camera size={18} />
             </div>
@@ -39,7 +39,7 @@ export const OcrPreviewModal: React.FC<Props> = ({ isOpen, initialText, onConfir
             type="button"
             onClick={onCancel}
             aria-label="Chiudi anteprima OCR"
-            className="p-2 -m-1 shrink-0 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition"
+            className="p-3 -m-1 shrink-0 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition"
           >
             <X size={18} />
           </button>
@@ -64,7 +64,7 @@ export const OcrPreviewModal: React.FC<Props> = ({ isOpen, initialText, onConfir
           </div>
           <div className="max-h-36 overflow-y-auto space-y-1">
             {serieParsed.map((s, i) => (
-              <div key={i} className="flex items-center justify-between text-[11px] bg-surface-container-lowest p-2 rounded-lg border border-slate-200/70">
+              <div key={i} className="flex items-center justify-between text-xs bg-surface-container-lowest p-3 rounded-lg border border-slate-200/70">
                 <span className="font-medium text-on-surface">{s.descrizione}</span>
                 <span className="font-bold text-primary-container">{s.metriTotali}m ({s.codice})</span>
               </div>
@@ -72,7 +72,7 @@ export const OcrPreviewModal: React.FC<Props> = ({ isOpen, initialText, onConfir
           </div>
         </div>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-200/70">
+        <div className="flex gap-3 pt-2 border-t border-slate-200/70">
           <button
             type="button"
             onClick={() => onConfirm(text)}

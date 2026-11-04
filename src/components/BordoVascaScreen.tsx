@@ -7,9 +7,9 @@ export const BordoVascaScreen: React.FC = () => {
   const [vista, setVista] = useState<'cronometro' | 'regia'>('cronometro');
 
   return (
-    <div className="flex flex-1 min-h-0 flex-col gap-2 overflow-hidden">
+    <div className="flex flex-1 min-h-0 flex-col gap-3 overflow-hidden">
       {/* Toggle Bar */}
-      <div className="shrink-0 ds-card p-2 flex items-center justify-between gap-2">
+      <div className="shrink-0 ds-card p-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 flex-1">
           <button
             type="button"

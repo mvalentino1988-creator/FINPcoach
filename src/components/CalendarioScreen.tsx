@@ -64,7 +64,7 @@ export const CalendarioScreen: React.FC = () => {
       </div>
 
       <div className="ds-card p-3 shadow-card">
-        <label className="flex items-center gap-2 text-xs font-semibold text-on-surface-variant cursor-pointer select-none">
+        <label className="flex items-center gap-3 text-xs font-semibold text-on-surface-variant cursor-pointer select-none">
           <input
             type="checkbox"
             checked={soloProssimi}
@@ -105,21 +105,21 @@ export const CalendarioScreen: React.FC = () => {
                             {evento.prioritaria && <Star size={13} className="text-tertiary-container shrink-0" />}
                             <span>{evento.titolo}</span>
                           </h4>
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[11px] text-on-surface-variant">
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-on-surface-variant">
                             <span className="flex items-center gap-1"><CalendarDays size={12} />{CalendarioService.formattaPeriodo(evento)}</span>
                             <span className="flex items-center gap-1"><MapPin size={12} />{evento.luogo} ({evento.regione})</span>
                           </div>
                         </div>
-                        <span className={`text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5 border shrink-0 ${DISCIPLINA_COLORE[evento.disciplina] ?? 'bg-surface-container-low text-on-surface-variant border-slate-200/70'}`}>
+                        <span className={`text-xs font-bold uppercase tracking-wider rounded-full px-3 py-0.5 border shrink-0 ${DISCIPLINA_COLORE[evento.disciplina] ?? 'bg-surface-container-low text-on-surface-variant border-slate-200/70'}`}>
                           {evento.disciplina}
                         </span>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <div className="flex flex-wrap items-center gap-3 pt-1">
                         {inStagione ? (
                           <>
-                            <span className="flex items-center gap-1 text-[11px] font-bold text-primary"><Check size={13} />Già in stagione</span>
-                            <button type="button" onClick={() => rimuovi(evento)} className="text-[11px] font-semibold text-error hover:text-error flex items-center gap-1">
+                            <span className="flex items-center gap-1 text-xs font-bold text-primary"><Check size={13} />Già in stagione</span>
+                            <button type="button" onClick={() => rimuovi(evento)} className="text-xs font-semibold text-error hover:text-error flex items-center gap-1">
                               <Trash2 size={12} />Rimuovi
                             </button>
                           </>
@@ -128,12 +128,12 @@ export const CalendarioScreen: React.FC = () => {
                             type="button"
                             onClick={() => aggiungi(evento)}
                             disabled={!stagione}
-                            className={`flex items-center gap-1.5 px-3 h-12 rounded-xl text-[11px] font-bold transition ${stagione ? 'bg-primary-container text-on-primary hover:bg-primary shadow-card' : 'bg-surface-container text-on-surface-variant cursor-not-allowed'}`}
+                            className={`flex items-center gap-1.5 px-3 h-12 rounded-xl text-xs font-bold transition ${stagione ? 'bg-primary-container text-on-primary hover:bg-primary shadow-card' : 'bg-surface-container text-on-surface-variant cursor-not-allowed'}`}
                           >
                             <Plus size={13} />Aggiungi alla stagione
                           </button>
                         )}
-                        {evento.prioritaria && <span className="text-[10px] font-semibold text-tertiary-container flex items-center gap-1"><Star size={11} />prioritaria</span>}
+                        {evento.prioritaria && <span className="text-xs font-semibold text-tertiary-container flex items-center gap-1"><Star size={11} />prioritaria</span>}
                       </div>
                     </article>
                   );
@@ -144,7 +144,7 @@ export const CalendarioScreen: React.FC = () => {
         </div>
       )}
 
-      <div className="p-3 rounded-xl bg-surface-container-low border border-slate-200/70 text-[11px] text-on-surface-variant flex items-start gap-2">
+      <div className="p-3 rounded-xl bg-surface-container-low border border-slate-200/70 text-xs text-on-surface-variant flex items-start gap-2">
         <Info size={14} className="mt-0.5 shrink-0 text-on-surface-variant" />
         <span>
           {meta.nota} Snapshot consultabile offline. Verifica sempre il calendario ufficiale:{' '}
@@ -153,7 +153,7 @@ export const CalendarioScreen: React.FC = () => {
           </a>
         </span>
       </div>
-      <div className="p-3 rounded-xl bg-surface-container-lowest border border-slate-200/70 text-[11px] text-on-surface-variant flex items-start gap-2">
+      <div className="p-3 rounded-xl bg-surface-container-lowest border border-slate-200/70 text-xs text-on-surface-variant flex items-start gap-2">
         <Waves size={14} className="mt-0.5 shrink-0 text-primary-container" />
         <span>Le gare prioritarie (A-Race) attivano picco e scarico pre-gara; puoi modificarle nel Piano.</span>
       </div>

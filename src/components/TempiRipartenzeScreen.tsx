@@ -201,7 +201,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
       {formCheck && formCheck.necessario && (
         <div className="p-3.5 bg-surface-container-low/80 border border-tertiary-fixed-dim rounded-xl space-y-2 text-xs text-amber-950">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 font-bold text-on-tertiary-fixed text-sm">
+            <div className="flex items-center gap-3 font-bold text-on-tertiary-fixed text-sm">
               <Timer size={16} className="text-tertiary-container" />
               <span>{formCheck.titoloTest}</span>
             </div>
@@ -237,7 +237,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
               <Flame size={15} className="text-primary-container" />
               <span>Velocità Critica CSS (B1)</span>
             </div>
-            <p className="text-on-surface-variant text-[11px] mt-0.5">{cssResult.spiegazioneMetodologica}</p>
+            <p className="text-on-surface-variant text-xs mt-0.5">{cssResult.spiegazioneMetodologica}</p>
           </div>
           <span className="px-3 py-1.5 rounded-xl bg-primary-container text-on-primary font-bold text-xs shrink-0">
             {cssResult.passo100mFormatted} /100m
@@ -264,13 +264,13 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
               return (
                 <div
                   key={k}
-                  className="p-2.5 rounded-xl border border-slate-200/70 bg-surface-container-low/50 flex flex-col justify-between text-xs space-y-1"
+                  className="p-3 rounded-xl border border-slate-200/70 bg-surface-container-low/50 flex flex-col justify-between text-xs space-y-1"
                 >
                   <div className="flex items-center justify-between">
                     <BadgeCodice codice={k} />
-                    <span className="font-bold text-on-surface text-[11px]">{r.passo100mFormatted}</span>
+                    <span className="font-bold text-on-surface text-xs">{r.passo100mFormatted}</span>
                   </div>
-                  <div className="pt-1 border-t border-slate-200/60 flex items-center justify-between text-[11px]">
+                  <div className="pt-1 border-t border-slate-200/60 flex items-center justify-between text-xs">
                     <span className="text-on-surface-variant font-medium">Rip:</span>
                     <span className="font-bold text-primary-container">{r.ripartenzaFormatted}</span>
                   </div>
@@ -286,7 +286,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
         {primati.length === 0 ? (
           <p className="text-xs text-on-surface-variant py-2">Nessun primato di gara registrato.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             {primati.map((p, i) => (
               <div
                 key={i}
@@ -296,7 +296,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
                   <span className="font-bold text-on-surface block">
                     {p.stile.replace('_', ' ')} {p.distanzaMetri} m ({p.vascaMetri}m)
                   </span>
-                  <span className="text-[11px] text-on-surface-variant">{formattaData(p.data)}</span>
+                  <span className="text-xs text-on-surface-variant">{formattaData(p.data)}</span>
                 </div>
                 <span className="font-bold text-primary-container text-sm">
                   {formattaTempo(p.centesimi)}
@@ -349,7 +349,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
         </div>
 
         <form onSubmit={handleSalvaTempo} className="space-y-3 text-xs pt-1">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block font-semibold text-on-surface-variant mb-1">Data</label>
               <input
@@ -382,7 +382,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block font-semibold text-on-surface-variant mb-1">Stile</label>
               <select
@@ -458,18 +458,18 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
                   className="p-3 bg-surface-container-low border border-slate-200/70 rounded-xl flex items-center justify-between text-xs"
                 >
                   <div>
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <span className="font-bold text-on-surface">
                         {t.stile.replace('_', ' ')} {t.distanzaMetri} m
                       </span>
                       <span className="font-bold text-primary-container text-sm">{formattaTempo(t.centesimi)}</span>
                       {puntiWps != null && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-tertiary-fixed text-on-tertiary-fixed">
+                        <span className="text-xs font-bold px-1.5 py-0.2 rounded bg-tertiary-fixed text-on-tertiary-fixed">
                           {puntiWps} Punti WPS
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] text-on-surface-variant mt-0.5 flex items-center gap-1.5 flex-wrap">
+                    <div className="text-xs text-on-surface-variant mt-0.5 flex items-center gap-1.5 flex-wrap">
                       <span>{formattaData(t.data)} · {t.contesto.toLowerCase()} · vasca {t.vascaMetri}m</span>
                       <span>•</span>
                       <span className="text-secondary font-semibold flex items-center gap-0.5" title={`Tempo convertito vasca da ${vascaDest}m`}>

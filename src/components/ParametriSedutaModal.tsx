@@ -71,8 +71,8 @@ export const ParametriSedutaModal: React.FC<Props> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
       <div className="w-full sm:max-w-xl bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl shadow-xl border border-slate-200/70 max-h-[92vh] overflow-y-auto">
-        <div className="flex items-center justify-between gap-2 p-4 border-b border-slate-200/70 sticky top-0 bg-surface-container-lowest">
-          <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center justify-between gap-3 p-4 border-b border-slate-200/70 sticky top-0 bg-surface-container-lowest">
+          <div className="flex items-center gap-3 min-w-0">
             <span className="w-9 h-9 rounded-lg bg-primary text-on-primary flex items-center justify-center shrink-0">
               <SlidersHorizontal size={18} />
             </span>
@@ -167,7 +167,7 @@ export const ParametriSedutaModal: React.FC<Props> = ({
             {altre.length > 0 ? (
               <ul className="space-y-1">
                 {altre.map((v) => (
-                  <li key={v.data} className="flex items-center justify-between gap-2 text-body-base font-body-base">
+                  <li key={v.data} className="flex items-center justify-between gap-3 text-body-base font-body-base">
                     <span className="text-on-surface-variant">{formattaData(v.data)}</span>
                     <span className={v.delta > 0 ? 'text-primary font-body-bold' : 'text-on-tertiary font-body-bold'}>
                       {v.delta > 0 ? '+' : ''}{v.delta} m
@@ -182,7 +182,7 @@ export const ParametriSedutaModal: React.FC<Props> = ({
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <button
               type="button"
               onClick={() => { onApplicaOggi(nuoviParametri); onClose(); }}

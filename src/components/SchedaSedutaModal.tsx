@@ -53,7 +53,7 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-slate-200/70 flex items-center justify-between shrink-0 bg-surface-container-low rounded-t-2xl">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shadow-card">
+            <div className="w-10 min-h-[48px] rounded-xl bg-primary-container text-on-primary flex items-center justify-center shadow-card">
               <Waves size={22} />
             </div>
             <div>
@@ -97,10 +97,10 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
           </div>
 
           {/* Action Buttons: Copy & Print */}
-          <div className="no-print grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="no-print grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={handleCopy}
-              className="flex items-center justify-center gap-2 h-12 px-4 bg-primary-container hover:bg-primary text-on-primary font-semibold rounded-xl text-xs sm:text-sm transition shadow-card"
+              className="flex items-center justify-center gap-3 h-12 px-4 bg-primary-container hover:bg-primary text-on-primary font-semibold rounded-xl text-xs sm:text-sm transition shadow-card"
             >
               {copiato ? <Check size={17} className="text-emerald-300" /> : <Copy size={17} />}
               <span>{copiato ? 'Copiato!' : 'Copia per WhatsApp / Deck'}</span>
@@ -108,7 +108,7 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
 
             <button
               onClick={() => window.print()}
-              className="flex items-center justify-center gap-2 h-12 px-4 bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold rounded-xl text-xs sm:text-sm transition border border-slate-200/70"
+              className="flex items-center justify-center gap-3 h-12 px-4 bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold rounded-xl text-xs sm:text-sm transition border border-slate-200/70"
             >
               <Printer size={17} className="text-primary-container" />
               <span>Stampa Scheda Bordo Vasca</span>
@@ -118,7 +118,7 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
           {/* Medical Alerts */}
           {scheda.avvertenzeMediche.length > 0 && (
             <div className="p-3.5 bg-error-container border border-error/40 rounded-xl space-y-1.5">
-              <div className="flex items-center gap-2 text-on-error-container font-bold text-xs uppercase tracking-wider">
+              <div className="flex items-center gap-3 text-on-error-container font-bold text-xs uppercase tracking-wider">
                 <HeartPulse size={16} className="text-error" />
                 Adattamenti per Condizione Medica
               </div>
@@ -133,7 +133,7 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
           {/* Age Physiological Adaptations */}
           {scheda.adattamentiEta.length > 0 && (
             <div className="p-3.5 bg-surface-container-low border border-outline-variant rounded-xl space-y-1.5">
-              <div className="flex items-center gap-2 text-on-surface font-bold text-xs uppercase tracking-wider">
+              <div className="flex items-center gap-3 text-on-surface font-bold text-xs uppercase tracking-wider">
                 <Sparkles size={16} className="text-secondary" />
                 Modifiche Fisiologiche / Età
               </div>
@@ -148,7 +148,7 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
           {/* Calibration on Race Times */}
           {scheda.noteCalibrazione.length > 0 && (
             <div className="p-3.5 bg-surface-container-low border border-tertiary-fixed-dim rounded-xl space-y-1.5">
-              <div className="flex items-center gap-2 text-on-tertiary-fixed font-bold text-xs uppercase tracking-wider">
+              <div className="flex items-center gap-3 text-on-tertiary-fixed font-bold text-xs uppercase tracking-wider">
                 <Timer size={16} className="text-tertiary-container" />
                 Calibrazione sui Tempi dell'Atleta
               </div>
@@ -204,14 +204,14 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
                   <p className="text-xs text-on-surface-variant leading-relaxed">{tratto.descrizione}</p>
 
                   {tratto.ripartenza && (
-                    <div className="inline-flex items-center gap-1.5 text-xs font-bold text-on-tertiary-fixed bg-surface-container-low px-2 py-0.5 rounded-md border border-tertiary-fixed-dim">
+                    <div className="inline-flex items-center gap-1.5 text-xs font-bold text-on-tertiary-fixed bg-surface-container-low px-3 py-0.5 rounded-md border border-tertiary-fixed-dim">
                       <span>⏱️ Ripartenza / Recupero:</span>
                       <span>{tratto.ripartenza}</span>
                     </div>
                   )}
 
                   {tratto.notaSpecifica && (
-                    <div className="text-[11px] text-on-surface-variant font-medium italic">
+                    <div className="text-xs text-on-surface-variant font-medium italic">
                       • Focus: {tratto.notaSpecifica}
                     </div>
                   )}

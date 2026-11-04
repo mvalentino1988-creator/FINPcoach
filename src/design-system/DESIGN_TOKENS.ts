@@ -6,61 +6,62 @@
  */
 
 // ============================================================================
-// COLOR TOKENS (Teal Primary, Light Theme)
+// COLOR TOKENS (Premium Modern Palette, Light Theme)
 // ============================================================================
 export const COLORS = {
-  // Primary (Teal)
-  primary: '#004e58',
-  primaryContainer: '#006874',
+  // Primary (Royal Blue)
+  primary: '#1e40af',
+  primaryContainer: '#3b82f6',
   onPrimary: '#ffffff',
-  onPrimaryContainer: '#97e4f2',
-  primaryFixed: '#a2effd',
-  primaryFixedDim: '#85d2e0',
-  onPrimaryFixed: '#001f24',
+  onPrimaryContainer: '#ffffff',
+  primaryFixed: '#60a5fa',
+  primaryFixedDim: '#3b82f6',
+  onPrimaryFixed: '#ffffff',
 
-  // Secondary (Blue)
-  secondary: '#006399',
-  secondaryContainer: '#7ec2fd',
-  onSecondary: '#ffffff',
-  onSecondaryContainer: '#004f7b',
-  secondaryFixed: '#cde5ff',
-  onSecondaryFixed: '#001d32',
+  // Secondary (Teal)
+  secondary: '#0d9488',
+  secondaryContainer: '#ccfbf1',
+  onSecondary: '#0f766e',
+  onSecondaryContainer: '#115e59',
+  secondaryFixed: '#5eead4',
+  onSecondaryFixed: '#134e4a',
 
-  // Tertiary (Coral/Gold accent)
-  tertiary: '#793000',
-  tertiaryContainer: '#9e4202',
+  // Tertiary (Coral accent)
+  tertiary: '#f97316',
+  tertiaryContainer: '#fdba74',
   onTertiary: '#ffffff',
-  onTertiaryContainer: '#ffceb7',
-  tertiaryFixed: '#ffdbcb',
-  onTertiaryFixed: '#341100',
+  onTertiaryContainer: '#ffffff',
+  tertiaryFixed: '#ffedd5',
+  tertiaryFixedDim: '#fdba74',
+  onTertiaryFixed: '#431407',
 
   // Surfaces (5-level architecture)
-  surface: '#faf8ff',
+  surface: '#f8fafc',
   surfaceContainerLowest: '#ffffff',
-  surfaceContainerLow: '#f2f3ff',
-  surfaceContainer: '#eaedff',
-  surfaceContainerHigh: '#e2e7ff',
-  surfaceContainerHighest: '#dae2fd',
-  surfaceVariant: '#dae2fd',
+  surfaceContainerLow: '#f1f5f9',
+  surfaceContainer: '#e2e8f0',
+  surfaceContainerHigh: '#cbd5e1',
+  surfaceContainerHighest: '#94a3b8',
+  surfaceVariant: '#e2e8f0',
 
   // On-surface colors
-  onSurface: '#131b2e',
-  onSurfaceVariant: '#3f484a',
-  onBackground: '#131b2e',
+  onSurface: '#0f172a',
+  onSurfaceVariant: '#475569',
+  onBackground: '#0f172a',
 
   // Error
-  error: '#ba1a1a',
+  error: '#dc2626',
   onError: '#ffffff',
-  errorContainer: '#ffdad6',
-  onErrorContainer: '#93000a',
+  errorContainer: '#fee2e2',
+  onErrorContainer: '#991b1b',
 
   // Outline
-  outline: '#6f797b',
-  outlineVariant: '#bec8ca',
+  outline: '#94a3b8',
+  outlineVariant: '#e2e8f0',
 
   // Inverse
-  inverseSurface: '#283044',
-  inverseOnSurface: '#eef0ff',
+  inverseSurface: '#1e293b',
+  inverseOnSurface: '#f1f5f9',
 } as const;
 
 // ============================================================================
@@ -69,28 +70,31 @@ export const COLORS = {
 export const TYPOGRAPHY = {
   // Display (hero numbers, large metrics)
   display: {
-    fontSize: 'clamp(28px, 1.1vw + 22px, 34px)',
-    lineHeight: '1.15',
+    fontSize: 'clamp(32px, 1.2vw + 24px, 40px)',
+    lineHeight: '1.1',
     fontWeight: '700',
     fontFamily: "'Space Grotesk', sans-serif",
+    letterSpacing: '-0.02em',
   },
 
   // Headlines (titles, section headers)
   headlineLarge: {
-    fontSize: 'clamp(21px, 0.6vw + 18px, 26px)',
-    lineHeight: '1.2',
+    fontSize: 'clamp(24px, 0.7vw + 20px, 28px)',
+    lineHeight: '1.15',
     fontWeight: '700',
     fontFamily: "'Space Grotesk', sans-serif",
+    letterSpacing: '-0.01em',
   },
   headlineMedium: {
-    fontSize: 'clamp(16px, 0.35vw + 15px, 19px)',
-    lineHeight: '1.3',
+    fontSize: 'clamp(18px, 0.4vw + 16px, 22px)',
+    lineHeight: '1.25',
     fontWeight: '600',
     fontFamily: "'Space Grotesk', sans-serif",
+    letterSpacing: '-0.005em',
   },
   headlineSmall: {
-    fontSize: 'clamp(15px, 0.2vw + 14.4px, 17px)',
-    lineHeight: '1.35',
+    fontSize: 'clamp(16px, 0.25vw + 15px, 18px)',
+    lineHeight: '1.3',
     fontWeight: '600',
     fontFamily: "'Space Grotesk', sans-serif",
   },
@@ -98,19 +102,19 @@ export const TYPOGRAPHY = {
   // Body (content text)
   bodyLarge: {
     fontSize: '16px',
-    lineHeight: '24px',
+    lineHeight: '1.6',
     fontWeight: '400',
     fontFamily: "'Public Sans', sans-serif",
   },
   bodyMedium: {
     fontSize: '14px',
-    lineHeight: '20px',
+    lineHeight: '1.5',
     fontWeight: '400',
     fontFamily: "'Public Sans', sans-serif",
   },
   bodySmall: {
-    fontSize: '12px',
-    lineHeight: '16px',
+    fontSize: '13px',
+    lineHeight: '1.45',
     fontWeight: '400',
     fontFamily: "'Public Sans', sans-serif",
   },
@@ -118,35 +122,40 @@ export const TYPOGRAPHY = {
   // Labels (metadata, chip text)
   labelLarge: {
     fontSize: 'clamp(13px, 0.1vw + 12.7px, 14px)',
-    lineHeight: '16px',
+    lineHeight: '1.3',
     fontWeight: '600',
     fontFamily: "'Space Grotesk', sans-serif",
+    letterSpacing: '0.02em',
   },
   labelMedium: {
     fontSize: 'clamp(11px, 0.12vw + 10.6px, 12px)',
-    lineHeight: '14px',
+    lineHeight: '1.25',
     fontWeight: '700',
     fontFamily: "'Space Grotesk', sans-serif",
+    letterSpacing: '0.04em',
   },
   labelSmall: {
     fontSize: 'clamp(10px, 0.12vw + 9.6px, 11px)',
-    lineHeight: '14px',
+    lineHeight: '1.25',
     fontWeight: '700',
     fontFamily: "'Space Grotesk', sans-serif",
+    letterSpacing: '0.06em',
   },
 } as const;
 
 // ============================================================================
-// SPACING TOKENS (4/8/12/16/24 rhythm)
+// SPACING TOKENS (4/8/12/16/24/32/48 rhythm)
 // ============================================================================
 export const SPACING = {
   xs: '4px',
   sm: '8px',
   md: '12px',
   lg: '16px',
-  xl: '24px',
-  '2xl': '32px',
-  '3xl': '48px',
+  xl: '20px',
+  '2xl': '24px',
+  '3xl': '32px',
+  '4xl': '40px',
+  '5xl': '48px',
 } as const;
 
 // ============================================================================

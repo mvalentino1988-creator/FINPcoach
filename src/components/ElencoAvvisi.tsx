@@ -29,7 +29,7 @@ export const ElencoAvvisi: React.FC<Props> = ({ avvisi }) => {
         }
 
         return (
-          <div key={i} className={`${cls} flex items-start gap-2.5`}>
+          <div key={i} className={`${cls} flex items-start gap-3`}>
             {icon}
             <div className="font-body-base text-body-base leading-snug">{a.messaggio}</div>
           </div>

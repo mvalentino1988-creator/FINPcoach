@@ -279,9 +279,9 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-1 min-h-0 flex-col gap-2 overflow-hidden">
+    <div className="flex flex-1 min-h-0 flex-col gap-3 overflow-hidden">
       {salvatoFeedback && (
-        <div className="shrink-0 p-2.5 bg-primary-container text-on-primary font-bold text-xs rounded-xl flex items-center gap-2 shadow-pop animate-fade-in">
+        <div className="shrink-0 p-3 bg-primary-container text-on-primary font-bold text-xs rounded-xl flex items-center gap-3 shadow-pop animate-fade-in">
           <CheckCircle2 size={16} />
           <span>{salvatoFeedback}</span>
         </div>
@@ -315,67 +315,83 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
       </div>
 
       {/* Master Timer & Start/Pause/Reset - Giant Tabular Display */}
-      <section className="shrink-0 ds-card p-3 flex flex-col gap-2 bg-gradient-to-r from-surface-container-lowest to-surface-container-low border-2 border-primary/20">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-primary text-white font-headline">
-              VASCA {vascaMetri}M
-            </span>
-            <button
-              type="button"
-              onClick={() => setVascaMetri(v => (v === 50 ? 25 : 50))}
-              className="px-3 py-1 rounded-full bg-surface-container text-on-surface text-xs font-bold hover:bg-surface-container-high transition"
-            >
-              Cambia ({vascaMetri}m)
-            </button>
+      <section className="shrink-0 relative overflow-hidden rounded-2xl bg-gradient-blue text-white p-4 shadow-primary-sm">
+        {/* BG texture */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none"
+          style={{ backgroundImage: 'radial-gradient(circle at 10% 50%, rgba(255,255,255,0.3) 0%, transparent 60%)' }}
+        />
+        <div className="relative z-10 flex flex-col gap-3">
+          {/* Controls row */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-white/20 text-white font-headline border border-white/20">
+                VASCA {vascaMetri}M
+              </span>
+              <button
+                type="button"
+                onClick={() => setVascaMetri(v => (v === 50 ? 25 : 50))}
+                className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-xs font-bold transition border border-white/15"
+              >
+                Cambia
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleMaster}
+                className={`min-h-[48px] px-6 rounded-xl font-headline text-sm font-bold flex items-center justify-center gap-3 active:scale-95 transition ${
+                  isRunning
+                    ? 'bg-gradient-orange text-white shadow-orange-glow'
+                    : 'bg-white text-primary shadow-pop'
+                }`}
+              >
+                {isRunning ? <Pause size={20} /> : <Play size={20} />}
+                <span>{isRunning ? 'PAUSA' : 'START'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={resetMaster}
+                aria-label="Reset cronometro"
+                className="min-h-[48px] min-w-[48px] px-3 rounded-xl bg-white/15 hover:bg-white/25 text-white flex items-center justify-center active:scale-95 transition border border-white/20"
+              >
+                <RotateCcw size={20} />
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={toggleMaster}
-              className={`min-h-[48px] px-6 rounded-xl font-headline text-sm font-bold flex items-center justify-center gap-2 shadow-card active:scale-95 transition ${
-                isRunning
-                  ? 'bg-gradient-to-r from-tertiary-container to-tertiary text-white shadow-orange-glow'
-                  : 'ds-btn-primary'
+          {/* Giant timer */}
+          <div className="text-center py-3 bg-black/20 rounded-2xl border border-white/15">
+            <span
+              className={`text-5xl sm:text-6xl font-extrabold tracking-tight tabular-nums transition-colors ${
+                isRunning ? 'text-white' : 'text-white/70'
               }`}
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
             >
-              {isRunning ? <Pause size={20} /> : <Play size={20} />}
-              <span>{isRunning ? 'PAUSA' : 'START'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={resetMaster}
-              aria-label="Reset cronometro"
-              className="min-h-[48px] min-w-[48px] px-3 rounded-xl bg-surface-container-high text-on-surface flex items-center justify-center active:scale-95 transition"
-            >
-              <RotateCcw size={20} />
-            </button>
+              {formatMs(masterTime)}
+            </span>
+            {isRunning && (
+              <div className="flex items-center justify-center gap-1.5 mt-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                <span className="text-xs text-white/60 font-bold uppercase tracking-widest">In corso</span>
+              </div>
+            )}
           </div>
-        </div>
-
-        <div className="text-center py-1 bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-inner">
-          <span
-            className="text-4xl sm:text-5xl font-extrabold text-primary tracking-tight tabular-nums"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-          >
-            {formatMs(masterTime)}
-          </span>
         </div>
       </section>
 
       {/* 4+ Lanes Grid / List */}
       <section
         aria-label="Corsie Cronometrate"
-        className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-2 overflow-y-auto pb-14 sm:pb-6"
+        className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3 overflow-y-auto pb-14 sm:pb-6"
       >
         {lanes.map(lane => (
           <article
             key={lane.id}
-            className="ds-card p-3 flex flex-col justify-between gap-2 border-l-4 border-l-primary"
+            className="ds-card p-3 flex flex-col justify-between gap-3 border-l-4 border-l-primary"
           >
             {/* Lane Header with Lane Number & Actions */}
-            <div className="flex items-center justify-between gap-2 pb-2 border-b border-outline-variant/60">
+            <div className="flex items-center justify-between gap-3 pb-2 border-b border-outline-variant">
               <div className="flex items-center gap-2">
                 <span className="w-7 h-7 rounded-lg bg-primary text-white font-headline text-xs font-bold flex items-center justify-center shadow-sm">
                   C{lane.laneNumber}
@@ -409,19 +425,19 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
               {lane.athletes.map(ath => (
                 <div
                   key={ath.id}
-                  className="p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/60 flex flex-col gap-1.5"
+                  className="p-3 rounded-xl bg-surface-container-low border border-outline-variant flex flex-col gap-1.5"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary text-white shrink-0">
+                        <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-primary text-white shrink-0">
                           {ath.classe}
                         </span>
                         <div className="min-w-0 flex-1 text-xs font-bold text-on-surface">
                           <Marquee text={ath.atletaNome} />
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-3 mt-1">
                         <span
                           className="text-lg font-bold text-primary tabular-nums"
                           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
@@ -429,7 +445,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                           {ath.lastSplit}
                         </span>
                         {ath.strokeRate && (
-                          <span className="text-[10px] text-on-surface-variant font-medium">
+                          <span className="text-xs text-on-surface-variant font-medium">
                             SR {ath.strokeRate} st/min
                           </span>
                         )}
@@ -459,12 +475,12 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
 
                   {/* Split History & Save */}
                   {ath.splitList.length > 0 && (
-                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-outline-variant/50 text-[11px]">
+                    <div className="flex items-center justify-between gap-3 pt-1 border-t border-outline-variant text-xs">
                       <div className="flex items-center gap-1 overflow-x-auto py-0.5">
                         {ath.splitList.slice(0, 3).map(s => (
                           <span
                             key={s.lap}
-                            className="px-1.5 py-0.5 rounded bg-surface-container text-on-surface font-mono font-bold text-[10px] shrink-0"
+                            className="px-1.5 py-0.5 rounded bg-surface-container text-on-surface font-mono font-bold text-xs shrink-0"
                           >
                             #{s.lap}: {s.time}
                           </span>
@@ -475,7 +491,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleSalvaNelRegistro(ath)}
-                          className="flex items-center gap-1 px-2 py-1 rounded-lg bg-surface-container hover:bg-primary text-primary hover:text-white font-bold text-xs shrink-0 transition"
+                          className="flex items-center gap-1 px-3 py-1 rounded-lg bg-surface-container hover:bg-primary text-primary hover:text-white font-bold text-xs shrink-0 transition"
                         >
                           <Save size={12} />
                           <span>Salva</span>

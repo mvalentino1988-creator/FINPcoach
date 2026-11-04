@@ -39,7 +39,7 @@ export class ErrorBoundary extends Component<Props, State> {
               {this.state.error && (
                 <div className="mt-3 p-3 bg-error-container border border-error/40 rounded-xl text-left text-xs font-mono text-on-error-container break-words max-h-48 overflow-y-auto">
                   <div className="font-bold">{this.state.error.name}: {this.state.error.message}</div>
-                  <pre className="text-[10px] text-on-surface-variant mt-1 whitespace-pre-wrap">{this.state.error.stack}</pre>
+                  <pre className="text-xs text-on-surface-variant mt-1 whitespace-pre-wrap">{this.state.error.stack}</pre>
                 </div>
               )}
             </div>
@@ -57,7 +57,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <button
                 type="button"
                 onClick={() => window.location.reload()}
-                className="flex-1 py-2.5 bg-primary-container hover:bg-primary text-on-primary rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-card"
+                className="flex-1 py-2.5 bg-primary-container hover:bg-primary text-on-primary rounded-xl text-xs font-bold transition flex items-center justify-center gap-3 shadow-card"
               >
                 <RefreshCw size={16} />
                 <span>Ricarica</span>

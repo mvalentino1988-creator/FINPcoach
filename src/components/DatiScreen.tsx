@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense, useMemo } from 'react';
 import {
   ClipboardList,
   Timer,
@@ -22,7 +22,8 @@ import {
   Sparkles,
   Waves,
   Clock,
-  Activity
+  Activity,
+  Sliders
 } from 'lucide-react';
 import { OCRService } from '../domain/ocrService';
 import { OcrPreviewModal } from './OcrPreviewModal';
@@ -32,7 +33,7 @@ import { TempiRipartenzeScreen } from './TempiRipartenzeScreen';
 import { RegistroScreen } from './RegistroScreen';
 import { EsercizioEditor } from './EsercizioEditor';
 import { BadgeCodice } from './BadgeCodice';
-import { formattaData, todayISO, parseData, addDays, isBefore, daysBetween, toDateObj, formatDataInput } from '../domain/dateUtils';
+import { formattaData, todayISO, parseData, addDays, isBefore, daysBetween, toDateObj, formatDataInput, isInRange } from '../domain/dateUtils';
 import { useApp } from '../data/AppContext';
 import { ParserScheda } from '../domain/parserScheda';
 import { ParserApprendimento } from '../domain/parserApprendimento';
@@ -59,7 +60,7 @@ interface CustomWorkout {
 }
 
 export const DatiScreen: React.FC = () => {
-  const { atleti } = useApp();
+  const { atleti, micro, impostazioni } = useApp();
   const [tab, setTab] = useState<DatiTab>('schede');
   const [editMode, setEditMode] = useState(false);
   const [modalitaEditor, setModalitaEditor] = useState<ModalitaEditor>('testuale');
@@ -71,6 +72,17 @@ export const DatiScreen: React.FC = () => {
   const [vistaSchede, setVistaSchede] = useState<VistaSchede>('calendario');
   const [calendarioData, setCalendarioData] = useState<string>(formattaData(todayISO()));
   const [modalitaNuovoModal, setModalitaNuovoModal] = useState(false);
+  const [calendarioEspanso, setCalendarioEspanso] = useState(false);
+  const [parametriEspanso, setParametriEspanso] = useState(false);
+
+  const volumeSessioneTarget = useMemo(() => {
+    const microCorrente = micro.find(m => isInRange(todayISO(), m.inizio, m.fine));
+    const giorni = impostazioni.giorni?.length || 3;
+    if (microCorrente && microCorrente.volumeTargetMetri) {
+      return Math.round(microCorrente.volumeTargetMetri / giorni);
+    }
+    return 2000;
+  }, [micro, impostazioni]);
 
   // Parameter chips state
   const [vascaMetri, setVascaMetri] = useState<25 | 50>(25);
@@ -149,7 +161,7 @@ export const DatiScreen: React.FC = () => {
   });
 
   return (
-    <div className="flex flex-1 min-h-0 flex-col gap-2 overflow-hidden">
+    <div className="flex flex-1 min-h-0 flex-col gap-3 overflow-hidden">
       {pullToRefresh.isPulling && (
         <div className="shrink-0 flex items-center justify-center py-1 text-xs text-on-surface-variant">
           <RefreshCw size={16} className={`mr-2 ${pullToRefresh.isRefreshing ? 'animate-spin' : ''}`} />
@@ -169,7 +181,7 @@ export const DatiScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setModalitaNuovoModal(true)}
-                className="ds-btn-primary !min-h-[40px] !px-3 shrink-0"
+                className="ds-btn-primary !min-h-[44px] !px-3 shrink-0"
               >
                 <Plus size={16} />
                 <span className="hidden xs:inline">Nuovo Allenamento</span>
@@ -179,29 +191,20 @@ export const DatiScreen: React.FC = () => {
         />
       </div>
 
-      {/* TABS SU UNA SOLA RIGA COMPATTA */}
-      <div className="shrink-0 ds-card p-1.5 sm:p-2">
-        <div className="grid grid-cols-4 gap-1">
-          {[
-            { key: 'schede' as DatiTab, label: 'Schede', icon: <ClipboardList size={16} /> },
-            { key: 'tempi' as DatiTab, label: 'Tempi', icon: <Timer size={16} /> },
-            { key: 'registro' as DatiTab, label: 'Registro', icon: <CheckCircle2 size={16} /> },
-            { key: 'biomeccanica' as DatiTab, label: 'Biomeccanica', icon: <Layers size={16} /> },
-          ].map(t => (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => setTab(t.key)}
-              className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-xs font-headline font-bold transition ${
-                tab === t.key
-                  ? 'bg-primary text-white shadow-primary-sm'
-                  : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
-              }`}
-            >
-              <span className="shrink-0">{t.icon}</span>
-              <span className="truncate">{t.label}</span>
-            </button>
-          ))}
+      {/* TABS A MENU A TENDINA PULITO E LEGGIBILE */}
+      <div className="shrink-0 ds-card p-2 sm:p-2.5">
+        <div className="flex items-center gap-2">
+          <span className="ds-label shrink-0">Sezione:</span>
+          <select
+            value={tab}
+            onChange={e => setTab(e.target.value as DatiTab)}
+            className="w-full min-h-[44px] bg-surface-container-low border border-outline-variant rounded-xl px-3 font-headline font-bold text-xs sm:text-sm text-on-surface focus:border-primary"
+          >
+            <option value="schede">📋 Schede Vasca</option>
+            <option value="tempi">⏱️ Tempi e Ripartenze</option>
+            <option value="registro">✅ Registro Presenze e Carico</option>
+            <option value="biomeccanica">📊 Analisi Biomeccanica & WPS</option>
+          </select>
         </div>
       </div>
 
@@ -211,7 +214,7 @@ export const DatiScreen: React.FC = () => {
           <>
             {/* Header controlli Calendario / Lista (Segmented Control) */}
             {!editMode && (
-              <div className="shrink-0 flex items-center justify-between gap-2 bg-surface-container-lowest p-2 rounded-2xl border border-outline-variant">
+              <div className="shrink-0 flex items-center justify-between gap-3 bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant">
                 <div className="flex items-center bg-surface-container rounded-xl p-1 gap-1">
                   <button
                     type="button"
@@ -233,20 +236,30 @@ export const DatiScreen: React.FC = () => {
                   </button>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setModalitaNuovoModal(true)}
-                  className="ds-btn-primary !min-h-[38px] !px-3 text-xs"
-                >
-                  <Plus size={15} />
-                  <span>Nuovo</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCalendarioEspanso(v => !v)}
+                    className="ds-btn-secondary !min-h-[40px] !px-3 text-xs"
+                  >
+                    <Calendar size={15} />
+                    <span>{calendarioEspanso ? 'Chiudi Mese' : 'Mese'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModalitaNuovoModal(true)}
+                    className="ds-btn-primary !min-h-[40px] !px-3 text-xs"
+                  >
+                    <Plus size={15} />
+                    <span>Nuovo</span>
+                  </button>
+                </div>
               </div>
             )}
 
-            {/* COMPACT CALENDAR (Month with Dots) */}
-            {!editMode && vistaSchede === 'calendario' && !selectedWorkout && (
-              <div className="ds-card p-3 max-w-2xl mx-auto space-y-2">
+            {/* COMPACT CALENDAR (Collapsible) */}
+            {!editMode && calendarioEspanso && vistaSchede === 'calendario' && !selectedWorkout && (
+              <div className="ds-card p-3 max-w-2xl mx-auto space-y-2 animate-fade-in">
                 <div className="flex items-center justify-between">
                   <button
                     type="button"
@@ -275,7 +288,7 @@ export const DatiScreen: React.FC = () => {
 
                 <div className="grid grid-cols-7 gap-1">
                   {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(g => (
-                    <div key={g} className="text-center text-[10px] font-bold text-on-surface-variant uppercase">
+                    <div key={g} className="text-center text-xs font-bold text-on-surface-variant uppercase">
                       {g}
                     </div>
                   ))}
@@ -309,7 +322,7 @@ export const DatiScreen: React.FC = () => {
                             workoutGiorno
                               ? 'bg-primary text-white font-bold shadow-sm'
                               : isOggi
-                              ? 'bg-primary/10 text-primary font-bold border border-primary/30'
+                              ? 'bg-primary text-primary font-bold border border-primary/30'
                               : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
                           }`}
                         >
@@ -326,57 +339,67 @@ export const DatiScreen: React.FC = () => {
               </div>
             )}
 
-            {/* UNIFIED PARAMETERS BLOCK (Shown Once, No Duplication) */}
+            {/* COLLAPSIBLE PARAMETERS BLOCK */}
             {!editMode && (
-              <div className="ds-card p-3 space-y-2.5">
-                <div className="font-headline font-bold text-xs text-primary uppercase tracking-wider">
-                  Parametri Sessione
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-                  <div>
-                    <label className="text-[12px] font-bold text-on-surface-variant uppercase block mb-1">Vasca Impianto</label>
-                    <div className="flex gap-1">
-                      {[25, 50].map(v => (
-                        <button
-                          key={v}
-                          type="button"
-                          onClick={() => setVascaMetri(v as any)}
-                          className={`flex-1 py-1.5 rounded-xl font-headline font-bold transition ${
-                            vascaMetri === v ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface-container-low text-on-surface'
-                          }`}
-                        >
-                          {v}m
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+              <div className="ds-card p-3 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setParametriEspanso(v => !v)}
+                  className="w-full flex items-center justify-between text-xs font-bold font-headline text-on-surface"
+                >
+                  <span className="flex items-center gap-1.5 text-primary">
+                    <Sliders size={15} /> Parametri Sessione (Vasca e Durata)
+                  </span>
+                  <span>{parametriEspanso ? '▲' : '▼'}</span>
+                </button>
 
-                  <div>
-                    <label className="text-[12px] font-bold text-on-surface-variant uppercase block mb-1">Durata Target</label>
-                    <div className="flex gap-1">
-                      {[60, 90, 120].map(d => (
-                        <button
-                          key={d}
-                          type="button"
-                          onClick={() => setDurataMin(d as any)}
-                          className={`flex-1 py-1.5 rounded-xl font-headline font-bold transition ${
-                            durataMin === d ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface-container-low text-on-surface'
-                          }`}
-                        >
-                          {d}'
-                        </button>
-                      ))}
+                {parametriEspanso && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-2 border-t border-outline-variant/50 animate-fade-in">
+                    <div>
+                      <label className="text-[12px] font-bold text-on-surface-variant uppercase block mb-1">Vasca Impianto</label>
+                      <div className="flex gap-1">
+                        {[25, 50].map(v => (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => setVascaMetri(v as any)}
+                            className={`flex-1 py-1.5 rounded-xl font-headline font-bold transition ${
+                              vascaMetri === v ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface-container-low text-on-surface'
+                            }`}
+                          >
+                            {v}m
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="text-[12px] font-bold text-on-surface-variant uppercase block mb-1">Volume Seduta</label>
-                    <div className="p-2 bg-surface-container-low rounded-xl border border-outline-variant/60 flex items-center justify-between">
-                      <span className="font-headline font-bold text-primary">350 / 1800 m</span>
-                      <Activity size={16} className="text-primary-container" />
+                    <div>
+                      <label className="text-[12px] font-bold text-on-surface-variant uppercase block mb-1">Durata Target</label>
+                      <div className="flex gap-1">
+                        {[60, 90, 120].map(d => (
+                          <button
+                            key={d}
+                            type="button"
+                            onClick={() => setDurataMin(d as any)}
+                            className={`flex-1 py-1.5 rounded-xl font-headline font-bold transition ${
+                              durataMin === d ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface-container-low text-on-surface'
+                            }`}
+                          >
+                            {d}'
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[12px] font-bold text-on-surface-variant uppercase block mb-1">Volume Seduta</label>
+                      <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant flex items-center justify-between">
+                        <span className="font-headline font-bold text-primary">{volumeSessioneTarget} m</span>
+                        <Activity size={16} className="text-primary-container" />
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 
@@ -397,7 +420,7 @@ export const DatiScreen: React.FC = () => {
                       type="text"
                       value={workoutDate}
                       onChange={e => setWorkoutDate(formatDataInput(e.target.value))}
-                      className="w-full px-3 h-10 bg-surface-container-low border border-outline-variant rounded-xl font-bold"
+                      className="w-full px-3 min-h-[48px] bg-surface-container-low border border-outline-variant rounded-xl font-bold"
                     />
                   </div>
 
@@ -426,14 +449,22 @@ export const DatiScreen: React.FC = () => {
             {/* DISPLAY SELECTED WORKOUT OR AUTO GENERATED */}
             {!editMode && selectedWorkout ? (
               <div className="ds-card p-4 space-y-3">
-                <div className="flex items-center justify-between border-b border-outline-variant/60 pb-2">
-                  <h3 className="font-headline font-bold text-sm text-on-surface">
-                    Allenamento del {selectedWorkout.data}
-                  </h3>
-                  <button onClick={() => setSelectedWorkoutId(null)} className="text-xs font-bold text-primary">
-                    Chiudi
+                <div className="flex items-center justify-between border-b border-outline-variant pb-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedWorkoutId(null)}
+                    className="ds-btn-secondary !min-h-[40px] !px-3 text-xs"
+                  >
+                    <ChevronLeft size={16} />
+                    <span>Indietro</span>
                   </button>
+                  <span className="font-headline font-bold text-xs text-on-surface-variant">
+                    {selectedWorkout.data}
+                  </span>
                 </div>
+                <h3 className="font-headline font-bold text-sm text-on-surface">
+                  Allenamento del {selectedWorkout.data}
+                </h3>
                 <div className="p-3 bg-surface-container-low rounded-xl font-mono text-xs whitespace-pre-wrap">
                   {selectedWorkout.testo}
                 </div>
@@ -490,14 +521,14 @@ export const DatiScreen: React.FC = () => {
                   setModalitaNuovoModal(false);
                   setEditMode(true);
                 }}
-                className="w-full p-3.5 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/60 text-left flex items-center gap-3 transition"
+                className="w-full p-3.5 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant text-left flex items-center gap-3 transition"
               >
-                <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 font-bold">
+                <div className="w-10 min-h-[48px] rounded-xl bg-primary text-white flex items-center justify-center shrink-0 font-bold">
                   <ClipboardList size={18} />
                 </div>
                 <div>
                   <div className="font-headline font-bold text-xs">Scrivi a mano</div>
-                  <div className="text-[11px] text-on-surface-variant">Inserisci liberamente testo o serie</div>
+                  <div className="text-xs text-on-surface-variant">Inserisci liberamente testo o serie</div>
                 </div>
               </button>
 
@@ -508,14 +539,14 @@ export const DatiScreen: React.FC = () => {
                   setEditMode(true);
                   setOcrModalOpen(true);
                 }}
-                className="w-full p-3.5 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/60 text-left flex items-center gap-3 transition"
+                className="w-full p-3.5 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant text-left flex items-center gap-3 transition"
               >
-                <div className="w-10 h-10 rounded-xl bg-secondary text-white flex items-center justify-center shrink-0 font-bold">
+                <div className="w-10 min-h-[48px] rounded-xl bg-secondary text-white flex items-center justify-center shrink-0 font-bold">
                   <Bot size={18} />
                 </div>
                 <div>
                   <div className="font-headline font-bold text-xs">Genera con IA</div>
-                  <div className="text-[11px] text-on-surface-variant">Carica uno screenshot o usa l'IA</div>
+                  <div className="text-xs text-on-surface-variant">Carica uno screenshot o usa l'IA</div>
                 </div>
               </button>
 
@@ -525,14 +556,14 @@ export const DatiScreen: React.FC = () => {
                   setModalitaNuovoModal(false);
                   setTab('schede');
                 }}
-                className="w-full p-3.5 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/60 text-left flex items-center gap-3 transition"
+                className="w-full p-3.5 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant text-left flex items-center gap-3 transition"
               >
-                <div className="w-10 h-10 rounded-xl bg-tertiary text-white flex items-center justify-center shrink-0 font-bold">
+                <div className="w-10 min-h-[48px] rounded-xl bg-tertiary text-white flex items-center justify-center shrink-0 font-bold">
                   <Sparkles size={18} />
                 </div>
                 <div>
                   <div className="font-headline font-bold text-xs">Proposta sistema</div>
-                  <div className="text-[11px] text-on-surface-variant">Usa la scheda calcolata dal piano</div>
+                  <div className="text-xs text-on-surface-variant">Usa la scheda calcolata dal piano</div>
                 </div>
               </button>
             </div>

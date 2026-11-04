@@ -49,7 +49,7 @@ export const GareAmmissibiliCard: React.FC<Props> = ({ atleta }) => {
           aria-label="Vasca"
           value={vasca}
           onChange={(e) => setVasca(e.target.value as FiltroVasca)}
-          className="rounded-lg border border-outline-variant px-2 py-1 text-sm"
+          className="rounded-lg border border-outline-variant px-3 py-1 text-sm"
         >
           <option value="tutte">Tutte le vasche</option>
           <option value="corta">Vasca corta (25 m)</option>

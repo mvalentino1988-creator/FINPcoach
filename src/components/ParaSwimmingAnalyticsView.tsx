@@ -79,7 +79,7 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
           <RefreshCw size={15} />
           <span>Sincronizzazione Temporale Mensile: {syncStatus.lastUpdateDate}</span>
         </div>
-        <span className="px-2 py-0.5 rounded-full bg-primary-container text-on-primary font-bold text-[10px]">
+        <span className="px-3 py-0.5 rounded-full bg-primary-container text-on-primary font-bold text-xs">
           {syncStatus.refreshed ? 'Cluster Ricalcolati' : 'Allineato 30gg'}
         </span>
       </div>
@@ -166,32 +166,32 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
       })()}
 
       <Sezione titolo="Legenda Colori Classi S & Marker Atleta" icon={<Award size={16} className="text-tertiary-container" />} storageKey="para_biomech_legend" defaultAperto={false}>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs font-semibold">
-          <div className="flex items-center gap-2 p-2 bg-error-container rounded-xl border border-error/40">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 text-xs font-semibold">
+          <div className="flex items-center gap-3 p-3 bg-error-container rounded-xl border border-error/40">
             <span className="w-3 h-3 rounded-full bg-error shrink-0" />
             <span className="text-on-error-container">Classe S1-S2</span>
           </div>
-          <div className="flex items-center gap-2 p-2 bg-tertiary-fixed/40 rounded-xl border border-tertiary-fixed-dim">
+          <div className="flex items-center gap-3 p-3 bg-tertiary-fixed/40 rounded-xl border border-tertiary-fixed-dim">
             <span className="w-3 h-3 rounded-full bg-tertiary-container shrink-0" />
             <span className="text-on-tertiary-fixed">Classe S3-S4</span>
           </div>
-          <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded-xl border border-yellow-200">
+          <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-xl border border-yellow-200">
             <span className="w-3 h-3 rounded-full bg-yellow-500 shrink-0" />
             <span className="text-yellow-900">Classe S5-S6</span>
           </div>
-          <div className="flex items-center gap-2 p-2 bg-surface-container-low rounded-xl border border-primary-fixed-dim">
+          <div className="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl border border-primary-fixed-dim">
             <span className="w-3 h-3 rounded-full bg-emerald-500 shrink-0" />
             <span className="text-on-primary-fixed">Classe S7-S8</span>
           </div>
-          <div className="flex items-center gap-2 p-2 bg-surface-container-low rounded-xl border border-outline-variant">
+          <div className="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl border border-outline-variant">
             <span className="w-3 h-3 rounded-full bg-secondary shrink-0" />
             <span className="text-on-surface">Classe S9</span>
           </div>
-          <div className="flex items-center gap-2 p-2 bg-surface-container-high rounded-xl border border-outline-variant">
+          <div className="flex items-center gap-3 p-3 bg-surface-container-high rounded-xl border border-outline-variant">
             <span className="w-3 h-3 rounded-full bg-secondary-container shrink-0" />
             <span className="text-on-surface">Classe S10</span>
           </div>
-          <div className="flex items-center gap-2 p-2 bg-tertiary-fixed rounded-xl border border-tertiary sm:col-span-2">
+          <div className="flex items-center gap-3 p-3 bg-tertiary-fixed rounded-xl border border-tertiary sm:col-span-2">
             <span className="w-3.5 h-3.5 bg-tertiary-container border border-white rounded-xs shrink-0" />
             <span className="text-amber-950 font-bold">Mio Atleta (Prestazioni Reali)</span>
           </div>
@@ -263,11 +263,11 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
                   <span className="font-bold text-on-surface block">
                     #{idx + 1} · {p.data} — {p.tempoSecondi.toFixed(2)}s ({p.classeParalimpica})
                   </span>
-                  <span className="text-[11px] text-on-surface-variant">
+                  <span className="text-xs text-on-surface-variant">
                     Velocità: {p.velocitaMedia.toFixed(2)} m/s · Costo Energetico: {p.costoEnergetico.toFixed(1)} J/m/kg
                   </span>
                 </div>
-                <span className="px-2.5 py-1 rounded-full bg-amber-200 text-on-tertiary-fixed font-bold text-xs">
+                <span className="px-3 py-1 rounded-full bg-amber-200 text-on-tertiary-fixed font-bold text-xs">
                   {p.velocitaMedia.toFixed(2)} m/s
                 </span>
               </div>

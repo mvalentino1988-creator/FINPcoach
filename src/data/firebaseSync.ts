@@ -14,7 +14,9 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
 import firebaseConfig, { isFirebaseConfigured } from './firebaseConfig';
 import {
@@ -150,6 +152,29 @@ export class FirebaseSync {
       this.state.status = 'error';
       this.state.error = this.getAuthErrorMessage(error.code);
       return { success: false, error: this.state.error };
+    }
+  }
+
+  /**
+   * Login con Google
+   */
+  static async loginWithGoogle(): Promise<{ success: boolean; error?: string }> {
+    if (!this.initialize()) {
+      return { success: false, error: 'Firebase non configurato' };
+    }
+
+    try {
+      this.state.status = 'connecting';
+      const provider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(this.auth!, provider);
+      this.state.userId = userCredential.user.uid;
+      this.state.status = 'synced';
+      return { success: true };
+    } catch (error: any) {
+      console.error('Google login error:', error);
+      this.state.status = 'error';
+      this.state.error = error.message || 'Errore login con Google';
+      return { success: false, error: this.state.error || undefined };
     }
   }
 

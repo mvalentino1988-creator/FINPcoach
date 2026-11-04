@@ -154,7 +154,7 @@ export const ParaSwimmingCanvasChart: React.FC<Props> = ({
   }, [athletePerformances, eliteClusters, width, height]);
 
   return (
-    <div className="w-full overflow-x-auto ds-card p-2 shadow-card">
+    <div className="w-full overflow-x-auto ds-card p-3 shadow-card">
       <canvas
         ref={canvasRef}
         width={width}

@@ -249,14 +249,14 @@ export const RegistroScreen: React.FC = () => {
                   )
                 );
               }}
-              className="w-full flex items-center justify-center gap-2 p-2.5 bg-surface-container-low hover:bg-primary-fixed text-primary-container border border-primary-fixed-dim rounded-xl font-bold text-xs transition"
+              className="w-full flex items-center justify-center gap-3 p-3 bg-surface-container-low hover:bg-primary-fixed text-primary-container border border-primary-fixed-dim rounded-xl font-bold text-xs transition"
             >
               <Waves size={16} />
               <span>Scheda Bordo Vasca del Giorno 🏊‍♂️</span>
             </button>
 
             {giaRegistrata && (
-              <p className="text-[11px] text-tertiary bg-surface-container-low p-2 rounded-lg border border-tertiary-fixed-dim font-medium">
+              <p className="text-xs text-tertiary bg-surface-container-low p-3 rounded-lg border border-tertiary-fixed-dim font-medium">
                 Per questa data è già presente una seduta nel registro: salvando verrà aggiornata.
               </p>
             )}
@@ -281,7 +281,7 @@ export const RegistroScreen: React.FC = () => {
                     r.presente ? 'bg-surface-container-low border-slate-200/70' : 'bg-surface-container/60 border-slate-200/70 opacity-60'
                   }`}
                 >
-                  <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                  <label className="flex items-center gap-3 cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={r.presente}
@@ -297,7 +297,7 @@ export const RegistroScreen: React.FC = () => {
                       <span className="font-bold text-on-surface text-sm block">
                         {a.cognome} {a.nome}
                       </span>
-                      <span className="text-[11px] text-on-surface-variant font-medium">
+                      <span className="text-xs text-on-surface-variant font-medium">
                         {a.classeS != null ? `S${a.classeS} ` : ''}
                         · Fattore volume: {Math.round(a.fattoreVolume * 100)}%
                       </span>
@@ -317,7 +317,7 @@ export const RegistroScreen: React.FC = () => {
                               [a.id]: { ...r, metri: e.target.value }
                             }));
                           }}
-                          className="w-24 px-2.5 h-12 border border-outline-variant rounded-lg text-center font-bold text-xs"
+                          className="w-24 px-3 h-12 border border-outline-variant rounded-lg text-center font-bold text-xs"
                         />
                         <span className="text-on-surface-variant">m</span>
                       </div>
@@ -334,9 +334,9 @@ export const RegistroScreen: React.FC = () => {
                               [a.id]: { ...r, rpe: e.target.value }
                             }));
                           }}
-                          className="w-16 px-2.5 h-12 border border-outline-variant rounded-lg text-center font-bold text-xs text-primary-container"
+                          className="w-16 px-3 h-12 border border-outline-variant rounded-lg text-center font-bold text-xs text-primary-container"
                         />
-                        <span className="text-[10px] text-on-surface-variant">/10</span>
+                        <span className="text-xs text-on-surface-variant">/10</span>
                       </div>
                     </div>
                   ) : (
@@ -347,7 +347,7 @@ export const RegistroScreen: React.FC = () => {
             })}
 
             {salvatoSuccesso && (
-              <div className="flex items-center gap-2 p-3 bg-surface-container-low text-primary border border-primary-fixed-dim rounded-xl text-xs font-bold animate-fadeIn">
+              <div className="flex items-center gap-3 p-3 bg-surface-container-low text-primary border border-primary-fixed-dim rounded-xl text-xs font-bold animate-fadeIn">
                 <CheckCircle size={16} className="text-primary" />
                 <span>Seduta registrata con successo nel registro presenze e carichi!</span>
               </div>
@@ -368,7 +368,7 @@ export const RegistroScreen: React.FC = () => {
       {sezione === 'tempi' && atletaSel && (
         <div className="space-y-4">
           {/* Athlete Selector */}
-          <div className="p-3 ds-card shadow-card flex items-center gap-2 overflow-x-auto">
+          <div className="p-3 ds-card shadow-card flex items-center gap-3 overflow-x-auto">
             <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider shrink-0 pl-1">
               Atleta:
             </span>
@@ -403,7 +403,7 @@ export const RegistroScreen: React.FC = () => {
       {sezione === 'storico' && atletaSel && (
         <div className="space-y-4">
           {/* Athlete Selector */}
-          <div className="p-3 ds-card shadow-card flex items-center gap-2 overflow-x-auto">
+          <div className="p-3 ds-card shadow-card flex items-center gap-3 overflow-x-auto">
             <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider shrink-0 pl-1">
               Atleta:
             </span>
@@ -502,7 +502,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block font-semibold text-on-surface-variant mb-1">Data *</label>
               <input
@@ -555,7 +555,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
                   key={c}
                   type="button"
                   onClick={() => setContesto(c)}
-                  className={`px-2.5 py-1 rounded-lg font-semibold transition ${
+                  className={`px-3 py-1 rounded-lg font-semibold transition ${
                     contesto === c ? 'bg-primary-container text-on-primary font-bold' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
@@ -570,7 +570,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
                   key={v}
                   type="button"
                   onClick={() => setVasca(v)}
-                  className={`px-2.5 py-1 rounded-lg font-semibold transition ${
+                  className={`px-3 py-1 rounded-lg font-semibold transition ${
                     vasca === v ? 'bg-primary-container text-on-primary font-bold' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
@@ -608,17 +608,17 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
         {primati.length === 0 ? (
           <p className="text-xs text-on-surface-variant">Nessun tempo di gara registrato.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             {primati.map((p, i) => (
               <div
                 key={i}
-                className="p-2.5 bg-surface-container-low/50 border border-tertiary-fixed-dim rounded-xl flex items-center justify-between"
+                className="p-3 bg-surface-container-low/50 border border-tertiary-fixed-dim rounded-xl flex items-center justify-between"
               >
                 <div>
                   <span className="font-bold text-on-surface block">
                     {p.stile.replace('_', ' ')} {p.distanzaMetri} m (vasca {p.vascaMetri}m)
                   </span>
-                  <span className="text-[11px] text-on-surface-variant">{formattaData(p.data)}</span>
+                  <span className="text-xs text-on-surface-variant">{formattaData(p.data)}</span>
                 </div>
                 <span className="font-bold text-primary-container text-sm">
                   {formattaTempo(p.centesimi)}
@@ -642,7 +642,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
             {tempi.map(t => (
               <div
                 key={t.id}
-                className="p-2.5 bg-surface-container-low border border-slate-200/70 rounded-xl flex items-center justify-between gap-2"
+                className="p-3 bg-surface-container-low border border-slate-200/70 rounded-xl flex items-center justify-between gap-2"
               >
                 <div>
                   <div className="flex items-center gap-2">
@@ -651,7 +651,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
                     </span>
                     <span className="font-bold text-primary-container">{formattaTempo(t.centesimi)}</span>
                   </div>
-                  <div className="text-[11px] text-on-surface-variant">
+                  <div className="text-xs text-on-surface-variant">
                     {formattaData(t.data)} · {t.contesto.toLowerCase()} · vasca {t.vascaMetri}m
                     {t.note && ` · ${t.note}`}
                   </div>
@@ -708,13 +708,13 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
             <HeartPulse size={18} className="text-error" />
             <span>Monitoraggio Infortuni ACWR (Acute:Chronic Workload Ratio)</span>
           </h3>
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-surface-container text-on-surface">
+          <span className="px-3 py-1 rounded-full text-xs font-bold bg-surface-container text-on-surface">
             {acwr.livelloRischio}
           </span>
         </div>
 
         {acwr.avvisoInfortunio && (
-          <div className="p-3 bg-error-container border border-error/40 rounded-xl text-xs text-on-error-container flex items-start gap-2 font-medium">
+          <div className="p-3 bg-error-container border border-error/40 rounded-xl text-xs text-on-error-container flex items-start gap-3 font-medium">
             <ShieldAlert size={16} className="text-error shrink-0 mt-0.5" />
             <p>{acwr.avvisoInfortunio}</p>
           </div>
@@ -737,7 +737,7 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
 
         {/* Visual ACWR Sweet Spot Gauge */}
         <div className="pt-2 border-t border-slate-200/70 space-y-1.5">
-          <div className="flex flex-wrap justify-between items-center gap-x-2 gap-y-0.5 text-[11px] font-bold text-on-surface-variant">
+          <div className="flex flex-wrap justify-between items-center gap-x-2 gap-y-0.5 text-xs font-bold text-on-surface-variant">
             <span>&lt;0.8 Sotto-carico</span>
             <span className="text-primary">0.8 - 1.3 Sweet Spot (Sicuro)</span>
             <span className="text-tertiary">1.3 - 1.5 Attenzione</span>
@@ -758,7 +758,7 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
               }}
             >
               <div className="w-2.5 h-2.5 bg-slate-900 rotate-45 rounded-xs" />
-              <span className="text-[11px] font-bold text-on-surface mt-0.5 whitespace-nowrap">
+              <span className="text-xs font-bold text-on-surface mt-0.5 whitespace-nowrap">
                 ▲ {acwr.acwrRapporto.toFixed(2)}
               </span>
             </div>
@@ -788,7 +788,7 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
           settimane.map((s, i) => (
             <div
               key={i}
-              className="p-3.5 bg-surface-container-lowest border border-slate-200/70 rounded-xl shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+              className="p-3.5 bg-surface-container-lowest border border-slate-200/70 rounded-xl shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
             >
               <div>
                 <span className="font-bold text-on-surface block text-sm">
@@ -803,7 +803,7 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
 
               <div className="text-left sm:text-right">
                 {s.rpeMedio != null && (
-                  <span className="text-on-surface-variant block text-[11px]">
+                  <span className="text-on-surface-variant block text-xs">
                     RPE medio: <strong>{s.rpeMedio.toFixed(1)}</strong>
                   </span>
                 )}

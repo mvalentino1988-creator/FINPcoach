@@ -165,14 +165,14 @@ export const RegolamentiScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => toggleSezione(chiave)}
-            className="w-full flex items-start gap-2 px-3 h-12 text-left hover:bg-surface-container-low transition"
+            className="w-full flex items-start gap-3 px-3 h-12 text-left hover:bg-surface-container-low transition"
           >
             <span className="mt-0.5 text-outline shrink-0">
               {aperta ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
             </span>
             <span className="flex-1 min-w-0">
               <span className="block font-semibold text-on-surface text-[13px] leading-snug">{sezione.titolo}</span>
-              {!aperta && <span className="block text-[11px] text-on-surface-variant mt-0.5">{anteprima(sezione.testo)}</span>}
+              {!aperta && <span className="block text-xs text-on-surface-variant mt-0.5">{anteprima(sezione.testo)}</span>}
             </span>
           </button>
         )}
@@ -198,18 +198,18 @@ export const RegolamentiScreen: React.FC = () => {
         <button
           type="button"
           onClick={() => toggleCapitolo(chiave)}
-          className="w-full flex items-center gap-2.5 p-3 text-left hover:bg-surface-container-low transition"
+          className="w-full flex items-center gap-3 p-3 text-left hover:bg-surface-container-low transition"
         >
           <span className="text-on-surface-variant shrink-0">
             {aperto ? <ChevronDown size={17} /> : <ChevronRight size={17} />}
           </span>
           {cap.codice && (
-            <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-primary-container bg-surface-container-low border border-primary-fixed-dim rounded-md px-1.5 py-0.5">
+            <span className="shrink-0 text-xs font-bold uppercase tracking-wider text-primary-container bg-surface-container-low border border-primary-fixed-dim rounded-md px-1.5 py-0.5">
               {cap.codice}
             </span>
           )}
           <span className="flex-1 min-w-0 font-bold text-on-surface text-sm leading-snug">{cap.titolo}</span>
-          <span className="shrink-0 text-[10px] font-semibold text-on-surface-variant">
+          <span className="shrink-0 text-xs font-semibold text-on-surface-variant">
             {cap.sezioni.length} {cap.sezioni.length === 1 ? 'articolo' : 'articoli'}
           </span>
         </button>
@@ -288,13 +288,13 @@ export const RegolamentiScreen: React.FC = () => {
         {/* Suggestions */}
         {!inRicerca && (
           <div className="flex flex-wrap items-center gap-1.5 pt-1">
-            <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Ricerche rapide:</span>
+            <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Ricerche rapide:</span>
             {RegolamentiService.suggerimenti().map(s => (
               <button
                 key={s}
                 type="button"
                 onClick={() => setQuery(s)}
-                className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-surface-container-low text-on-surface-variant border border-slate-200/70 hover:bg-surface-container transition"
+                className="px-3 py-1 rounded-lg text-xs font-semibold bg-surface-container-low text-on-surface-variant border border-slate-200/70 hover:bg-surface-container transition"
               >
                 {s}
               </button>
@@ -330,7 +330,7 @@ export const RegolamentiScreen: React.FC = () => {
                 <h4 className="font-bold text-on-surface text-sm leading-snug">
                   {evidenzia(r.sezione.titolo, query)}
                 </h4>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-primary-container bg-surface-container-low border border-primary-fixed-dim rounded-full px-2 py-0.5 shrink-0">
+                <span className="text-xs font-bold uppercase tracking-wider text-primary-container bg-surface-container-low border border-primary-fixed-dim rounded-full px-3 py-0.5 shrink-0">
                   {r.fonte}
                 </span>
               </div>
@@ -339,7 +339,7 @@ export const RegolamentiScreen: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => apriRisultato(r)}
-                  className="text-[11px] font-bold text-primary-container hover:underline flex items-center gap-1"
+                  className="text-xs font-bold text-primary-container hover:underline flex items-center gap-1"
                 >
                   <FileText size={12} />
                   Apri nel documento
@@ -348,7 +348,7 @@ export const RegolamentiScreen: React.FC = () => {
                   href={r.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[11px] font-semibold text-on-surface-variant hover:text-on-surface flex items-center gap-1"
+                  className="text-xs font-semibold text-on-surface-variant hover:text-on-surface flex items-center gap-1"
                 >
                   <ExternalLink size={12} />
                   Fonte ufficiale
@@ -365,7 +365,7 @@ export const RegolamentiScreen: React.FC = () => {
             <button
               type="button"
               onClick={() => setIndiceAperto(v => !v)}
-              className="text-[11px] font-bold text-on-surface-variant hover:text-on-surface flex items-center gap-1.5 px-2.5 h-12 rounded-lg bg-surface-container hover:bg-surface-container-high transition"
+              className="text-xs font-bold text-on-surface-variant hover:text-on-surface flex items-center gap-1.5 px-3 h-12 rounded-lg bg-surface-container hover:bg-surface-container-high transition"
             >
               <ListTree size={13} />
               Indice dei capitoli
@@ -375,14 +375,14 @@ export const RegolamentiScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={espandiTutto}
-                className="text-[11px] font-semibold text-on-surface-variant hover:text-on-surface px-2 h-12 rounded-lg hover:bg-surface-container transition"
+                className="text-xs font-semibold text-on-surface-variant hover:text-on-surface px-3 h-12 rounded-lg hover:bg-surface-container transition"
               >
                 Espandi tutto
               </button>
               <button
                 type="button"
                 onClick={comprimiTutto}
-                className="text-[11px] font-semibold text-on-surface-variant hover:text-on-surface px-2 h-12 rounded-lg hover:bg-surface-container transition"
+                className="text-xs font-semibold text-on-surface-variant hover:text-on-surface px-3 h-12 rounded-lg hover:bg-surface-container transition"
               >
                 Comprimi tutto
               </button>
@@ -394,7 +394,7 @@ export const RegolamentiScreen: React.FC = () => {
             <div className="space-y-3 p-3 rounded-xl bg-surface-container-low border border-slate-200/70">
               {documentiVisibili.map(({ doc, capitoli }) => (
                 <div key={doc.id} className="space-y-1.5">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant flex items-center gap-1.5">
+                  <div className="text-xs font-bold uppercase tracking-wider text-on-surface-variant flex items-center gap-1.5">
                     <Layers size={12} className="text-primary-container" />
                     {doc.fonte}
                   </div>
@@ -404,7 +404,7 @@ export const RegolamentiScreen: React.FC = () => {
                         key={c.chiave}
                         type="button"
                         onClick={() => vaiAlCapitolo(doc.id, c.chiave)}
-                        className="px-2 py-1 rounded-lg text-[11px] font-semibold bg-surface-container-lowest text-on-surface-variant border border-slate-200/70 hover:border-primary-container hover:text-primary-container transition max-w-full truncate"
+                        className="px-3 py-1 rounded-lg text-xs font-semibold bg-surface-container-lowest text-on-surface-variant border border-slate-200/70 hover:border-primary-container hover:text-primary-container transition max-w-full truncate"
                         title={c.titolo}
                       >
                         {c.codice ? `${c.codice} · ` : ''}
@@ -424,7 +424,7 @@ export const RegolamentiScreen: React.FC = () => {
                 <h3 className="text-sm font-bold text-on-surface flex items-center gap-2">
                   <FileText size={15} className="text-primary-container" />
                   <span>{doc.titolo}</span>
-                  <span className="text-[10px] font-semibold text-on-surface-variant">
+                  <span className="text-xs font-semibold text-on-surface-variant">
                     {capitoli.length} capitoli
                   </span>
                 </h3>
@@ -432,7 +432,7 @@ export const RegolamentiScreen: React.FC = () => {
                   href={doc.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[11px] font-semibold text-on-surface-variant hover:text-on-surface flex items-center gap-1"
+                  className="text-xs font-semibold text-on-surface-variant hover:text-on-surface flex items-center gap-1"
                 >
                   <ExternalLink size={12} />
                   Fonte
@@ -447,7 +447,7 @@ export const RegolamentiScreen: React.FC = () => {
       )}
 
       {/* Source note */}
-      <div className="p-3 rounded-xl bg-surface-container-low border border-slate-200/70 text-[11px] text-on-surface-variant flex items-start gap-2">
+      <div className="p-3 rounded-xl bg-surface-container-low border border-slate-200/70 text-xs text-on-surface-variant flex items-start gap-2">
         <Info size={14} className="mt-0.5 shrink-0 text-on-surface-variant" />
         <span>
           Testi consultabili offline (snapshot {meta.aggiornato}). In caso di discordanza fa fede il testo ufficiale

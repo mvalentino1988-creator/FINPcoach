@@ -78,7 +78,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
   });
 
   return (
-    <div className="flex flex-1 min-h-0 flex-col gap-2 overflow-hidden">
+    <div className="flex flex-1 min-h-0 flex-col gap-3 overflow-hidden">
       {/* Intestazione pagina */}
       <div className="shrink-0">
         <PageHeader
@@ -119,39 +119,18 @@ export const RegiaTecnicaCorsie: React.FC = () => {
         />
       </div>
 
-      {/* 1. TELEMETRIA COMPRESSA IN UNA RIGA DI CHIP */}
-      <section aria-label="Telemetria" className="shrink-0 ds-card p-2 flex items-center justify-between gap-1.5 overflow-x-auto text-xs">
-        <span className="ds-chip bg-primary/10 text-primary border border-primary/20 shrink-0">
-          <Activity size={13} /> Corsie: {atleti.length > 0 ? Math.min(4, atleti.length) : 0}/4
-        </span>
-        <span className="ds-chip bg-surface-container text-on-surface border border-outline-variant shrink-0">
-          <Waves size={13} /> Vasca {vascaAttiva}
-        </span>
-        <span className="ds-chip bg-surface-container text-on-surface border border-outline-variant shrink-0">
-          <Zap size={13} /> Squadra FINP
-        </span>
-        <span className="ds-chip bg-success-container text-on-success-container border border-success/30 shrink-0">
-          <CheckCircle2 size={13} /> Pronto Bordo Vasca
-        </span>
-      </section>
-
       {/* 2. PRESCRIZIONI MEDICHE (SEMPRE VISIBILE BANNER ROSSO COMPATTO) */}
-      <section className="shrink-0 ds-card p-2.5 bg-error-container/80 border-l-4 border-l-error text-on-error-container space-y-1.5">
+      <section className="shrink-0 ds-card p-3 bg-error-container/80 border-l-4 border-l-error text-on-error-container space-y-1.5">
         <button
           type="button"
           onClick={() => setPrescrizioniEspanso(v => !v)}
-          className="w-full flex items-center justify-between gap-2 text-left"
+          className="w-full flex items-center justify-between gap-3 text-left"
         >
-          <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <ShieldAlert size={16} className="text-error shrink-0" />
             <span className="font-headline font-bold text-xs uppercase tracking-wider">
               Prescrizioni Mediche ({miePrescrizioni.length})
             </span>
-            {!prescrizioniEspanso && miePrescrizioni.length > 0 && (
-              <div className="min-w-0 flex-1 font-bold text-xs truncate">
-                <Marquee text={`${miePrescrizioni[0].atletaId ? atleti.find(a => a.id === miePrescrizioni[0].atletaId)?.cognome || 'Atleta' : 'Squadra'}: ${miePrescrizioni[0].descrizione || miePrescrizioni[0].limitazioni}`} />
-              </div>
-            )}
           </div>
           <span className="w-6 h-6 rounded-full bg-error/20 text-error flex items-center justify-center shrink-0">
             {prescrizioniEspanso ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -176,7 +155,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
         )}
       </section>
 
-      <section className="shrink-0 ds-card p-2.5 space-y-1.5">
+      <section className="shrink-0 ds-card p-3 space-y-1.5">
         <button
           type="button"
           onClick={() => setRipartizioneAperta(v => !v)}
@@ -186,7 +165,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
             <Activity size={15} /> Intensità della seduta
           </span>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-on-surface-variant font-medium">
+            <span className="text-xs text-on-surface-variant font-medium">
               {sedutaOggi
                 ? `Volume ${sedutaOggi.volume >= 1000 ? `${(sedutaOggi.volume / 1000).toFixed(1).replace('.', ',')} km` : `${sedutaOggi.volume} m`}`
                 : 'Nessuna scheda oggi'}
@@ -195,17 +174,12 @@ export const RegiaTecnicaCorsie: React.FC = () => {
           </div>
         </button>
 
-        {sedutaOggi && sedutaOggi.volume > 0 ? (
+        {sedutaOggi && sedutaOggi.volume > 0 && (
           <IndicatoreCodici
             ripartizione={sedutaOggi.ripartizione}
             volumeTotale={sedutaOggi.volume}
             dettaglio={ripartizioneAperta}
           />
-        ) : (
-          <p className="text-[11px] text-on-surface-variant leading-snug">
-            Qui compare la quota di lavoro per codice (A1, B1, …) quando c’è una scheda per oggi.
-            Non è un “carico” in metri: i metri sono il volume della seduta, i codici dicono l’intensità.
-          </p>
         )}
       </section>
 
@@ -218,18 +192,18 @@ export const RegiaTecnicaCorsie: React.FC = () => {
           <span className="text-xs font-bold text-primary font-headline">4 Corsie</span>
         </div>
 
-        <div className="flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 overflow-y-auto pr-0.5 pb-14 sm:pb-6">
+        <div className="flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 overflow-y-auto pr-0.5 pb-14 sm:pb-6">
           {corsie.map(c => (
             <div
               key={c.numero}
-              className="p-3 rounded-2xl bg-surface-container-low border border-outline-variant/80 flex flex-col justify-between gap-2 min-w-0"
+              className="p-3 rounded-2xl bg-surface-container-low border border-outline-variant flex flex-col justify-between gap-3 min-w-0"
             >
               <div className="space-y-2">
-                <div className="flex items-center justify-between gap-2 border-b border-outline-variant/60 pb-1.5">
+                <div className="flex items-center justify-between gap-3 border-b border-outline-variant pb-1.5">
                   <span className="w-7 h-7 rounded-xl bg-primary text-white font-headline text-xs font-bold flex items-center justify-center shadow-sm">
                     C{c.numero}
                   </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-surface-container text-primary font-mono">
+                  <span className="text-xs font-bold px-3 py-0.5 rounded-md bg-surface-container text-primary font-mono">
                     {c.targetPacing}
                   </span>
                 </div>
@@ -239,13 +213,13 @@ export const RegiaTecnicaCorsie: React.FC = () => {
                 ) : (
                   <div className="space-y-1.5">
                     {c.atletiList.map(ath => (
-                      <div key={ath.id} className="p-2 rounded-xl bg-surface-container-lowest border border-outline-variant/60 flex items-center justify-between gap-1.5 text-xs">
+                      <div key={ath.id} className="p-3 rounded-xl bg-surface-container-lowest border border-outline-variant flex items-center justify-between gap-1.5 text-xs">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5">
                             <span className="font-bold text-on-surface truncate min-w-0 flex-1">
                               <Marquee text={ath.nome} />
                             </span>
-                            <span className="px-1.5 py-0.2 rounded bg-primary text-white font-bold text-[10px] shrink-0 font-headline">
+                            <span className="px-1.5 py-0.2 rounded bg-primary text-white font-bold text-xs shrink-0 font-headline">
                               {ath.classe}
                             </span>
                             {ath.hasPrescrizione && (
@@ -261,7 +235,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
                 )}
               </div>
 
-              <div className="text-[11px] text-on-surface-variant font-medium pt-1.5 border-t border-outline-variant/60 truncate">
+              <div className="text-xs text-on-surface-variant font-medium pt-1.5 border-t border-outline-variant truncate">
                 Focus: {c.focus}
               </div>
             </div>
