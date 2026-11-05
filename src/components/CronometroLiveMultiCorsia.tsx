@@ -22,11 +22,56 @@ interface AthleteInLane {
 interface LaneState {
   id: number;
   laneNumber: number;
+  ripartenzaSecondi: number;
+  ripartenzaText?: string;
   athletes: AthleteInLane[];
 }
 
 const MAX_LANES = 8;
 const MAX_ATHLETES_PER_LANE = 6;
+
+const RIPARTENZA_PRESETS = [
+  { value: 15, label: '15"' },
+  { value: 30, label: '30"' },
+  { value: 45, label: '45"' },
+  { value: 60, label: "1'00\"" },
+  { value: 75, label: "1'15\"" },
+  { value: 90, label: "1'30\"" },
+  { value: 105, label: "1'45\"" },
+  { value: 120, label: "2'00\"" },
+  { value: 135, label: "2'15\"" },
+  { value: 150, label: "2'30\"" },
+  { value: 165, label: "2'45\"" },
+  { value: 180, label: "3'00\"" },
+  { value: 210, label: "3'30\"" },
+  { value: 240, label: "4'00\"" },
+  { value: 270, label: "4'30\"" },
+  { value: 300, label: "5'00\"" },
+  { value: 360, label: "6'00\"" },
+  { value: 420, label: "7'00\"" },
+  { value: 480, label: "8'00\"" },
+  { value: 540, label: "9'00\"" },
+  { value: 600, label: "10'00\"" },
+  { value: 720, label: "12'00\"" },
+  { value: 900, label: "15'00\"" },
+  { value: 1200, label: "20'00\"" },
+  { value: 1500, label: "25'00\"" },
+  { value: 1800, label: "30'00\"" },
+];
+
+const formatRipartenzaLabel = (totalSec: number): string => {
+  const mins = Math.floor(totalSec / 60);
+  const secs = totalSec % 60;
+  if (mins === 0) return `${secs}"`;
+  if (secs === 0) return `${mins}'00"`;
+  return `${mins}'${String(secs).padStart(2, '0')}"`;
+};
+
+const formatSendoff = (totalSec: number): string => {
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+};
 
 const formatMs = (ms: number) => {
   const totalCentiseconds = Math.max(0, Math.floor(ms / 10));
@@ -48,11 +93,13 @@ const createAthlete = (athlete: { id: number; nome: string; cognome: string; cla
 
 const createInitialLanes = (
   athletes: { id: number; nome: string; cognome: string; classeS?: number }[],
+  defaultRipartenza: number = 90
 ): LaneState[] => {
   const laneCount = Math.min(MAX_LANES, Math.max(1, athletes.length));
   const lanes = Array.from({ length: laneCount }, (_, index) => ({
     id: index + 1,
     laneNumber: index + 1,
+    ripartenzaSecondi: defaultRipartenza,
     athletes: [] as AthleteInLane[],
   }));
 
@@ -74,6 +121,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
   const savedTimeRef = useRef(0);
   const idRef = useRef(0);
   const [vascaMetri, setVascaMetri] = useState<25 | 50>(() => stagione?.vascaMetri === 25 ? 25 : 50);
+  const [ripartenzaText, setRipartenzeText] = useState('90');
   const [ripartenzaSecondi, setRipartenzaSecondi] = useState(90);
   const [salvatoFeedback, setSalvatoFeedback] = useState<string | null>(null);
   const [selectedAthleteId, setSelectedAthleteId] = useState<number | ''>('');
@@ -164,33 +212,38 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     if (!isRunning) return;
     const currentTime = getCurrentTime();
 
-    setLanes(current => current.map(lane => lane.id !== laneId ? lane : {
-      ...lane,
-      athletes: lane.athletes.map(athlete => {
-        if (athlete.id !== athleteId) return athlete;
+    setLanes(current => current.map(lane => {
+      if (lane.id !== laneId) return lane;
+      const effectiveRipartenza = lane.ripartenzaSecondi ?? ripartenzaSecondi;
 
-        if (athlete.startedAtMs === null) {
-          return { ...athlete, startedAtMs: currentTime, nextStartAtMs: null };
-        }
+      return {
+        ...lane,
+        athletes: lane.athletes.map(athlete => {
+          if (athlete.id !== athleteId) return athlete;
 
-        const segmentStart = athlete.nextStartAtMs ?? athlete.startedAtMs;
-        if (currentTime < segmentStart) return athlete;
+          if (athlete.startedAtMs === null) {
+            return { ...athlete, startedAtMs: currentTime, nextStartAtMs: null };
+          }
 
-        const split = {
-          lap: athlete.splitList.length + 1,
-          time: formatMs(currentTime - segmentStart),
-          timestampMs: currentTime - segmentStart,
-        };
-        const scheduledStart = segmentStart + ripartenzaSecondi * 1000;
-        const nextStartAtMs = Math.max(scheduledStart, currentTime);
+          const segmentStart = athlete.nextStartAtMs ?? athlete.startedAtMs;
+          if (currentTime < segmentStart) return athlete;
 
-        return {
-          ...athlete,
-          startedAtMs: nextStartAtMs,
-          nextStartAtMs,
-          splitList: [split, ...athlete.splitList],
-        };
-      }),
+          const split = {
+            lap: athlete.splitList.length + 1,
+            time: formatMs(currentTime - segmentStart),
+            timestampMs: currentTime - segmentStart,
+          };
+          const scheduledStart = segmentStart + effectiveRipartenza * 1000;
+          const nextStartAtMs = Math.max(scheduledStart, currentTime);
+
+          return {
+            ...athlete,
+            startedAtMs: nextStartAtMs,
+            nextStartAtMs,
+            splitList: [split, ...athlete.splitList],
+          };
+        }),
+      };
     }));
   };
 
@@ -203,6 +256,12 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     });
   };
 
+  const updateLaneRipartenza = (laneId: number, seconds: number) => {
+    setLanes(current => current.map(lane =>
+      lane.id === laneId ? { ...lane, ripartenzaSecondi: seconds } : lane
+    ));
+  };
+
   const addLane = () => {
     if (lanes.length >= MAX_LANES) return;
     setLanes(current => {
@@ -210,7 +269,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
       const laneNumber = Array.from({ length: MAX_LANES }, (_, index) => index + 1)
         .find(number => !usedNumbers.has(number)) ?? current.length + 1;
       const id = Math.max(0, ...current.map(lane => lane.id)) + 1;
-      return [...current, { id, laneNumber, athletes: [] }];
+      return [...current, { id, laneNumber, ripartenzaSecondi, athletes: [] }];
     });
   };
 
@@ -330,30 +389,50 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
           <button type="button" onClick={resetMaster} aria-label="Azzera sessione" className="timer-console-reset">
             <RotateCcw size={17} />
           </button>
-          <label className="timer-setting">
-            <span>Vasca</span>
-            <select value={vascaMetri} onChange={event => setVascaMetri(Number(event.target.value) as 25 | 50)}>
+          <label className="timer-setting flex-1 flex flex-col justify-center min-h-[48px]">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Vasca</span>
+            <select
+              value={vascaMetri}
+              onChange={event => setVascaMetri(Number(event.target.value) as 25 | 50)}
+              className="bg-transparent font-headline font-bold text-base sm:text-lg text-on-surface focus:outline-none cursor-pointer w-full"
+            >
               <option value={25}>25 m</option>
               <option value={50}>50 m</option>
             </select>
           </label>
-          <label className="timer-setting timer-sendoff">
-            <span>Ripartenza</span>
-            <span className="timer-sendoff-value">
+          <label className="timer-setting flex-1 flex flex-col justify-center min-h-[48px]">
+            <div className="w-full flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Ripartenza</span>
+              <span className="text-xs font-bold text-primary tabular-nums font-headline">{formatSendoff(ripartenzaSecondi)}</span>
+            </div>
+            <div className="flex items-center gap-1 w-full">
               <input
                 type="number"
-                min={10}
-                max={600}
+                min={5}
+                max={3600}
                 step={5}
-                value={ripartenzaSecondi}
-                aria-label="Intervallo di ripartenza in secondi"
+                value={ripartenzaText}
+                aria-label="Ripartenza globale in secondi"
                 onChange={event => {
-                  const value = Number(event.target.value);
-                  if (value >= 10 && value <= 600) setRipartenzaSecondi(value);
+                  const text = event.target.value;
+                  setRipartenzeText(text);
+                  const value = Number(text);
+                  if (!isNaN(value) && value >= 0) {
+                    setRipartenzaSecondi(value);
+                    setLanes(curr => curr.map(l => ({ ...l, ripartenzaSecondi: value })));
+                  }
                 }}
+                onBlur={() => {
+                  const value = Number(ripartenzaText);
+                  const finalVal = isNaN(value) || value < 5 ? 90 : value;
+                  setRipartenzeText(String(finalVal));
+                  setRipartenzaSecondi(finalVal);
+                  setLanes(curr => curr.map(l => ({ ...l, ripartenzaSecondi: finalVal })));
+                }}
+                className="w-full bg-transparent font-headline font-bold text-base sm:text-lg text-on-surface focus:outline-none tabular-nums"
               />
-              <span>s</span>
-            </span>
+              <span className="text-xs font-bold text-on-surface-variant">s</span>
+            </div>
           </label>
         </div>
       </section>
@@ -409,6 +488,48 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
             <header className="cronometro-lane-card-header">
               <span className="lane-number">C{lane.laneNumber}</span>
               <span className="lane-athlete-count">{lane.athletes.length}<span>/{MAX_ATHLETES_PER_LANE}</span></span>
+
+              <div className="flex items-center gap-1 ml-auto mr-1">
+                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Rip:</span>
+                <div className="flex items-center gap-1 bg-surface-container-high rounded-xl px-2 py-0.5 border border-outline-variant">
+                  <span className="text-[10px] font-bold text-primary tabular-nums font-headline">{formatSendoff(lane.ripartenzaSecondi ?? ripartenzaSecondi)}</span>
+                  <input
+                    type="number"
+                    min={5}
+                    max={3600}
+                    step={5}
+                    value={lane.ripartenzaText ?? String(lane.ripartenzaSecondi)}
+                    aria-label={`Ripartenza corsia ${lane.laneNumber} in secondi`}
+                    onChange={e => {
+                      const text = e.target.value;
+                      setLanes(curr => curr.map(l => {
+                        if (l.id !== lane.id) return l;
+                        const num = Number(text);
+                        return {
+                          ...l,
+                          ripartenzaText: text,
+                          ripartenzaSecondi: isNaN(num) ? l.ripartenzaSecondi : num
+                        };
+                      }));
+                    }}
+                    onBlur={() => {
+                      setLanes(curr => curr.map(l => {
+                        if (l.id !== lane.id) return l;
+                        const num = Number(l.ripartenzaText);
+                        const finalVal = isNaN(num) || num < 5 ? 90 : num;
+                        return {
+                          ...l,
+                          ripartenzaText: undefined,
+                          ripartenzaSecondi: finalVal
+                        };
+                      }));
+                    }}
+                    className="w-10 bg-transparent text-primary font-bold text-xs text-right focus:outline-none tabular-nums"
+                  />
+                  <span className="text-[10px] font-bold text-primary">s</span>
+                </div>
+              </div>
+
               {lane.athletes.length === 0 && lanes.length > 1 && (
                 <button type="button" onClick={() => removeLane(lane.id)} className="lane-remove-button" aria-label={`Rimuovi corsia ${lane.laneNumber}`}>
                   <X size={15} />

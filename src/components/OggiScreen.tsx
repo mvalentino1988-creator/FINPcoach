@@ -453,12 +453,12 @@ const OggiContent: React.FC = () => {
   }, [tempi, atleti]);
 
   return (
-    <div className={`oggi-screen relative flex flex-1 min-h-0 flex-col gap-2 overflow-hidden ${visualizzaSeduta && schedaOggi ? 'oggi-screen-with-workout' : ''}`}>
+    <div className={`oggi-screen relative flex flex-1 flex-col gap-2 ${visualizzaSeduta && schedaOggi ? 'oggi-screen-with-workout' : ''}`}>
       {/* Desktop 2-Column Layout (lg: 1024px+) vs Mobile 1-Column */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-2 lg:gap-4 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-2 lg:gap-4">
 
-        <div className="oggi-main-column flex flex-col gap-2 min-h-0">
-          <section className="oggi-day-card relative shrink-0 rounded-3xl bg-surface-container-low border border-outline-variant shadow-card px-3 py-2 sm:px-4 sm:py-3 lg:px-5 lg:py-4">
+        <div className="oggi-main-column flex flex-col gap-2.5 sm:gap-3 pb-24 lg:pb-4">
+          <section className="oggi-day-card relative shrink-0 rounded-3xl bg-surface-container-low border border-outline-variant shadow-card px-3 py-2.5 sm:px-4 sm:py-3 lg:px-5 lg:py-4">
             <div className="relative z-10 flex items-center justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <span className="text-xs font-bold uppercase tracking-widest text-primary/80 font-headline flex items-center gap-1.5 mb-1">
@@ -515,8 +515,6 @@ const OggiContent: React.FC = () => {
               </div>
             </div>
           </section>
-
-
 
           {/* Current season and training phase */}
           {stagione && (
@@ -580,23 +578,24 @@ const OggiContent: React.FC = () => {
                   />
                 </div>
               )}
-              <span className="sr-only">
-                Stagione {stagione.nome}, dal {formattaData(stagione.inizio)} al {formattaData(stagione.fine)}
-              </span>
+              <div className="text-[11px] text-on-surface-variant flex items-center justify-between border-t border-outline-variant/60 pt-1.5 mt-1">
+                <span className="font-medium">Stagione {stagione.nome}</span>
+                <span className="tabular-nums font-semibold">{formattaData(stagione.inizio)} – {formattaData(stagione.fine)}</span>
+              </div>
             </section>
           )}
 
-          {/* Statistiche in griglia 2x2 simmetrica e interamente cliccabile */}
-          <section className="oggi-statistics lg:hidden shrink-0 grid grid-cols-4 gap-1.5 sm:gap-2">
+          {/* Statistiche in griglia 2x2 su mobile per massima chiarezza e ampiezza di tocco */}
+          <section className="oggi-statistics lg:hidden shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-2">
             <button
               type="button"
               onClick={() => setModalAtletiOpen(true)}
               aria-label={`Atleti: ${atleti.length}`}
-              className="ds-card p-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-left hover:bg-surface-container-low transition cursor-pointer group"
+              className="ds-card p-2.5 sm:p-3 flex items-center justify-between gap-2 text-left hover:bg-surface-container-low transition cursor-pointer group"
             >
               <div>
-                <span className="oggi-stat-label ds-label">Atleti</span>
-                <div className="text-sm sm:text-base font-bold tabular-nums text-on-surface">{atleti.length}</div>
+                <span className="oggi-stat-label ds-label text-xs">Atleti</span>
+                <div className="text-base font-bold tabular-nums text-on-surface">{atleti.length}</div>
               </div>
               <div className="w-6 h-6 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition">
                 <Users size={14} className="sm:hidden" /><Users size={18} className="hidden sm:block" />
@@ -607,14 +606,14 @@ const OggiContent: React.FC = () => {
               type="button"
               onClick={() => setModalParametriOpen(true)}
               aria-label={`Allenamenti settimanali: ${giorniAllenamento.length}`}
-              className="ds-card p-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-left hover:bg-surface-container-low transition cursor-pointer group"
+              className="ds-card p-2.5 sm:p-3 flex items-center justify-between gap-2 text-left hover:bg-surface-container-low transition cursor-pointer group"
             >
               <div>
-                <span className="oggi-stat-label ds-label">Sedute</span>
-                <div className="text-sm sm:text-base font-bold tabular-nums text-on-surface">{giorniAllenamento.length}</div>
+                <span className="oggi-stat-label ds-label text-xs">Sedute</span>
+                <div className="text-base font-bold tabular-nums text-on-surface">{giorniAllenamento.length}</div>
               </div>
-              <div className="w-6 h-6 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                <Calendar size={14} className="sm:hidden" /><Calendar size={18} className="hidden sm:block" />
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                <Calendar size={15} className="sm:hidden" /><Calendar size={18} className="hidden sm:block" />
               </div>
             </button>
 
@@ -622,14 +621,14 @@ const OggiContent: React.FC = () => {
               type="button"
               onClick={() => setModalTempiOpen(true)}
               aria-label={`Tempi registrati: ${tempi.length}`}
-              className="ds-card p-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-left hover:bg-surface-container-low transition cursor-pointer group"
+              className="ds-card p-2.5 sm:p-3 flex items-center justify-between gap-2 text-left hover:bg-surface-container-low transition cursor-pointer group"
             >
               <div>
-                <span className="oggi-stat-label ds-label">Tempi</span>
-                <div className="text-sm sm:text-base font-bold tabular-nums text-on-surface">{tempi.length}</div>
+                <span className="oggi-stat-label ds-label text-xs">Tempi</span>
+                <div className="text-base font-bold tabular-nums text-on-surface">{tempi.length}</div>
               </div>
-              <div className="w-6 h-6 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                <Clock size={14} className="sm:hidden" /><Clock size={18} className="hidden sm:block" />
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                <Clock size={15} className="sm:hidden" /><Clock size={18} className="hidden sm:block" />
               </div>
             </button>
 
@@ -637,14 +636,14 @@ const OggiContent: React.FC = () => {
               type="button"
               onClick={() => setModalGareOpen(true)}
               aria-label={`Gare: ${gare.length}`}
-              className="ds-card p-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-left hover:bg-surface-container-low transition cursor-pointer group"
+              className="ds-card p-2.5 sm:p-3 flex items-center justify-between gap-2 text-left hover:bg-surface-container-low transition cursor-pointer group"
             >
               <div>
-                <span className="oggi-stat-label ds-label">Gare</span>
-                <div className="text-sm sm:text-base font-bold tabular-nums text-on-surface">{gare.length}</div>
+                <span className="oggi-stat-label ds-label text-xs">Gare</span>
+                <div className="text-base font-bold tabular-nums text-on-surface">{gare.length}</div>
               </div>
-              <div className="w-6 h-6 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                <Trophy size={14} className="sm:hidden" /><Trophy size={18} className="hidden sm:block" />
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                <Trophy size={15} className="sm:hidden" /><Trophy size={18} className="hidden sm:block" />
               </div>
             </button>
           </section>

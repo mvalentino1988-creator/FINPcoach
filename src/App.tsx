@@ -62,7 +62,7 @@ export const AppContent: React.FC = () => {
     });
   }, []);
 
-  const isBordoVasca = tab === 'oggi' || tab === 'cronometro' || tab === 'regia';
+  const isBordoVasca = tab === 'cronometro' || tab === 'regia';
   const fixed = isBordoVasca;
 
   useEffect(() => {
@@ -105,9 +105,9 @@ export const AppContent: React.FC = () => {
 
       <Navbar currentTab={tab} onTabChange={setTab} layout={layout} />
 
-      <div className="app-content">
+      <div className="app-content flex-1 min-h-0 flex flex-col">
         <main
-          className={`app-main w-full mx-auto px-gutter-mobile sm:px-gutter ${
+          className={`app-main flex-1 min-h-0 h-full flex flex-col w-full mx-auto px-gutter-mobile sm:px-gutter ${
             wide ? 'max-w-none' : 'max-w-[1536px]'
           }`}
         >

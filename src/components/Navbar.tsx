@@ -211,12 +211,12 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
           <button
             type="button"
             onClick={() => vai('oggi')}
-            className="flex items-center gap-3 min-w-0 min-h-[44px]"
+            className="flex items-center gap-2.5 min-w-0 min-h-[44px]"
           >
-            <span className="w-10 min-h-[48px] rounded-xl bg-gradient-blue flex items-center justify-center shrink-0 shadow-primary-sm">
+            <span className="w-10 h-10 rounded-xl bg-gradient-blue flex items-center justify-center shrink-0 shadow-primary-sm">
               <Waves size={20} className="text-white" />
             </span>
-            <span className="flex items-center gap-3 min-w-0">
+            <span className="flex items-center gap-2.5 min-w-0">
               <span className="font-headline text-base sm:text-lg font-bold text-on-surface tracking-tight">
                 FINP<span style={{ color: 'var(--color-tertiary)' }}>coach</span>
               </span>
@@ -321,7 +321,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
           ref={layout.dockRef}
           aria-label="Navigazione principale"
           className="sm:hidden fixed bottom-0 inset-x-0 z-40 ds-glass shadow-nav border-t border-outline-variant"
-          style={{ paddingBottom: 'var(--safe-bottom, 10px)' }}
+          style={{ paddingBottom: 'max(12px, var(--safe-bottom, 12px))' }}
         >
           <div className="h-20 px-3 grid grid-cols-5 items-end pt-2">
             {(['oggi', 'atleti'] as TabKey[]).map(key => {
