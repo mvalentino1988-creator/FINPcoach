@@ -3,7 +3,7 @@ import { useApp } from '../data/AppContext';
 import { RecordService, RecordFINP, CATEGORIE_ITA } from '../domain/recordService';
 import { formattaTempo } from '../domain/tempoUtils';
 import { formattaData } from '../domain/dateUtils';
-import { Trophy, Medal, Globe, User, Info, Flag, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Trophy, Medal, Globe, User, Info, Flag, MapPin, CalendarDays, X, TrendingUp, TrendingDown } from 'lucide-react';
 
 const TIPO_LABEL: Record<'ITA' | 'EUR' | 'WR', string> = {
   ITA: 'Italia',
@@ -26,6 +26,7 @@ export const RecordScreen: React.FC = () => {
   const [evento, setEvento] = useState<string>(() => RecordService.eventiIndividuali(50)[0] ?? '');
   const [classe, setClasse] = useState<string>('');
   const [atletaSelId, setAtletaSelId] = useState<number | null>(null);
+  const [recordInfo, setRecordInfo] = useState<RecordFINP | null>(null);
 
   const eventi = useMemo(() => RecordService.eventi(vasca), [vasca]);
   const generi = useMemo(() => RecordService.generi(vasca, evento), [vasca, evento]);
@@ -96,14 +97,14 @@ export const RecordScreen: React.FC = () => {
       return <span className="text-xs text-on-surface-variant italic">non disponibile</span>;
     }
     return (
-      <div className="flex items-baseline justify-between gap-2">
-        <span className={`font-bold text-base ${accent}`}>{r.tm}</span>
-        <span className="text-xs text-on-surface-variant text-right leading-tight">
-          {r.d ?? '—'}
-          {r.n ? ` (${r.n})` : ''}
-          {r.dt ? ` · ${r.dt}` : ''}
-        </span>
-      </div>
+      <button
+        type="button"
+        onClick={() => setRecordInfo(r)}
+        aria-label={`Dettagli del record ${r.tm}`}
+        className={`font-bold text-base ${accent} underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary rounded`}
+      >
+        {r.tm}
+      </button>
     );
   };
 
@@ -219,7 +220,6 @@ export const RecordScreen: React.FC = () => {
                 <div key={cat} className="p-3 rounded-lg border border-slate-200/70 bg-surface-container-low/50 space-y-0.5 min-w-0">
                   <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wide block truncate">{cat}</span>
                   {renderRecord(record, 'text-primary-container')}
-                  {record?.m && <p className="text-xs text-on-surface-variant line-clamp-1">{record.m}</p>}
                 </div>
               ))}
             </div>
@@ -233,7 +233,6 @@ export const RecordScreen: React.FC = () => {
                 <span className="truncate">Europeo</span>
               </div>
               {renderRecord(recordEur, 'text-secondary')}
-              {recordEur?.m && <p className="text-xs text-on-surface-variant line-clamp-1">{recordEur.m}</p>}
             </div>
             <div className="p-3 rounded-lg border border-tertiary-fixed-dim bg-surface-container-low/40 space-y-0.5 min-w-0">
               <div className="flex items-center gap-1.5 text-tertiary font-bold text-xs uppercase tracking-wider">
@@ -241,7 +240,6 @@ export const RecordScreen: React.FC = () => {
                 <span className="truncate">Mondiale</span>
               </div>
               {renderRecord(recordWr, 'text-tertiary')}
-              {recordWr?.m && <p className="text-xs text-on-surface-variant line-clamp-1">{recordWr.m}</p>}
             </div>
           </div>
         </div>
@@ -277,7 +275,13 @@ export const RecordScreen: React.FC = () => {
                     <div key={label} className="p-3 rounded-xl border border-slate-200/70 bg-surface-container-low/50 flex items-center justify-between text-xs">
                       <div>
                         <span className="font-bold text-on-surface block">{label}</span>
-                        <span className="text-xs text-on-surface-variant">{record.tm} · {record.d ?? '—'}</span>
+                        <button
+                          type="button"
+                          onClick={() => setRecordInfo(record)}
+                          className="text-xs text-primary hover:underline underline-offset-2"
+                        >
+                          {record.tm}
+                        </button>
                       </div>
                       <div className={`text-right font-bold ${colore} flex flex-col items-end gap-0.5`}>
                         <div className="flex items-center gap-1">
@@ -323,6 +327,51 @@ export const RecordScreen: React.FC = () => {
           </a>
         </span>
       </div>
+
+      {recordInfo && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setRecordInfo(null)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-label="Dettagli record"
+            className="w-full max-w-sm rounded-2xl bg-surface-container-lowest border border-outline-variant p-5 shadow-float space-y-4 text-on-surface"
+            onClick={event => event.stopPropagation()}
+          >
+            <header className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-primary">{recordInfo.ev} · {recordInfo.cl}</p>
+                <h3 className="font-headline font-bold text-2xl tabular-nums">{recordInfo.tm}</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRecordInfo(null)}
+                aria-label="Chiudi dettagli record"
+                className="w-10 h-10 rounded-xl hover:bg-surface-container flex items-center justify-center"
+              >
+                <X size={18} />
+              </button>
+            </header>
+            <dl className="space-y-3 border-t border-outline-variant pt-3 text-sm">
+              <div className="flex items-start gap-2">
+                <User size={16} className="mt-0.5 shrink-0 text-primary" />
+                <div><dt className="text-xs text-on-surface-variant">Detentore</dt><dd className="font-semibold">{recordInfo.d ?? 'Non indicato'}</dd></div>
+              </div>
+              <div className="flex items-start gap-2">
+                <MapPin size={16} className="mt-0.5 shrink-0 text-primary" />
+                <div><dt className="text-xs text-on-surface-variant">Luogo</dt><dd className="font-semibold">{recordInfo.l ?? 'Non indicato'}</dd></div>
+              </div>
+              <div className="flex items-start gap-2">
+                <CalendarDays size={16} className="mt-0.5 shrink-0 text-primary" />
+                <div><dt className="text-xs text-on-surface-variant">Data</dt><dd className="font-semibold">{recordInfo.dt ?? 'Non indicata'}</dd></div>
+              </div>
+              {recordInfo.m && <div><dt className="text-xs text-on-surface-variant">Manifestazione</dt><dd className="font-semibold">{recordInfo.m}</dd></div>}
+            </dl>
+          </section>
+        </div>
+      )}
     </div>
   );
 };

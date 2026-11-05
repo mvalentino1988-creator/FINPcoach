@@ -85,13 +85,13 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
       </div>
 
       <div className="ds-card p-4 shadow-card space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-xs">
           <div>
             <label className="block font-bold text-on-surface mb-1">Atleta</label>
             <select
               value={atletaSel?.id ?? ''}
               onChange={(e) => setAtletaSelId(e.target.value ? Number(e.target.value) : null)}
-              className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface"
+              className="w-full min-w-0 min-h-[44px] px-2 sm:px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface"
             >
               {atleti.map(a => (
                 <option key={a.id} value={a.id}>{a.cognome} {a.nome} (S{a.classeS ?? '?'})</option>
@@ -104,7 +104,7 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
             <select
               value={stile}
               onChange={(e) => setStile(e.target.value as Stile)}
-              className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface"
+              className="w-full min-w-0 min-h-[44px] px-2 sm:px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface"
             >
               <option value="STILE_LIBERO">Stile Libero</option>
               <option value="DORSO">Dorso</option>
@@ -119,7 +119,7 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
             <select
               value={distanza}
               onChange={(e) => setDistanza(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface"
+              className="w-full min-w-0 min-h-[44px] px-2 sm:px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface"
             >
               <option value={50}>50m</option>
               <option value={100}>100m</option>
@@ -133,7 +133,7 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
             <select
               value={livelloGeo}
               onChange={(e) => setLivelloGeo(e.target.value as LivelloGeografico)}
-              className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface"
+              className="w-full min-w-0 min-h-[44px] px-2 sm:px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface"
             >
               <option value="Mondiale">Top 10 Mondiale</option>
               <option value="Europeo">Top 10 Europeo</option>
@@ -193,7 +193,7 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
           </div>
           <div className="flex items-center gap-3 p-3 bg-tertiary-fixed rounded-xl border border-tertiary sm:col-span-2">
             <span className="w-3.5 h-3.5 bg-tertiary-container border border-white rounded-xs shrink-0" />
-            <span className="text-amber-950 font-bold">Mio Atleta (Prestazioni Reali)</span>
+            <span className="text-on-tertiary-fixed font-bold">Mio Atleta (Prestazioni Reali)</span>
           </div>
         </div>
       </Sezione>

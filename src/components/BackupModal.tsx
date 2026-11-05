@@ -226,7 +226,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
         </div>
 
         {/* Body */}
-        <div className="p-4 sm:p-6 space-y-4 text-xs flex-1 min-h-0 overflow-y-auto">
+        <div className="p-3.5 sm:p-6 space-y-3 sm:space-y-4 text-[13px] leading-relaxed flex-1 min-h-0 overflow-y-auto">
           {successMsg && (
             <div className="flex items-center gap-3 p-3 bg-surface-container-low text-primary border border-primary-fixed-dim rounded-xl font-bold">
               <CheckCircle size={16} className="text-primary shrink-0" />

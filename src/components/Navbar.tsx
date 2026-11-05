@@ -82,11 +82,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
   const vai = (tab: TabKey) => {
     onTabChange(tab);
     setAltroOpen(false);
-    if (['cronometro', 'regia', 'dati'].includes(tab)) {
-      sessionStorage.setItem('finp_from_altro', 'true');
-    } else {
-      sessionStorage.removeItem('finp_from_altro');
-    }
+    sessionStorage.removeItem('finp_from_altro');
   };
 
   useEffect(() => {
@@ -129,7 +125,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
         <span className="truncate flex-1">{item.label}</span>
         <span
           aria-hidden="true"
-          className={`text-xs font-semibold tabular-nums shrink-0 ${active ? 'text-white/60' : 'text-on-surface-variant'}`}
+          className={`text-xs font-semibold tabular-nums shrink-0 ${active ? 'text-primary/60' : 'text-on-surface-variant'}`}
         >
           {numero}
         </span>
@@ -210,7 +206,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
         className="lg:hidden sticky top-0 z-40 border-b border-outline-variant ds-glass"
         style={{ paddingTop: 'var(--safe-top, 0px)' }}
       >
-        <div className="mx-auto max-w-[1600px] px-gutter-mobile sm:px-gutter py-3 flex items-center justify-between gap-3">
+        <div className="mx-auto max-w-[1600px] px-gutter-mobile sm:px-gutter py-3 flex items-center justify-between gap-3 max-[380px]:gap-1.5">
           {/* Left: logo + context */}
           <button
             type="button"
@@ -221,10 +217,10 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
               <Waves size={20} className="text-white" />
             </span>
             <span className="flex items-center gap-3 min-w-0">
-              <span className="font-headline text-lg font-bold text-on-surface tracking-tight">
+              <span className="font-headline text-base sm:text-lg font-bold text-on-surface tracking-tight">
                 FINP<span style={{ color: 'var(--color-tertiary)' }}>coach</span>
               </span>
-              <span className="text-xs font-bold text-primary bg-surface-container px-3 py-1 rounded-full border border-outline-variant min-w-[70px] max-w-[170px] text-center">
+              <span className="max-[380px]:hidden text-xs font-bold text-primary bg-surface-container px-3 py-1 rounded-full border border-outline-variant min-w-[70px] max-w-[170px] text-center">
                 <Marquee text={CONTESTO[currentTab]} />
               </span>
             </span>
@@ -247,7 +243,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
 
         {/* Tablet horizontal nav (sm and above, hidden on pure mobile) */}
         <nav aria-label="Sezioni principali" className="hidden sm:block border-t border-outline-variant px-gutter">
-          <div className="ds-hscroll flex items-center gap-3 py-2.5">
+          <div className="grid grid-cols-4 gap-2 py-2.5">
             {ORDINE.filter(key => !(layoutScelto === 'azione-centrale' && key === 'cronometro')).map(key => {
               const tab    = ITEMS[key];
               const active = currentTab === key;
@@ -257,14 +253,14 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
                   type="button"
                   onClick={() => vai(key)}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex-none flex items-center gap-3 px-4 min-h-[48px] rounded-xl text-xs font-bold font-headline transition-all duration-250 ${
+                  className={`w-full min-w-0 flex items-center justify-center gap-2 px-2 min-h-[48px] rounded-xl text-xs font-bold font-headline transition-all duration-250 ${
                     active
-                      ? 'bg-gradient-blue text-white shadow-primary-sm'
+                      ? 'bg-primary/10 text-primary border border-primary/20'
                       : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
                   <tab.Icon size={16} />
-                  <span className="whitespace-nowrap">{tab.label}</span>
+                  <span className="truncate">{tab.label}</span>
                 </button>
               );
             })}
@@ -294,7 +290,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
                   aria-label={tab.label}
                   className={`flex items-center justify-center min-w-[52px] min-h-[52px] p-3 rounded-2xl transition-all duration-250 ${
                     active
-                      ? 'bg-gradient-blue text-white shadow-primary-sm px-4'
+                      ? 'bg-primary/10 text-primary ring-1 ring-inset ring-primary/20 px-4'
                       : 'text-on-surface-variant hover:bg-surface-container/80'
                   }`}
                 >
@@ -309,7 +305,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
               aria-label="Altre sezioni"
               className={`flex items-center justify-center min-w-[52px] min-h-[52px] p-3 rounded-2xl transition-all duration-250 ${
                 altroAttivo
-                  ? 'bg-gradient-blue text-white shadow-primary-sm px-4'
+                  ? 'bg-primary/10 text-primary ring-1 ring-inset ring-primary/20 px-4'
                   : 'text-on-surface-variant hover:bg-surface-container/80'
               }`}
             >
@@ -360,7 +356,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
               >
                 <Timer size={28} />
               </button>
-              <span className={`text-xs font-headline mt-auto ${currentTab === 'cronometro' ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>
+              <span className={`text-[11px] font-headline mt-auto ${currentTab === 'cronometro' ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>
                 Crono
               </span>
             </div>
@@ -418,7 +414,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
                   aria-current={active ? 'page' : undefined}
                   aria-label={tab.label}
                   className={`flex flex-col items-center justify-center gap-1 flex-1 min-w-0 min-h-[56px] py-2 rounded-2xl transition-all duration-250 ${
-                    active ? 'text-primary font-bold bg-primary' : 'text-on-surface-variant hover:bg-surface-container/70'
+                    active ? 'text-primary font-bold bg-primary/10 ring-1 ring-inset ring-primary/20' : 'text-on-surface-variant hover:bg-surface-container/70'
                   }`}
                 >
                   <tab.Icon size={24} />
@@ -434,7 +430,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
               aria-label="Altre sezioni"
               aria-expanded={altroOpen}
               className={`flex flex-col items-center justify-center gap-1 flex-1 min-w-0 min-h-[56px] py-2 rounded-2xl transition-all duration-250 ${
-                altroAttivo ? 'text-primary font-bold bg-primary' : 'text-on-surface-variant hover:bg-surface-container/70'
+                altroAttivo ? 'text-primary font-bold bg-primary/10 ring-1 ring-inset ring-primary/20' : 'text-on-surface-variant hover:bg-surface-container/70'
               }`}
             >
               <MoreHorizontal size={24} />
@@ -480,15 +476,11 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
                   onClick={() => vai(tab.key)}
                   className={`flex flex-col items-center justify-center gap-3 p-4 rounded-2xl text-center border transition-all group ${
                     currentTab === tab.key
-                      ? 'bg-gradient-blue text-white border-primary/0 shadow-primary-sm'
+                      ? 'bg-primary/10 text-primary border-primary/30'
                       : 'bg-surface-container-low border-outline-variant text-on-surface hover:bg-surface-container hover:border-outline-variant'
                   }`}
                 >
-                  <span
-                    className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 ${
-                      currentTab === tab.key ? 'bg-white/20 text-white' : 'bg-primary text-primary'
-                    }`}
-                  >
+                  <span className="w-11 h-11 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 bg-primary/10 text-primary">
                     <tab.Icon size={20} />
                   </span>
                   <span className="font-headline font-bold text-xs truncate max-w-full">{tab.label}</span>
@@ -507,17 +499,6 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
                 <span className="font-headline font-bold text-xs">Aspetto</span>
               </button>
 
-              {/* Backup */}
-              <button
-                type="button"
-                onClick={() => { setAltroOpen(false); setBackupOpen(true); }}
-                className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl text-center border border-outline-variant bg-surface-container-low text-on-surface hover:bg-surface-container transition group"
-              >
-                <span className="w-11 h-11 rounded-2xl bg-tertiary/10 text-tertiary flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <CloudDownload size={20} />
-                </span>
-                <span className="font-headline font-bold text-xs">Backup</span>
-              </button>
             </div>
           </div>
         </div>
@@ -554,17 +535,17 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
               <span className="block text-xs font-bold text-primary uppercase tracking-widest">Tema</span>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: 'sistema', label: 'Sistema', icon: <Monitor size={18} /> },
-                  { id: 'chiaro',  label: 'Chiaro',  icon: <Sun size={18} /> },
-                  { id: 'scuro',   label: 'Scuro',   icon: <Moon size={18} /> },
+                  { id: 'sistema' as const, label: 'Sistema', icon: <Monitor size={18} /> },
+                  { id: 'chiaro' as const,  label: 'Chiaro',  icon: <Sun size={18} /> },
+                  { id: 'scuro' as const,   label: 'Scuro',   icon: <Moon size={18} /> },
                 ].map(item => (
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => setThemeMode(item.id as any)}
+                    onClick={() => setThemeMode(item.id)}
                     className={`flex flex-col items-center justify-center gap-1.5 p-3.5 rounded-2xl border text-xs font-bold transition-all ${
                       themeMode === item.id
-                        ? 'border-primary bg-gradient-blue text-white shadow-primary-sm'
+                        ? 'border-primary/30 bg-primary/10 text-primary'
                         : 'border-outline-variant bg-surface-container-low text-on-surface hover:bg-surface-container'
                     }`}
                   >
@@ -593,16 +574,16 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
                     onClick={() => setLayoutScelto(item.id as any)}
                     className={`w-full flex items-center justify-between p-3.5 rounded-2xl text-left border transition-all ${
                       layoutScelto === item.id
-                        ? 'border-primary bg-primary text-primary font-bold'
+                        ? 'border-primary bg-primary text-on-primary font-bold'
                         : 'border-outline-variant bg-surface-container-low text-on-surface hover:bg-surface-container'
                     }`}
                   >
                     <div>
                       <div className="font-headline text-sm font-bold">{item.title}</div>
-                      <div className="text-xs text-on-surface-variant mt-0.5">{item.desc}</div>
+                      <div className={`text-xs mt-0.5 ${layoutScelto === item.id ? 'text-on-primary/85' : 'text-on-surface-variant'}`}>{item.desc}</div>
                     </div>
                     <span className={`w-4 h-4 rounded-full border-2 shrink-0 transition-all ${
-                      layoutScelto === item.id ? 'border-primary bg-primary' : 'border-outline-variant bg-transparent'
+                      layoutScelto === item.id ? 'border-on-primary bg-on-primary' : 'border-outline-variant bg-transparent'
                     }`} />
                   </button>
                 ))}

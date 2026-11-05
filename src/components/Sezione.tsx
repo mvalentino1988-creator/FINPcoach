@@ -70,7 +70,7 @@ export const Sezione: React.FC<Props> = ({
             )}
           </div>
           {badge !== undefined && (
-            <span className="px-3 py-0.5 rounded-full text-xs font-bold bg-primary text-primary shrink-0">
+            <span className="px-3 py-0.5 rounded-full text-xs font-bold bg-primary text-on-primary shrink-0">
               {badge}
             </span>
           )}

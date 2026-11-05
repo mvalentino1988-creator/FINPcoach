@@ -123,11 +123,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const updateTheme = () => {
       const isDark = themeMode === 'scuro' || (themeMode === 'sistema' && mediaQuery.matches);
       root.classList.toggle('dark', isDark);
+      root.style.colorScheme = isDark ? 'dark' : 'light';
     };
 
     updateTheme();
-    mediaQuery.addEventListener('change', updateTheme);
-    return () => mediaQuery.removeEventListener('change', updateTheme);
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', updateTheme);
+      return () => mediaQuery.removeEventListener('change', updateTheme);
+    }
+
+    mediaQuery.addListener(updateTheme);
+    return () => mediaQuery.removeListener(updateTheme);
   }, [themeMode]);
 
   // Save changes

@@ -1,506 +1,523 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../data/AppContext';
-import { formattaData, todayISO } from '../domain/dateUtils';
-import {
-  Timer,
-  Play,
-  Pause,
-  RotateCcw,
-  Flag,
-  User,
-  Activity,
-  Waves,
-  Save,
-  CheckCircle2,
-  Plus,
-  Minus,
-  ArrowLeft
-} from 'lucide-react';
-import { PageHeader } from './PageHeader';
-import { Marquee } from './Marquee';
+import { todayISO } from '../domain/dateUtils';
+import { CheckCircle2, Minus, Pause, Play, Plus, RotateCcw, Save, Timer, Waves, X } from 'lucide-react';
+
+interface Split {
+  lap: number;
+  time: string;
+  timestampMs: number;
+}
 
 interface AthleteInLane {
   id: string;
-  atletaId: number | null;
+  atletaId: number;
   atletaNome: string;
   classe: string;
-  lastSplit: string;
-  splitList: { lap: number; time: string; timestampMs: number }[];
-  strokeRate?: number;
+  startedAtMs: number | null;
+  nextStartAtMs: number | null;
+  splitList: Split[];
 }
 
 interface LaneState {
   id: number;
   laneNumber: number;
   athletes: AthleteInLane[];
-  statusNote: string;
 }
 
-export const CronometroLiveMultiCorsia: React.FC = () => {
-  const { atleti, aggiungiTempo } = useApp();
-  const [showBack, setShowBack] = useState(false);
+const MAX_LANES = 8;
+const MAX_ATHLETES_PER_LANE = 6;
 
-  useEffect(() => {
-    const isFromAltro = sessionStorage.getItem('finp_from_altro') === 'true';
-    setShowBack(isFromAltro);
-  }, []);
+const formatMs = (ms: number) => {
+  const totalCentiseconds = Math.max(0, Math.floor(ms / 10));
+  const minutes = Math.floor(totalCentiseconds / 6000);
+  const seconds = Math.floor((totalCentiseconds % 6000) / 100);
+  const centiseconds = totalCentiseconds % 100;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
+};
 
-  const handleBack = () => {
-    sessionStorage.removeItem('finp_from_altro');
-    window.history.back();
-  };
+const createAthlete = (athlete: { id: number; nome: string; cognome: string; classeS?: number }, id: string): AthleteInLane => ({
+  id,
+  atletaId: athlete.id,
+  atletaNome: `${athlete.cognome} ${athlete.nome}`,
+  classe: athlete.classeS != null ? `S${athlete.classeS}` : 'S?',
+  startedAtMs: null,
+  nextStartAtMs: null,
+  splitList: [],
+});
 
-  const [isRunning, setIsRunning] = useState(false);
-  const [masterTime, setMasterTime] = useState(0);
-  const timerRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number>(0);
-  const savedTimeRef = useRef<number>(0);
+const createInitialLanes = (
+  athletes: { id: number; nome: string; cognome: string; classeS?: number }[],
+): LaneState[] => {
+  const laneCount = Math.min(MAX_LANES, Math.max(1, athletes.length));
+  const lanes = Array.from({ length: laneCount }, (_, index) => ({
+    id: index + 1,
+    laneNumber: index + 1,
+    athletes: [] as AthleteInLane[],
+  }));
 
-  const [salvatoFeedback, setSalvatoFeedback] = useState<string | null>(null);
-  const [vascaMetri, setVascaMetri] = useState<50 | 25>(50);
-
-  const formatClasse = (val: number | undefined | null, fallback: string) => {
-    return val != null ? `S${val}` : fallback;
-  };
-
-  // Inizializzazione 4 corsie con supporto multi-atleta retrocompatibile
-  const [lanes, setLanes] = useState<LaneState[]>(() => {
-    return [1, 2, 3, 4].map(idx => {
-      const a = atleti[idx - 1];
-      return {
-        id: idx,
-        laneNumber: idx,
-        athletes: [
-          {
-            id: `ath-${idx}-1`,
-            atletaId: a?.id ?? null,
-            atletaNome: a ? `${a.cognome} ${a.nome}` : `Atleta ${idx}`,
-            classe: a ? formatClasse(a.classeS, 'S9') : 'S9',
-            lastSplit: '00:00.00',
-            splitList: [],
-            strokeRate: 36
-          }
-        ],
-        statusNote: a ? 'Pronto' : 'Libera'
-      };
-    });
+  athletes.slice(0, MAX_LANES * MAX_ATHLETES_PER_LANE).forEach((athlete, index) => {
+    lanes[index % laneCount].athletes.push(createAthlete(athlete, `ath-${athlete.id}`));
   });
 
-  useEffect(() => {
-    if (atleti.length > 0) {
-      setLanes(prev =>
-        prev.map((lane, idx) => {
-          if (lane.athletes.length === 0 && atleti[idx]) {
-            return {
-              ...lane,
-              athletes: [
-                {
-                  id: `ath-${idx}-1`,
-                  atletaId: atleti[idx].id,
-                  atletaNome: `${atleti[idx].cognome} ${atleti[idx].nome}`,
-                  classe: formatClasse(atleti[idx].classeS, 'S9'),
-                  lastSplit: '00:00.00',
-                  splitList: [],
-                  strokeRate: 36
-                }
-              ]
-            };
-          }
-          return lane;
-        })
-      );
-    }
-  }, [atleti]);
+  return lanes;
+};
+
+export const CronometroLiveMultiCorsia: React.FC = () => {
+  const { atleti, stagione, aggiungiTempo } = useApp();
+  const [isRunning, setIsRunning] = useState(false);
+  const [masterTime, setMasterTime] = useState(0);
+  const [sessionStarted, setSessionStarted] = useState(false);
+  const [selectedStartAthleteIds, setSelectedStartAthleteIds] = useState<Set<string>>(() => new Set());
+  const timerRef = useRef<number | null>(null);
+  const startTimeRef = useRef(0);
+  const savedTimeRef = useRef(0);
+  const idRef = useRef(0);
+  const [vascaMetri, setVascaMetri] = useState<25 | 50>(() => stagione?.vascaMetri === 25 ? 25 : 50);
+  const [ripartenzaSecondi, setRipartenzaSecondi] = useState(90);
+  const [salvatoFeedback, setSalvatoFeedback] = useState<string | null>(null);
+  const [selectedAthleteId, setSelectedAthleteId] = useState<number | ''>('');
+  const [lanes, setLanes] = useState<LaneState[]>(() => createInitialLanes(atleti));
+
+  const assignedAthleteIds = useMemo(
+    () => new Set(lanes.flatMap(lane => lane.athletes.map(athlete => athlete.atletaId))),
+    [lanes],
+  );
+  const availableAthletes = useMemo(
+    () => atleti.filter(athlete => !assignedAthleteIds.has(athlete.id)),
+    [atleti, assignedAthleteIds],
+  );
+  const assignedCount = assignedAthleteIds.size;
 
   useEffect(() => {
-    if (isRunning) {
-      startTimeRef.current = performance.now() - savedTimeRef.current;
-      timerRef.current = window.setInterval(() => {
-        setMasterTime(performance.now() - startTimeRef.current);
-      }, 50);
-    } else {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-      savedTimeRef.current = masterTime;
+    if (selectedAthleteId === '' || !availableAthletes.some(athlete => athlete.id === selectedAthleteId)) {
+      setSelectedAthleteId(availableAthletes[0]?.id ?? '');
     }
+  }, [availableAthletes, selectedAthleteId]);
+
+  useEffect(() => {
+    if (!isRunning) {
+      if (timerRef.current !== null) window.clearInterval(timerRef.current);
+      timerRef.current = null;
+      return;
+    }
+
+    startTimeRef.current = performance.now() - savedTimeRef.current;
+    timerRef.current = window.setInterval(() => {
+      setMasterTime(performance.now() - startTimeRef.current);
+    }, 25);
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current !== null) window.clearInterval(timerRef.current);
+      timerRef.current = null;
     };
   }, [isRunning]);
 
+  const getCurrentTime = () => isRunning ? performance.now() - startTimeRef.current : masterTime;
+
   const toggleMaster = () => {
-    const next = !isRunning;
-    setIsRunning(next);
-    if (next) {
-      navigator.vibrate?.(200);
-      localStorage.setItem('finp_stopwatch_running', 'true');
-    } else {
+    if (isRunning) {
+      const currentTime = getCurrentTime();
+      savedTimeRef.current = currentTime;
+      setMasterTime(currentTime);
+      setIsRunning(false);
       localStorage.setItem('finp_stopwatch_running', 'false');
+      return;
     }
+
+    if (!sessionStarted) {
+      const selectedIds = selectedStartAthleteIds;
+      setLanes(current => current.map(lane => ({
+        ...lane,
+        athletes: lane.athletes.map(athlete => selectedIds.has(athlete.id)
+          ? { ...athlete, startedAtMs: 0, nextStartAtMs: null }
+          : athlete),
+      })));
+      setSelectedStartAthleteIds(new Set());
+      setSessionStarted(true);
+    }
+
+    setIsRunning(true);
+    localStorage.setItem('finp_stopwatch_running', 'true');
+    navigator.vibrate?.(80);
   };
 
   const resetMaster = () => {
     setIsRunning(false);
     setMasterTime(0);
     savedTimeRef.current = 0;
-    setLanes(prev =>
-      prev.map(l => ({
-        ...l,
-        athletes: l.athletes.map(ath => ({
-          ...ath,
-          lastSplit: '00:00.00',
-          splitList: []
-        }))
-      }))
-    );
+    setSessionStarted(false);
+    setSelectedStartAthleteIds(new Set());
+    localStorage.setItem('finp_stopwatch_running', 'false');
+    setLanes(current => current.map(lane => ({
+      ...lane,
+      athletes: lane.athletes.map(athlete => ({
+        ...athlete,
+        startedAtMs: null,
+        nextStartAtMs: null,
+        splitList: [],
+      })),
+    })));
   };
 
-  const formatMs = (ms: number) => {
-    const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    const centis = Math.floor((ms % 1000) / 10);
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centis).padStart(2, '0')}`;
-  };
+  const handleAthletePress = (laneId: number, athleteId: string) => {
+    if (!isRunning) return;
+    const currentTime = getCurrentTime();
 
-  // Lap per singolo atleta nella corsia
-  const handleAthleteLap = (laneId: number, athleteId: string) => {
-    if (masterTime === 0 && !isRunning) return;
-    const formatted = formatMs(masterTime);
-    setLanes(prev =>
-      prev.map(l => {
-        if (l.id === laneId) {
-          return {
-            ...l,
-            athletes: l.athletes.map(ath => {
-              if (ath.id === athleteId) {
-                const newSplit = {
-                  lap: ath.splitList.length + 1,
-                  time: formatted,
-                  timestampMs: masterTime
-                };
-                return {
-                  ...ath,
-                  lastSplit: formatted,
-                  splitList: [newSplit, ...ath.splitList]
-                };
-              }
-              return ath;
-            })
-          };
+    setLanes(current => current.map(lane => lane.id !== laneId ? lane : {
+      ...lane,
+      athletes: lane.athletes.map(athlete => {
+        if (athlete.id !== athleteId) return athlete;
+
+        if (athlete.startedAtMs === null) {
+          return { ...athlete, startedAtMs: currentTime, nextStartAtMs: null };
         }
-        return l;
-      })
-    );
+
+        const segmentStart = athlete.nextStartAtMs ?? athlete.startedAtMs;
+        if (currentTime < segmentStart) return athlete;
+
+        const split = {
+          lap: athlete.splitList.length + 1,
+          time: formatMs(currentTime - segmentStart),
+          timestampMs: currentTime - segmentStart,
+        };
+        const scheduledStart = segmentStart + ripartenzaSecondi * 1000;
+        const nextStartAtMs = Math.max(scheduledStart, currentTime);
+
+        return {
+          ...athlete,
+          startedAtMs: nextStartAtMs,
+          nextStartAtMs,
+          splitList: [split, ...athlete.splitList],
+        };
+      }),
+    }));
   };
 
-  // LAP corsia: registra lo split per TUTTI gli atleti della corsia in un colpo solo
-  const handleLaneLap = (laneId: number) => {
-    if (masterTime === 0 && !isRunning) return;
-    const formatted = formatMs(masterTime);
-    setLanes(prev =>
-      prev.map(l => {
-        if (l.id === laneId) {
-          return {
-            ...l,
-            athletes: l.athletes.map(ath => {
-              const newSplit = {
-                lap: ath.splitList.length + 1,
-                time: formatted,
-                timestampMs: masterTime
-              };
-              return {
-                ...ath,
-                lastSplit: formatted,
-                splitList: [newSplit, ...ath.splitList]
-              };
-            })
-          };
-        }
-        return l;
-      })
-    );
+  const toggleInitialStart = (athleteId: string) => {
+    setSelectedStartAthleteIds(current => {
+      const next = new Set(current);
+      if (next.has(athleteId)) next.delete(athleteId);
+      else next.add(athleteId);
+      return next;
+    });
   };
 
-  const handleAddAthleteToLane = (laneId: number) => {
-    const available = atleti.find(a => !lanes.some(l => l.athletes.some(ath => ath.atletaId === a.id))) || atleti[0];
-    if (!available) return;
-
-    setLanes(prev =>
-      prev.map(l => {
-        if (l.id === laneId) {
-          const newAth: AthleteInLane = {
-            id: `ath-${laneId}-${Date.now()}`,
-            atletaId: available.id,
-            atletaNome: `${available.cognome} ${available.nome}`,
-            classe: formatClasse(available.classeS, 'S9'),
-            lastSplit: '00:00.00',
-            splitList: [],
-            strokeRate: 34
-          };
-          return { ...l, athletes: [...l.athletes, newAth] };
-        }
-        return l;
-      })
-    );
+  const addLane = () => {
+    if (lanes.length >= MAX_LANES) return;
+    setLanes(current => {
+      const usedNumbers = new Set(current.map(lane => lane.laneNumber));
+      const laneNumber = Array.from({ length: MAX_LANES }, (_, index) => index + 1)
+        .find(number => !usedNumbers.has(number)) ?? current.length + 1;
+      const id = Math.max(0, ...current.map(lane => lane.id)) + 1;
+      return [...current, { id, laneNumber, athletes: [] }];
+    });
   };
 
-  const handleRemoveAthleteFromLane = (laneId: number, athleteId: string) => {
-    setLanes(prev =>
-      prev.map(l => {
-        if (l.id === laneId && l.athletes.length > 1) {
-          return { ...l, athletes: l.athletes.filter(ath => ath.id !== athleteId) };
+  const removeLane = (laneId: number) => {
+    setLanes(current => current.length <= 1
+      ? current
+      : current.filter(lane => lane.id !== laneId || lane.athletes.length > 0));
+  };
+
+  const addAthleteToLane = (laneId: number) => {
+    if (selectedAthleteId === '') return;
+    const athlete = availableAthletes.find(item => item.id === selectedAthleteId);
+    if (!athlete) return;
+
+    setLanes(current => current.map(lane => {
+      if (lane.id !== laneId || lane.athletes.length >= MAX_ATHLETES_PER_LANE) return lane;
+      idRef.current += 1;
+      return {
+        ...lane,
+        athletes: [...lane.athletes, createAthlete(athlete, `ath-${athlete.id}-${idRef.current}`)],
+      };
+    }));
+  };
+
+  const removeAthleteFromLane = (laneId: number, athleteId: string) => {
+    setLanes(current => current.map(lane => lane.id === laneId
+      ? { ...lane, athletes: lane.athletes.filter(athlete => athlete.id !== athleteId) }
+      : lane));
+    setSelectedStartAthleteIds(current => {
+      if (!current.has(athleteId)) return current;
+      const next = new Set(current);
+      next.delete(athleteId);
+      return next;
+    });
+  };
+
+  const moveAthleteToLane = (sourceLaneId: number, athleteId: string, destinationLaneId: number) => {
+    setLanes(current => {
+      const source = current.find(lane => lane.id === sourceLaneId);
+      const destination = current.find(lane => lane.id === destinationLaneId);
+      const athlete = source?.athletes.find(item => item.id === athleteId);
+      if (!source || !destination || !athlete || destination.athletes.length >= MAX_ATHLETES_PER_LANE) {
+        return current;
+      }
+
+      return current.map(lane => {
+        if (lane.id === sourceLaneId) {
+          return { ...lane, athletes: lane.athletes.filter(item => item.id !== athleteId) };
         }
-        return l;
-      })
-    );
+        if (lane.id === destinationLaneId) {
+          return { ...lane, athletes: [...lane.athletes, athlete] };
+        }
+        return lane;
+      });
+    });
   };
 
   const handleSalvaNelRegistro = (athlete: AthleteInLane) => {
-    if (!athlete.atletaId || athlete.splitList.length === 0) return;
     const last = athlete.splitList[0];
-    const centesimi = Math.round(last.timestampMs / 10);
+    if (!last) return;
 
     aggiungiTempo({
       atletaId: athlete.atletaId,
       data: todayISO(),
       stile: 'STILE_LIBERO',
       distanzaMetri: vascaMetri,
-      centesimi: centesimi,
+      centesimi: Math.round(last.timestampMs / 10),
       contesto: 'ALLENAMENTO',
-      vascaMetri: vascaMetri,
-      note: `Split Cronometro: Lap ${last.lap} (${last.time})`
+      vascaMetri,
+      note: `Split Cronometro: Lap ${last.lap} (${last.time})`,
     });
 
-    setSalvatoFeedback(`Tempo registrato per ${athlete.atletaNome}!`);
-    setTimeout(() => setSalvatoFeedback(null), 3000);
+    setSalvatoFeedback(`Tempo registrato per ${athlete.atletaNome}`);
+    window.setTimeout(() => setSalvatoFeedback(null), 3000);
   };
 
+  const columnClass = lanes.length === 1
+    ? 'cronometro-lanes-one'
+    : lanes.length === 2
+      ? 'cronometro-lanes-count-2'
+      : lanes.length === 3
+        ? 'cronometro-lanes-count-3'
+        : 'cronometro-lanes-count-4';
+
   return (
-    <div className="flex flex-1 min-h-0 flex-col gap-3 overflow-hidden">
-      {salvatoFeedback && (
-        <div className="shrink-0 p-3 bg-primary-container text-on-primary font-bold text-xs rounded-xl flex items-center gap-3 shadow-pop animate-fade-in">
-          <CheckCircle2 size={16} />
-          <span>{salvatoFeedback}</span>
+    <div className="cronometro-screen flex flex-1 min-h-0 flex-col gap-2 overflow-hidden">
+      <header className="cronometro-heading shrink-0 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-primary">
+            <Waves size={14} />
+            <span>Partenze sfalsate</span>
+          </div>
+          <h1 className="font-headline text-lg sm:text-xl font-bold tracking-tight text-on-surface">Cronometro di vasca</h1>
         </div>
-      )}
+        <span className={`cronometro-session-state shrink-0 ${isRunning ? 'is-running' : ''}`}>
+          <span />
+          {isRunning ? 'Sessione attiva' : 'Pronto'}
+        </span>
+      </header>
 
-      {/* Intestazione */}
-      <div className="shrink-0">
-        <PageHeader
-          label="Cronometro"
-          title="Cronometro a Bordo Vasca"
-          icon={<Timer size={13} />}
-          meta="Cronometraggio multi-atleta per corsia con split simultanei"
-          right={
-            <div className="flex items-center gap-2">
-              {showBack && (
-                <button
-                  onClick={handleBack}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition text-xs font-bold"
-                >
-                  <ArrowLeft size={14} />
-                  <span>Indietro</span>
-                </button>
-              )}
-              <span className={`ds-chip ${isRunning ? 'bg-primary text-on-primary' : 'ds-chip-neutral'} !normal-case`}>
-                <span className={`w-2 h-2 rounded-full ${isRunning ? 'bg-primary-fixed-dim animate-ping' : 'bg-on-surface-variant'}`} />
-                {isRunning ? 'In corso' : 'Pronto'}
-              </span>
-            </div>
-          }
-        />
-      </div>
+      <section className="timer-console shrink-0">
+        <div className="timer-console-clock">
+          <span className="timer-console-label">Tempo squadra</span>
+          <output aria-label="Tempo squadra" className={isRunning ? 'is-running' : ''}>{formatMs(masterTime)}</output>
+        </div>
 
-      {/* Master Timer & Start/Pause/Reset - Giant Tabular Display */}
-      <section className="shrink-0 relative overflow-hidden rounded-2xl bg-gradient-blue text-white p-4 shadow-primary-sm">
-        {/* BG texture */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none"
-          style={{ backgroundImage: 'radial-gradient(circle at 10% 50%, rgba(255,255,255,0.3) 0%, transparent 60%)' }}
-        />
-        <div className="relative z-10 flex flex-col gap-3">
-          {/* Controls row */}
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-white/20 text-white font-headline border border-white/20">
-                VASCA {vascaMetri}M
-              </span>
-              <button
-                type="button"
-                onClick={() => setVascaMetri(v => (v === 50 ? 25 : 50))}
-                className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-xs font-bold transition border border-white/15"
-              >
-                Cambia
-              </button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={toggleMaster}
-                className={`min-h-[48px] px-6 rounded-xl font-headline text-sm font-bold flex items-center justify-center gap-3 active:scale-95 transition ${
-                  isRunning
-                    ? 'bg-gradient-orange text-white shadow-orange-glow'
-                    : 'bg-white text-primary shadow-pop'
-                }`}
-              >
-                {isRunning ? <Pause size={20} /> : <Play size={20} />}
-                <span>{isRunning ? 'PAUSA' : 'START'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={resetMaster}
-                aria-label="Reset cronometro"
-                className="min-h-[48px] min-w-[48px] px-3 rounded-xl bg-white/15 hover:bg-white/25 text-white flex items-center justify-center active:scale-95 transition border border-white/20"
-              >
-                <RotateCcw size={20} />
-              </button>
-            </div>
-          </div>
-
-          {/* Giant timer */}
-          <div className="text-center py-3 bg-black/20 rounded-2xl border border-white/15">
-            <span
-              className={`text-5xl sm:text-6xl font-extrabold tracking-tight tabular-nums transition-colors ${
-                isRunning ? 'text-white' : 'text-white/70'
-              }`}
-              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-            >
-              {formatMs(masterTime)}
+        <div className="timer-console-actions">
+          <button
+            type="button"
+            onClick={toggleMaster}
+            className={`timer-console-start ${isRunning ? 'is-running' : ''}`}
+            aria-label={isRunning ? 'Pausa sessione' : sessionStarted ? 'Riprendi sessione' : 'Avvia sessione e atleti selezionati'}
+          >
+            {isRunning ? <Pause size={18} /> : <Play size={18} />}
+            {isRunning ? 'Pausa' : sessionStarted ? 'Riprendi sessione' : 'Avvia sessione'}
+          </button>
+          <button type="button" onClick={resetMaster} aria-label="Azzera sessione" className="timer-console-reset">
+            <RotateCcw size={17} />
+          </button>
+          <label className="timer-setting">
+            <span>Vasca</span>
+            <select value={vascaMetri} onChange={event => setVascaMetri(Number(event.target.value) as 25 | 50)}>
+              <option value={25}>25 m</option>
+              <option value={50}>50 m</option>
+            </select>
+          </label>
+          <label className="timer-setting timer-sendoff">
+            <span>Ripartenza</span>
+            <span className="timer-sendoff-value">
+              <input
+                type="number"
+                min={10}
+                max={600}
+                step={5}
+                value={ripartenzaSecondi}
+                aria-label="Intervallo di ripartenza in secondi"
+                onChange={event => {
+                  const value = Number(event.target.value);
+                  if (value >= 10 && value <= 600) setRipartenzaSecondi(value);
+                }}
+              />
+              <span>s</span>
             </span>
-            {isRunning && (
-              <div className="flex items-center justify-center gap-1.5 mt-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                <span className="text-xs text-white/60 font-bold uppercase tracking-widest">In corso</span>
-              </div>
-            )}
-          </div>
+          </label>
         </div>
       </section>
 
-      {/* 4+ Lanes Grid / List */}
+      <section className="lane-toolbar shrink-0" aria-label="Configurazione corsie e atleti">
+        <div className="lane-toolbar-details">
+          <div className="lane-toolbar-summary">
+            <strong>{assignedCount}</strong><span>atleti</span>
+            <span className="lane-toolbar-divider" />
+            <strong>{lanes.length}</strong><span>/{MAX_LANES} corsie</span>
+          </div>
+          {!sessionStarted && (
+            <span className="lane-start-hint">
+              {selectedStartAthleteIds.size > 0
+                ? `${selectedStartAthleteIds.size} al via generale`
+                : 'Seleziona chi parte al primo via'}
+            </span>
+          )}
+        </div>
+        <div className="lane-toolbar-actions">
+          <label className="sr-only" htmlFor="athlete-to-assign">Atleta da assegnare</label>
+          <select
+            id="athlete-to-assign"
+            value={selectedAthleteId}
+            onChange={event => setSelectedAthleteId(event.target.value ? Number(event.target.value) : '')}
+            disabled={availableAthletes.length === 0}
+          >
+            {availableAthletes.length === 0
+              ? <option value="">Tutti assegnati</option>
+              : availableAthletes.map(athlete => (
+                <option key={athlete.id} value={athlete.id}>{athlete.cognome} {athlete.nome}</option>
+              ))}
+          </select>
+          <button type="button" onClick={addLane} disabled={lanes.length >= MAX_LANES} className="lane-add-button">
+            <Plus size={15} /> Corsia
+          </button>
+        </div>
+      </section>
+
+      {salvatoFeedback && (
+        <div role="status" className="timer-save-feedback">
+          <CheckCircle2 size={16} /> {salvatoFeedback}
+        </div>
+      )}
+
       <section
-        aria-label="Corsie Cronometrate"
-        className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3 overflow-y-auto pb-14 sm:pb-6"
+        aria-label="Corsie cronometrate"
+        className={`cronometro-lanes ${columnClass}`}
+        style={{ '--lane-count': lanes.length } as React.CSSProperties}
       >
         {lanes.map(lane => (
-          <article
-            key={lane.id}
-            className="ds-card p-3 flex flex-col justify-between gap-3 border-l-4 border-l-primary"
-          >
-            {/* Lane Header with Lane Number & Actions */}
-            <div className="flex items-center justify-between gap-3 pb-2 border-b border-outline-variant">
-              <div className="flex items-center gap-2">
-                <span className="w-7 h-7 rounded-lg bg-primary text-white font-headline text-xs font-bold flex items-center justify-center shadow-sm">
-                  C{lane.laneNumber}
-                </span>
-                <span className="text-xs font-bold text-on-surface-variant font-headline">
-                  {lane.athletes.length} {lane.athletes.length === 1 ? 'atleta' : 'atleti'}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1.5">
+          <article key={lane.id} className="cronometro-lane-card">
+            <header className="cronometro-lane-card-header">
+              <span className="lane-number">C{lane.laneNumber}</span>
+              <span className="lane-athlete-count">{lane.athletes.length}<span>/{MAX_ATHLETES_PER_LANE}</span></span>
+              {lane.athletes.length === 0 && lanes.length > 1 && (
+                <button type="button" onClick={() => removeLane(lane.id)} className="lane-remove-button" aria-label={`Rimuovi corsia ${lane.laneNumber}`}>
+                  <X size={15} />
+                </button>
+              )}
+              {lane.athletes.length < MAX_ATHLETES_PER_LANE && availableAthletes.length > 0 && (
                 <button
                   type="button"
-                  onClick={() => handleLaneLap(lane.id)}
-                  className="px-3.5 py-2 rounded-xl bg-tertiary text-white text-xs sm:text-sm font-bold font-headline shadow-sm hover:brightness-105 active:scale-95 transition min-h-[48px] flex items-center justify-center"
+                  onClick={() => addAthleteToLane(lane.id)}
+                  className="lane-assign-button"
+                  aria-label={`Aggiungi ${availableAthletes.find(athlete => athlete.id === selectedAthleteId)?.nome ?? 'atleta'} in corsia ${lane.laneNumber}`}
                 >
-                  LAP Corsia
+                  <Plus size={16} />
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleAddAthleteToLane(lane.id)}
-                  className="min-w-[48px] min-h-[48px] rounded-xl bg-surface-container hover:bg-surface-container-high text-primary flex items-center justify-center font-bold"
-                  title="Aggiungi atleta in corsia"
-                >
-                  <Plus size={18} />
-                </button>
-              </div>
-            </div>
+              )}
+            </header>
 
-            {/* Athletes in Lane (internal scroll if multiple) */}
-            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-              {lane.athletes.map(ath => (
-                <div
-                  key={ath.id}
-                  className="p-3 rounded-xl bg-surface-container-low border border-outline-variant flex flex-col gap-1.5"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-primary text-white shrink-0">
-                          {ath.classe}
+            <div className="cronometro-athletes">
+              {lane.athletes.length === 0 ? (
+                <div className="lane-empty-state">Scegli un atleta e premi +</div>
+              ) : lane.athletes.map(athlete => {
+                const now = masterTime;
+                const waitingUntil = athlete.nextStartAtMs !== null && now < athlete.nextStartAtMs
+                  ? athlete.nextStartAtMs
+                  : null;
+                const segmentStart = athlete.nextStartAtMs ?? athlete.startedAtMs;
+                const elapsed = athlete.startedAtMs === null || segmentStart === null || waitingUntil !== null
+                  ? 0
+                  : Math.max(0, now - segmentStart);
+                const isSelectedForStart = selectedStartAthleteIds.has(athlete.id);
+                const action = !sessionStarted
+                  ? isSelectedForStart ? 'AL VIA' : 'SCEGLI'
+                  : athlete.startedAtMs === null
+                  ? 'AVVIA'
+                  : waitingUntil !== null
+                    ? `TRA ${formatMs(waitingUntil - now)}`
+                    : 'LAP';
+                const isDisabled = sessionStarted && (!isRunning || waitingUntil !== null);
+                const ariaLabel = !sessionStarted
+                  ? `${isSelectedForStart ? 'Rimuovi' : 'Seleziona'} ${athlete.atletaNome} ${isSelectedForStart ? 'dal' : 'per il'} primo via generale`
+                  : `${action === 'AVVIA' ? 'Avvia crono' : action === 'LAP' ? 'Registra nuotata' : `Ripartenza tra ${formatMs(waitingUntil! - now)}`} per ${athlete.atletaNome}`;
+
+                return (
+                  <div className={`athlete-timing-row ${lanes.length > 1 ? 'has-move-select' : ''}`} key={athlete.id}>
+                    <button
+                      type="button"
+                      className={`athlete-timing-button ${athlete.startedAtMs !== null && waitingUntil === null ? 'is-active' : ''} ${waitingUntil !== null ? 'is-waiting' : ''} ${!sessionStarted && isSelectedForStart ? 'is-selected' : ''}`}
+                      onClick={() => sessionStarted
+                        ? handleAthletePress(lane.id, athlete.id)
+                        : toggleInitialStart(athlete.id)}
+                      disabled={isDisabled}
+                      aria-label={ariaLabel}
+                      aria-pressed={!sessionStarted ? isSelectedForStart : undefined}
+                    >
+                      <span className="athlete-class">{athlete.classe}</span>
+                      <span className="athlete-timing-info">
+                        <span className="athlete-name">{athlete.atletaNome}</span>
+                        <span className="athlete-time">
+                          {!sessionStarted
+                            ? isSelectedForStart ? 'Via generale' : 'Partenza individuale'
+                            : athlete.startedAtMs === null
+                              ? 'In attesa di partenza'
+                            : waitingUntil !== null
+                              ? `Ultima ${athlete.splitList[0]?.time ?? '--:--.--'}`
+                              : formatMs(elapsed)}
                         </span>
-                        <div className="min-w-0 flex-1 text-xs font-bold text-on-surface">
-                          <Marquee text={ath.atletaNome} />
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span
-                          className="text-lg font-bold text-primary tabular-nums"
-                          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                        >
-                          {ath.lastSplit}
-                        </span>
-                        {ath.strokeRate && (
-                          <span className="text-xs text-on-surface-variant font-medium">
-                            SR {ath.strokeRate} st/min
-                          </span>
+                      </span>
+                      <span className="athlete-action">{action}</span>
+                    </button>
+                    {lanes.length > 1 && (
+                      <select
+                        className="athlete-move-select"
+                        value=""
+                        aria-label={`Sposta ${athlete.atletaNome} in un'altra corsia`}
+                        disabled={!lanes.some(destination =>
+                          destination.id !== lane.id && destination.athletes.length < MAX_ATHLETES_PER_LANE
                         )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1 shrink-0">
-                      {lane.athletes.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveAthleteFromLane(lane.id, ath.id)}
-                          className="w-8 h-8 rounded-lg bg-error-container text-on-error-container flex items-center justify-center hover:brightness-95"
-                          title="Rimuovi atleta"
-                        >
-                          <Minus size={14} />
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handleAthleteLap(lane.id, ath.id)}
-                        className="min-w-[56px] min-h-[56px] px-3 rounded-xl bg-gradient-to-r from-[#E85D04] to-[#FF7A1A] text-white font-headline text-sm font-bold flex items-center justify-center shadow-orange-glow active:scale-95 transition"
+                        onChange={event => {
+                          const destinationLaneId = Number(event.target.value);
+                          if (destinationLaneId) moveAthleteToLane(lane.id, athlete.id, destinationLaneId);
+                        }}
                       >
-                        LAP
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Split History & Save */}
-                  {ath.splitList.length > 0 && (
-                    <div className="flex items-center justify-between gap-3 pt-1 border-t border-outline-variant text-xs">
-                      <div className="flex items-center gap-1 overflow-x-auto py-0.5">
-                        {ath.splitList.slice(0, 3).map(s => (
-                          <span
-                            key={s.lap}
-                            className="px-1.5 py-0.5 rounded bg-surface-container text-on-surface font-mono font-bold text-xs shrink-0"
-                          >
-                            #{s.lap}: {s.time}
-                          </span>
-                        ))}
-                      </div>
-
-                      {ath.atletaId && (
-                        <button
-                          type="button"
-                          onClick={() => handleSalvaNelRegistro(ath)}
-                          className="flex items-center gap-1 px-3 py-1 rounded-lg bg-surface-container hover:bg-primary text-primary hover:text-white font-bold text-xs shrink-0 transition"
-                        >
-                          <Save size={12} />
-                          <span>Salva</span>
+                        <option value="">Sposta</option>
+                        {lanes
+                          .filter(destination => destination.id !== lane.id && destination.athletes.length < MAX_ATHLETES_PER_LANE)
+                          .map(destination => (
+                            <option key={destination.id} value={destination.id}>C{destination.laneNumber}</option>
+                          ))}
+                      </select>
+                    )}
+                    <button
+                      type="button"
+                      className="athlete-remove-button"
+                      onClick={() => removeAthleteFromLane(lane.id, athlete.id)}
+                      aria-label={`Rimuovi ${athlete.atletaNome} dalla corsia ${lane.laneNumber}`}
+                    >
+                      <Minus size={14} />
+                    </button>
+                    {athlete.splitList.length > 0 && (
+                      <div className="athlete-latest-split">
+                        <span>Lap {athlete.splitList[0].lap} · {athlete.splitList[0].time}</span>
+                        <button type="button" onClick={() => handleSalvaNelRegistro(athlete)} aria-label={`Salva tempo di ${athlete.atletaNome}`}>
+                          <Save size={13} /> Salva
                         </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </article>
         ))}

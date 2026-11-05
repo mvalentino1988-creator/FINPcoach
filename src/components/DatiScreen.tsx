@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, lazy, Suspense, useMemo } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import {
   ClipboardList,
   Timer,
@@ -8,8 +8,6 @@ import {
   X,
   Trash2,
   Calendar,
-  Users,
-  User,
   HelpCircle,
   ChevronLeft,
   ChevronRight,
@@ -19,11 +17,9 @@ import {
   RefreshCw,
   Plus,
   Bot,
-  Sparkles,
   Waves,
   Clock,
-  Activity,
-  Sliders
+  Activity
 } from 'lucide-react';
 import { OCRService } from '../domain/ocrService';
 import { OcrPreviewModal } from './OcrPreviewModal';
@@ -33,13 +29,12 @@ import { TempiRipartenzeScreen } from './TempiRipartenzeScreen';
 import { RegistroScreen } from './RegistroScreen';
 import { EsercizioEditor } from './EsercizioEditor';
 import { BadgeCodice } from './BadgeCodice';
-import { formattaData, todayISO, parseData, addDays, isBefore, daysBetween, toDateObj, formatDataInput, isInRange } from '../domain/dateUtils';
+import { formattaData, todayISO, parseData, addDays, isBefore, daysBetween, toDateObj, formatDataInput } from '../domain/dateUtils';
 import { useApp } from '../data/AppContext';
 import { ParserScheda } from '../domain/parserScheda';
 import { ParserApprendimento } from '../domain/parserApprendimento';
 import { FINPStorage } from '../data/storage';
 import { OcrWorkoutStandardizer } from '../domain/ocrWorkoutStandardizer';
-import { Sezione } from './Sezione';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { PageHeader } from './PageHeader';
 import { Marquee } from './Marquee';
@@ -60,7 +55,7 @@ interface CustomWorkout {
 }
 
 export const DatiScreen: React.FC = () => {
-  const { atleti, micro, impostazioni } = useApp();
+  const { atleti } = useApp();
   const [tab, setTab] = useState<DatiTab>('schede');
   const [editMode, setEditMode] = useState(false);
   const [modalitaEditor, setModalitaEditor] = useState<ModalitaEditor>('testuale');
@@ -73,21 +68,6 @@ export const DatiScreen: React.FC = () => {
   const [calendarioData, setCalendarioData] = useState<string>(formattaData(todayISO()));
   const [modalitaNuovoModal, setModalitaNuovoModal] = useState(false);
   const [calendarioEspanso, setCalendarioEspanso] = useState(false);
-  const [parametriEspanso, setParametriEspanso] = useState(false);
-
-  const volumeSessioneTarget = useMemo(() => {
-    const microCorrente = micro.find(m => isInRange(todayISO(), m.inizio, m.fine));
-    const giorni = impostazioni.giorni?.length || 3;
-    if (microCorrente && microCorrente.volumeTargetMetri) {
-      return Math.round(microCorrente.volumeTargetMetri / giorni);
-    }
-    return 2000;
-  }, [micro, impostazioni]);
-
-  // Parameter chips state
-  const [vascaMetri, setVascaMetri] = useState<25 | 50>(25);
-  const [durataMin, setDurataMin] = useState<60 | 90 | 120>(90);
-
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrModalOpen, setOcrModalOpen] = useState(false);
   const [ocrRawText, setOcrRawText] = useState('');
@@ -214,13 +194,13 @@ export const DatiScreen: React.FC = () => {
           <>
             {/* Header controlli Calendario / Lista (Segmented Control) */}
             {!editMode && (
-              <div className="shrink-0 flex items-center justify-between gap-3 bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant">
-                <div className="flex items-center bg-surface-container rounded-xl p-1 gap-1">
+              <div className="shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant">
+                <div className="flex items-center bg-surface-container rounded-xl p-1 gap-1 w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={() => setVistaSchede('calendario')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold font-headline transition ${
-                      vistaSchede === 'calendario' ? 'bg-primary text-white shadow-sm' : 'text-on-surface-variant'
+                    className={`flex-1 sm:flex-none px-3 py-2 min-h-[40px] whitespace-nowrap rounded-lg text-xs font-bold font-headline transition ${
+                      vistaSchede === 'calendario' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant'
                     }`}
                   >
                     Calendario
@@ -228,19 +208,19 @@ export const DatiScreen: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setVistaSchede('lista')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold font-headline transition ${
-                      vistaSchede === 'lista' ? 'bg-primary text-white shadow-sm' : 'text-on-surface-variant'
+                    className={`flex-1 sm:flex-none px-3 py-2 min-h-[40px] whitespace-nowrap rounded-lg text-xs font-bold font-headline transition ${
+                      vistaSchede === 'lista' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant'
                     }`}
                   >
                     Lista
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setCalendarioEspanso(v => !v)}
-                    className="ds-btn-secondary !min-h-[40px] !px-3 text-xs"
+                    className="ds-btn-secondary !min-h-[44px] !px-3 text-xs whitespace-nowrap justify-center"
                   >
                     <Calendar size={15} />
                     <span>{calendarioEspanso ? 'Chiudi Mese' : 'Mese'}</span>
@@ -248,7 +228,7 @@ export const DatiScreen: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setModalitaNuovoModal(true)}
-                    className="ds-btn-primary !min-h-[40px] !px-3 text-xs"
+                    className="ds-btn-primary !min-h-[44px] !px-3 text-xs whitespace-nowrap justify-center"
                   >
                     <Plus size={15} />
                     <span>Nuovo</span>
@@ -320,9 +300,9 @@ export const DatiScreen: React.FC = () => {
                           }}
                           className={`h-9 rounded-xl flex flex-col items-center justify-center relative transition ${
                             workoutGiorno
-                              ? 'bg-primary text-white font-bold shadow-sm'
+                              ? 'bg-primary text-on-primary font-bold shadow-sm'
                               : isOggi
-                              ? 'bg-primary text-primary font-bold border border-primary/30'
+                              ? 'bg-primary text-on-primary font-bold border border-primary/30'
                               : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
                           }`}
                         >
@@ -336,70 +316,6 @@ export const DatiScreen: React.FC = () => {
                     return cells;
                   })()}
                 </div>
-              </div>
-            )}
-
-            {/* COLLAPSIBLE PARAMETERS BLOCK */}
-            {!editMode && (
-              <div className="ds-card p-3 space-y-2">
-                <button
-                  type="button"
-                  onClick={() => setParametriEspanso(v => !v)}
-                  className="w-full flex items-center justify-between text-xs font-bold font-headline text-on-surface"
-                >
-                  <span className="flex items-center gap-1.5 text-primary">
-                    <Sliders size={15} /> Parametri Sessione (Vasca e Durata)
-                  </span>
-                  <span>{parametriEspanso ? '▲' : '▼'}</span>
-                </button>
-
-                {parametriEspanso && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-2 border-t border-outline-variant/50 animate-fade-in">
-                    <div>
-                      <label className="text-[12px] font-bold text-on-surface-variant uppercase block mb-1">Vasca Impianto</label>
-                      <div className="flex gap-1">
-                        {[25, 50].map(v => (
-                          <button
-                            key={v}
-                            type="button"
-                            onClick={() => setVascaMetri(v as any)}
-                            className={`flex-1 py-1.5 rounded-xl font-headline font-bold transition ${
-                              vascaMetri === v ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface-container-low text-on-surface'
-                            }`}
-                          >
-                            {v}m
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-[12px] font-bold text-on-surface-variant uppercase block mb-1">Durata Target</label>
-                      <div className="flex gap-1">
-                        {[60, 90, 120].map(d => (
-                          <button
-                            key={d}
-                            type="button"
-                            onClick={() => setDurataMin(d as any)}
-                            className={`flex-1 py-1.5 rounded-xl font-headline font-bold transition ${
-                              durataMin === d ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface-container-low text-on-surface'
-                            }`}
-                          >
-                            {d}'
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-[12px] font-bold text-on-surface-variant uppercase block mb-1">Volume Seduta</label>
-                      <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant flex items-center justify-between">
-                        <span className="font-headline font-bold text-primary">{volumeSessioneTarget} m</span>
-                        <Activity size={16} className="text-primary-container" />
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
@@ -503,7 +419,7 @@ export const DatiScreen: React.FC = () => {
         )}
       </div>
 
-      {/* MODAL MODALITÀ NUOVO ALLENAMENTO (3 OPZIONI) */}
+      {/* MODAL MODALITÀ NUOVO ALLENAMENTO */}
       {modalitaNuovoModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-surface-container-lowest rounded-3xl p-6 max-w-sm w-full shadow-float border border-outline-variant space-y-4 text-on-surface animate-fade-in">
@@ -523,7 +439,7 @@ export const DatiScreen: React.FC = () => {
                 }}
                 className="w-full p-3.5 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant text-left flex items-center gap-3 transition"
               >
-                <div className="w-10 min-h-[48px] rounded-xl bg-primary text-white flex items-center justify-center shrink-0 font-bold">
+                <div className="w-10 min-h-[48px] rounded-xl bg-primary text-on-primary flex items-center justify-center shrink-0 font-bold">
                   <ClipboardList size={18} />
                 </div>
                 <div>
@@ -547,23 +463,6 @@ export const DatiScreen: React.FC = () => {
                 <div>
                   <div className="font-headline font-bold text-xs">Genera con IA</div>
                   <div className="text-xs text-on-surface-variant">Carica uno screenshot o usa l'IA</div>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setModalitaNuovoModal(false);
-                  setTab('schede');
-                }}
-                className="w-full p-3.5 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant text-left flex items-center gap-3 transition"
-              >
-                <div className="w-10 min-h-[48px] rounded-xl bg-tertiary text-white flex items-center justify-center shrink-0 font-bold">
-                  <Sparkles size={18} />
-                </div>
-                <div>
-                  <div className="font-headline font-bold text-xs">Proposta sistema</div>
-                  <div className="text-xs text-on-surface-variant">Usa la scheda calcolata dal piano</div>
                 </div>
               </button>
             </div>

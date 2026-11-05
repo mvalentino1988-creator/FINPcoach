@@ -2,7 +2,7 @@
  * FINPcoach — Premium Tailwind Config
  *
  * Palette:
- *  Primary Blue:  #0f172a → #1e40af → #3b82f6 → #60a5fa → #93c5fd → #dbeafe
+ *  Primary Blue:  #0f172a → #1e40af → #2563eb → #60a5fa → #93c5fd → #dbeafe
  *  Teal Accent:   #0d9488 / #ccfbf1
  *  Coral CTA:     #ea580c → #f97316 → #fb923c → #ffedd5
  *  Dark BG:       #0f172a
@@ -32,13 +32,13 @@ export default {
         'on-background':             'var(--color-on-background, #0f172a)',
 
         /* Primary — Rich Royal Blue */
-        primary:                     '#1e40af',
-        'primary-container':         '#3b82f6',
-        'on-primary':                '#ffffff',
-        'on-primary-container':      '#ffffff',
-        'primary-fixed':             '#60a5fa',
-        'primary-fixed-dim':         '#3b82f6',
-        'on-primary-fixed':          '#ffffff',
+        primary:                     'rgb(var(--color-primary-rgb) / <alpha-value>)',
+        'primary-container':         'rgb(var(--color-primary-container-rgb) / <alpha-value>)',
+        'on-primary':                'rgb(var(--color-on-primary-rgb) / <alpha-value>)',
+        'on-primary-container':      'rgb(var(--color-on-primary-container-rgb) / <alpha-value>)',
+        'primary-fixed':             'var(--color-primary-fixed, #60a5fa)',
+        'primary-fixed-dim':         'var(--color-primary-fixed-dim, #3b82f6)',
+        'on-primary-fixed':          'var(--color-on-primary-fixed, #ffffff)',
 
         /* Secondary — Teal */
         secondary:                   '#0d9488',
@@ -147,7 +147,7 @@ export default {
       },
 
       backgroundImage: {
-        'gradient-blue':   'linear-gradient(135deg, #1e40af 0%, #3b82f6 60%, #60a5fa 100%)',
+        'gradient-blue':   'var(--gradient-blue)',
         'gradient-orange': 'linear-gradient(135deg, #ea580c 0%, #f97316 60%, #fb923c 100%)',
         'gradient-teal':   'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)',
         'gradient-mesh':   'radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(249, 115, 22, 0.06) 0%, transparent 50%)',

@@ -5,13 +5,11 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Minus,
+  Plus,
   Printer,
-  ShieldAlert,
   Sliders,
-  Waves,
-  Zap,
-  ArrowLeft,
-  HeartPulse
+  Waves
 } from 'lucide-react';
 import { PageHeader } from './PageHeader';
 import { Marquee } from './Marquee';
@@ -22,22 +20,14 @@ import { formattaData, todayISO } from '../domain/dateUtils';
 import { CodiceAllenamentoKey } from '../types';
 
 export const RegiaTecnicaCorsie: React.FC = () => {
-  const { atleti, condizioni } = useApp();
-  const [showBack, setShowBack] = useState(false);
-
-  useEffect(() => {
-    const isFromAltro = sessionStorage.getItem('finp_from_altro') === 'true';
-    setShowBack(isFromAltro);
-  }, []);
-
-  const handleBack = () => {
-    sessionStorage.removeItem('finp_from_altro');
-    window.history.back();
-  };
-
+  const { atleti } = useApp();
   const [vascaAttiva, setVascaAttiva] = useState<'50m' | '25m'>('50m');
-  const [prescrizioniEspanso, setPrescrizioniEspanso] = useState(false);
   const [ripartizioneAperta, setRipartizioneAperta] = useState(false);
+  const [corsieAtleti, setCorsieAtleti] = useState<number[][]>(() =>
+    Array.from({ length: 4 }, (_, laneIndex) =>
+      atleti.filter((_, athleteIndex) => athleteIndex % 4 === laneIndex).map(atleta => atleta.id)
+    )
+  );
 
   const sedutaOggi = useMemo(() => {
     const oggi = todayISO();
@@ -56,26 +46,17 @@ export const RegiaTecnicaCorsie: React.FC = () => {
     return { volume, ripartizione };
   }, []);
 
-  // Active medical conditions
-  const miePrescrizioni = condizioni.filter(c => c.attiva);
-
-  // Assegnazione dinamica delle corsie con supporto multi-atleta per corsia
-  const corsie = [1, 2, 3, 4].map(num => {
-    const a = atleti[num - 1];
-    const conds = a ? condizioni.filter(c => c.atletaId === a.id && c.attiva) : [];
-    return {
-      numero: num,
-      atletiList: a ? [{
-        id: a.id,
-        nome: `${a.cognome} ${a.nome}`,
-        classe: a.classeS != null ? `S${a.classeS}` : 'S9',
-        hasPrescrizione: conds.length > 0,
-        prescrizioneText: conds.map(c => c.descrizione || c.limitazioni).join(', ')
-      }] : [],
-      targetPacing: a ? 'Passo Gara' : '—',
-      focus: a ? 'Spinta uniforme' : 'Corsia disponibile'
-    };
-  });
+  const atletaIdsAssegnati = new Set(corsieAtleti.flat());
+  const assegnaAtleta = (laneIndex: number, atletaId: number) => {
+    setCorsieAtleti(current => current.map((ids, index) =>
+      index === laneIndex && !current.flat().includes(atletaId) ? [...ids, atletaId] : ids
+    ));
+  };
+  const rimuoviAtleta = (laneIndex: number, atletaId: number) => {
+    setCorsieAtleti(current => current.map((ids, index) =>
+      index === laneIndex ? ids.filter(id => id !== atletaId) : ids
+    ));
+  };
 
   return (
     <div className="flex flex-1 min-h-0 flex-col gap-3 overflow-hidden">
@@ -85,19 +66,9 @@ export const RegiaTecnicaCorsie: React.FC = () => {
           label="Pianificatore"
           title={`Regia Tecnica · Vasca ${vascaAttiva}`}
           icon={<Sliders size={13} />}
-          meta="Corsie, prescrizioni mediche e ripartizione della seduta"
+          meta="Assegnazione live delle corsie e intensità della seduta"
           right={
             <div className="flex items-center gap-1.5">
-              {showBack && (
-                <button
-                  onClick={handleBack}
-                  className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition text-xs font-bold"
-                  aria-label="Indietro"
-                >
-                  <ArrowLeft size={15} />
-                  <span>Indietro</span>
-                </button>
-              )}
               <button
                 type="button"
                 onClick={() => setVascaAttiva(v => (v === '50m' ? '25m' : '50m'))}
@@ -118,42 +89,6 @@ export const RegiaTecnicaCorsie: React.FC = () => {
           }
         />
       </div>
-
-      {/* 2. PRESCRIZIONI MEDICHE (SEMPRE VISIBILE BANNER ROSSO COMPATTO) */}
-      <section className="shrink-0 ds-card p-3 bg-error-container/80 border-l-4 border-l-error text-on-error-container space-y-1.5">
-        <button
-          type="button"
-          onClick={() => setPrescrizioniEspanso(v => !v)}
-          className="w-full flex items-center justify-between gap-3 text-left"
-        >
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            <ShieldAlert size={16} className="text-error shrink-0" />
-            <span className="font-headline font-bold text-xs uppercase tracking-wider">
-              Prescrizioni Mediche ({miePrescrizioni.length})
-            </span>
-          </div>
-          <span className="w-6 h-6 rounded-full bg-error/20 text-error flex items-center justify-center shrink-0">
-            {prescrizioniEspanso ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </span>
-        </button>
-
-        {prescrizioniEspanso && (
-          <div className="space-y-1 pt-1 border-t border-error/30 text-xs max-h-36 overflow-y-auto animate-fade-in">
-            {miePrescrizioni.map((c, idx) => {
-              const a = atleti.find(atl => atl.id === c.atletaId);
-              return (
-                <div key={c.id || idx} className="p-1.5 rounded-lg bg-white/60 dark:bg-black/30 border border-error/20 flex items-start gap-1.5">
-                  <HeartPulse size={14} className="text-error shrink-0 mt-0.5" />
-                  <div className="min-w-0">
-                    <span className="font-bold text-on-error-container">{a ? `${a.cognome} ${a.nome}` : 'Atleta'}: </span>
-                    <span>{c.descrizione || c.limitazioni} {c.limitazioni ? `(${c.limitazioni})` : ''}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
 
       <section className="shrink-0 ds-card p-3 space-y-1.5">
         <button
@@ -186,60 +121,87 @@ export const RegiaTecnicaCorsie: React.FC = () => {
       {/* 4. BLOCCO PRINCIPALE: ASSEGNAZIONE CORSIE (CARD COMPATTE CON INDICATORE MEDICO) */}
       <section className="flex-1 min-h-0 ds-card p-3 space-y-2 flex flex-col">
         <div className="flex items-center justify-between shrink-0">
-          <h3 className="font-headline font-bold text-xs text-on-surface uppercase tracking-wider">
-            Assegnazione Corsie (Vasca {vascaAttiva})
-          </h3>
-          <span className="text-xs font-bold text-primary font-headline">4 Corsie</span>
+          <div>
+            <h3 className="font-headline font-bold text-xs text-on-surface uppercase tracking-wider">
+              Assegnazione Corsie (Vasca {vascaAttiva})
+            </h3>
+            <p className="text-xs text-on-surface-variant mt-0.5">Modifica gli atleti direttamente durante la seduta.</p>
+          </div>
+          <span className="text-xs font-bold text-primary font-headline">{corsieAtleti.length} Corsie</span>
         </div>
 
-        <div className="flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 overflow-y-auto pr-0.5 pb-14 sm:pb-6">
-          {corsie.map(c => (
+        <div className="app-fixed-scroll flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 content-start gap-2 sm:gap-3 pr-0.5 pb-3 sm:pb-6">
+          {corsieAtleti.map((atletaIds, laneIndex) => {
+            const atletiCorsia = atletaIds
+              .map(id => atleti.find(atleta => atleta.id === id))
+              .filter((atleta): atleta is typeof atleti[number] => atleta !== undefined);
+            return (
             <div
-              key={c.numero}
-              className="p-3 rounded-2xl bg-surface-container-low border border-outline-variant flex flex-col justify-between gap-3 min-w-0"
+              key={laneIndex}
+              className="p-2 sm:p-3 rounded-2xl bg-surface-container-low border border-outline-variant flex flex-col justify-between gap-2 sm:gap-3 min-w-0"
             >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-3 border-b border-outline-variant pb-1.5">
-                  <span className="w-7 h-7 rounded-xl bg-primary text-white font-headline text-xs font-bold flex items-center justify-center shadow-sm">
-                    C{c.numero}
+              <div className="space-y-1.5">
+              <div className="flex items-center justify-between gap-1.5 border-b border-outline-variant pb-1.5">
+                <span className="w-7 h-7 rounded-xl bg-primary text-on-primary font-headline text-xs font-bold flex items-center justify-center shadow-sm shrink-0">
+                    C{laneIndex + 1}
                   </span>
-                  <span className="text-xs font-bold px-3 py-0.5 rounded-md bg-surface-container text-primary font-mono">
-                    {c.targetPacing}
-                  </span>
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-surface-container text-primary font-mono truncate">Passo gara</span>
                 </div>
 
-                {c.atletiList.length === 0 ? (
+                {atletiCorsia.length === 0 ? (
                   <div className="text-xs text-on-surface-variant italic py-2">Corsia libera</div>
                 ) : (
                   <div className="space-y-1.5">
-                    {c.atletiList.map(ath => (
-                      <div key={ath.id} className="p-3 rounded-xl bg-surface-container-lowest border border-outline-variant flex items-center justify-between gap-1.5 text-xs">
+                    {atletiCorsia.map(ath => (
+                      <div key={ath.id} className="p-2 rounded-xl bg-surface-container-lowest border border-outline-variant flex items-center gap-1 text-xs">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5">
                             <span className="font-bold text-on-surface truncate min-w-0 flex-1">
-                              <Marquee text={ath.nome} />
+                              <Marquee text={`${ath.cognome} ${ath.nome}`} />
                             </span>
-                            <span className="px-1.5 py-0.2 rounded bg-primary text-white font-bold text-xs shrink-0 font-headline">
-                              {ath.classe}
+                            <span className="px-1.5 py-0.2 rounded bg-primary text-on-primary font-bold text-xs shrink-0 font-headline">
+                              {ath.classeS != null ? `S${ath.classeS}` : 'S?'}
                             </span>
-                            {ath.hasPrescrizione && (
-                              <span className="w-5 h-5 rounded-full bg-error-container text-error flex items-center justify-center shrink-0" title={`Prescrizione: ${ath.prescrizioneText}`}>
-                                <ShieldAlert size={12} />
-                              </span>
-                            )}
                           </div>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => rimuoviAtleta(laneIndex, ath.id)}
+                          aria-label={`Rimuovi ${ath.cognome} ${ath.nome} dalla corsia ${laneIndex + 1}`}
+                          className="w-8 h-8 rounded-lg text-on-surface-variant hover:bg-surface-container flex items-center justify-center shrink-0"
+                        >
+                          <Minus size={15} />
+                        </button>
                       </div>
                     ))}
                   </div>
                 )}
+                <label className="block">
+                  <span className="sr-only">Aggiungi atleta alla corsia {laneIndex + 1}</span>
+                  <select
+                    value=""
+                    disabled={atletaIdsAssegnati.size >= atleti.length}
+                    onChange={event => {
+                      if (event.target.value) assegnaAtleta(laneIndex, Number(event.target.value));
+                    }}
+                    className="w-full min-h-[40px] bg-surface-container-lowest border border-outline-variant rounded-lg px-2 text-xs font-semibold text-on-surface disabled:opacity-60"
+                  >
+                    <option value="">
+                      {atletaIdsAssegnati.size >= atleti.length ? 'Tutti assegnati' : '+ Aggiungi atleta'}
+                    </option>
+                    {atleti.filter(atleta => !atletaIdsAssegnati.has(atleta.id)).map(atleta => (
+                      <option key={atleta.id} value={atleta.id}>{atleta.cognome} {atleta.nome}</option>
+                    ))}
+                  </select>
+                </label>
               </div>
 
               <div className="text-xs text-on-surface-variant font-medium pt-1.5 border-t border-outline-variant truncate">
-                Focus: {c.focus}
+                {atletiCorsia.length > 0 ? `${atletiCorsia.length} atleti assegnati` : 'Pronta per assegnazione'}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
     </div>

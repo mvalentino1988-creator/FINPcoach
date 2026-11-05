@@ -112,7 +112,9 @@ export const AppContent: React.FC = () => {
           }`}
         >
           {tab === 'oggi' && <OggiScreen />}
-          {tab === 'cronometro' && <CronometroLiveMultiCorsia />}
+          <div className={tab === 'cronometro' ? 'contents' : 'hidden'}>
+            <CronometroLiveMultiCorsia />
+          </div>
           {tab === 'regia' && <RegiaTecnicaCorsie />}
           <Suspense fallback={<TabFallback />}>
             {tab === 'piano' && <PianoScreen />}

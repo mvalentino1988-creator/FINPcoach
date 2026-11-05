@@ -15,7 +15,7 @@ export const BordoVascaScreen: React.FC = () => {
             type="button"
             onClick={() => setVista('cronometro')}
             className={`flex-1 min-h-[40px] px-3 rounded-xl font-headline font-bold text-xs flex items-center justify-center gap-1.5 transition ${
-              vista === 'cronometro' ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+              vista === 'cronometro' ? 'bg-primary text-on-primary shadow-primary-sm' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
             }`}
           >
             <Timer size={16} />
@@ -25,7 +25,7 @@ export const BordoVascaScreen: React.FC = () => {
             type="button"
             onClick={() => setVista('regia')}
             className={`flex-1 min-h-[40px] px-3 rounded-xl font-headline font-bold text-xs flex items-center justify-center gap-1.5 transition ${
-              vista === 'regia' ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+              vista === 'regia' ? 'bg-primary text-on-primary shadow-primary-sm' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
             }`}
           >
             <SlidersHorizontal size={16} />

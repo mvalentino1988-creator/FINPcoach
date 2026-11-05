@@ -368,23 +368,25 @@ export const RegistroScreen: React.FC = () => {
       {sezione === 'tempi' && atletaSel && (
         <div className="space-y-4">
           {/* Athlete Selector */}
-          <div className="p-3 ds-card shadow-card flex items-center gap-3 overflow-x-auto">
-            <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider shrink-0 pl-1">
+          <div className="p-3 ds-card shadow-card flex flex-wrap sm:flex-nowrap items-center gap-2">
+            <span className="hidden sm:inline text-xs font-bold text-on-surface-variant uppercase tracking-wider shrink-0 pl-1">
               Atleta:
             </span>
-            <div className="flex gap-1.5 shrink-0">
+            <div className="grid grid-cols-3 gap-1.5 w-full sm:w-auto sm:flex sm:flex-1">
               {atleti.map(a => (
                 <button
                   key={a.id}
                   onClick={() => setAtletaSelId(a.id)}
-                  className={`px-3 h-12 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                  aria-label={`${a.cognome} ${a.nome}`}
+                  title={`${a.cognome} ${a.nome}`}
+                  className={`min-w-0 px-2 sm:px-3 min-h-[44px] rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
                     atletaSel.id === a.id
                       ? 'bg-primary-container text-on-primary shadow-card'
                       : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
                   <User size={13} />
-                  <span>{a.cognome} {a.nome}</span>
+                  <span className="truncate"><span className="sm:hidden">{a.cognome} {a.nome?.[0]}.</span><span className="hidden sm:inline">{a.cognome} {a.nome}</span></span>
                 </button>
               ))}
             </div>
@@ -403,23 +405,25 @@ export const RegistroScreen: React.FC = () => {
       {sezione === 'storico' && atletaSel && (
         <div className="space-y-4">
           {/* Athlete Selector */}
-          <div className="p-3 ds-card shadow-card flex items-center gap-3 overflow-x-auto">
-            <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider shrink-0 pl-1">
+          <div className="p-3 ds-card shadow-card flex flex-wrap sm:flex-nowrap items-center gap-2">
+            <span className="hidden sm:inline text-xs font-bold text-on-surface-variant uppercase tracking-wider shrink-0 pl-1">
               Atleta:
             </span>
-            <div className="flex gap-1.5 shrink-0">
+            <div className="grid grid-cols-3 gap-1.5 w-full sm:w-auto sm:flex sm:flex-1">
               {atleti.map(a => (
                 <button
                   key={a.id}
                   onClick={() => setAtletaSelId(a.id)}
-                  className={`px-3 h-12 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                  aria-label={`${a.cognome} ${a.nome}`}
+                  title={`${a.cognome} ${a.nome}`}
+                  className={`min-w-0 px-2 sm:px-3 min-h-[44px] rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
                     atletaSel.id === a.id
                       ? 'bg-primary-container text-on-primary shadow-card'
                       : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
                   <User size={13} />
-                  <span>{a.cognome} {a.nome}</span>
+                  <span className="truncate"><span className="sm:hidden">{a.cognome} {a.nome?.[0]}.</span><span className="hidden sm:inline">{a.cognome} {a.nome}</span></span>
                 </button>
               ))}
             </div>

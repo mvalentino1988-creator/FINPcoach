@@ -77,7 +77,7 @@ export const SchedaSedutaModal: React.FC<Props> = ({ scheda, onChiudi }) => {
         {/* Scrollable Content */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-5 text-sm flex-1 min-h-0">
           {/* Quick Metrics Header */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-surface-container-low/60 rounded-xl border border-primary-fixed-dim text-cyan-950">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-surface-container-low/60 rounded-xl border border-primary-fixed-dim text-on-surface">
             <div>
               <span className="text-xs text-primary font-semibold block">Volume Target</span>
               <span className="text-lg font-bold text-primary-container">{scheda.volumeTotaleMetri} m</span>

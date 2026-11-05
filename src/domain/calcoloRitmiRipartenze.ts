@@ -15,14 +15,15 @@ import { formattaTempo, parseTempo } from './tempoUtils';
 
 export class CalcoloRitmiRipartenze {
   /**
-   * Calcola i ritmi di allenamento, le ripartenze ed il recupero per tutti i codici A1-D
-   * partendo dal tempo sui 100m dell'atleta.
+   * Calcola ritmi, ripartenze e recupero per i codici A1-D usando il tempo sui 100m
+   * dell'atleta o il CSS come riferimento B1 quando disponibile.
    */
   static calcolaTabellaRitmi(
     atletaId: number,
     tempo100mCentesimi: number,
     stile: Stile = 'STILE_LIBERO',
-    vascaMetri: number = 25
+    vascaMetri: number = 25,
+    cssPasso100mCentesimi?: number
   ): TabellaRitmiAtleta {
     const base = Math.max(tempo100mCentesimi, 4000); // minimo 40"
     const ritmiMap = {} as Record<CodiceAllenamentoKey, RitmoCodice>;
@@ -41,7 +42,11 @@ export class CalcoloRitmiRipartenze {
     const keys: CodiceAllenamentoKey[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'C3', 'D'];
     for (const codice of keys) {
       const [deltaPasso100Sec, deltaRipartenzaSec, pausaSec, nota] = defs[codice];
-      const passoCentesimi = Math.max(base + deltaPasso100Sec * 100, 2500);
+      const passoRiferimento = cssPasso100mCentesimi ?? base;
+      const deltaRiferimento100Sec = cssPasso100mCentesimi != null
+        ? deltaPasso100Sec - defs.B1[0]
+        : deltaPasso100Sec;
+      const passoCentesimi = Math.max(passoRiferimento + deltaRiferimento100Sec * 100, 2500);
       const ripartenzaSec = (passoCentesimi / 100) + deltaRipartenzaSec;
 
       // Arrotonda ripartenza e pausa a multipli di 5 secondi

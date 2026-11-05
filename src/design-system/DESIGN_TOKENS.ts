@@ -11,7 +11,7 @@
 export const COLORS = {
   // Primary (Royal Blue)
   primary: '#1e40af',
-  primaryContainer: '#3b82f6',
+  primaryContainer: '#2563eb',
   onPrimary: '#ffffff',
   onPrimaryContainer: '#ffffff',
   primaryFixed: '#60a5fa',

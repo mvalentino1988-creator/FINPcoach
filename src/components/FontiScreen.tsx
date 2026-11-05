@@ -33,31 +33,39 @@ export const FontiScreen: React.FC = () => {
 
   return (
     <div className="flex flex-1 min-h-0 flex-col gap-3 overflow-hidden">
-      {/* Fonti & Gare Hero Card with integrated Verifica button */}
-      <section className="shrink-0 rounded-2xl bg-gradient-to-br from-[#0A2A66] via-[#1457E0] to-[#0A2A66] text-white p-3.5 sm:p-4 shadow-primary-sm space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-white/85">Archivio Ufficiale</span>
-            <h2 className="text-sm sm:text-base font-bold font-headline">Record, Regolamenti e Calendario FINP</h2>
-          </div>
-          <button
-            type="button"
-            disabled={checking}
-            onClick={handleVerificaOra}
-            className="px-3.5 py-2 rounded-xl bg-tertiary text-on-tertiary font-bold text-xs flex items-center gap-1.5 shadow-sm hover:scale-105 transition shrink-0 disabled:opacity-50"
-            title="Verifica aggiornamenti con i siti ufficiali FINP/WPS"
-          >
-            <RefreshCw size={15} className={checking ? 'animate-spin' : ''} />
-            <span>{checking ? 'Controllo...' : 'Verifica'}</span>
-          </button>
+      <div className="shrink-0 flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={() => setTab('record')}
+          aria-current={tab === 'record' ? 'page' : undefined}
+          className={`min-h-[44px] rounded-xl px-3.5 flex items-center gap-2 text-xs font-bold transition ${
+            tab === 'record' ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-primary border border-outline-variant'
+          }`}
+        >
+          <Trophy size={16} />
+          Archivio ufficiale
+        </button>
+        <button
+          type="button"
+          disabled={checking}
+          onClick={handleVerificaOra}
+          className="ds-btn-secondary !min-h-[44px] !px-3 text-xs disabled:opacity-50"
+          title="Verifica aggiornamenti con i siti ufficiali FINP/WPS"
+        >
+          <RefreshCw size={15} className={checking ? 'animate-spin' : ''} />
+          <span>{checking ? 'Controllo...' : 'Verifica'}</span>
+        </button>
+      </div>
+
+      {updateStatus && (
+        <div
+          role="status"
+          className="shrink-0 flex items-start gap-2 rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2.5 text-xs text-on-surface-variant"
+        >
+          <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-secondary" />
+          <span>{updateStatus.messaggio}</span>
         </div>
-        <div className="flex items-center justify-between text-[11px] text-white/90 pt-1.5 border-t border-white/20">
-          <span>🏆 Tabelle Nazionali & WPS · Edizione 2026</span>
-          <span className="font-bold text-tertiary-fixed">
-            {updateStatus ? `Ultimo check: ${updateStatus.ultimaVerifica}` : 'Aggiornato'}
-          </span>
-        </div>
-      </section>
+      )}
 
       {/* TABS A MENU A TENDINA PULITO E LEGGIBILE */}
       <div className="shrink-0 ds-card p-2 sm:p-2.5">

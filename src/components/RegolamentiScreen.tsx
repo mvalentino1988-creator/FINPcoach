@@ -13,9 +13,7 @@ import {
   ChevronRight,
   ExternalLink,
   FileText,
-  X,
-  ListTree,
-  Layers
+  X
 } from 'lucide-react';
 
 type DocFiltro = 'tutti' | string;
@@ -88,7 +86,6 @@ export const RegolamentiScreen: React.FC = () => {
   const [query, setQuery] = useState('');
   const [capitoliAperti, setCapitoliAperti] = useState<Set<string>>(new Set());
   const [sezioniAperte, setSezioniAperte] = useState<Set<string>>(new Set());
-  const [indiceAperto, setIndiceAperto] = useState(false);
 
   const risultati = useMemo<RisultatoRicerca[]>(() => {
     if (query.trim().length < 2) return [];
@@ -120,17 +117,6 @@ export const RegolamentiScreen: React.FC = () => {
     });
   };
 
-  const espandiTutto = () => {
-    const tutte = new Set<string>();
-    documentiVisibili.forEach(({ doc, capitoli }) => capitoli.forEach(c => tutte.add(`${doc.id}#${c.chiave}`)));
-    setCapitoliAperti(tutte);
-  };
-
-  const comprimiTutto = () => {
-    setCapitoliAperti(new Set());
-    setSezioniAperte(new Set());
-  };
-
   const apriRisultato = (r: RisultatoRicerca) => {
     const cap = RegolamentiService.capitoloDi(r.documentoId, r.indice);
     setDocFiltro(r.documentoId);
@@ -146,13 +132,6 @@ export const RegolamentiScreen: React.FC = () => {
     }
     setTimeout(() => {
       document.getElementById(`sec-${r.documentoId}-${target}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 60);
-  };
-
-  const vaiAlCapitolo = (docId: string, chiave: string) => {
-    setCapitoliAperti(prev => new Set(prev).add(`${docId}#${chiave}`));
-    setTimeout(() => {
-      document.getElementById(`cap-${docId}-${chiave}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 60);
   };
 
@@ -228,12 +207,10 @@ export const RegolamentiScreen: React.FC = () => {
       <div>
         <h2 className="ds-title flex items-center gap-2">
           <BookOpen size={22} className="text-primary-container" />
-          <span>Regolamenti</span>
+          <span>Regolamenti FINP e World Para Swimming</span>
         </h2>
         <p className="text-xs text-on-surface-variant mt-0.5">
-          Regolamento FINP e World Para Swimming consultabili offline ({RegolamentiService.totaleCapitoli()} capitoli,{' '}
-          {RegolamentiService.totaleSezioni()} articoli). Cerca per parola chiave o sfoglia i capitoli. Aggiornati al{' '}
-          {meta.aggiornato}.
+          Cerca una parola oppure scegli una fonte e apri il capitolo desiderato. Testi offline aggiornati al {meta.aggiornato}.
         </p>
       </div>
 
@@ -285,22 +262,6 @@ export const RegolamentiScreen: React.FC = () => {
           ))}
         </div>
 
-        {/* Suggestions */}
-        {!inRicerca && (
-          <div className="flex flex-wrap items-center gap-1.5 pt-1">
-            <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Ricerche rapide:</span>
-            {RegolamentiService.suggerimenti().map(s => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setQuery(s)}
-                className="px-3 py-1 rounded-lg text-xs font-semibold bg-surface-container-low text-on-surface-variant border border-slate-200/70 hover:bg-surface-container transition"
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Results */}
@@ -359,64 +320,10 @@ export const RegolamentiScreen: React.FC = () => {
         </div>
       ) : (
         /* Browse mode */
-        <div className="space-y-5">
-          {/* Toolbar */}
-          <div className="flex items-center justify-between gap-2">
-            <button
-              type="button"
-              onClick={() => setIndiceAperto(v => !v)}
-              className="text-xs font-bold text-on-surface-variant hover:text-on-surface flex items-center gap-1.5 px-3 h-12 rounded-lg bg-surface-container hover:bg-surface-container-high transition"
-            >
-              <ListTree size={13} />
-              Indice dei capitoli
-              {indiceAperto ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-            </button>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={espandiTutto}
-                className="text-xs font-semibold text-on-surface-variant hover:text-on-surface px-3 h-12 rounded-lg hover:bg-surface-container transition"
-              >
-                Espandi tutto
-              </button>
-              <button
-                type="button"
-                onClick={comprimiTutto}
-                className="text-xs font-semibold text-on-surface-variant hover:text-on-surface px-3 h-12 rounded-lg hover:bg-surface-container transition"
-              >
-                Comprimi tutto
-              </button>
-            </div>
-          </div>
-
-          {/* TOC */}
-          {indiceAperto && (
-            <div className="space-y-3 p-3 rounded-xl bg-surface-container-low border border-slate-200/70">
-              {documentiVisibili.map(({ doc, capitoli }) => (
-                <div key={doc.id} className="space-y-1.5">
-                  <div className="text-xs font-bold uppercase tracking-wider text-on-surface-variant flex items-center gap-1.5">
-                    <Layers size={12} className="text-primary-container" />
-                    {doc.fonte}
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {capitoli.map(c => (
-                      <button
-                        key={c.chiave}
-                        type="button"
-                        onClick={() => vaiAlCapitolo(doc.id, c.chiave)}
-                        className="px-3 py-1 rounded-lg text-xs font-semibold bg-surface-container-lowest text-on-surface-variant border border-slate-200/70 hover:border-primary-container hover:text-primary-container transition max-w-full truncate"
-                        title={c.titolo}
-                      >
-                        {c.codice ? `${c.codice} · ` : ''}
-                        {c.titolo}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
+        <div className="space-y-4">
+          <p className="text-xs text-on-surface-variant">
+            {docFiltro === 'tutti' ? 'Scegli una fonte per restringere l’elenco, poi apri un capitolo.' : 'Apri un capitolo per leggere i relativi articoli.'}
+          </p>
           {/* Chapters */}
           {documentiVisibili.map(({ doc, capitoli }) => (
             <div key={doc.id} className="space-y-2">

@@ -114,8 +114,14 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
     if (!atletaSel) return null;
     const t100 = tempiAtleta.filter(t => t.distanzaMetri === 100).sort((a, b) => b.data.localeCompare(a.data))[0];
     if (!t100) return null;
-    return CalcoloRitmiRipartenze.calcolaTabellaRitmi(atletaSel.id, t100.centesimi, t100.stile, t100.vascaMetri);
-  }, [atletaSel, tempiAtleta]);
+    return CalcoloRitmiRipartenze.calcolaTabellaRitmi(
+      atletaSel.id,
+      t100.centesimi,
+      t100.stile,
+      t100.vascaMetri,
+      cssResult?.passo100mCentesimi
+    );
+  }, [atletaSel, tempiAtleta, cssResult]);
 
   const primati = useMemo(() => {
     return primatiPersonali(tempiAtleta);
@@ -199,9 +205,9 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
 
       {/* Form Check Alert Card */}
       {formCheck && formCheck.necessario && (
-        <div className="p-3.5 bg-surface-container-low/80 border border-tertiary-fixed-dim rounded-xl space-y-2 text-xs text-amber-950">
+        <div className="p-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl space-y-2 text-xs text-on-surface">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3 font-bold text-on-tertiary-fixed text-sm">
+            <div className="flex items-center gap-3 font-bold text-on-surface text-sm">
               <Timer size={16} className="text-tertiary-container" />
               <span>{formCheck.titoloTest}</span>
             </div>
@@ -214,7 +220,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
               <span>Esegui Test Ora</span>
             </button>
           </div>
-          <p className="text-on-tertiary-fixed">{formCheck.motivazione}</p>
+          <p className="text-on-surface-variant">{formCheck.motivazione}</p>
         </div>
       )}
 
@@ -231,15 +237,15 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
 
       {/* CSS Critical Swim Speed Card */}
       {cssResult && (
-        <div className="p-4 bg-gradient-to-r from-surface-container-low to-blue-50 border border-primary-fixed-dim rounded-xl shadow-card flex items-center justify-between gap-3 text-xs">
+        <div className="p-4 bg-surface-container-low border border-outline-variant rounded-xl shadow-card flex items-center justify-between gap-3 text-xs">
           <div>
-            <div className="flex items-center gap-1.5 text-primary-container font-bold uppercase tracking-wider">
+            <div className="flex items-center gap-1.5 text-primary font-bold uppercase tracking-wider">
               <Flame size={15} className="text-primary-container" />
               <span>Velocità Critica CSS (B1)</span>
             </div>
             <p className="text-on-surface-variant text-xs mt-0.5">{cssResult.spiegazioneMetodologica}</p>
           </div>
-          <span className="px-3 py-1.5 rounded-xl bg-primary-container text-on-primary font-bold text-xs shrink-0">
+          <span className="px-3 py-1.5 rounded-xl bg-primary text-on-primary font-bold text-xs shrink-0">
             {cssResult.passo100mFormatted} /100m
           </span>
         </div>
@@ -248,12 +254,12 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
       {/* Tabella Ritmi & Ripartenze a 5 secondi (Compatta senza note) */}
       {tabellaRitmi && (
         <div className="ds-card p-4 shadow-card space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-200/70">
+          <div className="flex items-center justify-between pb-2 border-b border-outline-variant">
             <h3 className="font-bold text-on-surface text-xs uppercase tracking-wider">
               Tabella Ritmi A1–D · Passo 100m & Ripartenze
             </h3>
             <span className="text-xs text-primary-container font-bold">
-              Base 100m: {formattaTempo(tabellaRitmi.tempoRiferimento100mCentesimi)}
+              Tempo 100m: {formattaTempo(tabellaRitmi.tempoRiferimento100mCentesimi)}
             </span>
           </div>
 
@@ -264,13 +270,13 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
               return (
                 <div
                   key={k}
-                  className="p-3 rounded-xl border border-slate-200/70 bg-surface-container-low/50 flex flex-col justify-between text-xs space-y-1"
+                  className="p-3 rounded-xl border border-outline-variant bg-surface-container-low flex flex-col justify-between text-xs space-y-1"
                 >
                   <div className="flex items-center justify-between">
                     <BadgeCodice codice={k} />
                     <span className="font-bold text-on-surface text-xs">{r.passo100mFormatted}</span>
                   </div>
-                  <div className="pt-1 border-t border-slate-200/60 flex items-center justify-between text-xs">
+                  <div className="pt-1 border-t border-outline-variant flex items-center justify-between text-xs">
                     <span className="text-on-surface-variant font-medium">Rip:</span>
                     <span className="font-bold text-primary-container">{r.ripartenzaFormatted}</span>
                   </div>
@@ -290,7 +296,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
             {primati.map((p, i) => (
               <div
                 key={i}
-                className="p-3 bg-surface-container-low/40 border border-tertiary-fixed-dim rounded-xl flex items-center justify-between text-xs"
+                className="p-3 bg-surface-container-low border border-outline-variant rounded-xl flex items-center justify-between text-xs"
               >
                 <div>
                   <span className="font-bold text-on-surface block">
@@ -455,7 +461,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
               return (
                 <div
                   key={t.id}
-                  className="p-3 bg-surface-container-low border border-slate-200/70 rounded-xl flex items-center justify-between text-xs"
+                  className="p-3 bg-surface-container-low border border-outline-variant rounded-xl flex items-center justify-between text-xs"
                 >
                   <div>
                     <div className="flex items-center gap-3 flex-wrap">
@@ -472,7 +478,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
                     <div className="text-xs text-on-surface-variant mt-0.5 flex items-center gap-1.5 flex-wrap">
                       <span>{formattaData(t.data)} · {t.contesto.toLowerCase()} · vasca {t.vascaMetri}m</span>
                       <span>•</span>
-                      <span className="text-secondary font-semibold flex items-center gap-0.5" title={`Tempo convertito vasca da ${vascaDest}m`}>
+                      <span className="text-primary font-semibold flex items-center gap-0.5" title={`Tempo convertito vasca da ${vascaDest}m`}>
                         <ArrowRightLeft size={10} />
                         ~{formattaTempo(tempoConvertito)} in vasca {vascaDest}m
                       </span>

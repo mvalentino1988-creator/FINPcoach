@@ -12,6 +12,14 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --gradient-blue: linear-gradient(135deg, #1e40af 0%, #2563eb 60%, #1d4ed8 100%);
+}
+
+.bg-gradient-blue {
+  background-image: var(--gradient-blue);
+}
+
 @layer base {
   :root {
     font-family: 'Public Sans', system-ui, sans-serif;
@@ -49,9 +57,16 @@
 
     /* Primary — Rich Royal Blue */
     --color-primary:               #1e40af;
-    --color-primary-container:     #3b82f6;
+    --color-primary-rgb:           30 64 175;
+    --color-primary-container:     #2563eb;
+    --color-primary-container-rgb: 37 99 235;
     --color-on-primary:            #ffffff;
+    --color-on-primary-rgb:        255 255 255;
     --color-on-primary-container:  #ffffff;
+    --color-on-primary-container-rgb: 255 255 255;
+    --color-primary-fixed:         #60a5fa;
+    --color-primary-fixed-dim:     #3b82f6;
+    --color-on-primary-fixed:      #ffffff;
 
     /* Secondary — Teal Accent */
     --color-secondary:             #0d9488;
@@ -105,6 +120,18 @@
 
     --color-outline:               #475569;
     --color-outline-variant:       #334155;
+
+    --color-primary:               #93c5fd;
+    --color-primary-rgb:           147 197 253;
+    --color-primary-container:     #60a5fa;
+    --color-primary-container-rgb: 96 165 250;
+    --color-on-primary:            #0f172a;
+    --color-on-primary-rgb:        15 23 42;
+    --color-on-primary-container:  #0f172a;
+    --color-on-primary-container-rgb: 15 23 42;
+    --color-primary-fixed:         #1e3a8a;
+    --color-primary-fixed-dim:     #1e40af;
+    --color-on-primary-fixed:      #ffffff;
   }
 
   html {
@@ -162,6 +189,11 @@
 
   select {
     min-height: 48px;
+  }
+
+  option {
+    background-color: var(--color-surface-container-lowest);
+    color: var(--color-on-surface);
   }
 
   img, svg, canvas, video {
@@ -237,6 +269,7 @@
     width: 100%;
     padding-top: 0.5rem;
     padding-bottom: calc(var(--dock-h) + var(--safe-bottom) + 1rem);
+    min-width: 0;
   }
 
   @media (min-width: 640px) {
@@ -305,6 +338,1239 @@
   .pb-safe { padding-bottom: var(--safe-bottom); }
   .pt-safe { padding-top: var(--safe-top); }
 
+  .app-fixed-scroll {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-bottom: calc(var(--dock-h) + var(--safe-bottom) + 1rem);
+  }
+
+  .app-shell-fixed .app-fixed-scroll {
+    padding-bottom: calc(var(--dock-h) + var(--safe-bottom) + 1rem) !important;
+  }
+
+  .oggi-screen,
+  .cronometro-screen {
+    min-width: 0;
+  }
+
+  .oggi-main-column,
+  .oggi-sidebar {
+    min-height: 0;
+  }
+
+  .oggi-stat-label {
+    white-space: nowrap;
+  }
+
+  .cronometro-lane-count {
+    white-space: nowrap;
+  }
+
+  @media (max-width: 639px) {
+    .oggi-stat-label {
+      font-size: clamp(0.5rem, 2.2vw, 0.65rem);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .oggi-day-card {
+      padding: 0.5rem 0.625rem;
+    }
+
+    .oggi-day-card h1 {
+      font-size: 1.125rem;
+    }
+
+    .oggi-day-card p {
+      font-size: 0.6875rem;
+      line-height: 1.2;
+      margin-top: 0.125rem;
+    }
+
+    .oggi-day-card .ds-chip {
+      min-height: 30px;
+      padding: 0.375rem 0.5rem;
+      font-size: 0.625rem;
+    }
+
+    .oggi-season-card {
+      padding: 0.5rem 0.625rem;
+    }
+
+    .oggi-season-card h2 {
+      font-size: 0.875rem;
+      line-height: 1.1;
+    }
+
+    .oggi-season-card > div:last-child {
+      font-size: 0.625rem;
+      padding-top: 0.375rem;
+    }
+
+    .oggi-season-card > div:last-child > span:last-child {
+      padding-inline: 0.375rem;
+      font-size: 0.5625rem;
+    }
+
+    .oggi-statistics > button {
+      min-width: 0;
+      min-height: 3.25rem;
+      border-radius: 0.875rem;
+    }
+
+    .oggi-statistics > button > div:first-child {
+      min-width: 0;
+    }
+
+    .oggi-events-card > div:first-child > div {
+      gap: 0.375rem;
+    }
+
+    .oggi-events-card > div:nth-child(2) > div {
+      gap: 0.375rem;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.625rem;
+    }
+
+    .oggi-events-card > div:nth-child(2) > div > span:last-child {
+      font-size: 0.5625rem;
+    }
+
+    .oggi-screen-with-workout .oggi-secondary-cards {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.375rem;
+    }
+
+    .oggi-screen-with-workout .oggi-events-card {
+      height: 100%;
+      min-width: 0;
+    }
+
+    .oggi-workout-prompt > div:first-child {
+      min-height: 1.5rem;
+    }
+
+    .cronometro-screen {
+      gap: 0.375rem;
+    }
+
+    .cronometro-screen > div:first-child > section {
+      padding: 0.375rem 0.625rem;
+    }
+
+    .timer-master {
+      padding: 0.5rem;
+    }
+
+    .timer-master-inner {
+      display: grid !important;
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr) !important;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .timer-master-controls {
+      align-items: flex-start;
+      flex-direction: column !important;
+      gap: 0.375rem;
+    }
+
+    .timer-master-controls > div:first-child {
+      gap: 0.25rem;
+    }
+
+    .timer-master-controls > div:first-child > span {
+      padding-inline: 0.5rem;
+      font-size: 0.625rem;
+    }
+
+    .timer-master-controls > div:first-child > button {
+      padding-inline: 0.5rem;
+      font-size: 0.625rem;
+    }
+
+    .timer-master-actions {
+      gap: 0.375rem;
+    }
+
+    .timer-master-display {
+      min-width: 0;
+      padding: 0.5rem 0.25rem;
+    }
+
+    .timer-master-display > span {
+      font-size: clamp(1.5rem, 7vw, 2.25rem);
+    }
+
+    .cronometro-lanes {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: none !important;
+      grid-auto-rows: minmax(9rem, max-content);
+      align-content: start !important;
+      gap: 0.375rem;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding-bottom: max(0.75rem, var(--safe-bottom)) !important;
+    }
+
+    .cronometro-lanes-one {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cronometro-lane {
+      gap: 0.25rem;
+      padding: 0.375rem;
+      border-left-width: 3px;
+      border-radius: 0.875rem;
+      justify-content: flex-start !important;
+    }
+
+    .cronometro-lane-header {
+      min-width: 0;
+    }
+
+    .cronometro-lane-header > div:first-child {
+      min-width: 0;
+      gap: 0.25rem;
+    }
+
+    .cronometro-lane-header > div:first-child > span:first-child {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    .cronometro-lane-count {
+      font-size: 0.5625rem;
+    }
+
+    .cronometro-lane-header > div:last-child {
+      gap: 0.25rem;
+    }
+
+    .cronometro-athletes {
+      min-height: 0;
+    }
+
+    .cronometro-athletes > div > div > div:first-child {
+      gap: 0.25rem;
+    }
+  }
+
+  @media (max-height: 740px) {
+    .oggi-main-column,
+    .oggi-sidebar {
+      gap: 0.375rem;
+    }
+
+    .cronometro-screen {
+      gap: 0.25rem;
+    }
+
+    .timer-master-display {
+      padding-block: 0.25rem;
+    }
+
+    .cronometro-lane {
+      gap: 0 !important;
+      padding: 0.125rem !important;
+      justify-content: flex-start !important;
+    }
+
+    .cronometro-lane-header {
+      padding-bottom: 0 !important;
+    }
+
+    .cronometro-lane-header > div:last-child > button:first-child {
+      min-height: 2rem !important;
+      padding-inline: 0.375rem;
+    }
+
+    .cronometro-lane-header > div:last-child > button:last-child {
+      min-width: 2.25rem !important;
+      min-height: 2.25rem !important;
+    }
+
+    .cronometro-athletes > div {
+      padding: 0 !important;
+    }
+
+    .cronometro-athletes > div > div > div:last-child > button:last-child {
+      min-width: 2.25rem !important;
+      min-height: 2.25rem !important;
+      padding-inline: 0.25rem;
+    }
+  }
+
+  @media (max-height: 740px) and (max-width: 1023px) {
+    .oggi-main-column {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-content: start;
+      gap: 0.375rem;
+    }
+
+    .oggi-day-card,
+    .oggi-season-card,
+    .oggi-statistics,
+    .oggi-workout-prompt,
+    .oggi-main-column > .ds-card {
+      grid-column: 1 / -1;
+    }
+
+    .oggi-day-card p {
+      display: none;
+    }
+
+    .oggi-events-card {
+      min-width: 0;
+    }
+
+    .oggi-events-card > div:first-child > div {
+      min-width: 0;
+    }
+
+    .oggi-events-card > div:first-child > div > span {
+      font-size: 0.6875rem;
+    }
+
+    .oggi-secondary-cards {
+      grid-column: 1 / -1;
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.375rem;
+    }
+
+    .oggi-screen-with-workout .oggi-statistics,
+    .oggi-screen-with-workout .oggi-secondary-cards {
+      display: none !important;
+    }
+
+    .oggi-screen-with-workout .print-area {
+      grid-column: 1 / -1;
+      min-height: 0;
+      gap: 0.375rem;
+      overflow: hidden;
+    }
+
+    .oggi-screen-with-workout .print-area > .ds-card {
+      min-height: 0;
+      padding: 0.5rem;
+      overflow: hidden;
+    }
+
+    .oggi-screen-with-workout .print-area > .ds-card > div:last-child {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.25rem;
+    }
+
+    .oggi-screen-with-workout .print-area > .ds-card > div:last-child > div > button {
+      min-height: 40px;
+      padding: 0.375rem;
+      gap: 0.25rem;
+    }
+  }
+
+  .oggi-screen,
+  .cronometro-screen {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .oggi-main-column {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto auto auto minmax(0, 1fr);
+    align-content: stretch;
+    gap: clamp(0.5rem, 1.2vh, 0.875rem);
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .oggi-day-card,
+  .oggi-season-card,
+  .oggi-statistics,
+  .oggi-secondary-cards,
+  .oggi-workout-prompt,
+  .oggi-main-column > .print-area,
+  .oggi-main-column > .ds-card {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  .oggi-day-card {
+    border-radius: 1.25rem;
+  }
+
+  .oggi-day-card h1 {
+    font-size: clamp(1.125rem, 1.5vw, 1.5rem);
+  }
+
+  .oggi-season-card {
+    border-radius: 1.25rem;
+    padding: clamp(0.625rem, 1.2vw, 1rem);
+  }
+
+  @media (max-width: 379px) {
+    .oggi-date-weekday {
+      display: none;
+    }
+  }
+
+  @media (min-height: 741px) and (max-width: 639px) {
+    .oggi-main-column {
+      grid-template-rows: auto auto auto auto minmax(0, 1fr) auto;
+      align-content: stretch;
+    }
+
+    .oggi-workout-prompt {
+      height: auto;
+      align-self: start;
+    }
+  }
+
+  .oggi-statistics > button {
+    min-width: 0;
+    min-height: 4.25rem;
+    padding: 0.75rem;
+    border-radius: 1rem;
+  }
+
+  .oggi-stat-label {
+    white-space: nowrap;
+    font-size: clamp(0.5625rem, 0.8vw, 0.6875rem);
+    letter-spacing: 0.04em;
+  }
+
+  .oggi-secondary-cards {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(0.5rem, 1.2vw, 0.875rem);
+    align-content: start;
+  }
+
+  .oggi-events-card {
+    min-width: 0;
+  }
+
+  .oggi-workout-prompt {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+    padding: clamp(0.75rem, 1.5vw, 1.25rem);
+    border-radius: 1.25rem;
+  }
+
+  .oggi-workout-prompt > div:last-child > button {
+    min-height: 3.25rem;
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  .oggi-screen-with-workout .oggi-statistics,
+  .oggi-screen-with-workout .oggi-secondary-cards {
+    display: none !important;
+  }
+
+  .oggi-screen-with-workout .print-area {
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .oggi-screen-with-workout .print-area > .ds-card {
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .cronometro-screen {
+    gap: clamp(0.375rem, 0.9vh, 0.75rem);
+  }
+
+  .cronometro-heading {
+    min-height: 2.75rem;
+    padding: 0 0.125rem;
+  }
+
+  .cronometro-session-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--color-outline-variant);
+    border-radius: 999px;
+    background: var(--color-surface-container-lowest);
+    color: var(--color-on-surface-variant);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .cronometro-session-state > span {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--color-outline);
+  }
+
+  .cronometro-session-state.is-running {
+    color: var(--color-on-success-container);
+    border-color: var(--color-success);
+    background: var(--color-success-container);
+  }
+
+  .cronometro-session-state.is-running > span {
+    background: var(--color-success);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success) 18%, transparent);
+  }
+
+  .timer-console {
+    display: grid;
+    grid-template-columns: minmax(8rem, 0.8fr) minmax(0, 1.7fr);
+    align-items: center;
+    gap: clamp(0.5rem, 1.2vw, 1rem);
+    padding: clamp(0.625rem, 1.4vw, 1rem);
+    border: 1px solid var(--color-outline-variant);
+    border-radius: 1.25rem;
+    background: linear-gradient(120deg, var(--color-surface-container-lowest), var(--color-surface-container-low));
+    box-shadow: var(--shadow-card);
+  }
+
+  .timer-console-clock {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.875rem;
+    background: var(--color-inverse-surface);
+    color: var(--color-inverse-on-surface);
+  }
+
+  .timer-console-label {
+    color: color-mix(in srgb, var(--color-inverse-on-surface) 86%, transparent);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .timer-console-clock output {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .timer-console-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .timer-console-start,
+  .timer-console-reset,
+  .lane-add-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 2.75rem;
+    border: 0;
+    border-radius: 0.875rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: filter 120ms ease, transform 120ms ease;
+  }
+
+  .timer-console-start {
+    padding: 0 1rem;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+
+  .timer-console-start.is-running {
+    background: var(--color-tertiary);
+    color: var(--color-on-tertiary-fixed);
+  }
+
+  .timer-console-start:active,
+  .timer-console-reset:active,
+  .lane-add-button:active {
+    transform: scale(0.97);
+  }
+
+  .timer-console-reset {
+    width: 2.75rem;
+    background: var(--color-surface-container);
+    color: var(--color-on-surface-variant);
+  }
+
+  .timer-setting {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0 0.625rem;
+    border: 1px solid var(--color-outline-variant);
+    border-radius: 0.875rem;
+    background: var(--color-surface-container-lowest);
+    color: var(--color-on-surface-variant);
+    font-size: 0.6875rem;
+    font-weight: 700;
+  }
+
+  .timer-setting select,
+  .timer-sendoff input {
+    width: auto;
+    min-width: 2.5rem;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--color-on-surface);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .timer-sendoff-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    color: var(--color-on-surface);
+  }
+
+  .timer-sendoff input {
+    width: 2.5rem;
+    text-align: right;
+  }
+
+  .lane-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 2.75rem;
+    padding: 0.25rem 0.375rem;
+  }
+
+  .lane-toolbar-summary,
+  .lane-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    color: var(--color-on-surface-variant);
+    font-size: 0.6875rem;
+  }
+
+  .lane-toolbar-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+
+  .lane-start-hint {
+    max-width: 100%;
+    color: var(--color-on-surface-variant);
+    font-size: 0.6875rem;
+    line-height: 1.2;
+  }
+
+  .lane-toolbar-summary strong {
+    color: var(--color-on-surface);
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lane-toolbar-divider {
+    height: 1rem;
+    margin: 0 0.125rem;
+    border-left: 1px solid var(--color-outline-variant);
+  }
+
+  .lane-toolbar-actions select {
+    max-width: min(13rem, 42vw);
+    min-height: 2.5rem;
+    padding: 0 0.625rem;
+    border: 1px solid var(--color-outline-variant);
+    border-radius: 0.75rem;
+    background: var(--color-surface-container-lowest);
+    color: var(--color-on-surface);
+    font-size: 0.6875rem;
+  }
+
+  .lane-toolbar-actions select:disabled {
+    color: var(--color-on-surface-variant);
+  }
+
+  .lane-add-button {
+    min-height: 2.5rem;
+    padding: 0 0.75rem;
+    border: 1px solid var(--color-outline-variant);
+    background: var(--color-surface-container-lowest);
+    color: var(--color-primary);
+    white-space: nowrap;
+  }
+
+  .lane-add-button:disabled {
+    opacity: 0.45;
+  }
+
+  .cronometro-lanes {
+    --lane-gap: clamp(0.375rem, 0.8vw, 0.75rem);
+    display: grid;
+    flex: 1 1 0%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none !important;
+    grid-auto-rows: minmax(0, 1fr);
+    align-content: stretch !important;
+    gap: var(--lane-gap);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .cronometro-lanes-one {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cronometro-lane-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    border: 1px solid var(--color-outline-variant);
+    border-top: 3px solid var(--color-primary);
+    border-radius: 1rem;
+    background: var(--color-surface-container-lowest);
+    box-shadow: var(--shadow-card);
+  }
+
+  .cronometro-lane-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.5rem;
+    padding: 0.375rem 0.5rem;
+    border-bottom: 1px solid var(--color-outline-variant);
+  }
+
+  .lane-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.625rem;
+    height: 1.625rem;
+    border-radius: 0.5rem;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: 0.6875rem;
+    font-weight: 800;
+  }
+
+  .lane-athlete-count {
+    color: var(--color-on-surface-variant);
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lane-athlete-count > span {
+    color: var(--color-on-surface-variant);
+    font-size: 0.6875rem;
+  }
+
+  .lane-assign-button,
+  .lane-remove-button,
+  .athlete-remove-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: 0.625rem;
+    background: var(--color-surface-container-low);
+    color: var(--color-primary);
+  }
+
+  .lane-assign-button {
+    margin-left: auto;
+  }
+
+  .lane-remove-button,
+  .athlete-remove-button {
+    color: var(--color-on-surface-variant);
+  }
+
+  .athlete-move-select {
+    width: 4.25rem;
+    min-height: 2.75rem;
+    padding: 0 0.25rem;
+    border: 1px solid var(--color-outline-variant);
+    border-radius: 0.625rem;
+    background: var(--color-surface-container-lowest);
+    color: var(--color-on-surface);
+    font-size: 0.625rem;
+    font-weight: 700;
+  }
+
+  .athlete-move-select:disabled {
+    color: var(--color-on-surface-variant);
+    opacity: 0.65;
+  }
+
+  .cronometro-athletes {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-height: 0;
+    padding: 0.375rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .lane-empty-state {
+    display: grid;
+    flex: 1;
+    place-items: center;
+    padding: 0.5rem;
+    color: var(--color-on-surface-variant);
+    font-size: 0.6875rem;
+    text-align: center;
+  }
+
+  .athlete-timing-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2rem;
+    gap: 0.25rem;
+    min-width: 0;
+    padding: 0.1875rem;
+    border: 1px solid var(--color-outline-variant);
+    border-radius: 0.875rem;
+    background: var(--color-surface-container-low);
+  }
+
+  .athlete-timing-row.has-move-select {
+    grid-template-columns: minmax(0, 1fr) 4.25rem 2rem;
+  }
+
+  .athlete-timing-button {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    min-height: 3rem;
+    padding: 0.375rem 0.5rem;
+    border: 0;
+    border-radius: 0.625rem;
+    background: transparent;
+    color: var(--color-on-surface);
+    text-align: left;
+  }
+
+  .athlete-timing-button:disabled {
+    cursor: default;
+    opacity: 0.78;
+  }
+
+  .athlete-timing-button.is-active {
+    background: color-mix(in srgb, var(--color-success-container) 38%, var(--color-surface-container-lowest));
+  }
+
+  .athlete-timing-button.is-selected {
+    background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface-container-lowest));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 25%, transparent);
+  }
+
+  .athlete-timing-button.is-waiting {
+    background: color-mix(in srgb, var(--color-tertiary-container) 30%, var(--color-surface-container-lowest));
+  }
+
+  .athlete-class {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 1.75rem;
+    padding: 0 0.3rem;
+    border-radius: 0.5rem;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: 0.625rem;
+    font-weight: 800;
+  }
+
+  .athlete-timing-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 0.125rem;
+  }
+
+  .athlete-name {
+    color: var(--color-on-surface);
+    font-size: 0.75rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .athlete-time {
+    color: var(--color-on-surface-variant);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: normal;
+  }
+
+  .athlete-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.125rem;
+    min-height: 2rem;
+    padding: 0 0.5rem;
+    border-radius: 0.625rem;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: 0.75rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .athlete-timing-button.is-active .athlete-action {
+    background: var(--color-tertiary);
+  }
+
+  .athlete-timing-button.is-waiting .athlete-action {
+    background: var(--color-tertiary-container);
+    color: var(--color-on-surface);
+    font-size: 0.5625rem;
+  }
+
+  .athlete-latest-split {
+    display: flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.25rem 0.375rem 0.125rem;
+    color: var(--color-on-surface-variant);
+    font-size: 0.625rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .athlete-latest-split button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.375rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: var(--color-surface-container-high);
+    color: var(--color-primary);
+    font-size: 0.625rem;
+    font-weight: 700;
+  }
+
+  .timer-save-feedback {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    background: var(--color-success-container);
+    color: var(--color-on-success-container);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  @media (min-width: 640px) {
+    .cronometro-lanes-count-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .cronometro-lanes-count-4 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .cronometro-lane-card-header {
+      min-height: 2.75rem;
+      padding-inline: 0.625rem;
+    }
+
+    .athlete-timing-button {
+      gap: 0.375rem;
+      padding-inline: 0.375rem;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .cronometro-lanes-count-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 359px) {
+    .cronometro-lanes-count-2,
+    .cronometro-lanes-count-3,
+    .cronometro-lanes-count-4 {
+      grid-template-columns: minmax(0, 1fr);
+      grid-auto-rows: minmax(5.5rem, 1fr);
+      overflow-y: auto;
+    }
+
+  }
+
+  @media (max-width: 639px) {
+    .timer-console {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.375rem;
+      padding: 0.5rem;
+      border-radius: 1rem;
+    }
+
+    .timer-console-clock {
+      padding: 0.375rem;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+
+    .timer-console-clock output {
+      font-size: clamp(1.125rem, 6vw, 1.625rem);
+    }
+
+    .timer-console-actions {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.3rem;
+    }
+
+    .timer-console-start {
+      grid-column: span 3;
+    }
+
+    .timer-console-reset {
+      width: 100%;
+    }
+
+    .timer-setting {
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      grid-column: span 2;
+      min-width: 0;
+      min-height: 2.5rem;
+      gap: 0.125rem;
+      padding: 0.25rem 0.375rem;
+      font-size: 0.625rem;
+    }
+
+    .timer-setting select,
+    .timer-sendoff input {
+      min-width: 0;
+    }
+
+    .timer-setting select {
+      width: 100%;
+    }
+
+    .lane-toolbar {
+      gap: 0.375rem;
+      min-height: 2.5rem;
+      padding-inline: 0.125rem;
+    }
+
+    .lane-toolbar-summary,
+    .lane-toolbar-actions {
+      gap: 0.25rem;
+      font-size: 0.625rem;
+    }
+
+    .lane-toolbar-actions select {
+      max-width: 34vw;
+      min-height: 2.75rem;
+      padding-inline: 0.375rem;
+      font-size: 0.625rem;
+    }
+
+    .lane-add-button {
+      min-height: 2.75rem;
+      gap: 0.2rem;
+      padding-inline: 0.5rem;
+      font-size: 0.625rem;
+    }
+
+    .cronometro-lane-card-header {
+      min-height: 2.125rem;
+      padding: 0.25rem 0.375rem;
+      gap: 0.3rem;
+    }
+
+    .lane-number {
+      width: 1.375rem;
+      height: 1.375rem;
+      font-size: 0.625rem;
+    }
+
+    .lane-assign-button,
+    .lane-remove-button,
+    .athlete-remove-button {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+
+    .cronometro-athletes {
+      gap: 0.125rem;
+      padding: 0.25rem;
+    }
+
+    .athlete-timing-row {
+      grid-template-columns: minmax(0, 1fr) 2.75rem;
+      gap: 0.125rem;
+      padding: 0.125rem;
+      border-radius: 0.7rem;
+    }
+
+    .athlete-timing-row.has-move-select {
+      grid-template-columns: minmax(0, 1fr) 4rem 2.75rem;
+    }
+
+    .athlete-move-select {
+      width: 4rem;
+      min-height: 2.75rem;
+      font-size: 0.5625rem;
+    }
+
+    .athlete-timing-button {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 0.25rem;
+      min-height: 2.625rem;
+      padding: 0.25rem;
+    }
+
+    .athlete-class {
+      min-width: 1.625rem;
+      height: 1.5rem;
+      font-size: 0.5625rem;
+    }
+
+    .athlete-name {
+      font-size: 0.625rem;
+    }
+
+    .athlete-time {
+      font-size: 0.75rem;
+    }
+
+    .athlete-action {
+      min-width: 2.5rem;
+      min-height: 1.75rem;
+      padding-inline: 0.3rem;
+      font-size: 0.5625rem;
+    }
+  }
+
+  @media (max-width: 479px) {
+    .cronometro-lanes {
+      grid-template-columns: minmax(0, 1fr);
+      grid-auto-rows: minmax(5.5rem, max-content);
+    }
+
+    .athlete-name {
+      font-size: 0.875rem;
+      overflow-wrap: normal;
+    }
+
+    .athlete-class {
+      min-width: 2rem;
+      height: 1.75rem;
+      font-size: 0.6875rem;
+    }
+
+    .athlete-action {
+      min-width: 3rem;
+      min-height: 2.25rem;
+      font-size: 0.75rem;
+    }
+
+    .lane-start-hint {
+      font-size: 0.6875rem;
+    }
+  }
+
+  @media (max-height: 740px) and (max-width: 639px) {
+    .oggi-main-column {
+      grid-template-rows: auto auto auto auto minmax(0, 1fr);
+      gap: 0.375rem;
+    }
+
+    .oggi-day-card,
+    .oggi-season-card {
+      padding: 0.5rem 0.625rem;
+      border-radius: 0.875rem;
+    }
+
+    .oggi-day-card p {
+      display: none;
+    }
+
+    .oggi-day-card h1 {
+      font-size: 1rem;
+    }
+
+    .oggi-season-card h2 {
+      font-size: 0.875rem;
+    }
+
+    .oggi-statistics > button {
+      min-height: 3rem;
+      padding: 0.375rem;
+      border-radius: 0.75rem;
+    }
+
+    .oggi-secondary-cards {
+      gap: 0.375rem;
+    }
+
+    .oggi-events-card {
+      padding: 0.5rem;
+      border-radius: 0.75rem;
+    }
+
+    .oggi-workout-prompt {
+      gap: 0.5rem;
+      padding: 0.625rem;
+      border-radius: 0.875rem;
+    }
+
+    .oggi-workout-prompt > div:last-child > button {
+      min-height: 2.5rem;
+      padding-inline: 0.375rem;
+    }
+  }
+
   /* ============================================================================
      CARDS
      ============================================================================ */
@@ -319,7 +1585,7 @@
   }
 
   .ds-card-primary {
-    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 60%, #60a5fa 100%);
+    background: var(--gradient-blue);
     @apply text-white rounded-[24px] shadow-primary-sm hover:shadow-primary-md transition-all duration-250;
   }
 
@@ -349,8 +1615,12 @@
   .ds-btn-secondary {
     @apply inline-flex items-center justify-center gap-2 min-h-[48px] px-6 py-3
            bg-surface-container-low text-on-surface font-headline text-sm font-bold
-           border border-outline-variant hover:bg-surface-container hover:border-primary/30 active:scale-[0.96] transition-all duration-250;
+           border border-outline-variant hover:bg-surface-container active:scale-[0.96] transition-all duration-250;
     border-radius: var(--radius-btn);
+  }
+
+  .ds-btn-secondary:hover {
+    border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
   }
 
   .ds-btn-ghost {
@@ -364,7 +1634,7 @@
     @apply inline-flex items-center justify-center gap-2 min-h-[48px] px-6 py-3
            text-white font-headline text-sm font-bold
            hover:brightness-110 active:scale-[0.96] transition-all duration-250;
-    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    background: var(--gradient-blue);
     border-radius: var(--radius-btn);
     box-shadow: 0 4px 20px rgba(59, 130, 246, 0.32);
   }
@@ -435,6 +1705,14 @@
     @apply text-xs font-bold uppercase tracking-widest text-on-surface-variant font-headline;
   }
 
+  @media (max-width: 639px) {
+    .ds-label {
+      font-size: 0.8125rem;
+      line-height: 1rem;
+      letter-spacing: 0.06em;
+    }
+  }
+
   /* ============================================================================
      STAT BOXES
      ============================================================================ */
@@ -499,8 +1777,9 @@
   }
 
   .sidebar-item-active {
-    background: linear-gradient(135deg, #0F3D99 0%, #1657E8 100%);
-    @apply text-white shadow-primary-sm;
+    background: color-mix(in srgb, var(--color-primary) 9%, var(--color-surface-container-lowest));
+    border: 1px solid color-mix(in srgb, var(--color-primary) 24%, transparent);
+    @apply text-primary;
   }
 
   .sidebar-item-inactive {
@@ -511,8 +1790,8 @@
      SECTION LABEL
      ============================================================================ */
   .sidebar-section-label {
-    @apply px-3.5 pb-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant;
-    opacity: 0.7;
+    @apply px-3.5 pb-1 text-xs font-bold uppercase tracking-widest text-on-surface-variant;
+    opacity: 0.9;
   }
 }
 
@@ -635,4 +1914,39 @@
   .print-area { padding: 0 !important; }
   .app-shell { display: block; }
   aside, header, nav { display: none !important; }
+}
+
+@media (max-width: 639px) {
+  .cronometro-lanes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none !important;
+    grid-auto-rows: minmax(9rem, max-content);
+    align-content: start !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: max(0.75rem, var(--safe-bottom)) !important;
+  }
+
+  .cronometro-lanes-one {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 479px) {
+  .cronometro-lanes {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: minmax(5.5rem, max-content);
+  }
+}
+
+.dark [class~="border-slate-200"],
+.dark [class~="border-slate-200/60"],
+.dark [class~="border-slate-200/70"],
+.dark [class~="border-slate-200/80"] {
+  border-color: var(--color-outline-variant);
+}
+
+.dark [class~="divide-slate-100"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--color-outline-variant);
 }

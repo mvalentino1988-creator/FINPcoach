@@ -217,7 +217,7 @@ export const HydrodynamicsChartsView: React.FC<Props> = ({ mainAtleta, top10List
           <span className="font-semibold uppercase tracking-wider text-xs">Grafico Superiore · Forza Resistente F = k · v²</span>
           <span className="text-xs">Atleta (Neon Blue) vs Top 10 (Tratteggiato)</span>
         </div>
-        <div className="overflow-x-auto bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+        <div className="min-w-0 overflow-hidden bg-slate-950/60 p-3 rounded-xl border border-slate-800">
           <canvas ref={canvasTopRef} width={600} height={220} className="mx-auto block max-w-full h-auto" />
         </div>
       </div>
@@ -227,7 +227,7 @@ export const HydrodynamicsChartsView: React.FC<Props> = ({ mainAtleta, top10List
           <span className="font-semibold uppercase tracking-wider text-xs">Grafico Inferiore · Potenza Intra-ciclo P = k · v³</span>
           <span className="text-xs">Atleta (Lime Green) vs Top 10 (Tratteggiato)</span>
         </div>
-        <div className="overflow-x-auto bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+        <div className="min-w-0 overflow-hidden bg-slate-950/60 p-3 rounded-xl border border-slate-800">
           <canvas ref={canvasBottomRef} width={600} height={220} className="mx-auto block max-w-full h-auto" />
         </div>
       </div>

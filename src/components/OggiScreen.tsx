@@ -101,6 +101,7 @@ export const OggiScreen: React.FC = () => {
 const OggiContent: React.FC = () => {
   const {
     stagione,
+    macro,
     micro,
     meso,
     chiusure,
@@ -137,7 +138,6 @@ const OggiContent: React.FC = () => {
   const [modalAtletiOpen, setModalAtletiOpen] = useState(false);
   const [modalTempiOpen, setModalTempiOpen] = useState(false);
   const [modalGareOpen, setModalGareOpen] = useState(false);
-  const [modalMedicoOpen, setModalMedicoOpen] = useState(false);
   const [mostraProposta, setMostraProposta] = useState(false);
   const [revisioneStorage, setRevisioneStorage] = useState(0);
   const [expandedAttenzioni, setExpandedAttenzioni] = useState<Set<number>>(new Set());
@@ -177,6 +177,24 @@ const OggiContent: React.FC = () => {
     if (!microCorrente) return null;
     return meso.find(me => me.id === microCorrente.mesocicloId);
   }, [meso, microCorrente]);
+
+  const macroCorrente = useMemo(() => {
+    if (!mesoCorrente) return null;
+    return macro.find(ma => ma.id === mesoCorrente.macrocicloId);
+  }, [macro, mesoCorrente]);
+
+  const progressoStagione = useMemo(() => {
+    if (!stagione?.inizio || !stagione.fine) return null;
+    const inizio = toDateObj(stagione.inizio).getTime();
+    const fine = toDateObj(stagione.fine).getTime();
+    if (!Number.isFinite(inizio) || !Number.isFinite(fine) || fine <= inizio) return null;
+    const corrente = toDateObj(oggi).getTime();
+    return Math.round(Math.max(0, Math.min(1, (corrente - inizio) / (fine - inizio))) * 100);
+  }, [stagione, oggi]);
+
+  const numeroMicrociclo = microCorrente
+    ? micro.findIndex(m => m.id === microCorrente.id) + 1
+    : 0;
 
   const giorniAllenamento = impostazioni.giorni ?? parametriEffettivi.giorniAllenamento;
   const isGiornoAllenamento = giorniAllenamento.includes(dow) && !chiusuraOggi;
@@ -387,6 +405,11 @@ const OggiContent: React.FC = () => {
       .reduce((sum, item) => sum + (item.metriEffettivi || 0), 0);
   }, [log, settimanaISO]);
 
+  const volumeSettimanaPercentuale = Math.min(
+    100,
+    Math.round((metriCompletatiSettimana / Math.max(1, volumeSettimanaAtleta)) * 100)
+  );
+
   const attenzioniRaggruppate = useMemo(() => {
     const map = new Map<number, { athleteId: number; athleteName: string; notes: string[]; hasMedical: boolean }>();
     (atleti || []).forEach(a => {
@@ -430,35 +453,28 @@ const OggiContent: React.FC = () => {
   }, [tempi, atleti]);
 
   return (
-    <div className="relative flex flex-1 min-h-0 flex-col gap-3 overflow-hidden">
+    <div className={`oggi-screen relative flex flex-1 min-h-0 flex-col gap-2 overflow-hidden ${visualizzaSeduta && schedaOggi ? 'oggi-screen-with-workout' : ''}`}>
       {/* Desktop 2-Column Layout (lg: 1024px+) vs Mobile 1-Column */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-4 overflow-hidden">
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-2 lg:gap-4 overflow-hidden">
 
-        {/* LEFT COLUMN (Flexible, scrollable on desktop) */}
-        <div className="flex flex-col gap-3 min-h-0 overflow-y-auto pr-1 pb-20 sm:pb-10">
-          {/* Intestazione giornata — card hero con gradient */}
-          <section className="relative shrink-0 overflow-hidden rounded-3xl bg-gradient-to-br from-surface-container-low to-surface-container border border-outline-variant shadow-card px-5 py-4">
-            {/* Decorative circle */}
-            <div className="absolute -right-12 -bottom-12 w-32 h-32 rounded-full bg-primary pointer-events-none" />
-            <div className="absolute right-20 -top-10 w-24 h-24 rounded-full bg-secondary/8 pointer-events-none" />
+        <div className="oggi-main-column flex flex-col gap-2 min-h-0">
+          <section className="oggi-day-card relative shrink-0 rounded-3xl bg-surface-container-low border border-outline-variant shadow-card px-3 py-2 sm:px-4 sm:py-3 lg:px-5 lg:py-4">
             <div className="relative z-10 flex items-center justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <span className="text-xs font-bold uppercase tracking-widest text-primary/80 font-headline flex items-center gap-1.5 mb-1">
                   <Waves size={13} className="shrink-0" />
-                  <span className="whitespace-normal break-words">{dowNome} · {formattaData(oggi)}</span>
+                  <span className="whitespace-normal break-words">
+                    <span className="oggi-date-weekday">{dowNome} · </span>{formattaData(oggi)}
+                  </span>
                 </span>
-                <h1 className="text-xl sm:text-headline-lg text-on-surface tracking-tight leading-tight font-bold font-headline truncate">
-                  <Marquee
-                    text={
-                      chiusuraOggi
-                        ? 'Piscina chiusa'
-                        : garaOggi
-                          ? `Gara · ${garaOggi.nome}`
-                          : isGiornoAllenamento
-                            ? 'Seduta di oggi'
-                            : 'Giorno di recupero'
-                    }
-                  />
+                <h1 className="text-xl sm:text-headline-lg text-on-surface tracking-tight leading-tight font-bold font-headline whitespace-normal break-words">
+                  {chiusuraOggi
+                    ? 'Piscina chiusa'
+                    : garaOggi
+                      ? `Gara · ${garaOggi.nome}`
+                      : isGiornoAllenamento
+                        ? 'Seduta di oggi'
+                        : 'Giorno di recupero'}
                 </h1>
                 {microCorrente && (
                   <p className="text-sm text-on-surface-variant mt-1 whitespace-normal break-words">
@@ -486,9 +502,9 @@ const OggiContent: React.FC = () => {
                     <span className="text-xs truncate">Gara</span>
                   </span>
                 ) : isGiornoAllenamento ? (
-                  <span className="ds-chip bg-gradient-blue text-white !px-4 !py-2 shadow-primary-sm border-0">
+                  <span className="ds-chip bg-primary/10 text-primary border border-primary/20 !px-4 !py-2">
                     <Sparkles size={14} className="shrink-0" />
-                    <span className="text-xs">In Vasca</span>
+                    <span className="text-xs">Seduta prevista</span>
                   </span>
                 ) : (
                   <span className="ds-chip-neutral !px-3 !py-2">
@@ -502,114 +518,144 @@ const OggiContent: React.FC = () => {
 
 
 
-          {/* Season General Info Hero Card — premium gradient */}
+          {/* Current season and training phase */}
           {stagione && (
-            <section className="shrink-0 relative overflow-hidden rounded-3xl bg-gradient-blue text-white p-5 sm:p-6 shadow-primary-sm animate-fade-in">
-              {/* Background texture */}
-              <div className="absolute inset-0 opacity-10 pointer-events-none"
-                style={{
-                  backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 60%), radial-gradient(circle at 80% 20%, rgba(255,165,0,0.2) 0%, transparent 60%)'
-                }}
-              />
-              <div className="relative z-10">
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="min-w-0">
-                    <span className="text-xs font-bold uppercase tracking-widest text-white/60 font-headline">Stagione Attiva</span>
-                    <h2 className="text-base sm:text-lg font-bold font-headline truncate mt-0.5">{stagione.nome}</h2>
+            <section className="oggi-season-card shrink-0 rounded-2xl bg-surface-container-lowest text-on-surface px-3 py-2.5 border border-outline-variant shadow-card animate-fade-in space-y-2">
+              <div className="flex items-center justify-between gap-2 min-w-0">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    <Activity size={13} className="shrink-0 text-primary" />
+                    <span>Momento attuale</span>
+                    <span aria-hidden="true">·</span>
+                    <span className="truncate">{macroCorrente?.nome ?? stagione.nome}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="px-3 py-1.5 rounded-full bg-white/15 text-white font-bold text-xs border border-white/20">
-                      {stagione.vascaMetri}m
-                    </span>
-                  </div>
+                  <h2 className="font-headline font-bold text-sm truncate mt-0.5">
+                    {mesoCorrente?.fase
+                      ? FASE_MESOCICLO_LABEL[mesoCorrente.fase]
+                      : microCorrente
+                        ? TIPO_MICROCICLO_LABEL[microCorrente.tipo]
+                        : 'Piano stagionale'}
+                  </h2>
                 </div>
-                <div className="flex items-center justify-between text-xs text-white/70 pt-2.5 border-t border-white/15">
-                  <span>📅 {formattaData(stagione.inizio)} – {formattaData(stagione.fine)}</span>
-                  <span className="font-bold text-tertiary-fixed px-3 py-0.5 rounded-full bg-tertiary/20 text-tertiary-fixed border border-tertiary/30">
-                    FINP Agonistica
+                <span className="shrink-0 rounded-lg bg-surface-container px-2 py-1 text-[10px] font-bold text-on-surface-variant">
+                  {stagione.vascaMetri} m
+                </span>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 border-t border-outline-variant pt-2">
+                <div className="min-w-0">
+                  <span className="block text-[10px] text-on-surface-variant">Microciclo</span>
+                  <span className="block truncate text-xs font-bold">
+                    {numeroMicrociclo > 0 ? `${numeroMicrociclo} / ${micro.length}` : 'Non pianificato'}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-[10px] text-on-surface-variant">Volume settimana</span>
+                  <span className="block truncate text-xs font-bold">
+                    {microCorrente?.volumeTargetMetri
+                      ? `${microCorrente.volumeTargetMetri.toLocaleString('it-IT')} m`
+                      : '—'}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-[10px] text-on-surface-variant">Stagione</span>
+                  <span className="block truncate text-xs font-bold">
+                    {progressoStagione !== null ? `${progressoStagione}%` : `${formattaData(stagione.inizio)} – ${formattaData(stagione.fine)}`}
                   </span>
                 </div>
               </div>
+
+              {progressoStagione !== null && (
+                <div
+                  className="h-1 overflow-hidden rounded-full bg-surface-container"
+                  role="progressbar"
+                  aria-label="Progresso della stagione"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={progressoStagione}
+                >
+                  <div
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{ width: `${progressoStagione}%` }}
+                  />
+                </div>
+              )}
+              <span className="sr-only">
+                Stagione {stagione.nome}, dal {formattaData(stagione.inizio)} al {formattaData(stagione.fine)}
+              </span>
             </section>
           )}
 
           {/* Statistiche in griglia 2x2 simmetrica e interamente cliccabile */}
-          <section className="lg:hidden shrink-0 grid grid-cols-2 gap-2">
+          <section className="oggi-statistics lg:hidden shrink-0 grid grid-cols-4 gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={() => setModalAtletiOpen(true)}
-              className="ds-card p-3 flex items-center justify-between text-left hover:bg-surface-container-low transition cursor-pointer group"
+              aria-label={`Atleti: ${atleti.length}`}
+              className="ds-card p-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-left hover:bg-surface-container-low transition cursor-pointer group"
             >
               <div>
-                <span className="ds-label">Atleti</span>
-                <div className="text-lg font-bold tabular-nums text-on-surface mt-0.5">{atleti.length}</div>
+                <span className="oggi-stat-label ds-label">Atleti</span>
+                <div className="text-sm sm:text-base font-bold tabular-nums text-on-surface">{atleti.length}</div>
               </div>
-              <div className="w-10 min-h-[48px] rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                <Users size={18} />
+              <div className="w-6 h-6 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                <Users size={14} className="sm:hidden" /><Users size={18} className="hidden sm:block" />
               </div>
             </button>
 
             <button
               type="button"
               onClick={() => setModalParametriOpen(true)}
-              className="ds-card p-3 flex items-center justify-between text-left hover:bg-surface-container-low transition cursor-pointer group"
+              aria-label={`Allenamenti settimanali: ${giorniAllenamento.length}`}
+              className="ds-card p-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-left hover:bg-surface-container-low transition cursor-pointer group"
             >
               <div>
-                <span className="ds-label">Allenamenti</span>
-                <div className="text-lg font-bold tabular-nums text-on-surface mt-0.5">{giorniAllenamento.length}</div>
+                <span className="oggi-stat-label ds-label">Sedute</span>
+                <div className="text-sm sm:text-base font-bold tabular-nums text-on-surface">{giorniAllenamento.length}</div>
               </div>
-              <div className="w-10 min-h-[48px] rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                <Calendar size={18} />
+              <div className="w-6 h-6 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                <Calendar size={14} className="sm:hidden" /><Calendar size={18} className="hidden sm:block" />
               </div>
             </button>
 
             <button
               type="button"
               onClick={() => setModalTempiOpen(true)}
-              className="ds-card p-3 flex items-center justify-between text-left hover:bg-surface-container-low transition cursor-pointer group"
+              aria-label={`Tempi registrati: ${tempi.length}`}
+              className="ds-card p-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-left hover:bg-surface-container-low transition cursor-pointer group"
             >
               <div>
-                <span className="ds-label">Tempi</span>
-                <div className="text-lg font-bold tabular-nums text-on-surface mt-0.5">{tempi.length}</div>
+                <span className="oggi-stat-label ds-label">Tempi</span>
+                <div className="text-sm sm:text-base font-bold tabular-nums text-on-surface">{tempi.length}</div>
               </div>
-              <div className="w-10 min-h-[48px] rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                <Clock size={18} />
+              <div className="w-6 h-6 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                <Clock size={14} className="sm:hidden" /><Clock size={18} className="hidden sm:block" />
               </div>
             </button>
 
             <button
               type="button"
               onClick={() => setModalGareOpen(true)}
-              className="ds-card p-3 flex items-center justify-between text-left hover:bg-surface-container-low transition cursor-pointer group"
+              aria-label={`Gare: ${gare.length}`}
+              className="ds-card p-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-left hover:bg-surface-container-low transition cursor-pointer group"
             >
               <div>
-                <span className="ds-label">Gare</span>
-                <div className="text-lg font-bold tabular-nums text-on-surface mt-0.5">{gare.length}</div>
+                <span className="oggi-stat-label ds-label">Gare</span>
+                <div className="text-sm sm:text-base font-bold tabular-nums text-on-surface">{gare.length}</div>
               </div>
-              <div className="w-10 min-h-[48px] rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                <Trophy size={18} />
+              <div className="w-6 h-6 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                <Trophy size={14} className="sm:hidden" /><Trophy size={18} className="hidden sm:block" />
               </div>
             </button>
           </section>
 
-          {/* RECOVERY CARD & CLIKABLE UTILITY WIDGETS */}
-          {!visualizzaSeduta && (
-            <div className="shrink-0 ds-card p-4 space-y-2.5 bg-surface-container-low border border-outline-variant">
-              <div className="flex items-center gap-3">
-                <Coffee size={18} className="text-secondary shrink-0" />
-                <span className="font-headline font-bold text-sm text-on-surface">Consigli per il recupero</span>
-              </div>
-              <p className="text-xs text-on-surface-variant leading-relaxed">
-                Oggi è un giorno di riposo programmato. Ottimizza il recupero muscolare della squadra, verifica l'idratazione e controlla il programma dei prossimi giorni nel Piano.
-              </p>
-            </div>
-          )}
-
+          {/* Utility widgets */}
+          <div className="oggi-secondary-cards flex flex-col gap-2 sm:gap-3 shrink-0">
           {gare.length > 0 && (
             <button
               type="button"
               onClick={() => setModalGareOpen(true)}
-              className="w-full shrink-0 ds-card p-4 space-y-2.5 bg-surface-container-low border border-outline-variant hover:bg-surface-container transition cursor-pointer text-left group"
+              className="oggi-events-card w-full shrink-0 ds-card p-2 sm:p-4 space-y-1 sm:space-y-2 bg-surface-container-low border border-outline-variant hover:bg-surface-container transition cursor-pointer text-left group"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -619,35 +665,104 @@ const OggiContent: React.FC = () => {
                 <span className="text-xs text-primary font-bold">{gare.length} eventi</span>
               </div>
               <div className="space-y-1.5">
-                {gare.slice(0, 2).map(g => (
-                  <div key={g.id} className="flex items-center justify-between text-xs py-2 px-3 rounded-xl bg-surface-container border border-outline-variant">
-                    <span className="font-bold text-on-surface truncate">{g.nome}</span>
-                    <span className="text-on-surface-variant tabular-nums shrink-0">{g.dal}</span>
+                {gare.slice(0, 2).map((g, index) => (
+                  <div key={g.id} className={`${index > 0 ? 'hidden sm:flex' : 'flex'} items-start justify-between gap-2 text-xs py-1.5 px-3 rounded-xl bg-surface-container border border-outline-variant`}>
+                    <span className="min-w-0 whitespace-normal break-words font-bold text-on-surface">{g.nome}</span>
+                    <span className="text-on-surface-variant tabular-nums shrink-0">{formattaData(g.dal)}</span>
                   </div>
                 ))}
               </div>
             </button>
           )}
 
-          {condizioni.filter(c => c.attiva).length > 0 && (
-            <button
-              type="button"
-              onClick={() => setModalMedicoOpen(true)}
-              className="w-full shrink-0 ds-card p-3 space-y-1.5 bg-error-container/20 border border-error/30 hover:bg-error-container/30 transition cursor-pointer text-left"
-            >
-              <div className="flex items-center gap-2">
-                <AlertTriangle size={16} className="text-error shrink-0" />
-                <span className="font-headline font-bold text-xs text-error">Prescrizioni Mediche Attive</span>
+          </div>
+
+          {(!visualizzaSeduta || !schedaOggi) && (
+            <section className="oggi-weekly-progress lg:hidden ds-card p-3 sm:p-4 space-y-3 flex flex-col justify-between min-h-0">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Activity size={17} className="text-primary shrink-0" />
+                    <h2 className="font-headline font-bold text-sm text-on-surface truncate">Programma della settimana</h2>
+                  </div>
+                  <span className="text-xs font-bold tabular-nums text-primary">{volumeSettimanaPercentuale}%</span>
+                </div>
+                <div className="space-y-1.5">
+                  <div
+                    className="h-2 overflow-hidden rounded-full bg-surface-container"
+                    role="progressbar"
+                    aria-label="Volume settimanale completato"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={volumeSettimanaPercentuale}
+                  >
+                    <div
+                      className="h-full rounded-full bg-primary transition-all"
+                      style={{ width: `${volumeSettimanaPercentuale}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-on-surface-variant">
+                    {(metriCompletatiSettimana / 1000).toFixed(1).replace('.', ',')} / {(volumeSettimanaAtleta / 1000).toFixed(1).replace('.', ',')} km registrati
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Sedute previste</h3>
+                  {settimanaISO.length > 0 ? (
+                    <div className="grid grid-cols-4 gap-2">
+                      {settimanaISO.map(data => {
+                        const registrata = log.some(sessione => sessione.data === data);
+                        const giornoNome = DAY_OF_WEEK_FULL_NAMES[getDayOfWeek(data)];
+                        const stato = registrata ? 'Registrata' : data === oggi ? 'Oggi' : 'Prevista';
+                        return (
+                          <div
+                            key={data}
+                            aria-label={`${giornoNome} ${formattaData(data)} · ${stato}`}
+                            className={`rounded-xl border p-2 text-center ${
+                              registrata
+                                ? 'bg-success-container border-success/20 text-on-success-container'
+                                : data === oggi
+                                  ? 'bg-primary/10 border-primary/30 text-primary'
+                                  : 'bg-surface-container-low border-outline-variant text-on-surface-variant'
+                            }`}
+                          >
+                            <span className="block text-[10px] font-bold uppercase">{giornoNome.slice(0, 3)}</span>
+                            <span className="block text-lg font-bold font-headline tabular-nums">{data.slice(8, 10)}</span>
+                            <span className="block text-[9px] font-semibold">{stato}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-on-surface-variant">Nessuna seduta configurata per questa settimana.</p>
+                  )}
+                </div>
               </div>
-              <p className="text-xs text-on-surface-variant">
-                Ci sono {condizioni.filter(c => c.attiva).length} atleti con prescrizioni o limitazioni mediche attive in squadra. Tocca per visualizzare.
-              </p>
-            </button>
+              <div className="flex items-center gap-3 border-t border-outline-variant pt-2.5">
+                <Calendar size={16} className="text-on-surface-variant shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Prossimo allenamento</span>
+                  <span className="block text-xs font-bold text-on-surface truncate">
+                    {prossimoAllenamento
+                      ? `${prossimoAllenamento.dowNome} · ${formattaData(prossimoAllenamento.data)}`
+                      : isGiornoAllenamento
+                        ? `Oggi · ${dowNome}`
+                        : 'Non programmato'}
+                  </span>
+                </div>
+                <span className="text-xs font-semibold text-primary text-right shrink-0">
+                  {prossimoAllenamento?.micro
+                    ? TIPO_MICROCICLO_LABEL[prossimoAllenamento.micro.tipo]
+                    : microCorrente
+                      ? TIPO_MICROCICLO_LABEL[microCorrente.tipo]
+                      : ''}
+                </span>
+              </div>
+            </section>
           )}
 
           {/* COMPACT WORKOUT CARD (Nessuna scheda o Scheda del giorno) */}
           {visualizzaSeduta && !schedaOggi && (
-            <div className="shrink-0 ds-card p-3 sm:p-3 space-y-2">
+            <div className="oggi-workout-prompt shrink-0 ds-card p-2 sm:p-3 space-y-1 sm:space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-3 min-w-0">
                   <ClipboardList size={16} className="text-primary shrink-0" />
@@ -660,28 +775,28 @@ const OggiContent: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setModalEsercizioOpen(true)}
-                  className="ds-btn-primary !min-h-[52px] !px-1.5 text-xs justify-center flex flex-col items-center py-1.5"
+                  className="ds-btn-secondary !min-h-[40px] sm:!min-h-[52px] !px-1.5 text-xs justify-center flex flex-col items-center py-1"
                 >
                   <ClipboardList size={16} />
-                  <span className="text-[11px] font-bold whitespace-normal leading-tight text-center">A mano</span>
+                  <span className="text-[11px] font-bold whitespace-nowrap leading-tight text-center">A mano</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setModalIAOpen(true)}
-                  className="ds-btn-secondary !min-h-[52px] !px-1.5 text-xs justify-center flex flex-col items-center py-1.5"
+                  className="ds-btn-secondary !min-h-[40px] sm:!min-h-[52px] !px-1.5 text-xs justify-center flex flex-col items-center py-1"
                 >
                   <Bot size={16} />
-                  <span className="text-[11px] font-bold whitespace-normal leading-tight text-center">Genera IA</span>
+                  <span className="text-[11px] font-bold whitespace-nowrap leading-tight text-center">Genera IA</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setMostraProposta(true)}
-                  className="ds-btn-secondary !min-h-[52px] !px-1.5 text-xs justify-center flex flex-col items-center py-1.5"
+                  className="ds-btn-primary !min-h-[40px] sm:!min-h-[52px] !px-1.5 text-xs justify-center flex flex-col items-center py-1"
                 >
                   <Sparkles size={16} />
-                  <span className="text-[11px] font-bold whitespace-normal leading-tight text-center">Proposta</span>
+                  <span className="text-[11px] font-bold whitespace-nowrap leading-tight text-center">Proposta</span>
                 </button>
               </div>
             </div>
@@ -770,7 +885,7 @@ const OggiContent: React.FC = () => {
                           onClick={() => toggleTratto(idx)}
                           className="w-full flex items-center gap-3 p-3 text-left font-headline text-xs font-bold min-h-[48px]"
                         >
-                          <span className="w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center text-xs shrink-0">
+                          <span className="w-7 h-7 rounded-lg bg-primary text-on-primary flex items-center justify-center text-xs shrink-0">
                             {idx + 1}
                           </span>
                           <span className="truncate">{t.sezione}</span>
@@ -795,7 +910,7 @@ const OggiContent: React.FC = () => {
         </div>
 
         {/* RIGHT COLUMN (Desktop Sidebar 384px fixed) */}
-        <div className="hidden lg:flex flex-col gap-3 min-h-0 overflow-y-auto pl-1 w-[384px]">
+        <div className="oggi-sidebar hidden lg:flex flex-col gap-3 min-h-0 overflow-hidden pl-1 w-[384px]">
           {/* Statistiche 2x2 Grid */}
           <div className="ds-card p-3 space-y-2">
             <h3 className="font-headline font-bold text-xs text-primary uppercase tracking-wider">Panoramica Squadra</h3>
@@ -834,7 +949,7 @@ const OggiContent: React.FC = () => {
               </div>
               <div className="text-right shrink-0">
                 <span className="text-xl font-extrabold text-tertiary font-headline tabular-nums">{prossimaGara.diffDays}</span>
-                <span className="text-[9px] block uppercase opacity-80">giorni</span>
+                <span className="text-xs block uppercase opacity-80">giorni</span>
               </div>
             </div>
           )}
@@ -876,7 +991,7 @@ const OggiContent: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => toggleAttenzione(att.athleteId)}
-                        className="w-full p-3 flex items-center justify-between gap-3 text-left font-bold"
+                        className="w-full min-h-[44px] p-3 flex items-center justify-between gap-3 text-left font-bold"
                       >
                         <span className="truncate">{att.athleteName} <span className="opacity-75 font-normal">({att.notes.length} avvisi)</span></span>
                         <ChevronRight size={14} className={`shrink-0 transition-transform ${isExp ? 'rotate-90' : ''}`} />
@@ -1063,27 +1178,6 @@ const OggiContent: React.FC = () => {
         </div>
       )}
 
-      {modalMedicoOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface-container-lowest rounded-3xl p-6 max-w-md w-full shadow-float border border-outline-variant space-y-4 text-on-surface animate-fade-in max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h3 className="font-headline text-base font-bold">Prescrizioni e Limitazioni Mediche</h3>
-              <button type="button" onClick={() => setModalMedicoOpen(false)} className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-surface-container"><X size={18} /></button>
-            </div>
-            <div className="space-y-2">
-              {condizioni.filter(c => c.attiva).map(c => {
-                const atl = atleti.find(a => a.id === c.atletaId);
-                return (
-                  <div key={c.id} className="p-3 rounded-2xl bg-surface-container-low border border-outline-variant text-xs space-y-1">
-                    <div className="font-bold text-on-surface">{atl ? `${atl.cognome} ${atl.nome}` : 'Atleta'}</div>
-                    <div className="text-on-surface-variant">{c.descrizione || c.limitazioni}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

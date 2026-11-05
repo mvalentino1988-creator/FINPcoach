@@ -54,19 +54,19 @@ export const OnboardingModal: React.FC<Props> = ({ onComplete }) => {
                 onClick={() => setSelectedLayout(item.id as any)}
                 className={`flex items-start justify-between p-4 rounded-2xl text-left border transition-all group ${
                   selectedLayout === item.id
-                    ? 'border-primary bg-primary text-primary'
+                    ? 'border-primary bg-primary text-on-primary'
                     : 'border-outline-variant bg-surface-container-low text-on-surface hover:bg-surface-container hover:border-outline-variant'
                 }`}
               >
                 <div>
-                  <div className={`font-headline text-sm font-bold ${selectedLayout === item.id ? 'text-primary' : 'text-on-surface'}`}>
+                  <div className={`font-headline text-sm font-bold ${selectedLayout === item.id ? 'text-on-primary' : 'text-on-surface'}`}>
                     {item.title}
                   </div>
-                  <div className="text-xs text-on-surface-variant mt-0.5">{item.desc}</div>
+                  <div className={`text-xs mt-0.5 ${selectedLayout === item.id ? 'text-on-primary/85' : 'text-on-surface-variant'}`}>{item.desc}</div>
                 </div>
                 <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
                   selectedLayout === item.id
-                    ? 'border-primary bg-primary'
+                    ? 'border-on-primary bg-white/15'
                     : 'border-outline-variant bg-transparent'
                 }`}>
                   {selectedLayout === item.id && <Check size={12} className="text-white" />}
@@ -93,7 +93,7 @@ export const OnboardingModal: React.FC<Props> = ({ onComplete }) => {
                 onClick={() => setSelectedTheme(item.id as any)}
                 className={`flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border text-xs font-bold font-headline transition-all ${
                   selectedTheme === item.id
-                    ? 'border-primary bg-gradient-blue text-white shadow-primary-sm'
+                    ? 'border-primary/30 bg-primary/10 text-primary'
                     : 'border-outline-variant bg-surface-container-low text-on-surface hover:bg-surface-container'
                 }`}
               >

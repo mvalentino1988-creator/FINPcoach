@@ -11,13 +11,12 @@ import {
   TipoMicrociclo,
   TIPO_MICROCICLO_LABEL
 } from '../types';
-import { formattaData, parseData, todayISO, isBefore, addDays, daysBetween, toDateObj, isInRange, formatDataInput } from '../domain/dateUtils';
+import { formattaData, parseData, todayISO, isBefore, addDays, daysBetween, isInRange, formatDataInput } from '../domain/dateUtils';
 import { AutoPianificatore } from '../domain/autoPianificatore';
 import { GeneratoreSmartSeduta } from '../domain/generatoreSmartSeduta';
 import { IndicatoreCodici } from './IndicatoreCodici';
 import { ElencoAvvisi } from './ElencoAvvisi';
 import { SchedaSedutaModal } from './SchedaSedutaModal';
-import { Sezione } from './Sezione';
 import { PageHeader } from './PageHeader';
 import { Marquee } from './Marquee';
 import { normalizzaDurata } from '../domain/parametriSeduta';
@@ -130,7 +129,7 @@ export const PianoScreen: React.FC = () => {
 
   const [chiusureEspanso, setChiusureEspanso] = useState(false);
   const [gareEspanso, setGareEspanso] = useState(false);
-  const [parametriEspanso, setParametriEspanso] = useState(false);
+  const [vistaPiano, setVistaPiano] = useState<'parametri' | 'programmazione'>('programmazione');
   const [microSelezionato, setMicroSelezionato] = useState<Microciclo | null>(null);
   const [schedaSmart, setSchedaSmart] = useState<SchedaSeduta | null>(null);
 
@@ -200,46 +199,6 @@ export const PianoScreen: React.FC = () => {
   // Form nuova gara
   const [modalGaraOpen, setModalGaraOpen] = useState(false);
 
-  // Season Statistics & Timeline Computation
-  const seasonStats = React.useMemo(() => {
-    if (!stagione) return null;
-    const startStr = stagione.inizio;
-    const endStr = stagione.fine;
-    if (!startStr || !endStr) return null;
-
-    const startMs = toDateObj(startStr).getTime();
-    const endMs = toDateObj(endStr).getTime();
-    const currentMs = toDateObj(oggi).getTime();
-    const totalDays = Math.max(1, Math.ceil((endMs - startMs) / (1000 * 60 * 60 * 24)));
-    const elapsedDays = Math.max(0, Math.min(totalDays, Math.ceil((currentMs - startMs) / (1000 * 60 * 60 * 24))));
-    const remainingDays = Math.max(0, totalDays - elapsedDays);
-    const progress = Math.round((elapsedDays / totalDays) * 100);
-    const totalWeeks = Math.max(1, Math.ceil(totalDays / 7));
-    const weekNum = Math.min(totalWeeks, Math.max(1, Math.ceil(elapsedDays / 7)));
-
-    const microCurr = micro.find(m => !isBefore(oggi, m.inizio) && !isBefore(m.fine, oggi));
-    const mesoCurr = microCurr ? meso.find(me => me.id === microCurr.mesocicloId) : null;
-    const macroCurr = mesoCurr ? macro.find(ma => ma.id === mesoCurr.macrocicloId) : null;
-
-    const nextGara = gare.filter(g => !isBefore(g.dal, oggi)).sort((a, b) => a.dal.localeCompare(b.dal))[0];
-    const garaDiffDays = nextGara ? Math.max(0, Math.ceil((toDateObj(nextGara.dal).getTime() - currentMs) / (1000 * 60 * 60 * 24))) : null;
-
-    const nextChiusura = chiusure.filter(c => !isBefore(c.dal, oggi)).sort((a, b) => a.dal.localeCompare(b.dal))[0];
-
-    return {
-      progress,
-      elapsedDays,
-      remainingDays,
-      weekNum,
-      totalWeeks,
-      microCurr,
-      mesoCurr,
-      macroCurr,
-      nextGara,
-      garaDiffDays,
-      nextChiusura
-    };
-  }, [stagione, oggi, micro, meso, macro, gare, chiusure, rigeneraPianoCompleto]);
   const [gNome, setGNome] = useState('');
   const [gDal, setGDal] = useState('');
   const [gAl, setGAl] = useState('');
@@ -331,6 +290,31 @@ export const PianoScreen: React.FC = () => {
         }
       />
 
+      <nav className="shrink-0 ds-card p-1.5" aria-label="Sezioni della periodizzazione">
+        <div className="grid grid-cols-2 gap-1.5">
+          <button
+            type="button"
+            aria-pressed={vistaPiano === 'parametri'}
+            onClick={() => setVistaPiano('parametri')}
+            className={`min-h-[44px] rounded-xl px-2 flex items-center justify-center gap-2 text-xs font-bold font-headline transition ${
+              vistaPiano === 'parametri' ? 'bg-primary/10 text-primary ring-1 ring-primary/20' : 'text-on-surface-variant hover:bg-surface-container-low'
+            }`}
+          >
+            <Sliders size={15} /> Parametri
+          </button>
+          <button
+            type="button"
+            aria-pressed={vistaPiano === 'programmazione'}
+            onClick={() => setVistaPiano('programmazione')}
+            className={`min-h-[44px] rounded-xl px-2 flex items-center justify-center gap-2 text-xs font-bold font-headline transition ${
+              vistaPiano === 'programmazione' ? 'bg-primary/10 text-primary ring-1 ring-primary/20' : 'text-on-surface-variant hover:bg-surface-container-low'
+            }`}
+          >
+            <Calendar size={15} /> Programmazione
+          </button>
+        </div>
+      </nav>
+
       {/* Pull to Refresh Indicator */}
       {pullToRefresh.isPulling && (
         <div className="flex items-center justify-center py-2 text-xs text-on-surface-variant">
@@ -342,125 +326,11 @@ export const PianoScreen: React.FC = () => {
         </div>
       )}
 
-      {/* SEASON VIBRANT HERO CARD */}
-      {seasonStats && (
-        <section className="ds-card p-4 bg-gradient-to-br from-[#0A2A66] via-[#1457E0] to-[#0A2A66] text-white shadow-primary-sm space-y-4">
-          {/* Row 1: Week info & Season progress */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/20 pb-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-0.5 rounded-full bg-white/20 text-white font-bold text-xs uppercase tracking-wider font-headline">
-                  Settimana {seasonStats.weekNum} di {seasonStats.totalWeeks}
-                </span>
-                {seasonStats.mesoCurr && (
-                  <span className="px-3 py-0.5 rounded-full bg-tertiary text-white font-bold text-xs font-headline">
-                    {seasonStats.mesoCurr.fase ? FASE_MESOCICLO_LABEL[seasonStats.mesoCurr.fase] : 'Fase Attiva'}
-                  </span>
-                )}
-              </div>
-              <h2 className="text-lg sm:text-xl font-bold font-headline mt-1">
-                {seasonStats.macroCurr ? seasonStats.macroCurr.nome : 'Stagione 2026/27'}
-                {seasonStats.mesoCurr ? ` · ${FASE_MESOCICLO_LABEL[seasonStats.mesoCurr.fase]}` : ''}
-              </h2>
-            </div>
-
-            {/* Countdown Prossima Gara */}
-            {seasonStats.nextGara && (
-              <div className="bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/20 flex items-center gap-3 shrink-0">
-                <Trophy size={20} className="text-tertiary-fixed shrink-0" />
-                <div>
-                  <div className="text-[12px] text-white/90 uppercase font-bold tracking-wider">Prossima Gara</div>
-                  <div className="font-bold text-xs truncate max-w-[140px]">{seasonStats.nextGara.nome}</div>
-                </div>
-                <div className="text-right pl-2 border-l border-white/20">
-                  <span className="text-xl font-extrabold font-headline tabular-nums">{seasonStats.garaDiffDays}</span>
-                  <span className="text-[9px] block uppercase opacity-80">giorni</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Row 2: Progress Bar */}
-          <div className="space-y-1.5">
-            <div className="flex justify-between text-xs font-bold font-headline text-white/90">
-              <span>Progresso Stagione: {seasonStats.progress}%</span>
-              <span>{seasonStats.elapsedDays} giorni trascorsi ({seasonStats.remainingDays} rimanenti)</span>
-            </div>
-            <div className="w-full bg-white/20 rounded-full h-2.5 overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-tertiary to-tertiary-fixed h-full rounded-full transition-all duration-500"
-                style={{ width: `${seasonStats.progress}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Row 3: Horizontal Timeline Bar of Full Season */}
-          <div className="space-y-1 pt-1">
-            <div className="text-[12px] uppercase font-bold tracking-wider text-white/90">Timeline Stagione (Macrocicli e Gare)</div>
-            <div className="relative h-6 bg-black/20 rounded-xl overflow-hidden flex items-center p-0.5">
-              {macro.map((m, i) => (
-                <div
-                  key={m.id}
-                  className="h-full rounded-lg bg-white/20 hover:bg-white/30 transition flex items-center justify-center text-[12px] font-bold text-white/90 border-r border-black/20 truncate px-1 cursor-pointer"
-                  style={{ width: `${100 / Math.max(1, macro.length)}%` }}
-                  title={`${m.nome} (${formattaData(m.inizio)} - ${formattaData(m.fine)})`}
-                  onClick={() => setSelectedMacroId(m.id)}
-                >
-                  {m.nome}
-                </div>
-              ))}
-              {/* Today marker */}
-              <div
-                className="absolute top-0 bottom-0 w-1 bg-tertiary shadow-orange-glow z-10"
-                style={{ left: `${seasonStats.progress}%` }}
-                title={`Oggi: ${formattaData(oggi)}`}
-              />
-            </div>
-          </div>
-
-          {/* Row 4: Mini Weekly Volume Chart */}
-          {micro.length > 0 && (
-            <div className="space-y-1.5 pt-1 border-t border-white/10">
-              <div className="flex items-center justify-between text-xs text-white/90 font-bold">
-                <span>Volume Settimanale (Metri Target)</span>
-                <span className="text-[12px] text-tertiary-fixed">{avvisiPiano.length} avvisi sul piano</span>
-              </div>
-              <div className="min-h-[48px] flex items-end gap-1 overflow-x-auto pb-1">
-                {micro.slice(0, 16).map((mc, idx) => {
-                  const maxVol = Math.max(...micro.map(m => m.volumeTargetMetri || 2000));
-                  const hPercent = Math.max(15, Math.round(((mc.volumeTargetMetri || 1500) / maxVol) * 100));
-                  const isCurrent = isInRange(oggi, mc.inizio, mc.fine);
-                  return (
-                    <div
-                      key={mc.id}
-                      className="flex-1 min-w-[12px] flex flex-col items-center gap-0.5 group cursor-pointer"
-                      onClick={() => setMicroSelezionato(mc)}
-                      title={`Micro ${idx + 1}: ${mc.volumeTargetMetri}m (${mc.tipo})`}
-                    >
-                      <div
-                        className={`w-full rounded-t transition-all ${
-                          isCurrent
-                            ? 'bg-tertiary shadow-orange-glow'
-                            : mc.tipo === 'SCARICO'
-                            ? 'bg-secondary'
-                            : 'bg-white/40 group-hover:bg-white'
-                        }`}
-                        style={{ height: `${hPercent}%` }}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </section>
-      )}
-
       {/* Modal Modifica Date Stagione */}
       {modificaDateOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl shadow-float max-w-md w-full border border-slate-200/70 max-h-[92dvh] flex flex-col overflow-hidden">
-            <div className="p-4 sm:p-5 border-b border-slate-200/70 flex items-center justify-between gap-3 bg-surface-container-low shrink-0">
+          <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl shadow-float max-w-md w-full border border-outline-variant max-h-[92dvh] flex flex-col overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-outline-variant flex items-center justify-between gap-3 bg-surface-container-low shrink-0">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-8 h-8 shrink-0 rounded-lg bg-primary-container text-on-primary flex items-center justify-center">
                   <Calendar size={18} />
@@ -520,7 +390,7 @@ export const PianoScreen: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-3.5 bg-surface-container-low border-t border-slate-200/70 flex items-center justify-end gap-3 shrink-0">
+            <div className="p-3.5 bg-surface-container-low border-t border-outline-variant flex items-center justify-end gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => setModificaDateOpen(false)}
@@ -557,44 +427,12 @@ export const PianoScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Summary Card Gare & Eventi della Stagione (Gestiti in Gare & Record) */}
-      <div className="shrink-0 ds-card p-3.5 space-y-2.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Trophy size={18} className="text-primary shrink-0" />
-            <span className="font-headline font-bold text-xs sm:text-sm text-on-surface">Gare & Eventi Agonistici ({gare.length})</span>
-          </div>
-          <span className="text-[11px] font-bold text-primary bg-surface-container px-2.5 py-1 rounded-full border border-outline-variant">
-            Gestiti in Gare & Record 🏆
-          </span>
-        </div>
-        <p className="text-xs text-on-surface-variant leading-relaxed">
-          Le gare e il calendario agonistico completo sono gestiti in modo unico ed esclusivo nella sezione <strong>Gare & Record</strong> per evitare duplicazioni.
-        </p>
-        {gare.length > 0 && (
-          <div className="space-y-1 pt-1">
-            {gare.slice(0, 3).map(g => (
-              <div key={g.id} className="flex items-center justify-between text-xs py-1.5 px-2.5 rounded-xl bg-surface-container-low border border-outline-variant/60">
-                <span className="font-bold text-on-surface">{g.nome} {g.prioritaria ? '⭐ (A-Race)' : ''}</span>
-                <span className="text-on-surface-variant font-mono">{formattaData(g.dal)}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* Parametri Auto-Pianificatore & Controlli */}
-      <Sezione
-        titolo="Parametri Auto-Pianificatore & Controlli sul Piano"
-        icon={<Sparkles size={16} />}
-        badge={avvisiPiano.length > 0 ? avvisiPiano.length : undefined}
-        riepilogoChiuso={avvisiPiano.length > 0 ? `${avvisiPiano.length} avvisi sul carico attivi` : "Pianificazione e controlli ottimali"}
-        storageKey="piano_parametri"
-        defaultAperto={false}
-      >
+      {vistaPiano === 'parametri' && (
+      <section className="ds-card rounded-2xl border border-outline-variant p-4">
         <div className="space-y-4 pt-1 text-xs">
           {avvisiPiano.length > 0 && (
-            <div className="space-y-1.5 pb-3 border-b border-slate-200/70">
+            <div className="space-y-1.5 pb-3 border-b border-outline-variant">
               <h4 className="font-bold text-on-tertiary-fixed text-xs uppercase tracking-wider flex items-center gap-1.5">
                 <span>⚠️ Controlli e Avvisi sul Piano di Carico</span>
               </h4>
@@ -687,7 +525,7 @@ export const PianoScreen: React.FC = () => {
                             key={v}
                             type="button"
                             onClick={() => impostaParametriGiorno(dow, { ...p, vascaMetri: v })}
-                            className={`flex-1 h-8 rounded-lg text-xs font-bold font-headline transition ${p.vascaMetri === v ? 'bg-primary text-white shadow-sm' : 'bg-surface-container text-on-surface'}`}
+                            className={`flex-1 h-8 rounded-lg text-xs font-bold font-headline transition ${p.vascaMetri === v ? 'bg-primary text-on-primary shadow-sm' : 'bg-surface-container text-on-surface'}`}
                           >
                             {v}m
                           </button>
@@ -718,7 +556,7 @@ export const PianoScreen: React.FC = () => {
                             key={n}
                             type="button"
                             onClick={() => impostaParametriGiorno(dow, { ...p, numeroCorsie: n })}
-                            className={`flex-1 h-7 rounded-md text-[12px] font-bold transition ${dayLanes === n ? 'bg-primary text-white' : 'bg-surface-container text-on-surface'}`}
+                            className={`flex-1 h-7 rounded-md text-[12px] font-bold transition ${dayLanes === n ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface'}`}
                           >
                             {n}
                           </button>
@@ -743,7 +581,7 @@ export const PianoScreen: React.FC = () => {
                                 impostaParametriGiorno(dow, { ...p, atletiPresentiIds: nextList });
                               }}
                               className={`px-1.5 py-1 rounded-md text-[12px] border truncate flex items-center justify-between transition ${
-                                isPres ? 'bg-primary border-primary text-primary font-bold' : 'bg-surface-container-lowest border-outline-variant text-on-surface-variant'
+                                isPres ? 'bg-primary border-primary text-on-primary font-bold' : 'bg-surface-container-lowest border-outline-variant text-on-surface-variant'
                               }`}
                             >
                               <span className="truncate">{a.cognome} {a.nome?.[0]}.</span>
@@ -836,7 +674,7 @@ export const PianoScreen: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex gap-3 pt-2 border-t border-slate-200/70">
+          <div className="flex gap-3 pt-2 border-t border-outline-variant">
             <button
               type="button"
               onClick={() => {
@@ -861,21 +699,16 @@ export const PianoScreen: React.FC = () => {
             </button>
           </div>
         </div>
-      </Sezione>
+      </section>
+      )}
 
 
 
-      <Sezione
-        titolo="Programmazione & Cicli di Carico"
-        icon={<Calendar size={18} />}
-        badge={`${micro.length} sett.`}
-        riepilogoChiuso={`Macro: ${macro.length} · Meso: ${meso.length} · Micro: ${micro.length}`}
-        storageKey="piano_programmazione"
-        defaultAperto={true}
-      >
+      {vistaPiano === 'programmazione' && (
+      <section className="ds-card rounded-2xl border border-outline-variant p-4">
         <div className="space-y-4 pt-1">
           {/* Navigation & Controls Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200/70">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-outline-variant">
             <div>
               <span className="text-xs text-on-surface-variant font-medium">
                 {macro.length} macrocicli · {meso.length} mesocicli · {micro.length} settimane totali
@@ -920,7 +753,7 @@ export const PianoScreen: React.FC = () => {
               <span className="ds-label block">
                 1. Seleziona Macrociclo:
               </span>
-              <div className="ds-scroll-x ds-touch-pan flex gap-3 pb-1">
+              <div className="ds-scroll-x ds-touch-pan flex w-full max-w-full gap-3 overflow-x-auto pb-1">
                 {macro.map(ma => {
                   const isCurrent = !isBefore(oggi, ma.inizio) && !isBefore(ma.fine, oggi);
                   const isSelected = (selectedMacroId ?? macro[0]?.id) === ma.id;
@@ -937,7 +770,7 @@ export const PianoScreen: React.FC = () => {
                       className={`px-3.5 min-h-[48px] rounded-xl text-label-lg font-label-lg transition shrink-0 border text-left flex flex-col gap-0.5 ${
                         isSelected
                           ? 'bg-primary-container text-on-primary border-primary-container shadow-card'
-                          : 'bg-surface-container-lowest text-on-surface border-slate-200/70 hover:border-outline-variant hover:bg-surface-container-low'
+                          : 'bg-surface-container-lowest text-on-surface border-outline-variant hover:border-outline-variant hover:bg-surface-container-low'
                       }`}
                     >
                       <div className="flex items-center gap-1.5">
@@ -986,7 +819,7 @@ export const PianoScreen: React.FC = () => {
                             className={`px-3 min-h-[48px] rounded-xl text-label-lg font-label-lg transition border flex items-center gap-1.5 ${
                               isSelected
                                 ? 'bg-primary-container text-on-primary border-primary shadow-card'
-                                : 'bg-surface-container-lowest text-on-surface border-slate-200/70 hover:bg-surface-container-low'
+                                : 'bg-surface-container-lowest text-on-surface border-outline-variant hover:bg-surface-container-low'
                             }`}
                           >
                             <span>{FASE_MESOCICLO_LABEL[me.fase]}</span>
@@ -1048,7 +881,7 @@ export const PianoScreen: React.FC = () => {
                         mi.tipo
                       );
 
-                      let cardBg = 'bg-surface-container-lowest border-slate-200/70';
+                      let cardBg = 'bg-surface-container-lowest border-outline-variant';
                       if (isCurrentWeek) cardBg = 'bg-primary-container/10 border-primary ring-2 ring-primary/30 shadow-pop';
                       else if (mi.tipo === 'CARICO') cardBg = 'bg-primary-fixed/25 border-primary-fixed-dim';
                       else if (mi.tipo === 'GARA') cardBg = 'bg-tertiary-fixed/30 border-tertiary-fixed-dim';
@@ -1162,7 +995,7 @@ export const PianoScreen: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setMicroSelezionato(mi)}
-                            className="text-[12px] text-on-surface-variant hover:text-on-surface font-semibold py-2 min-h-[48px] border-t border-slate-200/60 flex items-center justify-between w-full"
+                            className="text-[12px] text-on-surface-variant hover:text-on-surface font-semibold py-2 min-h-[48px] border-t border-outline-variant flex items-center justify-between w-full"
                           >
                             <span>Modifica sedute o volume</span>
                             <Edit2 size={12} />
@@ -1184,7 +1017,7 @@ export const PianoScreen: React.FC = () => {
               const mesoOfMacro = meso.filter(me => me.macrocicloId === ma.id);
               return (
                 <div key={ma.id} className="space-y-3">
-                  <div className="p-3 bg-surface-container/80 rounded-xl border border-slate-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <div className="p-3 bg-surface-container/80 rounded-xl border border-outline-variant flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                     <div>
                       <span className="font-bold text-on-surface text-sm">{ma.nome}</span>
                       <span className="text-xs text-on-surface-variant ml-2">
@@ -1225,7 +1058,7 @@ export const PianoScreen: React.FC = () => {
                             return (
                               <div
                                 key={mi.id}
-                                className="p-3.5 rounded-xl border border-slate-200/70 bg-surface-container-lowest transition shadow-card flex flex-col justify-between space-y-2"
+                                className="p-3.5 rounded-xl border border-outline-variant bg-surface-container-lowest transition shadow-card flex flex-col justify-between space-y-2"
                               >
                                 <div className="space-y-1.5">
                                   <div className="flex items-center justify-between">
@@ -1233,7 +1066,7 @@ export const PianoScreen: React.FC = () => {
                                       <span className="font-bold text-on-surface text-sm">
                                         {formattaData(mi.inizio)}
                                       </span>
-                                      <span className="text-xs px-3 py-0.5 rounded-full font-bold bg-white/80 border border-slate-200/70 text-on-surface">
+                                      <span className="text-xs px-3 py-0.5 rounded-full font-bold bg-white/80 border border-outline-variant text-on-surface">
                                         {TIPO_MICROCICLO_LABEL[mi.tipo]}
                                       </span>
                                       {mi.bloccato && (
@@ -1276,7 +1109,7 @@ export const PianoScreen: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => setMicroSelezionato(mi)}
-                                  className="text-xs text-on-surface-variant hover:text-on-surface-variant font-semibold pt-1 border-t border-slate-200/70 flex items-center justify-between w-full"
+                                  className="text-xs text-on-surface-variant hover:text-on-surface-variant font-semibold pt-1 border-t border-outline-variant flex items-center justify-between w-full"
                                 >
                                   <span>Modifica microciclo</span>
                                   <Edit2 size={12} />
@@ -1294,7 +1127,8 @@ export const PianoScreen: React.FC = () => {
           </div>
         )}
       </div>
-      </Sezione>
+      </section>
+      )}
 
       {/* Edit Microcycle Modal */}
       {microSelezionato && (
@@ -1460,7 +1294,7 @@ export const PianoScreen: React.FC = () => {
                       type="button"
                       onClick={() => setNumCorsieDisponibili(n)}
                       className={`flex-1 h-9 rounded-xl font-headline font-bold transition ${
-                        numCorsieDisponibili === n ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
+                        numCorsieDisponibili === n ? 'bg-primary text-on-primary shadow-primary-sm' : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
                       }`}
                     >
                       {n}
@@ -1483,7 +1317,7 @@ export const PianoScreen: React.FC = () => {
                         type="button"
                         onClick={() => toggleAtletaPresente(a.id)}
                         className={`p-3 rounded-xl border text-left flex items-center justify-between transition ${
-                          isPres ? 'bg-primary border-primary text-primary font-bold' : 'bg-surface-container-low border-outline-variant text-on-surface'
+                          isPres ? 'bg-primary border-primary text-on-primary font-bold' : 'bg-surface-container-low border-outline-variant text-on-surface'
                         }`}
                       >
                         <span className="truncate">{a.cognome} {a.nome?.[0]}. (S{a.classeS ?? '9'})</span>
@@ -1570,8 +1404,8 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl shadow-float max-w-md w-full p-5 border border-slate-200/70 max-h-[92dvh] overflow-y-auto">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-200/70 sticky top-0 bg-surface-container-lowest -mx-5 -mt-5 px-5 pt-5 z-10">
+      <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl shadow-float max-w-md w-full p-5 border border-outline-variant max-h-[92dvh] overflow-y-auto">
+        <div className="flex items-center justify-between pb-3 border-b border-outline-variant sticky top-0 bg-surface-container-lowest -mx-5 -mt-5 px-5 pt-5 z-10">
           <h3 className="font-bold text-on-surface text-base">
             Settimana del {formattaData(micro.inizio)}
           </h3>
@@ -1638,7 +1472,7 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
           </p>
         </div>
 
-        <div className="pt-3 border-t border-slate-200/70 flex items-center justify-between">
+        <div className="pt-3 border-t border-outline-variant flex items-center justify-between">
           <div>
             {micro.bloccato && (
               <button

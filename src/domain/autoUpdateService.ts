@@ -25,12 +25,14 @@ export class AutoUpdateService {
    * Endpoint JSON remoto per record e regolamenti.
    * Configurare con URL reale (es. GitHub Pages, Firebase Hosting, o server FINP).
    */
-  private static readonly REMOTE_ENDPOINT = process.env.VITE_REMOTE_DATA_URL || 'https://raw.githubusercontent.com/your-org/finp-data/main/finp-data.json';
+  private static readonly REMOTE_ENDPOINT = import.meta.env.VITE_REMOTE_DATA_URL;
 
   /**
    * Effettua una chiamata all'endpoint JSON remoto per verificare aggiornamenti.
    */
   private static async fetchRemoteData(): Promise<RemoteData | null> {
+    if (!this.REMOTE_ENDPOINT) return null;
+
     try {
       const response = await fetch(this.REMOTE_ENDPOINT, {
         method: 'GET',
@@ -59,7 +61,7 @@ export class AutoUpdateService {
     const ultimoCheckStr = localStorage.getItem(this.STORAGE_KEY_LAST_CHECK);
     const ultimoCheck = ultimoCheckStr ? parseInt(ultimoCheckStr, 10) : 0;
 
-    if (!forzaVerifica && (ora - ultimoCheck < this.CHECK_INTERVAL_MS)) {
+    if (!forzaVerifica && this.REMOTE_ENDPOINT && (ora - ultimoCheck < this.CHECK_INTERVAL_MS)) {
       return {
         hasUpdate: false,
         ultimaVerifica: new Date(ultimoCheck).toLocaleDateString('it-IT'),
@@ -68,8 +70,6 @@ export class AutoUpdateService {
     }
 
     try {
-      localStorage.setItem(this.STORAGE_KEY_LAST_CHECK, ora.toString());
-
       // Fetch dati remoti
       const remoteData = await this.fetchRemoteData();
 
@@ -79,10 +79,14 @@ export class AutoUpdateService {
 
         return {
           hasUpdate: false,
-          ultimaVerifica: new Date(ora).toLocaleDateString('it-IT'),
-          messaggio: 'Impossibile contattare il server remoto. Utilizzo dello snapshot locale.'
+          ultimaVerifica: this.REMOTE_ENDPOINT ? new Date(ora).toLocaleDateString('it-IT') : 'Non configurato',
+          messaggio: this.REMOTE_ENDPOINT
+            ? 'Impossibile contattare il server remoto. Utilizzo dello snapshot locale.'
+            : 'Aggiornamenti remoti non configurati. Utilizzo dello snapshot locale.'
         };
       }
+
+      localStorage.setItem(this.STORAGE_KEY_LAST_CHECK, ora.toString());
 
       // Confronta versione remota con locale
       const localVersion = localStorage.getItem(this.STORAGE_KEY_REMOTE_VERSION) || '0.0.0';

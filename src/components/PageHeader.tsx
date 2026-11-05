@@ -11,7 +11,7 @@ export interface PageHeaderProps {
 
 export const PageHeader: React.FC<PageHeaderProps> = ({ label, title, meta, icon, right }) => {
   return (
-    <section className="relative overflow-hidden rounded-2xl bg-surface-container-low border border-outline-variant px-4 py-3.5 shadow-card space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
+    <section className="relative overflow-hidden rounded-2xl bg-surface-container-low border border-outline-variant px-4 py-2.5 sm:py-3.5 shadow-card flex items-center justify-between gap-2 sm:gap-4 max-[380px]:flex-col max-[380px]:items-stretch">
       {/* Subtle decorative blob */}
       <div className="absolute -right-10 -bottom-10 w-24 h-24 rounded-full bg-primary pointer-events-none" />
       <div className="relative z-10 min-w-0 flex-1">
@@ -25,7 +25,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ label, title, meta, icon
           {title}
         </h1>
         {meta && typeof meta === 'string' ? (
-          <p className="text-xs text-on-surface-variant leading-tight mt-1 whitespace-normal break-words">
+          <p className="hidden sm:block text-xs text-on-surface-variant leading-tight mt-1 whitespace-normal break-words">
             {meta}
           </p>
         ) : meta ? (
@@ -33,7 +33,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ label, title, meta, icon
         ) : null}
       </div>
 
-      {right && <div className="relative z-10 shrink-0 flex flex-wrap items-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-outline-variant/60">{right}</div>}
+      {right && <div className="relative z-10 shrink-0 flex flex-wrap items-center justify-end gap-1.5 max-[380px]:justify-start">{right}</div>}
     </section>
   );
 };

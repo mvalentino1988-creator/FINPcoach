@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../data/AppContext';
 import { FASE_MESOCICLO_LABEL, SchedaSeduta, TIPO_MICROCICLO_LABEL } from '../types';
 import { formattaData, isBefore, parseData, todayISO } from '../domain/dateUtils';
@@ -53,7 +53,10 @@ export const SchedeVascaScreen: React.FC = () => {
   // e non viene mai salvata in automatico.
   const [scheda, setScheda] = useState<SchedaSeduta | null>(null);
   const [schedaSalvata, setSchedaSalvata] = useState(false);
-  const [configEspansa, setConfigEspansa] = useState(true);
+  const [tabParametri, setTabParametri] = useState<'sessione' | 'destinatario'>('sessione');
+  const [durataInput, setDurataInput] = useState('90');
+  const [volumeManuale, setVolumeManuale] = useState<number | null>(null);
+  const [volumeInput, setVolumeInput] = useState('');
 
   const oggi = parseData(dataTesto) ?? todayISO();
   const atletaSel = atleti.find(a => a.id === atletaSelId) ?? null;
@@ -78,6 +81,9 @@ export const SchedeVascaScreen: React.FC = () => {
     () => risolviParametriSeduta(oggi, impostazioni, stagione),
     [oggi, impostazioni, stagione]
   );
+  useEffect(() => {
+    setDurataInput(String(parametriSeduta.durataMin));
+  }, [oggi, parametriSeduta.durataMin]);
   const hasOverride = Boolean(impostazioni.overrideSedute?.[oggi]);
   const settimanaISO = useMemo(
     () => seduteSettimana(oggi, giorniAllenamento),
@@ -121,15 +127,15 @@ export const SchedeVascaScreen: React.FC = () => {
   }, [microCorrente, atletaSel, assenze, condizioniAtleta, tempiAtleta, logAtleta, parametriSeduta, settimanaSedute, volumeSettimanaAtleta]);
 
   const volumeSessione = volume.metriSessione;
+  const volumeProposta = volumeManuale ?? volumeSessione;
 
   /** La proposta smart viene generata solo su richiesta esplicita dell'allenatore. */
   const generaProposta = () => {
     setSchedaSalvata(false);
-    setConfigEspansa(false);
     setScheda(
       GeneratoreSmartSeduta.genera(
         oggi,
-        volumeSessione,
+        volumeProposta,
         mesoCorrente?.fase ?? 'PREPARAZIONE_SPECIFICA',
         microCorrente?.tipo ?? 'CARICO',
         atletaSel,
@@ -170,12 +176,22 @@ export const SchedeVascaScreen: React.FC = () => {
     if (vasca === parametriSeduta.vascaMetri) return;
     impostaOverrideSeduta(oggi, { ...parametriSeduta, vascaMetri: vasca });
     setScheda(null);
+    setSchedaSalvata(false);
   };
 
   const applicaDurata = (durata: number) => {
     if (durata === parametriSeduta.durataMin) return;
     impostaOverrideSeduta(oggi, { ...parametriSeduta, durataMin: durata });
     setScheda(null);
+    setSchedaSalvata(false);
+  };
+
+  const selezionaAtleta = (id: number | null) => {
+    setAtletaSelId(id);
+    setVolumeManuale(null);
+    setVolumeInput('');
+    setScheda(null);
+    setSchedaSalvata(false);
   };
 
   const resetParametriData = () => {
@@ -238,164 +254,229 @@ export const SchedeVascaScreen: React.FC = () => {
         </p>
       </div>
 
-      {/* Configuration bar (Collapsible) */}
-      <div className="p-3 ds-card shadow-card space-y-2.5">
-        <button
-          type="button"
-          onClick={() => setConfigEspansa(v => !v)}
-          className="w-full flex items-center justify-between text-xs font-bold font-headline text-on-surface"
-        >
-          <span className="flex items-center gap-1.5 text-primary">
-            <Sliders size={15} /> Parametri & Destinatario {scheda ? '· (Scheda pronta)' : ''}
-          </span>
-          <span>{configEspansa ? '▲ Comprimi' : '▼ Modifica parametri'}</span>
-        </button>
+      <div className="p-3 ds-card shadow-card space-y-3">
+        <div className="grid grid-cols-2 gap-2" role="tablist" aria-label="Parametri proposta">
+          <button
+            type="button"
+            role="tab"
+            id="tab-parametri-sessione"
+            aria-controls="panel-parametri-sessione"
+            aria-selected={tabParametri === 'sessione'}
+            onClick={() => setTabParametri('sessione')}
+            className={`min-h-[44px] rounded-xl px-2 text-xs font-bold font-headline transition flex items-center justify-center gap-1.5 ${
+              tabParametri === 'sessione' ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant'
+            }`}
+          >
+            <Sliders size={15} /> Parametri sessione
+          </button>
+          <button
+            type="button"
+            role="tab"
+            id="tab-parametri-destinatario"
+            aria-controls="panel-parametri-destinatario"
+            aria-selected={tabParametri === 'destinatario'}
+            onClick={() => setTabParametri('destinatario')}
+            className={`min-h-[44px] rounded-xl px-2 text-xs font-bold font-headline transition flex items-center justify-center gap-1.5 ${
+              tabParametri === 'destinatario' ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant'
+            }`}
+          >
+            <User size={15} /> Parametri destinatario
+          </button>
+        </div>
 
-        {configEspansa && (
-          <div className="space-y-3 pt-2 border-t border-outline-variant/50 animate-fade-in">
-            {/* Recipient Chips */}
-            <div>
-              <label className="block text-xs font-bold text-on-surface uppercase tracking-wider mb-1">
-                Destinatario
-              </label>
-              <div className="flex flex-wrap gap-1.5">
+        {tabParametri === 'destinatario' ? (
+          <div
+            id="panel-parametri-destinatario"
+            role="tabpanel"
+            aria-labelledby="tab-parametri-destinatario"
+            className="space-y-2 pt-2 border-t border-outline-variant animate-fade-in"
+          >
+            <label className="block text-xs font-bold text-on-surface uppercase tracking-wider">
+              Destinatario della proposta
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => selezionaAtleta(null)}
+                className={`inline-flex items-center gap-1 px-3 min-h-[48px] rounded-lg text-xs font-bold transition ${
+                  atletaSelId === null
+                    ? 'bg-primary-container text-on-primary shadow-card'
+                    : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+                }`}
+              >
+                <Users size={13} />
+                <span>Squadra</span>
+              </button>
+              {atleti.map(a => (
                 <button
+                  key={a.id}
                   type="button"
-                  onClick={() => setAtletaSelId(null)}
-                  className={`inline-flex items-center gap-1 px-3 min-h-[48px] rounded-lg text-xs font-bold transition ${
-                    atletaSelId === null
-                      ? 'bg-primary-container text-on-primary shadow-card'
+                  onClick={() => selezionaAtleta(a.id)}
+                  className={`inline-flex items-center gap-1 px-3 min-h-[48px] rounded-lg text-xs font-semibold transition ${
+                    atletaSelId === a.id
+                      ? 'bg-primary-container text-on-primary font-bold shadow-card'
                       : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
-                  <Users size={13} />
-                  <span>Squadra</span>
+                  <User size={13} />
+                  <span>{a.cognome} {a.nome}</span>
                 </button>
-
-                {atleti.map(a => (
-                  <button
-                    key={a.id}
-                    type="button"
-                    onClick={() => setAtletaSelId(a.id)}
-                    className={`inline-flex items-center gap-1 px-3 min-h-[48px] rounded-lg text-xs font-semibold transition ${
-                      atletaSelId === a.id
-                        ? 'bg-primary-container text-on-primary font-bold shadow-card'
-                        : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
-                    }`}
-                  >
-                    <User size={13} />
-                    <span>{a.cognome} {a.nome}</span>
-                  </button>
-                ))}
-              </div>
+              ))}
             </div>
-
-            {/* Date and Target Distance */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-2 border-t border-slate-200/70">
+            <p className="text-xs text-on-surface-variant">
+              {atletaSel
+                ? `Il volume seduta per ${atletaSel.cognome} ${atletaSel.nome} viene consigliato in base al piano e resta modificabile.`
+                : 'La proposta viene calcolata per tutta la squadra.'}
+            </p>
+          </div>
+        ) : (
+          <div
+            id="panel-parametri-sessione"
+            role="tabpanel"
+            aria-labelledby="tab-parametri-sessione"
+            className="space-y-3 pt-2 border-t border-outline-variant animate-fade-in"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
               <div>
-                <label className="block font-semibold text-on-surface mb-0.5 text-xs uppercase tracking-wide">Data</label>
+                <label htmlFor="data-seduta" className="block font-semibold text-on-surface-variant mb-1 text-xs uppercase tracking-wide">Data</label>
                 <input
+                  id="data-seduta"
                   type="text"
                   value={dataTesto}
-                  onChange={e => setDataTesto(e.target.value)}
-                  className="w-full px-3 min-h-[48px] border border-outline-variant rounded-lg font-medium text-xs"
+                  onChange={event => {
+                    setDataTesto(event.target.value);
+                    setScheda(null);
+                    setSchedaSalvata(false);
+                  }}
+                  className="w-full px-3 min-h-[44px] border border-outline-variant bg-surface-container-lowest text-on-surface rounded-lg font-medium text-xs"
                 />
               </div>
-              <div>
-                <label className="block font-semibold text-on-surface mb-0.5 text-xs uppercase tracking-wide">Vasca / Durata</label>
-                <div className="flex items-center gap-1.5 px-3 min-h-[48px] rounded-lg bg-surface-container-low border border-slate-200/70">
-                  <Waves size={14} className="text-primary shrink-0" />
-                  <span className="text-xs font-bold">{parametriSeduta.vascaMetri}m</span>
-                  <span className="text-xs text-on-surface-variant">· {parametriSeduta.durataMin}'</span>
-                </div>
-              </div>
-              <div>
-                <label className="block font-semibold text-on-surface mb-1">Volume seduta</label>
-                <div className="flex items-center gap-1.5 px-3 min-h-[48px] rounded-lg bg-surface-container-low border border-slate-200/70">
-                  <Timer size={14} className="text-primary shrink-0" />
-                  <span className="text-xs font-bold">{volumeSessione} m</span>
-                  <span className="text-xs text-on-surface-variant truncate">/ {volumeSettimanaAtleta} m</span>
-                </div>
-                {volume.note.length > 0 && (
-                  <p className="text-xs text-on-surface-variant mt-0.5 line-clamp-1">{volume.note[0]}</p>
-                )}
-              </div>
-              <div>
-                <label className="block font-semibold text-on-surface mb-0.5 text-xs uppercase tracking-wide truncate">
-                  {atletaSel ? 'Volume sett. atleta' : 'Volume sett. squadra'}
-                </label>
-                {atletaSel ? (
-                  <div className="px-3 min-h-[48px] bg-surface-container-low border border-slate-200/70 rounded-lg font-bold text-primary-container text-xs flex items-center">
-                    {volumeSettimanaAtleta} m
-                  </div>
-                ) : (
-                  <input
-                    type="number"
-                    step="50"
-                    value={metriManual}
-                    onChange={e => {
-                      setMetriManual(e.target.value);
-                      setScheda(null);
-                    }}
-                    className="w-full px-3 min-h-[48px] border border-outline-variant rounded-lg font-bold text-primary-container text-xs"
-                  />
-                )}
-              </div>
-            </div>
 
-            <div className="flex flex-wrap justify-end gap-1.5">
-              <button type="button" onClick={generaProposta} className="ds-btn-ghost !min-h-[44px] !px-3 text-xs">
-                <Sparkles size={15} />
-                <span>Genera proposta</span>
-              </button>
-              <button type="button" onClick={() => setModalIAOpen(true)} className="ds-btn-primary !min-h-[44px] !px-3 text-xs">
-                <Bot size={15} />
-                <span>Genera con IA</span>
-              </button>
-            </div>
-
-            {/* Vasca & Durata Giornaliera (override persistito sulla data) */}
-            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200/70 text-xs">
               <div>
-                <label className="block font-semibold text-on-surface mb-0.5 text-xs uppercase tracking-wide">Vasca impianto</label>
+                <label className="block font-semibold text-on-surface-variant mb-1 text-xs uppercase tracking-wide">Vasca impianto</label>
                 <div className="flex gap-1.5">
                   {[25, 50].map(v => (
                     <button
                       key={v}
                       type="button"
                       onClick={() => applicaVasca(v)}
-                      className={`flex-1 min-h-[48px] rounded-lg font-bold text-xs transition border ${
+                      className={`flex-1 min-h-[44px] rounded-lg font-bold text-xs transition border ${
                         parametriSeduta.vascaMetri === v
                           ? 'bg-primary-container text-on-primary border-primary-container shadow-card'
-                          : 'bg-surface-container-low text-on-surface border-slate-200/70 hover:bg-surface-container'
+                          : 'bg-surface-container-low text-on-surface border-outline-variant hover:bg-surface-container'
                       }`}
                     >
-                      {v === 50 ? 'Vasca 50m' : 'Vasca 25m'}
+                      {v}m
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-on-surface mb-0.5 text-xs uppercase tracking-wide">Durata target</label>
-                <div className="flex gap-1.5">
-                  {[60, 90, 120].map(d => (
-                    <button
-                      key={d}
-                      type="button"
-                      onClick={() => applicaDurata(d)}
-                      className={`flex-1 min-h-[48px] rounded-lg font-bold text-xs transition border ${
-                        parametriSeduta.durataMin === d
-                          ? 'bg-primary-container text-on-primary border-primary-container shadow-card'
-                          : 'bg-surface-container-low text-on-surface border-slate-200/70 hover:bg-surface-container'
-                      }`}
-                    >
-                      {d} min
-                    </button>
-                  ))}
-                </div>
+                <label htmlFor="durata-target" className="block font-semibold text-on-surface-variant mb-1 text-xs uppercase tracking-wide">Durata target (minuti)</label>
+                <input
+                  id="durata-target"
+                  type="number"
+                  min={30}
+                  max={210}
+                  step={1}
+                  value={durataInput}
+                  onChange={event => {
+                    const value = event.target.value;
+                    setDurataInput(value);
+                    const durata = Number(value);
+                    if (value !== '' && Number.isInteger(durata) && durata >= 30 && durata <= 210) {
+                      applicaDurata(durata);
+                    }
+                  }}
+                  onBlur={() => {
+                    const durata = Number(durataInput);
+                    if (!Number.isInteger(durata) || durata < 30 || durata > 210) {
+                      setDurataInput(String(parametriSeduta.durataMin));
+                    } else {
+                      applicaDurata(durata);
+                    }
+                  }}
+                  className="w-full px-3 min-h-[44px] border border-outline-variant bg-surface-container-lowest text-on-surface rounded-lg font-bold text-xs"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="volume-seduta" className="block font-semibold text-on-surface-variant mb-1 text-xs uppercase tracking-wide">Volume seduta</label>
+                <input
+                  id="volume-seduta"
+                  type="number"
+                  min={50}
+                  max={20000}
+                  step={50}
+                  value={volumeInput}
+                  placeholder={String(volumeSessione)}
+                  onChange={event => {
+                    const value = event.target.value;
+                    setVolumeInput(value);
+                    const volumeScelto = Number(value);
+                    setVolumeManuale(
+                      value !== '' && Number.isInteger(volumeScelto) && volumeScelto >= 50 && volumeScelto <= 20000
+                        ? volumeScelto
+                        : null
+                    );
+                    setScheda(null);
+                    setSchedaSalvata(false);
+                  }}
+                  onBlur={() => {
+                    if (volumeInput !== '' && volumeManuale === null) setVolumeInput('');
+                  }}
+                  className="w-full px-3 min-h-[44px] border border-outline-variant bg-surface-container-lowest text-on-surface rounded-lg font-bold text-xs"
+                />
+                <p className="mt-1 text-[11px] text-on-surface-variant">
+                  {volumeManuale === null
+                    ? `Consigliati ${volumeSessione} m · lascia vuoto per usare il valore suggerito`
+                    : `Consigliati ${volumeSessione} m · proposta personalizzata ${volumeManuale} m`}
+                </p>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-on-surface mb-1 text-xs uppercase tracking-wide">
+                  {atletaSel ? 'Volume settimanale atleta' : 'Volume settimanale squadra'}
+                </label>
+                {atletaSel ? (
+                  <div className="px-3 min-h-[44px] bg-surface-container-low border border-outline-variant rounded-lg font-bold text-primary-container text-xs flex items-center">
+                    {volumeSettimanaAtleta} m
+                  </div>
+                ) : (
+                  <input
+                    type="number"
+                    min={400}
+                    max={30000}
+                    step={50}
+                    value={metriManual}
+                    onChange={event => {
+                      setMetriManual(event.target.value);
+                      setScheda(null);
+                      setSchedaSalvata(false);
+                    }}
+                    className="w-full px-3 min-h-[44px] border border-outline-variant bg-surface-container-lowest rounded-lg font-bold text-on-surface text-xs"
+                  />
+                )}
               </div>
             </div>
+
+            {volume.note.length > 0 && (
+              <p className="text-xs text-on-surface-variant">{volume.note[0]}</p>
+            )}
+
+            {scheda && (
+              <div className="flex flex-wrap justify-end gap-1.5">
+                <button type="button" onClick={generaProposta} className="ds-btn-ghost !min-h-[44px] !px-3 text-xs">
+                  <Sparkles size={15} />
+                  <span>Genera proposta</span>
+                </button>
+                <button type="button" onClick={() => setModalIAOpen(true)} className="ds-btn-primary !min-h-[44px] !px-3 text-xs">
+                  <Bot size={15} />
+                  <span>Genera con IA</span>
+                </button>
+              </div>
+            )}
 
             {hasOverride && (
               <div className="flex items-center justify-between gap-3 rounded-xl border border-tertiary-fixed-dim bg-surface-container-low p-3 text-xs font-medium text-on-surface-variant">
@@ -614,7 +695,7 @@ export const SchedeVascaScreen: React.FC = () => {
         fase={mesoCorrente?.fase ?? 'PREPARAZIONE_SPECIFICA'}
         tipoMicro={microCorrente?.tipo ?? 'CARICO'}
         parametri={parametriSeduta}
-        volumeSessione={volumeSessione}
+        volumeSessione={volumeProposta}
         volumeSettimana={volumeSettimanaAtleta}
         condizioni={atletaSel ? condizioni.filter((c) => c.atletaId === atletaSel.id && c.attiva) : []}
         tempi={atletaSel ? tempi.filter((t) => t.atletaId === atletaSel.id) : []}

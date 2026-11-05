@@ -101,7 +101,7 @@ export const TestCalibrazioneModal: React.FC<Props> = ({ atleta, onClose, onSalv
                   key={v}
                   type="button"
                   onClick={() => setVasca(v)}
-                  className={`flex-1 py-2 rounded-xl font-headline font-bold transition ${vasca === v ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface-container text-on-surface'}`}
+                  className={`flex-1 py-2 rounded-xl font-headline font-bold transition ${vasca === v ? 'bg-primary text-on-primary shadow-primary-sm' : 'bg-surface-container text-on-surface'}`}
                 >
                   Vasca {v}m
                 </button>
