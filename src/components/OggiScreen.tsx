@@ -294,7 +294,7 @@ const OggiContent: React.FC = () => {
           <StatusIcon size={20} />
         </span>
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant truncate"
+          <div className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant leading-snug"
             title={`${dowNome} ${formattaData(oggi)} · ${macroCorrente?.nome ?? stagione?.nome ?? ''}${microCorrente ? ` · ${TIPO_MICROCICLO_LABEL[microCorrente.tipo]}` : ''}`}>
             {dowNome} {formattaData(oggi)} · {macroCorrente?.nome ?? stagione?.nome ?? ''}
             {microCorrente ? ` · ${TIPO_MICROCICLO_LABEL[microCorrente.tipo]}` : ''}
@@ -325,19 +325,6 @@ const OggiContent: React.FC = () => {
             </div>
           </div>
 
-          <label className="sr-only" htmlFor="oggi-atleta">Destinatario</label>
-          <select
-            id="oggi-atleta"
-            value={atletaSel ? String(atletaSel.id) : ''}
-            onChange={e => setAtletaSelId(e.target.value ? Number(e.target.value) : null)}
-            className="w-full min-h-[44px] rounded-xl bg-surface-container-low border border-outline-variant px-3 text-sm font-bold text-on-surface focus:border-primary"
-          >
-            <option value="">Tutta la squadra</option>
-            {atleti.map(a => (
-              <option key={a.id} value={a.id}>{a.cognome} {a.nome}</option>
-            ))}
-          </select>
-
           <CodiciSeduta codici={propostaCodici} titolo={atletaSel ? 'Codici atleta' : 'Codici comuni'} compatto />
 
           {!atletaSel && dettaglioSquadra && dettaglioSquadra.varianti.length > 0 && (
@@ -353,15 +340,15 @@ const OggiContent: React.FC = () => {
           )}
 
           <div className="grid grid-cols-3 gap-1.5 text-center">
-            <div className="rounded-lg bg-surface-container-low px-1 py-1.5">
+            <div className="rounded-lg bg-surface-container-low px-1 py-1">
               <div className="text-[11px] uppercase font-bold text-on-surface-variant">Volume</div>
               <div className="font-headline font-bold text-on-surface text-xs">{volumeSessione.toLocaleString('it-IT')} m</div>
             </div>
-            <div className="rounded-lg bg-surface-container-low px-1 py-1.5">
+            <div className="rounded-lg bg-surface-container-low px-1 py-1">
               <div className="text-[11px] uppercase font-bold text-on-surface-variant">Durata</div>
               <div className="font-headline font-bold text-on-surface text-xs">{parametriSeduta.durataMin} min</div>
             </div>
-            <div className="rounded-lg bg-surface-container-low px-1 py-1.5">
+            <div className="rounded-lg bg-surface-container-low px-1 py-1">
               <div className="text-[11px] uppercase font-bold text-on-surface-variant">Vasca</div>
               <div className="font-headline font-bold text-on-surface text-xs">{parametriSeduta.vascaMetri} m</div>
             </div>
@@ -378,7 +365,7 @@ const OggiContent: React.FC = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-1.5">
             <button type="button" onClick={handleCopy} className="ds-btn-ghost !min-h-[44px] !px-3 !text-xs">
               {copiato ? <Check size={16} /> : <Copy size={16} />}
               <span>{copiato ? 'Copiato' : 'Copia'}</span>
@@ -401,7 +388,7 @@ const OggiContent: React.FC = () => {
             <button
               type="button"
               onClick={() => vai('altro', 'dati', 'schede')}
-              className="w-full flex items-center justify-between gap-2 rounded-xl bg-primary/5 border border-primary/15 px-3 py-2 text-left hover:bg-primary/10 transition"
+              className="w-full flex items-center justify-between gap-2 rounded-xl bg-primary/5 border border-primary/15 px-3 py-1.5 text-left hover:bg-primary/10 transition"
             >
               <span className="min-w-0">
                 <span className="block text-[11px] font-bold uppercase tracking-wider text-primary">Scheda salvata</span>
@@ -410,10 +397,6 @@ const OggiContent: React.FC = () => {
               <ArrowUpRight size={16} className="text-primary shrink-0" />
             </button>
           )}
-
-          <p className="oggi-note text-[11px] leading-snug text-on-surface-variant">
-            Solo codici di allenamento. Per serie ed esercizi usa l’IA esterna o la scheda manuale.
-          </p>
         </section>
       ) : (
         <section className="ds-card p-4 text-center space-y-2">
