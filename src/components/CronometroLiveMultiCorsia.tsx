@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../data/AppContext';
 import { todayISO } from '../domain/dateUtils';
-import { CheckCircle2, Flag, Pause, Play, Plus, RotateCcw, Save, X } from 'lucide-react';
+import { CheckCircle2, Flag, Pause, Play, Plus, RotateCcw, Save } from 'lucide-react';
 
 interface Split {
   lap: number;
@@ -30,50 +30,34 @@ interface LaneState {
 const MAX_LANES = 8;
 const MAX_ATHLETES_PER_LANE = 6;
 
-const RIPARTENZA_PRESETS = [
-  { value: 15, label: '15"' },
-  { value: 30, label: '30"' },
-  { value: 45, label: '45"' },
-  { value: 60, label: "1'00\"" },
-  { value: 75, label: "1'15\"" },
-  { value: 90, label: "1'30\"" },
-  { value: 105, label: "1'45\"" },
-  { value: 120, label: "2'00\"" },
-  { value: 135, label: "2'15\"" },
-  { value: 150, label: "2'30\"" },
-  { value: 165, label: "2'45\"" },
-  { value: 180, label: "3'00\"" },
-  { value: 210, label: "3'30\"" },
-  { value: 240, label: "4'00\"" },
-  { value: 270, label: "4'30\"" },
-  { value: 300, label: "5'00\"" },
-  { value: 360, label: "6'00\"" },
-  { value: 420, label: "7'00\"" },
-  { value: 480, label: "8'00\"" },
-  { value: 540, label: "9'00\"" },
-  { value: 600, label: "10'00\"" },
-  { value: 720, label: "12'00\"" },
-  { value: 900, label: "15'00\"" },
-  { value: 1200, label: "20'00\"" },
-  { value: 1500, label: "25'00\"" },
-  { value: 1800, label: "30'00\"" },
-];
-
-const formatMSS = (totalSec: number): string => {
+// Notazione: 5 s · 45 s · 2 m · 1.30
+const formatRipartenza = (totalSec: number): string => {
   const mins = Math.floor(totalSec / 60);
   const secs = totalSec % 60;
+  if (totalSec < 60) return `${totalSec} s`;
+  if (secs === 0) return `${mins} m`;
   return `${mins}.${String(secs).padStart(2, '0')}`;
 };
 
-// Accetta secondi puri ("90") oppure formato m.ss ("1.30", "1,30").
-const parseMSS = (raw: string): number | null => {
-  const t = raw.trim().replace(',', '.');
+// Accetta "45 s", "5 s", "2 m", "1.30"/"1,30" e secondi puri ("90").
+const parseRipartenza = (raw: string): number | null => {
+  const t = raw.trim().toLowerCase().replace(/\s+/g, '');
   if (!t) return null;
+  let m = t.match(/^(\d+)m$/);
+  if (m) {
+    const v = Number(m[1]) * 60;
+    return v <= 7200 ? v : null;
+  }
+  m = t.match(/^(\d+)s$/);
+  if (m) {
+    const v = Number(m[1]);
+    return v >= 0 && v <= 7200 ? v : null;
+  }
   if (/^\d+$/.test(t)) {
     const v = Number(t);
     return v >= 0 && v <= 7200 ? v : null;
   }
-  const m = t.match(/^(\d{1,3})\.(\d{1,2})$/);
+  m = t.match(/^(\d{1,3})[.,](\d{1,2})$/);
   if (!m) return null;
   const secs = Number(m[2].padStart(2, '0'));
   if (secs > 59) return null;
@@ -128,8 +112,8 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
   const startTimeRef = useRef(0);
   const savedTimeRef = useRef(0);
   const idRef = useRef(0);
-  const [vascaMetri, setVascaMetri] = useState<25 | 50>(() => stagione?.vascaMetri === 25 ? 25 : 50);
-  const [ripartenzaText, setRipartenzeText] = useState(() => formatMSS(90));
+  const [vascaMetri] = useState<25 | 50>(() => stagione?.vascaMetri === 25 ? 25 : 50);
+  const [ripartenzaText, setRipartenzeText] = useState(() => formatRipartenza(90));
   const [ripartenzaSecondi, setRipartenzaSecondi] = useState(90);
   const [salvatoFeedback, setSalvatoFeedback] = useState<string | null>(null);
   const [selectedAthleteId, setSelectedAthleteId] = useState<number | ''>('');
@@ -145,11 +129,13 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
   );
   const assignedCount = assignedAthleteIds.size;
 
-  // Le corsie vuote non occupano spazio: resta solo il primo slot libero in coda.
+  // Le corsie vuote non occupano spazio: restano solo quelle con atleti.
+  // Se non ce n'è nessuna se ne mostra una sola come slot di lavoro.
   const visibleLanes = useMemo(() => {
     const nonEmpty = lanes.filter(lane => lane.athletes.length > 0);
+    if (nonEmpty.length > 0) return nonEmpty;
     const firstEmpty = lanes.find(lane => lane.athletes.length === 0);
-    return firstEmpty ? [...nonEmpty, firstEmpty] : nonEmpty;
+    return firstEmpty ? [firstEmpty] : [];
   }, [lanes]);
   const displayIndexById = useMemo(
     () => new Map(visibleLanes.map((lane, index) => [lane.id, index + 1] as const)),
@@ -310,12 +296,6 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     });
   };
 
-  const updateLaneRipartenza = (laneId: number, seconds: number) => {
-    setLanes(current => current.map(lane =>
-      lane.id === laneId ? { ...lane, ripartenzaSecondi: seconds } : lane
-    ));
-  };
-
   const addLane = () => {
     if (lanes.length >= MAX_LANES) return;
     setLanes(current => {
@@ -325,12 +305,6 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
       const id = Math.max(0, ...current.map(lane => lane.id)) + 1;
       return [...current, { id, laneNumber, ripartenzaSecondi, athletes: [] }];
     });
-  };
-
-  const removeLane = (laneId: number) => {
-    setLanes(current => current.length <= 1
-      ? current
-      : current.filter(lane => lane.id !== laneId || lane.athletes.length > 0));
   };
 
   const addAthleteToLane = (laneId: number) => {
@@ -346,18 +320,6 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
         athletes: [...lane.athletes, createAthlete(athlete, `ath-${athlete.id}-${idRef.current}`)],
       };
     }));
-  };
-
-  const removeAthleteFromLane = (laneId: number, athleteId: string) => {
-    setLanes(current => current.map(lane => lane.id === laneId
-      ? { ...lane, athletes: lane.athletes.filter(athlete => athlete.id !== athleteId) }
-      : lane));
-    setSelectedStartAthleteIds(current => {
-      if (!current.has(athleteId)) return current;
-      const next = new Set(current);
-      next.delete(athleteId);
-      return next;
-    });
   };
 
   const moveAthleteToLane = (sourceLaneId: number, athleteId: string, destinationLaneId: number) => {
@@ -429,50 +391,32 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
           <button type="button" onClick={resetMaster} aria-label="Azzera sessione" className="timer-console-reset">
             <RotateCcw size={17} />
           </button>
-          <label className="timer-setting flex-1 min-w-0">
-            <div className="w-full flex items-center">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Vasca</span>
-            </div>
-            <select
-              value={vascaMetri}
-              onChange={event => setVascaMetri(Number(event.target.value) as 25 | 50)}
-              aria-label="Lunghezza vasca"
-              className="bg-transparent font-headline font-bold text-base sm:text-lg text-on-surface focus:outline-none cursor-pointer w-full"
-            >
-              <option value={25}>25 metri</option>
-              <option value={50}>50 metri</option>
-            </select>
-          </label>
-          <label className="timer-setting flex-1 min-w-0">
-            <div className="w-full flex items-center">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Ripartenza</span>
-            </div>
-            <div className="flex items-center gap-1 w-full">
-              <input
-                type="text"
-                inputMode="decimal"
-                value={ripartenzaText}
-                placeholder="m.ss"
-                aria-label="Ripartenza globale in formato minuti.secondi"
-                onChange={event => {
-                  const text = event.target.value;
-                  setRipartenzeText(text);
-                  const parsed = parseMSS(text);
-                  if (parsed !== null) {
-                    setRipartenzaSecondi(parsed);
-                    setLanes(curr => curr.map(l => ({ ...l, ripartenzaSecondi: parsed })));
-                  }
-                }}
-                onBlur={() => {
-                  const parsed = parseMSS(ripartenzaText);
-                  const finalVal = parsed === null || parsed < 5 ? 90 : parsed;
-                  setRipartenzeText(formatMSS(finalVal));
-                  setRipartenzaSecondi(finalVal);
-                  setLanes(curr => curr.map(l => ({ ...l, ripartenzaSecondi: finalVal })));
-                }}
-                className="w-full bg-transparent font-headline font-bold text-base sm:text-lg text-on-surface focus:outline-none tabular-nums"
-              />
-            </div>
+          <label className="timer-setting is-inline flex-1 min-w-0">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Ripartenza</span>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={ripartenzaText}
+              placeholder="45 s / 1.30"
+              aria-label="Ripartenza globale in formato 45 s, 2 m o 1.30"
+              onChange={event => {
+                const text = event.target.value;
+                setRipartenzeText(text);
+                const parsed = parseRipartenza(text);
+                if (parsed !== null) {
+                  setRipartenzaSecondi(parsed);
+                  setLanes(curr => curr.map(l => ({ ...l, ripartenzaSecondi: parsed })));
+                }
+              }}
+              onBlur={() => {
+                const parsed = parseRipartenza(ripartenzaText);
+                const finalVal = parsed === null || parsed < 5 ? 90 : parsed;
+                setRipartenzeText(formatRipartenza(finalVal));
+                setRipartenzaSecondi(finalVal);
+                setLanes(curr => curr.map(l => ({ ...l, ripartenzaSecondi: finalVal })));
+              }}
+              className="flex-1 bg-transparent font-headline font-bold text-sm text-on-surface focus:outline-none tabular-nums text-center"
+            />
           </label>
         </div>
       </section>
@@ -536,22 +480,22 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
         {visibleLanes.map((lane, laneIdx) => (
           <article key={lane.id} className="cronometro-lane-card">
             <header className="cronometro-lane-card-header">
-              <span className="lane-number">C{laneIdx + 1}</span>
+              <span className="lane-number">Corsia {laneIdx + 1}</span>
               <span className="lane-athlete-count">{lane.athletes.length}<span>/{MAX_ATHLETES_PER_LANE}</span></span>
 
               <div className="flex items-center gap-1 ml-auto mr-1">
-                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Rip:</span>
+                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Ripartenza:</span>
                 <input
                   type="text"
                   inputMode="decimal"
-                  value={lane.ripartenzaText ?? formatMSS(lane.ripartenzaSecondi ?? ripartenzaSecondi)}
-                  placeholder="m.ss"
-                  aria-label={`Ripartenza corsia ${laneIdx + 1} in formato minuti.secondi`}
+                  value={lane.ripartenzaText ?? formatRipartenza(lane.ripartenzaSecondi ?? ripartenzaSecondi)}
+                  placeholder="1.30"
+                  aria-label={`Ripartenza corsia ${laneIdx + 1} in formato 45 s, 2 m o 1.30`}
                   onChange={e => {
                     const text = e.target.value;
                     setLanes(curr => curr.map(l => {
                       if (l.id !== lane.id) return l;
-                      const parsed = parseMSS(text);
+                      const parsed = parseRipartenza(text);
                       return {
                         ...l,
                         ripartenzaText: text,
@@ -562,7 +506,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                   onBlur={() => {
                     setLanes(curr => curr.map(l => {
                       if (l.id !== lane.id) return l;
-                      const parsed = parseMSS(l.ripartenzaText ?? '');
+                      const parsed = parseRipartenza(l.ripartenzaText ?? '');
                       const finalVal = parsed === null || parsed < 5 ? 90 : parsed;
                       return {
                         ...l,
@@ -575,11 +519,6 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                 />
               </div>
 
-              {lane.athletes.length === 0 && lanes.length > 1 && (
-                <button type="button" onClick={() => removeLane(lane.id)} className="lane-remove-button" aria-label={`Rimuovi corsia ${laneIdx + 1}`}>
-                  <X size={15} />
-                </button>
-              )}
               {lane.athletes.length < MAX_ATHLETES_PER_LANE && availableAthletes.length > 0 && (
                 <button
                   type="button"
@@ -658,18 +597,10 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                         {visibleLanes
                           .filter(destination => destination.id !== lane.id && destination.athletes.length < MAX_ATHLETES_PER_LANE)
                           .map(destination => (
-                            <option key={destination.id} value={destination.id}>C{displayIndexById.get(destination.id)}</option>
+                            <option key={destination.id} value={destination.id}>Corsia {displayIndexById.get(destination.id)}</option>
                           ))}
                       </select>
                     )}
-                    <button
-                      type="button"
-                      className="athlete-remove-button"
-                      onClick={() => removeAthleteFromLane(lane.id, athlete.id)}
-                      aria-label={`Rimuovi ${athlete.atletaNome} dalla corsia ${laneIdx + 1}`}
-                    >
-                      <X size={14} />
-                    </button>
                     {athlete.splitList.length > 0 && (
                       <div className="athlete-latest-split">
                         <span>Lap {athlete.splitList[0].lap} · {athlete.splitList[0].time}</span>
