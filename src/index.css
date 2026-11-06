@@ -931,7 +931,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    min-height: 2.75rem;
+    height: 3.375rem;
+    min-height: 3.375rem;
     padding: 0 0.625rem;
     border: 1px solid var(--color-outline-variant);
     border-radius: 0.875rem;
@@ -1067,6 +1068,11 @@
     border-radius: 1rem;
     background: var(--color-surface-container-lowest);
     box-shadow: var(--shadow-card);
+  }
+
+  .cronometro-lane-card:nth-child(even) {
+    background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface-container-lowest));
+    border-top-color: var(--color-tertiary);
   }
 
   .cronometro-lane-card-header {
