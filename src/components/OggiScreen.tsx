@@ -302,7 +302,15 @@ const OggiContent: React.FC = () => {
           </div>
           <div className="font-headline font-bold text-on-surface truncate" title={statusLabel}>
             {statusLabel}
-            {isGiornoAllenamento ? ` · ${volumeSessione >= 1000 ? `${(volumeSessione / 1000).toFixed(1).replace('.', ',')} km` : `${volumeSessione} m`}` : ''}
+            {isGiornoAllenamento && (microCorrente?.luogo || microCorrente?.inizioHHMM) ? (
+              <>
+                {' · '}
+                {microCorrente.luogo || ''}
+                {microCorrente.inizioHHMM && microCorrente.fineHHMM && ` ${microCorrente.inizioHHMM}-${microCorrente.fineHHMM}`}
+              </>
+            ) : isGiornoAllenamento ? (
+              ` · ${volumeSessione >= 1000 ? `${(volumeSessione / 1000).toFixed(1).replace('.', ',')} km` : `${volumeSessione} m`}`
+            ) : ''}
           </div>
         </div>
         {prossimaGara && (
@@ -345,7 +353,11 @@ const OggiContent: React.FC = () => {
             </div>
           )}
 
-          <CodiciSeduta codici={propostaCodici} titolo={atletaSel ? 'Codici atleta' : 'Codici comuni'} compatto />
+          <CodiciSeduta codici={propostaCodici} compatto />
+          <div className="flex items-center justify-end gap-1.5 text-[11px] text-on-surface-variant">
+            <Clock size={13} />
+            <span>{parametriSeduta.durataMin} min · {parametriSeduta.vascaMetri} m</span>
+          </div>
 
           {!atletaSel && dettaglioSquadra && dettaglioSquadra.varianti.length > 0 && (
             <div className="rounded-xl bg-surface-container-low border border-outline-variant p-2 space-y-1">

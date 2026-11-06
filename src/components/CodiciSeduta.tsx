@@ -7,10 +7,10 @@ interface Props {
   compatto?: boolean;
 }
 
-export const CodiciSeduta: React.FC<Props> = ({ codici, titolo = 'Focus della seduta', compatto = false }) => (
+export const CodiciSeduta: React.FC<Props> = ({ codici, titolo, compatto = false }) => (
   <section className={`rounded-2xl border border-primary/20 bg-primary/5 ${compatto ? 'p-3' : 'p-5 sm:p-6'}`}>
-    <div className="text-xs font-bold uppercase tracking-wider text-primary">{titolo}</div>
-    <div className={`mt-2 flex flex-wrap items-center gap-2 ${compatto ? '' : 'sm:gap-3'}`} aria-label={`Codici: ${codici.join(' + ')}`}>
+    {titolo && <div className="text-xs font-bold uppercase tracking-wider text-primary mb-2">{titolo}</div>}
+    <div className={`flex flex-wrap items-center gap-2 ${compatto ? '' : 'sm:gap-3'}`} aria-label={`Codici: ${codici.join(' + ')}`}>
       {codici.map((codice, index) => (
         <React.Fragment key={codice}>
           {index > 0 && <span className="text-lg font-bold text-on-surface-variant" aria-hidden="true">+</span>}
