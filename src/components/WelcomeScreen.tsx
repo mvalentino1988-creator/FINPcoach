@@ -73,7 +73,7 @@ export const WelcomeScreen: React.FC<Props> = ({ onReady }) => {
             className="group w-full text-left rounded-2xl p-5 border border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/15 hover:border-white/30 transition-all duration-200 active:scale-[0.98]"
           >
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-orange flex items-center justify-center shrink-0 shadow-orange-glow group-hover:scale-105 transition-transform">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-orange flex items-center justify-center shrink-0 shadow-tertiary-glow group-hover:scale-105 transition-transform">
                 <Users size={22} className="text-white" />
               </div>
               <div className="flex-1 min-w-0">

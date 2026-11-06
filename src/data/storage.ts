@@ -3,6 +3,7 @@ import {
   Atleta,
   Chiusura,
   CondizioneMedica,
+  CustomWorkout,
   Gara,
   ImpostazioniPiano,
   LogSeduta,
@@ -110,11 +111,11 @@ export class FINPStorage {
     save(STORAGE_KEYS.CUSTOM_WORKOUTS, []);
   }
 
-  static getCustomWorkouts(): any[] {
-    return load<any[]>(STORAGE_KEYS.CUSTOM_WORKOUTS, []);
+  static getCustomWorkouts(): CustomWorkout[] {
+    return load<CustomWorkout[]>(STORAGE_KEYS.CUSTOM_WORKOUTS, []);
   }
 
-  static saveCustomWorkouts(workouts: any[]) {
+  static saveCustomWorkouts(workouts: CustomWorkout[]) {
     save(STORAGE_KEYS.CUSTOM_WORKOUTS, workouts);
   }
 

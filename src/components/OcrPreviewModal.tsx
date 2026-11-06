@@ -23,7 +23,7 @@ export const OcrPreviewModal: React.FC<Props> = ({ isOpen, initialText, onConfir
   const serieParsed = ParserScheda.parseSerie(text);
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 backdrop-blur-xs">
+    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 backdrop-blur-sm">
       <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl p-4 sm:p-6 max-w-lg w-full shadow-float space-y-4 border border-slate-200/70 max-h-[92dvh] overflow-y-auto">
         <div className="flex items-start justify-between gap-3 border-b border-slate-200/70 pb-3">
           <div className="flex items-center gap-3 min-w-0">

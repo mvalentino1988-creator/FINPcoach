@@ -27,8 +27,8 @@ export const BadgeCodice: React.FC<Props> = ({ codice, className = '' }) => {
       </button>
 
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-inverse-surface/50 backdrop-blur-[2px]">
-          <div className="ds-sheet sm:rounded-xl sm:max-w-sm sm:w-full sm:shadow-float p-5 sm:p-5 max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-surface-container-lowest rounded-t-3xl sm:rounded-2xl border border-outline-variant border-b-0 sm:border-b shadow-float p-5 w-full sm:max-w-sm sm:w-full max-h-[80vh] overflow-y-auto">
             <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-200/70">
               <div className="flex items-center gap-3 min-w-0">
                 <span

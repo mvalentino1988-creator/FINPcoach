@@ -52,7 +52,7 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 backdrop-blur-xs">
+    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 backdrop-blur-sm">
       <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl p-4 sm:p-6 max-w-3xl w-full shadow-float space-y-4 border border-slate-200/70 max-h-[92dvh] flex flex-col">
         <div className="flex items-center justify-between border-b border-slate-200/70 pb-3 shrink-0">
           <div className="flex items-center gap-2">

@@ -41,21 +41,21 @@ export default {
         'on-primary-fixed':          'var(--color-on-primary-fixed, #ffffff)',
 
         /* Secondary — Teal */
-        secondary:                   '#0d9488',
-        'secondary-container':       '#ccfbf1',
-        'on-secondary':              '#0f766e',
-        'on-secondary-container':    '#115e59',
+        secondary:                   'rgb(var(--color-secondary-rgb, 13 148 136) / <alpha-value>)',
+        'secondary-container':       'var(--color-secondary-container, #ccfbf1)',
+        'on-secondary':              'var(--color-on-secondary, #ffffff)',
+        'on-secondary-container':    'var(--color-on-secondary-container, #134e4a)',
         'secondary-fixed':           '#5eead4',
         'on-secondary-fixed':        '#134e4a',
 
-        /* Tertiary — Vibrant Coral CTA */
-        tertiary:                    '#f97316',
-        'tertiary-container':        '#fdba74',
-        'on-tertiary':               '#ffffff',
-        'on-tertiary-container':     '#ffffff',
-        'tertiary-fixed':            '#ffedd5',
-        'tertiary-fixed-dim':        '#fdba74',
-        'on-tertiary-fixed':         '#431407',
+        /* Tertiary — Warm accent */
+        tertiary:                    'rgb(var(--color-tertiary-rgb, 234 88 12) / <alpha-value>)',
+        'tertiary-container':        'var(--color-tertiary-container, #ffedd5)',
+        'on-tertiary':               'var(--color-on-tertiary, #ffffff)',
+        'on-tertiary-container':     'var(--color-on-tertiary-container, #7c2d12)',
+        'tertiary-fixed':            'var(--color-tertiary-fixed, #ffedd5)',
+        'tertiary-fixed-dim':        'var(--color-tertiary-fixed-dim, #fdba74)',
+        'on-tertiary-fixed':         'var(--color-on-tertiary-fixed, #431407)',
 
         /* Semantic */
         success:                     '#059669',
@@ -119,6 +119,14 @@ export default {
         sans:     ["'Public Sans'", 'system-ui', 'sans-serif'],
         headline: ["'Space Grotesk'", 'system-ui', 'sans-serif'],
         mono:     ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
+        /* Alias retro-compatibili: nel markup storico esistono classi
+           come font-body-bold, font-headline-sm e font-label-caps che
+           altrimenti non generano nulla e facevano ereditare il font
+           sbagliato. */
+        'body-bold':    ["'Public Sans'", 'system-ui', 'sans-serif'],
+        'body-base':    ["'Public Sans'", 'system-ui', 'sans-serif'],
+        'headline-sm':  ["'Space Grotesk'", 'system-ui', 'sans-serif'],
+        'label-caps':   ["'Space Grotesk'", 'system-ui', 'sans-serif'],
       },
 
       fontSize: {

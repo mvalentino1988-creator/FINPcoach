@@ -17,10 +17,29 @@ import { IndicatoreCodici } from './IndicatoreCodici';
 import { FINPStorage } from '../data/storage';
 import { ParserScheda } from '../domain/parserScheda';
 import { formattaData, todayISO } from '../domain/dateUtils';
+import { formattaTempo } from '../domain/tempoUtils';
+import {
+  etichettaTipoLavoro,
+  passoMedioCorsia,
+  profiloCorsiaAtleta,
+  suggerisciComposizioneCorsie,
+  tipoPrevalenteCorsia,
+  type TipoLavoroCorsia,
+} from '../domain/composizioneCorsie';
+import { generaCodiciSeduta } from '../domain/generatoreCodiciSeduta';
 import { CodiceAllenamentoKey } from '../types';
 
+const FOCUS_TIPO: Record<TipoLavoroCorsia, string> = {
+  V: 'velocità e reattività',
+  M: 'soglia e VO2',
+  F: 'fondo e tecnica',
+  N: 'lavoro da definire',
+};
+
+const CODICI_VALIDI = new Set<CodiceAllenamentoKey>(['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'C3', 'D']);
+
 export const RegiaTecnicaCorsie: React.FC = () => {
-  const { atleti } = useApp();
+  const { atleti, tempi, condizioni, micro, meso } = useApp();
   const [vascaAttiva, setVascaAttiva] = useState<'50m' | '25m'>('50m');
   const [ripartizioneAperta, setRipartizioneAperta] = useState(false);
   const [corsieAtleti, setCorsieAtleti] = useState<number[][]>(() =>
@@ -28,6 +47,35 @@ export const RegiaTecnicaCorsie: React.FC = () => {
       atleti.filter((_, athleteIndex) => athleteIndex % 4 === laneIndex).map(atleta => atleta.id)
     )
   );
+
+  const profiliCorsia = useMemo(
+    () => new Map(atleti.map(a => [a.id, profiloCorsiaAtleta(a, tempi)])),
+    [atleti, tempi]
+  );
+
+  const microCorrente = useMemo(
+    () => micro.find(m => m.inizio <= todayISO() && m.fine >= todayISO()) ?? micro[0] ?? null,
+    [micro]
+  );
+  const mesoCorrente = useMemo(
+    () => (microCorrente ? meso.find(me => me.id === microCorrente.mesocicloId) ?? null : null),
+    [meso, microCorrente]
+  );
+  const codiciFocus = useMemo(
+    () => generaCodiciSeduta({
+      fase: mesoCorrente?.fase ?? 'PREPARAZIONE_GENERALE',
+      tipoMicro: microCorrente?.tipo ?? 'CARICO',
+      condizioni: condizioni.filter(c => c.attiva),
+    }).codici,
+    [mesoCorrente, microCorrente, condizioni]
+  );
+
+  const suggerisci = () => {
+    setCorsieAtleti(suggerisciComposizioneCorsie(atleti, tempi));
+  };
+  const azzera = () => {
+    setCorsieAtleti(Array.from({ length: 4 }, () => []));
+  };
 
   const sedutaOggi = useMemo(() => {
     const oggi = todayISO();
@@ -41,7 +89,14 @@ export const RegiaTecnicaCorsie: React.FC = () => {
     const ripartizione: Partial<Record<CodiceAllenamentoKey, number>> = {};
     for (const s of serie) {
       const codice = s.codice as CodiceAllenamentoKey;
+      if (!CODICI_VALIDI.has(codice)) continue;
       ripartizione[codice] = (ripartizione[codice] ?? 0) + s.metriTotali;
+    }
+
+    const codiciStrutturati = (workout.codici ?? []).filter((c): c is CodiceAllenamentoKey => CODICI_VALIDI.has(c as CodiceAllenamentoKey));
+    if (serie.length === 0 && codiciStrutturati.length > 0 && volume > 0) {
+      const quota = Math.round(volume / codiciStrutturati.length);
+      for (const codice of codiciStrutturati) ripartizione[codice] = quota;
     }
     return { volume, ripartizione };
   }, []);
@@ -116,6 +171,11 @@ export const RegiaTecnicaCorsie: React.FC = () => {
             dettaglio={ripartizioneAperta}
           />
         )}
+
+        <div className="flex items-center justify-between gap-2 rounded-xl bg-primary/5 border border-primary/15 px-3 py-2">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-primary">Focus codici</span>
+          <span className="font-headline font-bold text-primary text-sm">{codiciFocus.join(' + ')}</span>
+        </div>
       </section>
 
       {/* 4. BLOCCO PRINCIPALE: ASSEGNAZIONE CORSIE (CARD COMPATTE CON INDICATORE MEDICO) */}
@@ -127,7 +187,27 @@ export const RegiaTecnicaCorsie: React.FC = () => {
             </h3>
             <p className="text-xs text-on-surface-variant mt-0.5">Modifica gli atleti direttamente durante la seduta.</p>
           </div>
-          <span className="text-xs font-bold text-primary font-headline">{corsieAtleti.length} Corsie</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-primary font-headline">{corsieAtleti.length} Corsie</span>
+            <button
+              type="button"
+              onClick={azzera}
+              className="ds-btn-ghost !min-h-[36px] !px-2.5 !text-[11px]"
+              title="Svuota tutte le corsie"
+            >
+              <Minus size={14} />
+              <span>Svuota</span>
+            </button>
+            <button
+              type="button"
+              onClick={suggerisci}
+              className="ds-btn-secondary !min-h-[36px] !px-2.5 !text-[11px]"
+              title="Composizione suggerita da lavoro e passo 100m"
+            >
+              <Sliders size={14} />
+              <span>Suggerisci</span>
+            </button>
+          </div>
         </div>
 
         <div className="app-fixed-scroll flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 content-start gap-2 sm:gap-3 pr-0.5 pb-3 sm:pb-6">
@@ -135,6 +215,8 @@ export const RegiaTecnicaCorsie: React.FC = () => {
             const atletiCorsia = atletaIds
               .map(id => atleti.find(atleta => atleta.id === id))
               .filter((atleta): atleta is typeof atleti[number] => atleta !== undefined);
+            const passoMedio = passoMedioCorsia(atletaIds, profiliCorsia);
+            const tipoCorsia = tipoPrevalenteCorsia(atletaIds, profiliCorsia);
             return (
             <div
               key={laneIndex}
@@ -145,14 +227,18 @@ export const RegiaTecnicaCorsie: React.FC = () => {
                 <span className="w-7 h-7 rounded-xl bg-primary text-on-primary font-headline text-xs font-bold flex items-center justify-center shadow-sm shrink-0">
                     C{laneIndex + 1}
                   </span>
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-surface-container text-primary font-mono truncate">Passo gara</span>
+                  <span className="px-2 py-0.5 rounded-md bg-surface-container text-primary font-bold text-xs font-headline truncate">
+                    {atletiCorsia.length > 0 ? etichettaTipoLavoro(tipoCorsia) : 'Libera'}
+                  </span>
                 </div>
 
                 {atletiCorsia.length === 0 ? (
                   <div className="text-xs text-on-surface-variant italic py-2">Corsia libera</div>
                 ) : (
                   <div className="space-y-1.5">
-                    {atletiCorsia.map(ath => (
+                    {atletiCorsia.map(ath => {
+                      const profilo = profiliCorsia.get(ath.id);
+                      return (
                       <div key={ath.id} className="p-2 rounded-xl bg-surface-container-lowest border border-outline-variant flex items-center gap-1 text-xs">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5">
@@ -163,6 +249,11 @@ export const RegiaTecnicaCorsie: React.FC = () => {
                               {ath.classeS != null ? `S${ath.classeS}` : 'S?'}
                             </span>
                           </div>
+                          {profilo?.passo100mCentesimi != null && (
+                            <div className="text-[10px] text-on-surface-variant truncate">
+                              ~{formattaTempo(profilo.passo100mCentesimi)}/100 · {etichettaTipoLavoro(profilo.tipoLavoro)}
+                            </div>
+                          )}
                         </div>
                         <button
                           type="button"
@@ -173,7 +264,8 @@ export const RegiaTecnicaCorsie: React.FC = () => {
                           <Minus size={15} />
                         </button>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
                 <label className="block">
@@ -196,8 +288,15 @@ export const RegiaTecnicaCorsie: React.FC = () => {
                 </label>
               </div>
 
-              <div className="text-xs text-on-surface-variant font-medium pt-1.5 border-t border-outline-variant truncate">
-                {atletiCorsia.length > 0 ? `${atletiCorsia.length} atleti assegnati` : 'Pronta per assegnazione'}
+              <div className="text-xs text-on-surface-variant font-medium pt-1.5 border-t border-outline-variant space-y-0.5">
+                <div className="truncate">
+                  {atletiCorsia.length > 0
+                    ? `${atletiCorsia.length} atleti · passo medio ${passoMedio != null ? `~${formattaTempo(passoMedio)}/100` : '—'}`
+                    : 'Pronta per assegnazione'}
+                </div>
+                <div className="truncate text-primary/80">
+                  Focus: {FOCUS_TIPO[tipoCorsia]}
+                </div>
               </div>
             </div>
             );

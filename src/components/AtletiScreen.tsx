@@ -1,37 +1,28 @@
 import React, { useState } from 'react';
 import { useApp } from '../data/AppContext';
-import { Atleta, CondizioneMedica, Assenza, Tempo, SchedaSeduta, StimaClassiFINP, LogSeduta } from '../types';
+import { Atleta, CodiceAllenamentoKey, CondizioneMedica, Assenza, Tempo, StimaClassiFINP, LogSeduta } from '../types';
 import { formattaData, parseData, todayISO, yearsBetween, isBefore } from '../domain/dateUtils';
 import { AtletaValidator } from '../domain/validatori';
 import { ClassiSportive } from '../domain/classiSportive';
 import { FINPSpecialistAI } from '../domain/finpAnalisiMedica';
 import { VolumeIndividuale } from '../domain/volumeIndividuale';
-import { GeneratoreSmartSeduta } from '../domain/generatoreSmartSeduta';
+import { generaCodiciSeduta } from '../domain/generatoreCodiciSeduta';
 import { calcolaVolumeSessione } from '../domain/volumePrescritto';
 import { risolviParametriSeduta, seduteSettimana } from '../domain/parametriSeduta';
 import { CalcoloRitmiRipartenze } from '../domain/calcoloRitmiRipartenze';
 import { formattaTempo, parseTempo } from '../domain/tempoUtils';
 import { ElencoAvvisi } from './ElencoAvvisi';
-import { SchedaSedutaModal } from './SchedaSedutaModal';
+import { CodiciSeduta } from './CodiciSeduta';
 import { Sezione } from './Sezione';
-import { PageHeader } from './PageHeader';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { AtletaBiomeccanicaView } from './AtletaBiomeccanicaView';
 import { GareAmmissibiliCard } from './GareAmmissibiliCard';
-import { Marquee } from './Marquee';
 import {
   AlertTriangle,
   Calendar,
   Check,
-  ChevronRight,
-  ChevronDown,
-  ChevronUp,
-  ClipboardList,
   Edit2,
-  FileText,
   HeartPulse,
-  Info,
-  Plus,
   RefreshCw,
   Search,
   Sliders,
@@ -71,17 +62,6 @@ export const AtletiScreen: React.FC = () => {
   const [selezionatoId, setSelezionatoId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState<'ALL' | 'S1-S6' | 'S7-S10' | 'S11-S13' | 'S14'>('ALL');
-  const [openAthletes, setOpenAthletes] = useState<Set<number>>(new Set());
-
-  const toggleAccordion = (id: number, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setOpenAthletes(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
 
   const oggi = todayISO();
   const atletaSel = atleti.find(a => a.id === selezionatoId);
@@ -120,7 +100,7 @@ export const AtletiScreen: React.FC = () => {
   return (
     <div className="flex flex-1 min-h-0 flex-col gap-3 overflow-hidden">
       {/* Team Summary Hero Card with "+ Nuovo" Button */}
-      <section className="shrink-0 rounded-2xl bg-surface-container-lowest text-on-surface border border-outline-variant p-3.5 sm:p-4 shadow-card space-y-3">
+      <section className="shrink-0 ds-card p-3.5 sm:p-4 space-y-3">
         <div className="flex items-center justify-between gap-3">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-primary">Squadra FINP</span>
@@ -136,7 +116,6 @@ export const AtletiScreen: React.FC = () => {
         </div>
         <div className="flex items-center justify-between gap-2 text-xs text-on-surface-variant pt-1.5 border-t border-outline-variant">
           <span>{atleti.length} {atleti.length === 1 ? 'Atleta registrato' : 'Atleti registrati'}</span>
-          <span className="font-bold text-primary">{condizioni.filter(c => c.attiva).length} condizioni registrate</span>
         </div>
       </section>
 
@@ -199,144 +178,64 @@ export const AtletiScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Athletes List Accordion */}
-      <div className="flex flex-col gap-3">
+      {/* Athletes list */}
+      <div className="flex flex-col gap-2.5">
         {atletiFiltrati.map(a => {
-          const mieCondizioni = condizioni.filter(c => c.atletaId === a.id);
-          const mieAssenze = assenze.filter(ass => ass.atletaId === a.id);
           const mieiTempi = tempi.filter(t => t.atletaId === a.id);
-          const condAttive = mieCondizioni.filter(c => c.attiva).length;
           const eta = a.dataNascita ? yearsBetween(a.dataNascita, oggi) : null;
 
-          const mesoCorrente = micro.find(m => !isBefore(oggi, m.inizio) && !isBefore(m.fine, oggi))
-            ? meso.find(me => me.id === micro.find(m => !isBefore(oggi, m.inizio) && !isBefore(m.fine, oggi))?.mesocicloId)
-            : null;
-
+          const microCorrente = micro.find(m => !isBefore(oggi, m.inizio) && !isBefore(m.fine, oggi));
+          const mesoCorrente = microCorrente ? meso.find(me => me.id === microCorrente.mesocicloId) : null;
           const formCheck = CalcoloRitmiRipartenze.valutaNecessitaFormCheck(a, mieiTempi, mesoCorrente);
-          const isOpen = openAthletes.has(a.id);
           const haTempi = mieiTempi.length > 0;
           const migliorTempo = haTempi
             ? formattaTempo([...mieiTempi].sort((x, y) => x.centesimi - y.centesimi)[0].centesimi)
             : '—';
 
           return (
-            <div
+            <button
               key={a.id}
-              className="bg-surface-container-lowest border border-outline-variant rounded-2xl transition-all shadow-card overflow-hidden"
+              type="button"
+              onClick={() => setSelezionatoId(a.id)}
+              className="w-full text-left ds-card p-3.5 flex items-center gap-3 hover:bg-surface-container-low transition"
             >
-              {/* Accordion Closed Row (~64dp height, clickable) */}
-              <button
-                type="button"
-                onClick={e => toggleAccordion(a.id, e)}
-                className="w-full min-h-[64px] px-3.5 py-2.5 flex items-center justify-between gap-3 text-left hover:bg-surface-container-low transition"
-              >
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  {/* Avatar */}
-                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-primary-container text-white font-headline text-sm font-bold flex items-center justify-center shadow-sm shrink-0">
-                    {a.nome?.[0] || 'A'}{a.cognome?.[0] || 'T'}
-                  </div>
+              <div className="w-11 h-11 rounded-2xl bg-primary text-on-primary font-headline text-sm font-bold flex items-center justify-center shrink-0">
+                {a.nome?.[0] || 'A'}{a.cognome?.[0] || 'T'}
+              </div>
 
-                  <div className="min-w-0 flex-1">
-                    <div className="font-headline font-bold text-sm text-on-surface truncate">
-                      {a.cognome} {a.nome}
-                    </div>
-                    <div className="mt-1">
-                      <span className="inline-flex max-w-full px-2 py-0.5 rounded-full bg-surface-container text-xs text-on-surface-variant font-medium whitespace-nowrap">
-                        {a.stato === 'UFFICIALE' ? 'Nazionale A' : 'In Attesa'}
-                      </span>
-                    </div>
-                  </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-headline font-bold text-sm text-on-surface truncate">
+                  {a.cognome} {a.nome}
                 </div>
-
-                {/* Metadata Stack: Class & Alert on same height, Age written out below */}
-                <div className="flex flex-col items-center shrink-0 px-0 sm:px-2 gap-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="px-2.5 py-0.5 rounded-lg bg-surface-container text-primary font-bold text-xs font-headline">
-                      S{a.classeS ?? '9'}
-                    </span>
-                    {(condAttive > 0 || formCheck.necessario) && (
-                      <div className="w-6 h-6 rounded-full bg-error-container text-error flex items-center justify-center shrink-0">
-                        <AlertTriangle size={13} />
-                      </div>
-                    )}
-                  </div>
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  <span className="px-2 py-0.5 rounded-full bg-surface-container text-primary font-bold text-[11px] font-headline">
+                    {formatClassi(a)}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-medium text-[11px]">
+                    {a.stato === 'UFFICIALE' ? 'Nazionale A' : 'In attesa'}
+                  </span>
                   {eta != null && (
-                    <span className="text-xs text-on-surface-variant font-medium text-center">
+                    <span className="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-medium text-[11px]">
                       {eta} anni
                     </span>
                   )}
                 </div>
+              </div>
 
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="text-right" aria-label={`Miglior tempo ${migliorTempo}`}>
-                    <div className="hidden sm:block text-[12px] font-bold text-on-surface-variant uppercase">Miglior Tempo</div>
-                    <div className={`text-base sm:text-lg font-headline font-bold tabular-nums ${haTempi ? 'text-tertiary' : 'text-on-surface-variant'}`}>
-                      {migliorTempo}
-                    </div>
-                  </div>
-
-                  <span className="w-8 h-8 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center shrink-0">
-                    {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              <div className="flex flex-col items-end gap-1.5 shrink-0">
+                {formCheck.necessario && (
+                  <span className="w-7 h-7 rounded-full bg-error-container text-error flex items-center justify-center" title="Aggiorna i tempi di riferimento">
+                    <AlertTriangle size={14} />
                   </span>
-                </div>
-              </button>
-
-              {/* Accordion Body (Open State) */}
-              {isOpen && (
-                <div className="p-4 bg-surface-container-low border-t border-outline-variant space-y-3 animate-fade-in text-xs">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <div className="flex items-center bg-surface-container-lowest text-primary px-3 py-1 rounded-xl border border-outline-variant font-bold">
-                      <span className="text-[12px] uppercase text-on-surface-variant mr-1.5">WPS:</span>
-                      <span>{formatClassi(a)}</span>
-                    </div>
-
-                    <span className="px-3 py-1 rounded-xl bg-surface-container-lowest text-on-surface font-bold border border-outline-variant">
-                      Stato: {a.stato === 'UFFICIALE' ? 'Nazionale A' : 'In Attesa'}
-                    </span>
-                  </div>
-
-                  {condAttive > 0 && (
-                    <div className="p-3 bg-error-container text-on-error-container rounded-xl flex items-start gap-3 border border-error/30 font-bold">
-                      <HeartPulse size={16} className="text-error shrink-0 mt-0.5" />
-                      <div>
-                        <div>{condAttive} {condAttive === 1 ? 'limitazione attiva' : 'limitazioni attive'}</div>
-                        <ul className="list-disc list-inside text-xs font-normal opacity-90 mt-1">
-                          {mieCondizioni.filter(c => c.attiva).map(c => (
-                            <li key={c.id}>{c.descrizione || c.limitazioni}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-
-                  {formCheck.necessario && (
-                    <div className="p-3 bg-warning-container text-on-warning-container rounded-xl flex items-center gap-3 font-bold border border-warning/30">
-                      <AlertTriangle size={16} className="text-warning shrink-0" />
-                      <span>Form Check Necessario: aggiorna i tempi di riferimento</span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-end gap-3 pt-2 border-t border-outline-variant">
-                    <button
-                      type="button"
-                      onClick={() => setSelezionatoId(a.id)}
-                      className="ds-btn-secondary !min-h-[48px] !px-4 text-xs"
-                    >
-                      <User size={14} />
-                      <span>Biomeccanica</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelezionatoId(a.id)}
-                      className="ds-btn-primary !min-h-[48px] !px-4 text-xs"
-                    >
-                      <Timer size={14} />
-                      <span>Tempi & Scheda</span>
-                    </button>
+                )}
+                <div className="text-right" aria-label={`Miglior tempo ${migliorTempo}`}>
+                  <div className="text-[10px] font-bold text-on-surface-variant uppercase">Miglior</div>
+                  <div className={`font-headline font-bold tabular-nums text-sm ${haTempi ? 'text-tertiary' : 'text-on-surface-variant'}`}>
+                    {migliorTempo}
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            </button>
           );
         })}
       </div>
@@ -448,7 +347,7 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
       <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl shadow-float max-w-lg w-full p-4 sm:p-6 border border-outline-variant max-h-[92dvh] overflow-y-auto">
         <div className="flex items-center justify-between pb-3 border-b border-outline-variant gap-2">
           <h3 className="font-bold text-on-surface text-lg whitespace-normal break-words">
@@ -686,7 +585,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
   impostazioni
 }) => {
   const [modificaOpen, setModificaOpen] = useState(false);
-  const [schedaSmart, setSchedaSmart] = useState<SchedaSeduta | null>(null);
+  const [codiciProposti, setCodiciProposti] = useState<CodiceAllenamentoKey[] | null>(null);
   const [gestioneTempiOpen, setGestioneTempiOpen] = useState(false);
 
   // New condition inputs
@@ -706,45 +605,16 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
   const alParsed = parseData(assAl);
   const assenzaValida = dalParsed != null && alParsed != null && !isBefore(alParsed, dalParsed);
 
-  const generaScheda = () => {
+  const generaCodici = () => {
     const microCorrente = micro.find((m: any) => !isBefore(oggi, m.inizio) && !isBefore(m.fine, oggi)) ?? micro[0];
     const mesoCorrente = microCorrente ? meso.find((me: any) => me.id === microCorrente.mesocicloId) : null;
 
-    const giorniAllenamento = parametriEffettivi.giorniAllenamento;
-    const parametri = risolviParametriSeduta(oggi, impostazioni, stagione);
-    const settimana = seduteSettimana(oggi, giorniAllenamento).map(iso => ({
-      data: iso,
-      parametri: risolviParametriSeduta(iso, impostazioni, stagione),
-    }));
-
-    const volumeSett = microCorrente ? VolumeIndividuale.settimana(microCorrente, atleta, assenze).metri : 1800;
-    const metriSeduta = calcolaVolumeSessione({
-      micro: microCorrente,
-      atleta,
-      assenze,
-      condizioni: condizioni.filter(c => c.atletaId === atleta.id && c.attiva),
-      tempi: tempi.filter(t => t.atletaId === atleta.id),
-      logSedute: log,
-      parametri,
-      durateSettimana: settimana,
-      volumeSettimanaFallback: volumeSett,
-    }).metriSessione;
-
-    const s = GeneratoreSmartSeduta.genera(
-      oggi,
-      metriSeduta,
-      mesoCorrente?.fase ?? 'PREPARAZIONE_SPECIFICA',
-      microCorrente?.tipo ?? 'CARICO',
-      atleta,
+    setCodiciProposti(generaCodiciSeduta({
+      fase: mesoCorrente?.fase ?? 'PREPARAZIONE_SPECIFICA',
+      tipoMicro: microCorrente?.tipo ?? 'CARICO',
+      etaAtleta: eta,
       condizioni,
-      tempi,
-      log,
-      mesoCorrente,
-      giorniAllenamento,
-      parametri
-    );
-
-    setSchedaSmart(s);
+    }).codici);
   };
 
   const [tabDettaglio, setTabDettaglio] = useState<'biomeccanica' | 'progressione' | 'certificati'>('biomeccanica');
@@ -759,7 +629,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
       <div className="bg-surface-container-lowest rounded-xl shadow-float max-w-2xl w-full max-h-[92vh] flex flex-col border border-outline-variant">
         {/* Athlete Top Bio Capsule - Stitch Aquatic Design System */}
         <div className="p-4 sm:p-5 border-b border-outline-variant flex flex-col gap-3 shrink-0 bg-surface-container-low rounded-t-2xl">
@@ -972,11 +842,11 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={generaScheda}
+                  onClick={generaCodici}
                   className="flex items-center justify-center gap-3 p-3.5 rounded-xl bg-primary-container hover:bg-primary text-on-primary font-bold text-xs transition shadow-card"
                 >
                   <Waves size={16} />
-                  <span>Genera Seduta Personalizzata 🏊‍♂️</span>
+                  <span>Proponi codici di oggi</span>
                 </button>
                 <button
                   type="button"
@@ -987,6 +857,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                   <span>Storico Tempi & Test ({tempi.length})</span>
                 </button>
               </div>
+              {codiciProposti && <CodiciSeduta codici={codiciProposti} titolo="Focus codici per oggi" compatto />}
 
               {/* Volume Target delle prossime 4 settimane */}
               <Sezione 
@@ -1208,13 +1079,6 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
         />
       )}
 
-      {schedaSmart && (
-        <SchedaSedutaModal
-          scheda={schedaSmart}
-          onChiudi={() => setSchedaSmart(null)}
-        />
-      )}
-
       {gestioneTempiOpen && (
         <ModalTempiAtleta
           atleta={atleta}
@@ -1275,7 +1139,7 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl shadow-float max-w-lg w-full p-4 sm:p-5 border border-outline-variant max-h-[92dvh] flex flex-col">
         <div className="flex items-center justify-between pb-3 border-b border-outline-variant gap-3 shrink-0">
           <h3 className="font-bold text-on-surface text-base truncate">

@@ -64,13 +64,14 @@ describe('IA esterna - parsing risposta', () => {
       parametri: { vascaMetri: 50, durataMin: 90 },
       volumeSessione: 2500,
       volumeSettimana: 9000,
-      condizioni: [],
       tempi: [],
-      note: [],
-    });
+    }, ['B2', 'C1']);
     expect(prompt).toContain('Vasca: 50 metri');
     expect(prompt).toContain('90 minuti');
     expect(prompt).toContain('2500 m');
+    expect(prompt).toContain('B2 + C1');
+    expect(prompt).toContain('Usa esclusivamente questi codici');
+    expect(prompt).not.toContain('Condizioni mediche');
     expect(prompt).toContain('JSON');
   });
 

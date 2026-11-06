@@ -31,6 +31,7 @@ import { EsercizioEditor } from './EsercizioEditor';
 import { BadgeCodice } from './BadgeCodice';
 import { formattaData, todayISO, parseData, addDays, isBefore, daysBetween, toDateObj, formatDataInput } from '../domain/dateUtils';
 import { useApp } from '../data/AppContext';
+import { CodiceAllenamentoKey } from '../types';
 import { ParserScheda } from '../domain/parserScheda';
 import { ParserApprendimento } from '../domain/parserApprendimento';
 import { FINPStorage } from '../data/storage';
@@ -52,11 +53,18 @@ interface CustomWorkout {
   creatoIl: string;
   atletaId: number | null;
   metriTotali?: number;
+  codici?: CodiceAllenamentoKey[];
+  fonte?: 'manuale' | 'ia' | 'codici' | 'ocr';
 }
+
+const CODICI_VALIDI_DATI = new Set<CodiceAllenamentoKey>(['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'C3', 'D']);
 
 export const DatiScreen: React.FC = () => {
   const { atleti } = useApp();
-  const [tab, setTab] = useState<DatiTab>('schede');
+  const [tab, setTab] = useState<DatiTab>(() => {
+    const saved = sessionStorage.getItem('finp_dati_tab');
+    return saved === 'schede' || saved === 'tempi' || saved === 'registro' || saved === 'biomeccanica' ? saved : 'schede';
+  });
   const [editMode, setEditMode] = useState(false);
   const [modalitaEditor, setModalitaEditor] = useState<ModalitaEditor>('testuale');
   const [customWorkout, setCustomWorkout] = useState('');
@@ -91,7 +99,8 @@ export const DatiScreen: React.FC = () => {
       testo: customWorkout,
       creatoIl: new Date().toISOString(),
       atletaId: selectedAtletaId,
-      metriTotali
+      metriTotali,
+      fonte: 'manuale'
     };
 
     const updated = [newWorkout, ...customWorkouts];
@@ -112,7 +121,8 @@ export const DatiScreen: React.FC = () => {
       testo,
       creatoIl: new Date().toISOString(),
       atletaId: selectedAtletaId,
-      metriTotali
+      metriTotali,
+      fonte: 'manuale'
     };
 
     const updated = [newWorkout, ...customWorkouts];
@@ -177,13 +187,17 @@ export const DatiScreen: React.FC = () => {
           <span className="ds-label shrink-0">Sezione:</span>
           <select
             value={tab}
-            onChange={e => setTab(e.target.value as DatiTab)}
+            onChange={e => {
+              const next = e.target.value as DatiTab;
+              setTab(next);
+              sessionStorage.setItem('finp_dati_tab', next);
+            }}
             className="w-full min-h-[44px] bg-surface-container-low border border-outline-variant rounded-xl px-3 font-headline font-bold text-xs sm:text-sm text-on-surface focus:border-primary"
           >
-            <option value="schede">📋 Schede Vasca</option>
-            <option value="tempi">⏱️ Tempi e Ripartenze</option>
-            <option value="registro">✅ Registro Presenze e Carico</option>
-            <option value="biomeccanica">📊 Analisi Biomeccanica & WPS</option>
+            <option value="schede">Schede vasca</option>
+            <option value="tempi">Tempi e ripartenze</option>
+            <option value="registro">Registro presenze e carico</option>
+            <option value="biomeccanica">Analisi biomeccanica e WPS</option>
           </select>
         </div>
       </div>
@@ -475,14 +489,24 @@ export const DatiScreen: React.FC = () => {
         initialText={ocrRawText}
         onConfirm={(finalText) => {
           const list = OcrWorkoutStandardizer.standardizzaEsepara(finalText, atleti);
-          const nuoviWorkouts: CustomWorkout[] = list.map(item => ({
-            id: (Date.now() + Math.random()).toString(),
-            data: workoutDate,
-            testo: item.testo,
-            creatoIl: new Date().toISOString(),
-            atletaId: item.atletaId,
-            metriTotali: ParserScheda.calcolaMetriDaTesto(item.testo)
-          }));
+          const nuoviWorkouts: CustomWorkout[] = list.map(item => {
+            const serie = ParserScheda.parseSerie(item.testo);
+            const codici = Array.from(new Set(
+              serie
+                .map(s => s.codice)
+                .filter((c): c is CodiceAllenamentoKey => CODICI_VALIDI_DATI.has(c as CodiceAllenamentoKey))
+            ));
+            return {
+              id: (Date.now() + Math.random()).toString(),
+              data: workoutDate,
+              testo: item.testo,
+              creatoIl: new Date().toISOString(),
+              atletaId: item.atletaId,
+              metriTotali: ParserScheda.calcolaMetriDaTesto(item.testo),
+              codici: codici.length > 0 ? codici : undefined,
+              fonte: 'ocr'
+            };
+          });
 
           const updated = [...nuoviWorkouts, ...customWorkouts];
           setCustomWorkouts(updated);

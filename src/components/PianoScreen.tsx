@@ -7,16 +7,14 @@ import {
   FASE_MESOCICLO_LABEL,
   Microciclo,
   ParametriSeduta,
-  SchedaSeduta,
   TipoMicrociclo,
   TIPO_MICROCICLO_LABEL
 } from '../types';
 import { formattaData, parseData, todayISO, isBefore, addDays, daysBetween, isInRange, formatDataInput } from '../domain/dateUtils';
 import { AutoPianificatore } from '../domain/autoPianificatore';
-import { GeneratoreSmartSeduta } from '../domain/generatoreSmartSeduta';
-import { IndicatoreCodici } from './IndicatoreCodici';
+import { generaCodiciSeduta } from '../domain/generatoreCodiciSeduta';
+import { CodiciSeduta } from './CodiciSeduta';
 import { ElencoAvvisi } from './ElencoAvvisi';
-import { SchedaSedutaModal } from './SchedaSedutaModal';
 import { PageHeader } from './PageHeader';
 import { Marquee } from './Marquee';
 import { normalizzaDurata } from '../domain/parametriSeduta';
@@ -100,6 +98,7 @@ const NuovaStagioneForm: React.FC<any> = ({
 export const PianoScreen: React.FC = () => {
   const {
     atleti,
+    condizioni,
     stagione,
     chiusure,
     gare,
@@ -131,7 +130,6 @@ export const PianoScreen: React.FC = () => {
   const [gareEspanso, setGareEspanso] = useState(false);
   const [vistaPiano, setVistaPiano] = useState<'parametri' | 'programmazione'>('programmazione');
   const [microSelezionato, setMicroSelezionato] = useState<Microciclo | null>(null);
-  const [schedaSmart, setSchedaSmart] = useState<SchedaSeduta | null>(null);
 
   const generaDateSedute = (inizioISO: string, fineISO: string, nSedute: number): string[] => {
     const start = parseData(inizioISO) ?? todayISO();
@@ -328,7 +326,7 @@ export const PianoScreen: React.FC = () => {
 
       {/* Modal Modifica Date Stagione */}
       {modificaDateOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
           <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl shadow-float max-w-md w-full border border-outline-variant max-h-[92dvh] flex flex-col overflow-hidden">
             <div className="p-4 sm:p-5 border-b border-outline-variant flex items-center justify-between gap-3 bg-surface-container-low shrink-0">
               <div className="flex items-center gap-3 min-w-0">
@@ -874,13 +872,6 @@ export const PianoScreen: React.FC = () => {
                         g => !isBefore(mi.fine, g.dal) && !isBefore(g.al, mi.inizio)
                       );
                       const metriSeduta = mi.sedutePreviste > 0 ? Math.round(mi.volumeTargetMetri / mi.sedutePreviste) : 1800;
-                      const schedaAnteprima = GeneratoreSmartSeduta.genera(
-                        mi.inizio,
-                        metriSeduta,
-                        activeMeso.fase,
-                        mi.tipo
-                      );
-
                       let cardBg = 'bg-surface-container-lowest border-outline-variant';
                       if (isCurrentWeek) cardBg = 'bg-primary-container/10 border-primary ring-2 ring-primary/30 shadow-pop';
                       else if (mi.tipo === 'CARICO') cardBg = 'bg-primary-fixed/25 border-primary-fixed-dim';
@@ -946,34 +937,20 @@ export const PianoScreen: React.FC = () => {
                               </span>
                               <div className="space-y-1.5 max-h-44 overflow-y-auto pr-0.5">
                                 {generaDateSedute(mi.inizio, mi.fine, mi.sedutePreviste).map((dataSeduta, sIdx) => {
-                                  const schedaSedutaGiorno = GeneratoreSmartSeduta.genera(
-                                    dataSeduta,
-                                    metriSeduta,
-                                    activeMeso?.fase ?? 'PREPARAZIONE_SPECIFICA',
-                                    mi.tipo
-                                  );
+                                  const codici = generaCodiciSeduta({
+                                    fase: activeMeso?.fase ?? 'PREPARAZIONE_SPECIFICA',
+                                    tipoMicro: mi.tipo,
+                                    condizioni: condizioni.filter(c => c.attiva),
+                                  }).codici;
                                   return (
                                     <div
                                       key={sIdx}
                                       className="p-3 rounded-xl bg-surface-container-lowest border border-outline-variant space-y-1 hover:border-primary transition"
                                     >
-                                      <div className="flex items-center justify-between text-xs font-bold">
-                                        <span className="text-primary font-headline">
-                                          Seduta {sIdx + 1} ({formattaData(dataSeduta)})
-                                        </span>
-                                        <button
-                                          type="button"
-                                          onClick={() => setSchedaSmart(schedaSedutaGiorno)}
-                                          className="text-[12px] text-primary hover:underline font-bold flex items-center gap-1 bg-surface-container px-3 py-0.5 rounded-md"
-                                        >
-                                          <Waves size={10} />
-                                          <span>Scheda</span>
-                                        </button>
-                                      </div>
-                                      <IndicatoreCodici
-                                        ripartizione={schedaSedutaGiorno.ripartizioneCodici}
-                                        volumeTotale={schedaSedutaGiorno.volumeTotaleMetri}
-                                      />
+                                      <span className="text-xs font-bold text-on-surface">
+                                        Seduta {sIdx + 1} · {formattaData(dataSeduta)}
+                                      </span>
+                                      <CodiciSeduta codici={codici} titolo="Codici" compatto />
                                     </div>
                                   );
                                 })}
@@ -1047,13 +1024,11 @@ export const PianoScreen: React.FC = () => {
                             const gareInSettimana = gare.filter(
                               g => !isBefore(mi.fine, g.dal) && !isBefore(g.al, mi.inizio)
                             );
-                            const metriSeduta = mi.sedutePreviste > 0 ? Math.round(mi.volumeTargetMetri / mi.sedutePreviste) : 1800;
-                            const schedaAnteprima = GeneratoreSmartSeduta.genera(
-                              mi.inizio,
-                              metriSeduta,
-                              me.fase,
-                              mi.tipo
-                            );
+                            const codici = generaCodiciSeduta({
+                              fase: me.fase,
+                              tipoMicro: mi.tipo,
+                              condizioni: condizioni.filter(c => c.attiva),
+                            }).codici;
 
                             return (
                               <div
@@ -1076,14 +1051,6 @@ export const PianoScreen: React.FC = () => {
                                       )}
                                     </div>
 
-                                    <button
-                                      type="button"
-                                      onClick={() => setSchedaSmart(schedaAnteprima)}
-                                      className="text-xs font-bold text-primary-container hover:underline flex items-center gap-1"
-                                    >
-                                      <Waves size={13} />
-                                      <span>Scheda</span>
-                                    </button>
                                   </div>
 
                                   <div className="text-xs text-on-surface-variant flex items-center justify-between">
@@ -1093,10 +1060,7 @@ export const PianoScreen: React.FC = () => {
                                     </span>
                                   </div>
 
-                                  <IndicatoreCodici
-                                    ripartizione={schedaAnteprima.ripartizioneCodici}
-                                    volumeTotale={schedaAnteprima.volumeTotaleMetri}
-                                  />
+                                  <CodiciSeduta codici={codici} titolo="Focus codici" compatto />
 
                                   {gareInSettimana.map(g => (
                                     <div key={g.id} className="text-xs font-bold text-on-tertiary-fixed flex items-center gap-1">
@@ -1147,13 +1111,6 @@ export const PianoScreen: React.FC = () => {
       )}
 
       {/* Smart Poolside Session Modal */}
-      {schedaSmart && (
-        <SchedaSedutaModal
-          scheda={schedaSmart}
-          onChiudi={() => setSchedaSmart(null)}
-        />
-      )}
-
       {/* Modal Modifica Evento / Gara */}
       {editEventModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in text-on-surface">
@@ -1403,7 +1360,7 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
   const tipi: TipoMicrociclo[] = ['CARICO', 'SCARICO', 'RECUPERO', 'GARA', 'ADATTAMENTO', 'PAUSA'];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl shadow-float max-w-md w-full p-5 border border-outline-variant max-h-[92dvh] overflow-y-auto">
         <div className="flex items-center justify-between pb-3 border-b border-outline-variant sticky top-0 bg-surface-container-lowest -mx-5 -mt-5 px-5 pt-5 z-10">
           <h3 className="font-bold text-on-surface text-base">

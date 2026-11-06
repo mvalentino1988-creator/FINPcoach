@@ -1,8 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { useApp } from '../data/AppContext';
 import {
   Atleta,
-  CondizioneMedica,
+  CodiceAllenamentoKey,
   FaseMesociclo,
   ParametriSeduta,
   Tempo,
@@ -33,10 +32,8 @@ interface Props {
   parametri: ParametriSeduta;
   volumeSessione: number;
   volumeSettimana: number;
-  condizioni: CondizioneMedica[];
   tempi: Tempo[];
-  note: string[];
-  ripartizioneCodici?: Partial<Record<string, number>>;
+  codiciAllenamento: CodiceAllenamentoKey[];
 }
 
 export const GeneraSchedaIAModal: React.FC<Props> = ({
@@ -50,19 +47,16 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
   parametri,
   volumeSessione,
   volumeSettimana,
-  condizioni,
   tempi,
-  note,
-  ripartizioneCodici,
+  codiciAllenamento,
 }) => {
-  const { atleti } = useApp();
   const [config, setConfig] = useState<IAConfig>(() => FINPStorage.getIAConfig());
   const [mostraConfig, setMostraConfig] = useState(false);
   const [caricamento, setCaricamento] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
-  const [prompt, setPrompt] = useState('');
   const [testoIA, setTestoIA] = useState('');
   const [copiato, setCopiato] = useState(false);
+  const [avvisoWeb, setAvvisoWeb] = useState<string | null>(null);
 
   const etaAtleta = useMemo(() => {
     if (!atleta?.dataNascita) return null;
@@ -85,14 +79,15 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
       parametri,
       volumeSessione,
       volumeSettimana,
-      condizioni,
       tempi,
-      note,
     }),
-    [data, atleta, etaAtleta, fase, tipoMicro, parametri, volumeSessione, volumeSettimana, condizioni, tempi, note]
+    [data, atleta, etaAtleta, fase, tipoMicro, parametri, volumeSessione, volumeSettimana, tempi]
   );
 
-  const promptGenerato = useMemo(() => costruisciPromptScheda(ctx, ripartizioneCodici), [ctx, ripartizioneCodici]);
+  const promptGenerato = useMemo(
+    () => costruisciPromptScheda(ctx, codiciAllenamento),
+    [ctx, codiciAllenamento]
+  );
 
   const salvaConfig = () => {
     FINPStorage.saveIAConfig(config);
@@ -110,16 +105,6 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
       return;
     }
     setTestoIA(esito.testo);
-    const risposta = estraiRisposta(esito.testo);
-    if (risposta) {
-      const testo = rispostaToTesto(risposta);
-      if (testo) {
-        onSchedaGenerata(testo);
-        onClose();
-        return;
-      }
-    }
-    setErrore('La risposta IA non e\' in formato JSON valido. Puoi copiare il testo e incollarlo manualmente.');
   };
 
   const copiaPrompt = async () => {
@@ -133,20 +118,32 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
   };
 
   const apriWeb = async () => {
-    await apriIAWeb(config.providerWeb, promptGenerato);
+    const copiatoNegliAppunti = await apriIAWeb(config.providerWeb, promptGenerato);
+    setAvvisoWeb(
+      copiatoNegliAppunti
+        ? 'Prompt copiato negli appunti: se l’IA non si apre con il testo già pronto, incollalo manualmente.'
+        : 'Copia automatica non riuscita: seleziona il prompt e copialo manualmente.'
+    );
   };
 
-  const usaTestoIA = () => {
+  const testoDaSalvare = useMemo(() => {
     const risposta = estraiRisposta(testoIA);
     if (risposta) {
-      const testo = rispostaToTesto(risposta);
-      if (testo) {
-        onSchedaGenerata(testo);
-        onClose();
-        return;
-      }
+      const convertito = rispostaToTesto(risposta);
+      if (convertito) return convertito;
     }
-    setErrore('Impossibile convertire il testo in serie. Verifica il formato JSON.');
+    return testoIA.trim();
+  }, [testoIA]);
+
+  const anteprimaTesto = useMemo(() => testoDaSalvare || '', [testoDaSalvare]);
+
+  const usaTestoIA = () => {
+    if (!anteprimaTesto) {
+      setErrore('Incolla prima la risposta dell’IA o genera una scheda con l’endpoint.');
+      return;
+    }
+    onSchedaGenerata(anteprimaTesto);
+    onClose();
   };
 
   if (!open) return null;
@@ -259,27 +256,45 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
             </button>
           </div>
 
+          {avvisoWeb && (
+            <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-body-base font-body-base text-on-surface">
+              {avvisoWeb}
+            </div>
+          )}
+
           {errore && (
             <div className="rounded-xl border border-error/40 bg-error-container p-3 text-body-base font-body-base text-on-error-container">
               {errore}
             </div>
           )}
 
-          {testoIA && (
-            <div className="rounded-xl border border-slate-200/70 bg-surface-container-low p-3 space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-body-bold font-body-bold text-on-surface">Risposta IA</span>
-                <button type="button" onClick={usaTestoIA} className="ds-btn-primary">
-                  Usa questa scheda
-                </button>
-              </div>
-              <textarea
-                value={testoIA}
-                onChange={(e) => setTestoIA(e.target.value)}
-                className="w-full h-40 p-3 border border-outline-variant rounded-lg text-xs font-mono resize-none"
-              />
+          <div className="rounded-xl border border-slate-200/70 bg-surface-container-low p-3 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-body-bold font-body-bold text-on-surface">Risposta IA</span>
+              <span className="ds-label">Revisione prima del salvataggio</span>
             </div>
-          )}
+            <textarea
+              value={testoIA}
+              onChange={(e) => setTestoIA(e.target.value)}
+              placeholder="Incolla qui la risposta dell'IA (JSON o testo con le serie)…"
+              className="w-full h-32 p-3 border border-outline-variant rounded-lg text-xs font-mono resize-none"
+            />
+            {anteprimaTesto && (
+              <div className="rounded-lg border border-outline-variant bg-surface-container-lowest p-3 max-h-36 overflow-y-auto">
+                <div className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Anteprima scheda</div>
+                <pre className="whitespace-pre-wrap text-xs text-on-surface font-body">{anteprimaTesto}</pre>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={usaTestoIA}
+              disabled={!anteprimaTesto}
+              className="ds-btn-primary disabled:opacity-50"
+            >
+              <Sparkles size={18} />
+              <span>Salva scheda</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

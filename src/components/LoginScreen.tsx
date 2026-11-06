@@ -115,7 +115,7 @@ export const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onSkip }) => {
             <div className="w-20 h-20 mx-auto rounded-full bg-success/20 border-2 border-success flex items-center justify-center">
               <CheckCircle size={36} className="text-success" />
             </div>
-            <h2 className="text-xl font-bold text-white font-headline">Accesso effettuato!</h2>
+            <h2 className="text-xl font-bold text-white font-headline">Accesso effettuato</h2>
             <p className="text-sm text-white/50">Caricamento dati in corso...</p>
           </div>
         ) : (
@@ -272,7 +272,7 @@ export const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onSkip }) => {
                       {isRegistering ? 'Creazione account...' : 'Accesso in corso...'}
                     </>
                   ) : (
-                    isRegistering ? 'Registrati e Sincronizza' : 'Accedi'
+                    isRegistering ? 'Registrati e sincronizza' : 'Accedi'
                   )}
                 </button>
               </form>

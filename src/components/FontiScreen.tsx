@@ -2,7 +2,6 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Trophy, BookOpen, CalendarDays, RefreshCw, CheckCircle2, Waves } from 'lucide-react';
 import { CalendarioScreen } from './CalendarioScreen';
 import { AutoUpdateService, UpdateStatus } from '../domain/autoUpdateService';
-import { PageHeader } from './PageHeader';
 
 const RecordScreen = lazy(() => import('./RecordScreen').then(m => ({ default: m.RecordScreen })));
 const RegolamentiScreen = lazy(() => import('./RegolamentiScreen').then(m => ({ default: m.RegolamentiScreen })));
@@ -76,9 +75,9 @@ export const FontiScreen: React.FC = () => {
             onChange={e => setTab(e.target.value as FontiTab)}
             className="w-full min-h-[44px] bg-surface-container-low border border-outline-variant rounded-xl px-3 font-headline font-bold text-xs sm:text-sm text-on-surface focus:border-primary"
           >
-            <option value="record">🏆 Record FINP / Italia / Europa / Mondo</option>
-            <option value="regolamenti">📖 Regolamenti Federali & Circolari</option>
-            <option value="calendario">📅 Calendario Gare Agonistiche</option>
+            <option value="record">Record FINP / Italia / Europa / Mondo</option>
+            <option value="regolamenti">Regolamenti federali e circolari</option>
+            <option value="calendario">Calendario gare agonistiche</option>
           </select>
         </div>
       </div>

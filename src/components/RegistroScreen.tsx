@@ -1,15 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../data/AppContext';
-import { Atleta, ContestoTempo, LogSeduta, SchedaSeduta, Stile, Tempo } from '../types';
-import { formattaData, parseData, previousOrSameMonday, todayISO } from '../domain/dateUtils';
+import { Atleta, CodiceAllenamentoKey, ContestoTempo, LogSeduta, Stile, Tempo } from '../types';
+import { formattaData, parseData, previousOrSameMonday, todayISO, yearsBetween } from '../domain/dateUtils';
 import { formattaTempo, parseTempo, primatiPersonali } from '../domain/tempoUtils';
 import { VolumeIndividuale } from '../domain/volumeIndividuale';
-import { GeneratoreSmartSeduta } from '../domain/generatoreSmartSeduta';
+import { generaCodiciSeduta } from '../domain/generatoreCodiciSeduta';
 import { calcolaVolumeSessione } from '../domain/volumePrescritto';
 import { risolviParametriSeduta, seduteSettimana } from '../domain/parametriSeduta';
 import { CalcoloScienzaNuoto } from '../domain/calcoloCSS';
 import { Riepilogo } from '../domain/riepilogo';
-import { SchedaSedutaModal } from './SchedaSedutaModal';
+import { CodiciSeduta } from './CodiciSeduta';
 import {
   Activity,
   AlertTriangle,
@@ -51,7 +51,7 @@ export const RegistroScreen: React.FC = () => {
   // Seduta state
   const [dataTesto, setDataTesto] = useState<string>(formattaData(todayISO()));
   const [durata, setDurata] = useState('60');
-  const [schedaGiorno, setSchedaGiorno] = useState<SchedaSeduta | null>(null);
+  const [codiciSeduta, setCodiciSeduta] = useState<CodiceAllenamentoKey[] | null>(null);
 
   const [salvatoSuccesso, setSalvatoSuccesso] = useState(false);
 
@@ -207,53 +207,24 @@ export const RegistroScreen: React.FC = () => {
                 const d = dataParsed ?? todayISO();
                 const mic = micro.find(m => m.inizio <= d && m.fine >= d) ?? micro[0];
                 const mes = mic ? meso.find(me => me.id === mic.mesocicloId) : null;
-                const giorniAllenamento = impostazioni.giorni ?? parametriEffettivi.giorniAllenamento;
-                const parametri = risolviParametriSeduta(d, impostazioni, stagione);
-                const settimana = seduteSettimana(d, giorniAllenamento).map(iso => ({
-                  data: iso,
-                  parametri: risolviParametriSeduta(iso, impostazioni, stagione),
-                }));
-                const assenzeAtleta = atletaSel
-                  ? assenze.filter(a => a.atletaId === atletaSel.id)
-                  : [];
-                const volumeSettimana = mic
-                  ? (atletaSel
-                      ? VolumeIndividuale.settimana(mic, atletaSel, assenzeAtleta).metri
-                      : mic.volumeTargetMetri)
-                  : 1800 * Math.max(1, giorniAllenamento.length);
-                const volumeMedia = calcolaVolumeSessione({
-                  micro: mic,
-                  atleta: atletaSel,
-                  assenze: assenzeAtleta,
-                  condizioni: atletaSel ? condizioni.filter(c => c.atletaId === atletaSel.id && c.attiva) : [],
-                  tempi: atletaSel ? tempi.filter(t => t.atletaId === atletaSel.id) : [],
-                  logSedute: log,
-                  parametri,
-                  durateSettimana: settimana,
-                  volumeSettimanaFallback: volumeSettimana,
-                }).metriSessione;
-
-                setSchedaGiorno(
-                  GeneratoreSmartSeduta.genera(
-                    d,
-                    volumeMedia,
-                    mes?.fase ?? 'PREPARAZIONE_SPECIFICA',
-                    mic?.tipo ?? 'CARICO',
-                    atletaSel,
-                    atletaSel ? condizioni.filter(c => c.atletaId === atletaSel.id && c.attiva) : [],
-                    atletaSel ? tempi.filter(t => t.atletaId === atletaSel.id) : [],
-                    log,
-                    mes,
-                    giorniAllenamento,
-                    parametri
-                  )
-                );
+                const condizioniAtleta = atletaSel
+                  ? condizioni.filter(c => c.atletaId === atletaSel.id && c.attiva)
+                  : condizioni.filter(c => c.attiva);
+                setCodiciSeduta(generaCodiciSeduta({
+                  fase: mes?.fase ?? 'PREPARAZIONE_SPECIFICA',
+                  tipoMicro: mic?.tipo ?? 'CARICO',
+                  etaAtleta: atletaSel?.dataNascita ? yearsBetween(atletaSel.dataNascita, d) : null,
+                  condizioni: condizioniAtleta,
+                }).codici);
               }}
               className="w-full flex items-center justify-center gap-3 p-3 bg-surface-container-low hover:bg-primary-fixed text-primary-container border border-primary-fixed-dim rounded-xl font-bold text-xs transition"
             >
               <Waves size={16} />
-              <span>Scheda Bordo Vasca del Giorno 🏊‍♂️</span>
+              <span>Focus codici della seduta</span>
             </button>
+            {codiciSeduta && (
+              <CodiciSeduta codici={codiciSeduta} titolo="Focus della seduta" compatto />
+            )}
 
             {giaRegistrata && (
               <p className="text-xs text-tertiary bg-surface-container-low p-3 rounded-lg border border-tertiary-fixed-dim font-medium">
@@ -347,7 +318,7 @@ export const RegistroScreen: React.FC = () => {
             })}
 
             {salvatoSuccesso && (
-              <div className="flex items-center gap-3 p-3 bg-surface-container-low text-primary border border-primary-fixed-dim rounded-xl text-xs font-bold animate-fadeIn">
+              <div className="flex items-center gap-3 p-3 bg-surface-container-low text-primary border border-primary-fixed-dim rounded-xl text-xs font-bold animate-fade-in">
                 <CheckCircle size={16} className="text-primary" />
                 <span>Seduta registrata con successo nel registro presenze e carichi!</span>
               </div>
@@ -438,12 +409,6 @@ export const RegistroScreen: React.FC = () => {
         </div>
       )}
 
-      {schedaGiorno && (
-        <SchedaSedutaModal
-          scheda={schedaGiorno}
-          onChiudi={() => setSchedaGiorno(null)}
-        />
-      )}
     </div>
   );
 };

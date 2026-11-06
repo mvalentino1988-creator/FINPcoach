@@ -11,7 +11,7 @@
 
 import {
   Atleta,
-  CondizioneMedica,
+  CodiceAllenamentoKey,
   FaseMesociclo,
   ParametriSeduta,
   Tempo,
@@ -51,9 +51,7 @@ export interface IAContesto {
   parametri: ParametriSeduta;
   volumeSessione: number;
   volumeSettimana: number;
-  condizioni: CondizioneMedica[];
   tempi: Tempo[];
-  note: string[];
 }
 
 export interface IASerieProposta {
@@ -88,15 +86,14 @@ const TIPI: Record<TipoMicrociclo, string> = {
   PAUSA: 'pausa',
 };
 
-export function costruisciPromptScheda(ctx: IAContesto, ripartizioneCodici?: Partial<Record<string, number>>): string {
+export function costruisciPromptScheda(
+  ctx: IAContesto,
+  codiciAllenamento: CodiceAllenamentoKey[]
+): string {
   const destinatario = ctx.atleta
     ? `${ctx.atleta.cognome} ${ctx.atleta.nome}` +
       (ctx.atleta.classeS ? ` (classe S${ctx.atleta.classeS}${ctx.atleta.classeSB ? `, SB${ctx.atleta.classeSB}` : ''}${ctx.atleta.classeSM ? `, SM${ctx.atleta.classeSM}` : ''})` : '')
     : 'Squadra (scheda collettiva)';
-
-  const condizioni = ctx.condizioni.length > 0
-    ? ctx.condizioni.map((c) => `- ${c.descrizione}: ${c.limitazioni || 'nessuna limitazione indicata'}`).join('\n')
-    : '- Nessuna condizione medica segnalata';
 
   const tempi = ctx.tempi.length > 0
     ? ctx.tempi.slice(0, 8).map((t) => `- ${t.distanzaMetri}m ${t.stile.replace('_', ' ').toLowerCase()}: ${formattaTempo(t.centesimi)} (${formattaData(t.data)})`).join('\n')
@@ -104,12 +101,7 @@ export function costruisciPromptScheda(ctx: IAContesto, ripartizioneCodici?: Par
 
   const vasca = VASCHE_VALIDE.includes(ctx.parametri.vascaMetri as 25 | 50) ? ctx.parametri.vascaMetri : 25;
 
-  // Se viene fornita la ripartizione dei codici, include nel prompt
-  const codiciSection = ripartizioneCodici && Object.keys(ripartizioneCodici).length > 0
-    ? `\n## Ripartizione dei Codici Obiettivo (calcolata dal sistema)\n${Object.entries(ripartizioneCodici)
-        .map(([codice, metri]) => `- ${codice}: ${metri}m`)
-        .join('\n')}`
-    : '';
+  const codiciFocus = `\n## Codici già scelti dall'allenatore\n${codiciAllenamento.join(' + ')}\nUsa esclusivamente questi codici: la selezione tiene già conto delle esigenze individuali e non deve essere modificata.`;
 
   return `Sei un allenatore di nuoto paralimpico FINP esperto. Progetta UNA seduta di allenamento DETTAGLIATA con esercizi specifici.
 
@@ -124,20 +116,16 @@ export function costruisciPromptScheda(ctx: IAContesto, ripartizioneCodici?: Par
 - Vasca: ${vasca} metri
 - Durata disponibile: ${ctx.parametri.durataMin} minuti
 - Volume target della singola seduta: ${ctx.volumeSessione} m (settimana: ${ctx.volumeSettimana} m)
-- Note tecniche: ${ctx.note.length > 0 ? ctx.note.join(' | ') : 'nessuna'}
-${codiciSection}
-
-## Condizioni mediche e limitazioni
-${condizioni}
+${codiciFocus}
 
 ## Tempi recenti dell'atleta
 ${tempi}
 
 ## Regole di prescrizione IMPORTANTI
 1. Rispetta la vasca da ${vasca}m: usa distanze multiple di ${vasca}m (${vasca}, ${vasca * 2}, ${vasca * 4}, ...). Non prescrivere 25m in vasca da 50m.
-2. ${ripartizioneCodici ? 'RISPETTA ESATTAMENTE la ripartizione dei codici fornita sopra. Il volume totale deve essere vicino a ' + ctx.volumeSessione + 'm (tolleranza +/-10%).' : 'Il volume totale delle serie deve essere vicino a ' + ctx.volumeSessione + 'm (tolleranza +/-10%).'}
+2. ${codiciAllenamento.length > 0 ? 'RISPETTA ESATTAMENTE la ripartizione dei codici fornita sopra. Il volume totale deve essere vicino a ' + ctx.volumeSessione + 'm (tolleranza +/-10%).' : 'Il volume totale delle serie deve essere vicino a ' + ctx.volumeSessione + 'm (tolleranza +/-10%).'}
 3. Usa i codici di intensità FINP: A1 (riscaldamento/tecnica), A2 (fondo aerobico), B1 (soglia), B2 (VO2max), C1/C2 (lattacido/potenza), C3 (ritmo gara), D (velocità/reattività).
-4. Rispetta le limitazioni mediche: riduci o elimina i codici controindicati e spiega il motivo nelle note.
+4. Non inserire diagnosi, condizioni fisiche o informazioni sanitarie nel testo o nelle note.
 5. Struttura consigliata: riscaldamento, attivazione/tecnica, serie principale, defaticamento.
 6. Includi recuperi/ripartenze in secondi per ogni serie principale.
 7. PER OGNI SERIE: specifica numero ripetizioni, distanza, descrizione dettagliata dell'esercizio (es. "4x100m stile libero a 1'30" con focus tecnico specifico).
@@ -154,7 +142,7 @@ ${tempi}
       "descrizione": "stile libero e dorso sciolti, 200m con pull buoy, focus su assetto orizzontale"
     }
   ],
-  "note": "eventuali avvertenze mediche o indicazioni per l'allenatore"
+  "note": "eventuali indicazioni tecniche o di recupero per l'allenatore"
 }`;
 }
 
@@ -304,70 +292,4 @@ export async function apriIAWeb(provider: ProviderWebIA, prompt: string): Promis
 export function etichettaParametri(p: ParametriSeduta): string {
   const durata = Math.min(DURATA_MAX, Math.max(DURATA_MIN, p.durataMin || 0));
   return `vasca ${p.vascaMetri}m · ${durata} min`;
-}
-
-/**
- * Costruisce un prompt per generare SOLO i codici di allenamento per la sessione odierna,
- * senza specificare gli esercizi dettagliati. L'IA suggerirà la ripartizione dei codici
- * (A1, A2, B1, B2, C1, C2, C3, D) e il target di metri per ogni codice.
- */
-export function costruisciPromptSessioneCodici(ctx: IAContesto): string {
-  const destinatario = ctx.atleta
-    ? `${ctx.atleta.cognome} ${ctx.atleta.nome}` +
-      (ctx.atleta.classeS ? ` (classe S${ctx.atleta.classeS}${ctx.atleta.classeSB ? `, SB${ctx.atleta.classeSB}` : ''}${ctx.atleta.classeSM ? `, SM${ctx.atleta.classeSM}` : ''})` : '')
-    : 'Squadra (sessione collettiva)';
-
-  const condizioni = ctx.condizioni.length > 0
-    ? ctx.condizioni.map((c) => `- ${c.descrizione}: ${c.limitazioni || 'nessuna limitazione indicata'}`).join('\n')
-    : '- Nessuna condizione medica segnalata';
-
-  const tempi = ctx.tempi.length > 0
-    ? ctx.tempi.slice(0, 8).map((t) => `- ${t.distanzaMetri}m ${t.stile.replace('_', ' ').toLowerCase()}: ${formattaTempo(t.centesimi)} (${formattaData(t.data)})`).join('\n')
-    : '- Nessun tempo registrato';
-
-  const vasca = VASCHE_VALIDE.includes(ctx.parametri.vascaMetri as 25 | 50) ? ctx.parametri.vascaMetri : 25;
-
-  return `Sei un allenatore di nuoto paralimpico FINP esperto. Progetta la RIPARTIZIONE DEI CODICI per UNA seduta di allenamento odierna.
-
-## Atleta
-- Destinatario: ${destinatario}
-- Età: ${ctx.etaAtleta != null ? `${ctx.etaAtleta} anni` : 'non disponibile'}
-- Data seduta: ${formattaData(ctx.data)}
-
-## Contesto della seduta
-- Fase della stagione: ${FASI[ctx.fase] ?? ctx.fase}
-- Tipo microciclo: ${TIPI[ctx.tipoMicro] ?? ctx.tipoMicro}
-- Vasca: ${vasca} metri
-- Durata disponibile: ${ctx.parametri.durataMin} minuti
-- Volume target della singola seduta: ${ctx.volumeSessione} m (settimana: ${ctx.volumeSettimana} m)
-- Note tecniche: ${ctx.note.length > 0 ? ctx.note.join(' | ') : 'nessuna'}
-
-## Condizioni mediche e limitazioni
-${condizioni}
-
-## Tempi recenti dell'atleta
-${tempi}
-
-## Istruzioni IMPORTANTI
-1. NON specificare esercizi dettagliati (es. "4x100m stile libero con pull buoy")
-2. Fornisci SOLO la ripartizione dei codici di intensità FINP per questa seduta
-3. Codici disponibili: A1 (riscaldamento/tecnica), A2 (fondo aerobico), B1 (soglia), B2 (VO2max), C1 (lattacido), C2 (potenza), C3 (ritmo gara), D (velocità/reattività)
-4. Per ogni codice specifica: percentuale del volume totale o metri target
-5. Rispetta le limitazioni mediche: riduci o elimina i codici controindicati
-6. Adatta la ripartizione alla fase della stagione e al tipo di microciclo
-7. Considera l'età dell'atleta per l'intensità appropriata
-
-## Formato di risposta (SOLO JSON valido, nessun testo fuori)
-{
-  "titolo": "titolo breve della sessione (es. 'Seduta di qualità B1/B2')",
-  "ripartizione": [
-    {
-      "codice": "A1",
-      "metri": 400,
-      "percentuale": 20,
-      "motivazione": "riscaldamento tecnico con focus su assetto"
-    }
-  ],
-  "note": "spiegazione sintetica della strategia di allenamento e avvertenze mediche"
-}`;
 }

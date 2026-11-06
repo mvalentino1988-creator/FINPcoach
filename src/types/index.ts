@@ -238,6 +238,19 @@ export interface ParametriPiano {
 
 export type CodiceAllenamentoKey = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'C3' | 'D';
 
+export interface CustomWorkout {
+  id: string;
+  /** Data in formato italiano `gg/mm/aaaa` (formato storico delle schede). */
+  data: string;
+  testo: string;
+  creatoIl: string;
+  atletaId: number | null;
+  metriTotali?: number;
+  /** Focus in codici salvato in modo strutturato (non dipende dal parsing del testo). */
+  codici?: CodiceAllenamentoKey[];
+  fonte?: 'manuale' | 'ia' | 'codici' | 'ocr';
+}
+
 export interface CodiceInfo {
   codice: CodiceAllenamentoKey;
   nome: string;

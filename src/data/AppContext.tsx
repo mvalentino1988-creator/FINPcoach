@@ -5,6 +5,7 @@ import {
   Avviso,
   Chiusura,
   CondizioneMedica,
+  CustomWorkout,
   DayOfWeekNum,
   Gara,
   ImpostazioniPiano,
@@ -124,6 +125,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const isDark = themeMode === 'scuro' || (themeMode === 'sistema' && mediaQuery.matches);
       root.classList.toggle('dark', isDark);
       root.style.colorScheme = isDark ? 'dark' : 'light';
+      (window as unknown as { AndroidBridge?: { setSystemBarsDark?: (dark: boolean) => void } })
+        .AndroidBridge?.setSystemBarsDark?.(isDark);
     };
 
     updateTheme();
@@ -188,7 +191,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (cloudData.mesocicli) setMeso(cloudData.mesocicli);
     if (cloudData.microcicli) setMicro(cloudData.microcicli);
     if (cloudData.impostazioni) setImpostazioni(cloudData.impostazioni);
-    if (cloudData.customWorkouts) FINPStorage.saveCustomWorkouts(cloudData.customWorkouts as any[]);
+    if (cloudData.customWorkouts) FINPStorage.saveCustomWorkouts(cloudData.customWorkouts as CustomWorkout[]);
     if (cloudData.lastSync) localStorage.setItem('finp_last_sync', cloudData.lastSync);
     setTimeout(() => { applyingCloud.current = false; }, 500);
   };

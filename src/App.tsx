@@ -4,8 +4,7 @@ import { FirebaseSync } from './data/firebaseSync';
 import { Navbar, TabKey } from './components/Navbar';
 import { LoginScreen } from './components/LoginScreen';
 import { OggiScreen } from './components/OggiScreen';
-import { CronometroLiveMultiCorsia } from './components/CronometroLiveMultiCorsia';
-import { RegiaTecnicaCorsie } from './components/RegiaTecnicaCorsie';
+import { BordoVascaScreen } from './components/BordoVascaScreen';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { OnboardingModal } from './components/OnboardingModal';
@@ -14,25 +13,41 @@ import { useLayoutMetrics } from './hooks/useLayoutMetrics';
 import { pushBackHandler } from './lib/backHandler';
 import { Waves } from 'lucide-react';
 
-// Code-splitting delle schermate gestionali pesanti per ottimizzare il bundle e l'avvio su mobile
 const AtletiScreen = lazy(() => import('./components/AtletiScreen').then(m => ({ default: m.AtletiScreen })));
-const PianoScreen = lazy(() => import('./components/PianoScreen').then(m => ({ default: m.PianoScreen })));
-const DatiScreen = lazy(() => import('./components/DatiScreen').then(m => ({ default: m.DatiScreen })));
-const FontiScreen = lazy(() => import('./components/FontiScreen').then(m => ({ default: m.FontiScreen })));
+const AltroScreen = lazy(() => import('./components/AltroScreen').then(m => ({ default: m.AltroScreen })));
 
 const TabFallback: React.FC = () => (
   <div className="flex flex-col items-center justify-center p-12 text-center min-h-[320px]">
-    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary-container text-white flex items-center justify-center shadow-primary-sm mb-3 animate-pulse">
+    <div className="w-12 h-12 rounded-2xl bg-gradient-blue flex items-center justify-center text-white shadow-primary-sm mb-3 animate-pulse">
       <Waves size={24} />
     </div>
     <span className="text-xs font-bold font-headline text-on-surface-variant">Caricamento in corso...</span>
   </div>
 );
 
+function normalizeTab(value: string | null): TabKey {
+  switch (value) {
+    case 'vasca':
+    case 'squadra':
+    case 'altro':
+    case 'oggi':
+      return value;
+    case 'atleti':
+      return 'squadra';
+    case 'cronometro':
+    case 'regia':
+      return 'vasca';
+    case 'piano':
+    case 'dati':
+    case 'fonti':
+      return 'altro';
+    default:
+      return 'oggi';
+  }
+}
+
 export const AppContent: React.FC = () => {
-  const [tab, setTab] = useState<TabKey>(() => {
-    return (sessionStorage.getItem('finp_active_tab') as TabKey) || 'oggi';
-  });
+  const [tab, setTab] = useState<TabKey>(() => normalizeTab(sessionStorage.getItem('finp_active_tab')));
   const [showLogin, setShowLogin] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('finp_onboarded'));
@@ -50,6 +65,17 @@ export const AppContent: React.FC = () => {
     sessionStorage.setItem('finp_active_tab', tab);
   }, [tab]);
 
+  useEffect(() => {
+    const onNavigate = (event: Event) => {
+      const target = (event as CustomEvent<TabKey>).detail;
+      if (target === 'oggi' || target === 'vasca' || target === 'squadra' || target === 'altro') {
+        setTab(target);
+      }
+    };
+    window.addEventListener('finp:navigate', onNavigate);
+    return () => window.removeEventListener('finp:navigate', onNavigate);
+  }, []);
+
   const tabRef = useRef<TabKey>(tab);
   tabRef.current = tab;
   useEffect(() => {
@@ -62,8 +88,8 @@ export const AppContent: React.FC = () => {
     });
   }, []);
 
-  const isBordoVasca = tab === 'cronometro' || tab === 'regia';
-  const fixed = isBordoVasca;
+  const fixed = tab === 'vasca' || tab === 'oggi';
+  const wide = tab === 'vasca';
 
   useEffect(() => {
     document.body.classList.toggle('app-no-scroll', fixed);
@@ -97,8 +123,6 @@ export const AppContent: React.FC = () => {
     return <LoginScreen onLoginSuccess={handleLoginSuccess} onSkip={handleSkipLogin} />;
   }
 
-  const wide = tab === 'regia' || tab === 'cronometro';
-
   return (
     <div className={`app-shell ${fixed ? 'app-shell-fixed' : ''}`}>
       {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
@@ -108,19 +132,14 @@ export const AppContent: React.FC = () => {
       <div className="app-content flex-1 min-h-0 flex flex-col">
         <main
           className={`app-main flex-1 min-h-0 h-full flex flex-col w-full mx-auto px-gutter-mobile sm:px-gutter ${
-            wide ? 'max-w-none' : 'max-w-[1536px]'
+            wide ? 'max-w-none' : 'max-w-[1200px]'
           }`}
         >
           {tab === 'oggi' && <OggiScreen />}
-          <div className={tab === 'cronometro' ? 'contents' : 'hidden'}>
-            <CronometroLiveMultiCorsia />
-          </div>
-          {tab === 'regia' && <RegiaTecnicaCorsie />}
+          {tab === 'vasca' && <BordoVascaScreen />}
           <Suspense fallback={<TabFallback />}>
-            {tab === 'piano' && <PianoScreen />}
-            {tab === 'atleti' && <AtletiScreen />}
-            {tab === 'fonti' && <FontiScreen />}
-            {tab === 'dati' && <DatiScreen />}
+            {tab === 'squadra' && <AtletiScreen />}
+            {tab === 'altro' && <AltroScreen />}
           </Suspense>
         </main>
       </div>
