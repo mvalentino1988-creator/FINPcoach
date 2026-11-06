@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../data/AppContext';
 import { todayISO } from '../domain/dateUtils';
-import { CheckCircle2, Minus, Pause, Play, Plus, RotateCcw, Save, Timer, Waves, X } from 'lucide-react';
+import { CheckCircle2, Minus, Pause, Play, Plus, RotateCcw, Save, X } from 'lucide-react';
 
 interface Split {
   lap: number;
@@ -356,20 +356,6 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
 
   return (
     <div className="cronometro-screen flex flex-1 min-h-0 flex-col gap-2 overflow-hidden">
-      <header className="cronometro-heading shrink-0 flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-primary">
-            <Waves size={14} />
-            <span>Partenze sfalsate</span>
-          </div>
-          <h1 className="font-headline text-lg sm:text-xl font-bold tracking-tight text-on-surface">Cronometro di vasca</h1>
-        </div>
-        <span className={`cronometro-session-state shrink-0 ${isRunning ? 'is-running' : ''}`}>
-          <span />
-          {isRunning ? 'Sessione attiva' : 'Pronto'}
-        </span>
-      </header>
-
       <section className="timer-console shrink-0">
         <div className="timer-console-clock">
           <span className="timer-console-label">Tempo squadra</span>
@@ -390,14 +376,18 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
             <RotateCcw size={17} />
           </button>
           <label className="timer-setting flex-1 flex flex-col justify-center min-h-[48px]">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Vasca</span>
+            <div className="w-full flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Vasca</span>
+              <span className="text-xs font-bold text-primary tabular-nums font-headline">{vascaMetri} m</span>
+            </div>
             <select
               value={vascaMetri}
               onChange={event => setVascaMetri(Number(event.target.value) as 25 | 50)}
+              aria-label="Lunghezza vasca"
               className="bg-transparent font-headline font-bold text-base sm:text-lg text-on-surface focus:outline-none cursor-pointer w-full"
             >
-              <option value={25}>25 m</option>
-              <option value={50}>50 m</option>
+              <option value={25}>25 metri</option>
+              <option value={50}>50 metri</option>
             </select>
           </label>
           <label className="timer-setting flex-1 flex flex-col justify-center min-h-[48px]">
