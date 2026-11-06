@@ -284,7 +284,7 @@ const OggiContent: React.FC = () => {
   };
 
   const status = chiusuraOggi ? 'closed' : garaOggi ? 'race' : isGiornoAllenamento ? 'training' : 'rest';
-  const statusLabel = chiusuraOggi ? 'Piscina chiusa' : garaOggi ? `Gara · ${garaOggi.nome}` : isGiornoAllenamento ? 'Allenamento previsto' : 'Giorno di recupero';
+  const statusLabel = chiusuraOggi ? 'Piscina chiusa' : garaOggi ? `Gara · ${garaOggi.nome}` : isGiornoAllenamento ? 'Allenamento' : 'Riposo';
   const StatusIcon = chiusuraOggi ? AlertTriangle : garaOggi ? Zap : isGiornoAllenamento ? Sparkles : Coffee;
 
   return (
@@ -316,7 +316,7 @@ const OggiContent: React.FC = () => {
         <section className="ds-card p-3 sm:p-4 flex flex-col gap-2 min-h-0 overflow-hidden">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-primary">Focus</div>
+              <div className="text-[11px] font-bold uppercase tracking-wider text-primary">Codici per</div>
               <div className="font-headline font-bold text-on-surface truncate" title={atletaSel ? `${atletaSel.cognome} ${atletaSel.nome}` : 'Tutta la squadra'}>{atletaSel ? `${atletaSel.cognome} ${atletaSel.nome}` : 'Squadra'}</div>
             </div>
             <div className="flex items-center gap-1.5 text-[11px] text-on-surface-variant shrink-0">
