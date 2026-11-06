@@ -38,7 +38,8 @@ import {
   Trophy,
   Unlock,
   Waves,
-  X
+  X,
+  MapPin
 } from 'lucide-react';
 
 const NuovaStagioneForm: React.FC<any> = ({
@@ -920,6 +921,19 @@ export const PianoScreen: React.FC = () => {
                               </span>
                             </div>
 
+                            {(mi.luogo || mi.inizioHHMM) && (
+                              <div className="flex items-center gap-1.5 text-xs text-on-surface-variant">
+                                <MapPin size={12} />
+                                <span>{mi.luogo || ''}</span>
+                                {mi.inizioHHMM && mi.fineHHMM && (
+                                  <>
+                                    <span>·</span>
+                                    <span>{mi.inizioHHMM} - {mi.fineHHMM}</span>
+                                  </>
+                                )}
+                              </div>
+                            )}
+
                             {/* Progress bar compared to max volume */}
                             {volumeMax > 0 && (
                               <div className="h-1.5 bg-surface-container-high rounded-full overflow-hidden">
@@ -1352,6 +1366,9 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
   const [sedute, setSedute] = useState(micro.sedutePreviste.toString());
   const [metri, setMetri] = useState(micro.volumeTargetMetri.toString());
   const [note, setNote] = useState(micro.note);
+  const [luogo, setLuogo] = useState(micro.luogo || '');
+  const [inizioHHMM, setInizioHHMM] = useState(micro.inizioHHMM || '');
+  const [fineHHMM, setFineHHMM] = useState(micro.fineHHMM || '');
 
   const seduteInt = parseInt(sedute, 10);
   const metriInt = parseInt(metri, 10);
@@ -1414,6 +1431,36 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
             </div>
           </div>
 
+          <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
+            <div>
+              <label className="block font-semibold text-on-surface mb-1">Luogo Allenamento</label>
+              <input
+                type="text"
+                value={luogo}
+                onChange={e => setLuogo(e.target.value)}
+                placeholder="Es. Piscina Comunale"
+                className="w-full px-3 h-12 border border-outline-variant rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-on-surface mb-1">Orario (HH:MM)</label>
+              <div className="grid grid-cols-2 gap-1.5">
+                <input
+                  type="time"
+                  value={inizioHHMM}
+                  onChange={e => setInizioHHMM(e.target.value)}
+                  className="w-full px-3 h-12 border border-outline-variant rounded-lg font-bold"
+                />
+                <input
+                  type="time"
+                  value={fineHHMM}
+                  onChange={e => setFineHHMM(e.target.value)}
+                  className="w-full px-3 h-12 border border-outline-variant rounded-lg font-bold"
+                />
+              </div>
+            </div>
+          </div>
+
           <div>
             <label className="block font-semibold text-on-surface mb-1">Note settimana</label>
             <input
@@ -1460,7 +1507,10 @@ const ModalModificaMicro: React.FC<ModalModificaMicroProps> = ({
                   tipo,
                   sedutePreviste: seduteInt,
                   volumeTargetMetri: metriInt,
-                  note: note.trim()
+                  note: note.trim(),
+                  luogo: luogo.trim() || undefined,
+                  inizioHHMM: inizioHHMM || undefined,
+                  fineHHMM: fineHHMM || undefined
                 });
               }}
               className="px-4 h-12 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-bold rounded-xl text-xs transition shadow-card"

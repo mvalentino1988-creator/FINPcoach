@@ -41,6 +41,7 @@ import {
   Waves,
   X,
   Zap,
+  MapPin,
 } from 'lucide-react';
 import type { TabKey } from './Navbar';
 
@@ -316,14 +317,33 @@ const OggiContent: React.FC = () => {
         <section className="ds-card p-3 sm:p-4 flex flex-col gap-2 min-h-0 overflow-hidden">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-primary">Codici per</div>
-              <div className="font-headline font-bold text-on-surface truncate" title={atletaSel ? `${atletaSel.cognome} ${atletaSel.nome}` : 'Tutta la squadra'}>{atletaSel ? `${atletaSel.cognome} ${atletaSel.nome}` : 'Squadra'}</div>
+              {atletaSel ? (
+                <>
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-primary">Codici atleta</div>
+                  <div className="font-headline font-bold text-on-surface truncate" title={`${atletaSel.cognome} ${atletaSel.nome}`}>{atletaSel.cognome} {atletaSel.nome}</div>
+                </>
+              ) : (
+                <div className="font-headline font-bold text-on-surface">Codici comuni</div>
+              )}
             </div>
             <div className="flex items-center gap-1.5 text-[11px] text-on-surface-variant shrink-0">
               <Clock size={13} />
               <span>{parametriSeduta.durataMin} min · {parametriSeduta.vascaMetri} m</span>
             </div>
           </div>
+
+          {(microCorrente?.luogo || microCorrente?.inizioHHMM) && (
+            <div className="flex items-center gap-1.5 text-[11px] text-on-surface-variant">
+              <MapPin size={13} />
+              <span>{microCorrente.luogo || ''}</span>
+              {microCorrente.inizioHHMM && microCorrente.fineHHMM && (
+                <>
+                  <span>·</span>
+                  <span>{microCorrente.inizioHHMM} - {microCorrente.fineHHMM}</span>
+                </>
+              )}
+            </div>
+          )}
 
           <CodiciSeduta codici={propostaCodici} titolo={atletaSel ? 'Codici atleta' : 'Codici comuni'} compatto />
 

@@ -144,6 +144,9 @@ export interface Microciclo {
   volumeTargetMetri: number; // totale della settimana, volume al 100%
   note: string;
   bloccato: boolean;   // true = bloccato a mano
+  luogo?: string;      // Luogo allenamento (es. "Piscina Comunale")
+  inizioHHMM?: string; // Orario inizio "HH:MM"
+  fineHHMM?: string;   // Orario fine "HH:MM"
 }
 
 export interface Chiusura {
