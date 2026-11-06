@@ -289,12 +289,14 @@ export const RegiaTecnicaCorsie: React.FC = () => {
               </div>
 
               <div className="text-xs text-on-surface-variant font-medium pt-1.5 border-t border-outline-variant space-y-0.5">
-                <div className="truncate">
+                <div className="truncate" title={atletiCorsia.length > 0
+                  ? `${atletiCorsia.length} atleti · passo medio ${passoMedio != null ? `~${formattaTempo(passoMedio)}/100` : '—'}`
+                  : 'Pronta per assegnazione'}>
                   {atletiCorsia.length > 0
                     ? `${atletiCorsia.length} atleti · passo medio ${passoMedio != null ? `~${formattaTempo(passoMedio)}/100` : '—'}`
                     : 'Pronta per assegnazione'}
                 </div>
-                <div className="truncate text-primary/80">
+                <div className="truncate text-primary/80" title={`Focus: ${FOCUS_TIPO[tipoCorsia]}`}>
                   Focus: {FOCUS_TIPO[tipoCorsia]}
                 </div>
               </div>

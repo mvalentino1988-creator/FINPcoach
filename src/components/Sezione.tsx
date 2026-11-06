@@ -64,7 +64,7 @@ export const Sezione: React.FC<Props> = ({
           <div className="min-w-0 flex-1">
             <span className="block truncate leading-snug">{titolo}</span>
             {!aperto && riepilogoChiuso && (
-              <span className="hidden sm:block text-xs font-normal text-on-surface-variant truncate mt-0.5">
+              <span className="hidden sm:block text-xs font-normal text-on-surface-variant truncate mt-0.5" title={riepilogoChiuso}>
                 {riepilogoChiuso}
               </span>
             )}
@@ -82,7 +82,7 @@ export const Sezione: React.FC<Props> = ({
 
       {!aperto && riepilogoChiuso && (
         <div className="px-4 pb-3 -mt-1 sm:hidden">
-          <span className="block text-xs text-on-surface-variant truncate">
+          <span className="block text-xs text-on-surface-variant truncate" title={riepilogoChiuso}>
             {riepilogoChiuso}
           </span>
         </div>

@@ -294,18 +294,19 @@ const OggiContent: React.FC = () => {
           <StatusIcon size={20} />
         </span>
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant truncate">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant truncate"
+            title={`${dowNome} ${formattaData(oggi)} · ${macroCorrente?.nome ?? stagione?.nome ?? ''}${microCorrente ? ` · ${TIPO_MICROCICLO_LABEL[microCorrente.tipo]}` : ''}`}>
             {dowNome} {formattaData(oggi)} · {macroCorrente?.nome ?? stagione?.nome ?? ''}
             {microCorrente ? ` · ${TIPO_MICROCICLO_LABEL[microCorrente.tipo]}` : ''}
           </div>
-          <div className="font-headline font-bold text-on-surface truncate">
+          <div className="font-headline font-bold text-on-surface truncate" title={statusLabel}>
             {statusLabel}
             {isGiornoAllenamento ? ` · ${volumeSessione >= 1000 ? `${(volumeSessione / 1000).toFixed(1).replace('.', ',')} km` : `${volumeSessione} m`}` : ''}
           </div>
         </div>
         {prossimaGara && (
           <div className="hidden xs:block text-right shrink-0">
-            <div className="text-[10px] uppercase font-bold text-on-surface-variant">Prossima gara</div>
+            <div className="text-[11px] uppercase font-bold text-on-surface-variant">Prossima gara</div>
             <div className="font-headline font-bold text-tertiary text-sm">{prossimaGara.diffDays} g</div>
           </div>
         )}
@@ -316,7 +317,7 @@ const OggiContent: React.FC = () => {
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
               <div className="text-[11px] font-bold uppercase tracking-wider text-primary">Focus</div>
-              <div className="font-headline font-bold text-on-surface truncate">{atletaSel ? `${atletaSel.cognome} ${atletaSel.nome}` : 'Squadra'}</div>
+              <div className="font-headline font-bold text-on-surface truncate" title={atletaSel ? `${atletaSel.cognome} ${atletaSel.nome}` : 'Tutta la squadra'}>{atletaSel ? `${atletaSel.cognome} ${atletaSel.nome}` : 'Squadra'}</div>
             </div>
             <div className="flex items-center gap-1.5 text-[11px] text-on-surface-variant shrink-0">
               <Clock size={13} />
@@ -341,7 +342,7 @@ const OggiContent: React.FC = () => {
 
           {!atletaSel && dettaglioSquadra && dettaglioSquadra.varianti.length > 0 && (
             <div className="rounded-xl bg-surface-container-low border border-outline-variant p-2 space-y-1">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Varianti individuali</div>
+              <div className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Varianti individuali</div>
               {dettaglioSquadra.varianti.map(v => (
                 <div key={v.nome} className="flex items-center justify-between gap-2 text-[11px]">
                   <span className="truncate text-on-surface">{v.nome}</span>
@@ -353,15 +354,15 @@ const OggiContent: React.FC = () => {
 
           <div className="grid grid-cols-3 gap-1.5 text-center">
             <div className="rounded-lg bg-surface-container-low px-1 py-1.5">
-              <div className="text-[10px] uppercase font-bold text-on-surface-variant">Volume</div>
+              <div className="text-[11px] uppercase font-bold text-on-surface-variant">Volume</div>
               <div className="font-headline font-bold text-on-surface text-xs">{volumeSessione.toLocaleString('it-IT')} m</div>
             </div>
             <div className="rounded-lg bg-surface-container-low px-1 py-1.5">
-              <div className="text-[10px] uppercase font-bold text-on-surface-variant">Durata</div>
+              <div className="text-[11px] uppercase font-bold text-on-surface-variant">Durata</div>
               <div className="font-headline font-bold text-on-surface text-xs">{parametriSeduta.durataMin} min</div>
             </div>
             <div className="rounded-lg bg-surface-container-low px-1 py-1.5">
-              <div className="text-[10px] uppercase font-bold text-on-surface-variant">Vasca</div>
+              <div className="text-[11px] uppercase font-bold text-on-surface-variant">Vasca</div>
               <div className="font-headline font-bold text-on-surface text-xs">{parametriSeduta.vascaMetri} m</div>
             </div>
           </div>
@@ -378,19 +379,19 @@ const OggiContent: React.FC = () => {
           </div>
 
           <div className="oggi-secondary flex flex-wrap gap-1.5">
-            <button type="button" onClick={handleCopy} className="ds-btn-ghost !min-h-[36px] !px-2.5 !text-[11px]">
+            <button type="button" onClick={handleCopy} className="ds-btn-ghost !min-h-[44px] !px-3 !text-xs">
               {copiato ? <Check size={14} /> : <Copy size={14} />}
               <span>{copiato ? 'Copiato' : 'Copia'}</span>
             </button>
-            <button type="button" onClick={() => setModalParametriOpen(true)} className="ds-btn-ghost !min-h-[36px] !px-2.5 !text-[11px]">
+            <button type="button" onClick={() => setModalParametriOpen(true)} className="ds-btn-ghost !min-h-[44px] !px-3 !text-xs">
               <SlidersHorizontal size={14} />
               <span>Parametri</span>
             </button>
-            <button type="button" onClick={() => setModalEsercizioOpen(true)} className="ds-btn-ghost !min-h-[36px] !px-2.5 !text-[11px]">
+            <button type="button" onClick={() => setModalEsercizioOpen(true)} className="ds-btn-ghost !min-h-[44px] !px-3 !text-xs">
               <ClipboardList size={14} />
               <span>Manuale</span>
             </button>
-            <button type="button" onClick={() => vai('altro', 'dati', 'registro')} className="ds-btn-ghost !min-h-[36px] !px-2.5 !text-[11px]">
+            <button type="button" onClick={() => vai('altro', 'dati', 'registro')} className="ds-btn-ghost !min-h-[44px] !px-3 !text-xs">
               <Users size={14} />
               <span>Registro</span>
             </button>
@@ -403,8 +404,8 @@ const OggiContent: React.FC = () => {
               className="w-full flex items-center justify-between gap-2 rounded-xl bg-primary/5 border border-primary/15 px-3 py-2 text-left hover:bg-primary/10 transition"
             >
               <span className="min-w-0">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-primary">Scheda salvata</span>
-                <span className="block truncate text-xs font-semibold text-on-surface">{schedaSalvata.testo}</span>
+                <span className="block text-[11px] font-bold uppercase tracking-wider text-primary">Scheda salvata</span>
+                <span className="block truncate text-xs font-semibold text-on-surface" title={schedaSalvata.testo}>{schedaSalvata.testo}</span>
               </span>
               <ArrowUpRight size={16} className="text-primary shrink-0" />
             </button>
