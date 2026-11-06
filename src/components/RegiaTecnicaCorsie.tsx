@@ -276,7 +276,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
                     onChange={event => {
                       if (event.target.value) assegnaAtleta(laneIndex, Number(event.target.value));
                     }}
-                    className="w-full min-h-[40px] bg-surface-container-lowest border border-outline-variant rounded-lg px-2 text-xs font-semibold text-on-surface disabled:opacity-60"
+                    className="w-full min-h-[44px] bg-surface-container-lowest border border-outline-variant rounded-lg px-2 text-xs font-semibold text-on-surface disabled:opacity-60"
                   >
                     <option value="">
                       {atletaIdsAssegnati.size >= atleti.length ? 'Tutti assegnati' : '+ Aggiungi atleta'}
