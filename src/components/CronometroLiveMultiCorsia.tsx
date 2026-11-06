@@ -390,7 +390,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
             <RotateCcw size={17} />
           </button>
           <label className="timer-setting flex-1 flex flex-col justify-center min-h-[48px]">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Vasca</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Vasca</span>
             <select
               value={vascaMetri}
               onChange={event => setVascaMetri(Number(event.target.value) as 25 | 50)}
@@ -402,7 +402,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
           </label>
           <label className="timer-setting flex-1 flex flex-col justify-center min-h-[48px]">
             <div className="w-full flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Ripartenza</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Ripartenza</span>
               <span className="text-xs font-bold text-primary tabular-nums font-headline">{formatSendoff(ripartenzaSecondi)}</span>
             </div>
             <div className="flex items-center gap-1 w-full">
@@ -612,7 +612,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                           if (destinationLaneId) moveAthleteToLane(lane.id, athlete.id, destinationLaneId);
                         }}
                       >
-                        <option value="">Sposta</option>
+                        <option value="">Sposta ↻</option>
                         {lanes
                           .filter(destination => destination.id !== lane.id && destination.athletes.length < MAX_ATHLETES_PER_LANE)
                           .map(destination => (

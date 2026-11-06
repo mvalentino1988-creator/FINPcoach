@@ -305,8 +305,8 @@ const OggiContent: React.FC = () => {
           </div>
         </div>
         {prossimaGara && (
-          <div className="hidden xs:block text-right shrink-0">
-            <div className="text-[11px] uppercase font-bold text-on-surface-variant">Prossima gara</div>
+          <div className="text-right shrink-0 min-w-0">
+            <div className="text-[11px] uppercase font-bold text-on-surface-variant truncate">Prossima gara</div>
             <div className="font-headline font-bold text-tertiary text-sm">{prossimaGara.diffDays} g</div>
           </div>
         )}
@@ -378,21 +378,21 @@ const OggiContent: React.FC = () => {
             </button>
           </div>
 
-          <div className="oggi-secondary flex flex-wrap gap-1.5">
+          <div className="grid grid-cols-2 gap-2">
             <button type="button" onClick={handleCopy} className="ds-btn-ghost !min-h-[44px] !px-3 !text-xs">
-              {copiato ? <Check size={14} /> : <Copy size={14} />}
+              {copiato ? <Check size={16} /> : <Copy size={16} />}
               <span>{copiato ? 'Copiato' : 'Copia'}</span>
             </button>
             <button type="button" onClick={() => setModalParametriOpen(true)} className="ds-btn-ghost !min-h-[44px] !px-3 !text-xs">
-              <SlidersHorizontal size={14} />
+              <SlidersHorizontal size={16} />
               <span>Parametri</span>
             </button>
             <button type="button" onClick={() => setModalEsercizioOpen(true)} className="ds-btn-ghost !min-h-[44px] !px-3 !text-xs">
-              <ClipboardList size={14} />
+              <ClipboardList size={16} />
               <span>Manuale</span>
             </button>
             <button type="button" onClick={() => vai('altro', 'dati', 'registro')} className="ds-btn-ghost !min-h-[44px] !px-3 !text-xs">
-              <Users size={14} />
+              <Users size={16} />
               <span>Registro</span>
             </button>
           </div>

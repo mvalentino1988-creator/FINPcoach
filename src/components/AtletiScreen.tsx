@@ -718,42 +718,42 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
             </div>
           )}
 
-          {/* Ergonomic Horizontal Tabs - Stitch Design System */}
-          <div className="grid grid-cols-3 gap-1 bg-surface-container rounded-xl p-1 text-center">
+          {/* Tabs */}
+          <div className="grid grid-cols-3 gap-2 bg-surface-container rounded-xl p-1.5 text-center">
             <button
               type="button"
               onClick={() => setTabDettaglio('biomeccanica')}
-              className={`min-h-[48px] py-2 px-1 rounded-lg text-xs xs:text-xs font-bold leading-tight transition flex items-center justify-center gap-1.5 ${
+              className={`min-h-[52px] py-2 px-2 rounded-lg text-xs sm:text-sm font-bold leading-tight transition flex flex-col items-center justify-center gap-1.5 ${
                 tabDettaglio === 'biomeccanica'
-                  ? 'bg-surface-container-lowest text-primary-container shadow-card'
-                  : 'text-on-surface-variant hover:text-on-surface'
+                  ? 'bg-surface-container-lowest text-primary shadow-primary-sm'
+                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low'
               }`}
             >
-              <span className="shrink-0 hidden xs:inline-flex"><Sliders size={14} /></span>
+              <Sliders size={16} />
               <span>Biomeccanica</span>
             </button>
             <button
               type="button"
               onClick={() => setTabDettaglio('progressione')}
-              className={`min-h-[48px] py-2 px-1 rounded-lg text-xs xs:text-xs font-bold leading-tight transition flex items-center justify-center gap-1.5 ${
+              className={`min-h-[52px] py-2 px-2 rounded-lg text-xs sm:text-sm font-bold leading-tight transition flex flex-col items-center justify-center gap-1.5 ${
                 tabDettaglio === 'progressione'
-                  ? 'bg-surface-container-lowest text-primary-container shadow-card'
-                  : 'text-on-surface-variant hover:text-on-surface'
+                  ? 'bg-surface-container-lowest text-primary shadow-primary-sm'
+                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low'
               }`}
             >
-              <span className="shrink-0 hidden xs:inline-flex"><Timer size={14} /></span>
+              <Timer size={16} />
               <span>Progressione</span>
             </button>
             <button
               type="button"
               onClick={() => setTabDettaglio('certificati')}
-              className={`min-h-[48px] py-2 px-1 rounded-lg text-xs xs:text-xs font-bold leading-tight transition flex items-center justify-center gap-1.5 ${
+              className={`min-h-[52px] py-2 px-2 rounded-lg text-xs sm:text-sm font-bold leading-tight transition flex flex-col items-center justify-center gap-1.5 ${
                 tabDettaglio === 'certificati'
-                  ? 'bg-surface-container-lowest text-primary-container shadow-card'
-                  : 'text-on-surface-variant hover:text-on-surface'
+                  ? 'bg-surface-container-lowest text-primary shadow-primary-sm'
+                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low'
               }`}
             >
-              <span className="shrink-0 hidden xs:inline-flex"><HeartPulse size={14} /></span>
+              <HeartPulse size={16} />
               <span>Certificati</span>
             </button>
           </div>
