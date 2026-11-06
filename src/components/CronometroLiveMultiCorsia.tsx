@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../data/AppContext';
 import { todayISO } from '../domain/dateUtils';
-import { CheckCircle2, Minus, Pause, Play, Plus, RotateCcw, Save, X } from 'lucide-react';
+import { CheckCircle2, Flag, Minus, Pause, Play, Plus, RotateCcw, Save, X } from 'lucide-react';
 
 interface Split {
   lap: number;
@@ -247,6 +247,41 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     }));
   };
 
+  const handleGeneralLap = () => {
+    if (!isRunning) return;
+    const currentTime = getCurrentTime();
+
+    setLanes(current => current.map(lane => {
+      const effectiveRipartenza = lane.ripartenzaSecondi ?? ripartenzaSecondi;
+      return {
+        ...lane,
+        athletes: lane.athletes.map(athlete => {
+          if (athlete.startedAtMs === null) {
+            return { ...athlete, startedAtMs: currentTime, nextStartAtMs: null };
+          }
+          const segmentStart = athlete.nextStartAtMs ?? athlete.startedAtMs;
+          if (currentTime < segmentStart) return athlete;
+
+          const split = {
+            lap: athlete.splitList.length + 1,
+            time: formatMs(currentTime - segmentStart),
+            timestampMs: currentTime - segmentStart,
+          };
+          const scheduledStart = segmentStart + effectiveRipartenza * 1000;
+          const nextStartAtMs = Math.max(scheduledStart, currentTime);
+
+          return {
+            ...athlete,
+            startedAtMs: nextStartAtMs,
+            nextStartAtMs,
+            splitList: [split, ...athlete.splitList],
+          };
+        }),
+      };
+    }));
+    navigator.vibrate?.(50);
+  };
+
   const toggleInitialStart = (athleteId: string) => {
     setSelectedStartAthleteIds(current => {
       const next = new Set(current);
@@ -375,7 +410,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
           <button type="button" onClick={resetMaster} aria-label="Azzera sessione" className="timer-console-reset">
             <RotateCcw size={17} />
           </button>
-          <label className="timer-setting flex-1 flex flex-col justify-center min-h-[48px]">
+          <label className="timer-setting flex-1 min-w-0">
             <div className="w-full flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Vasca</span>
               <span className="text-xs font-bold text-primary tabular-nums font-headline">{vascaMetri} m</span>
@@ -390,7 +425,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
               <option value={50}>50 metri</option>
             </select>
           </label>
-          <label className="timer-setting flex-1 flex flex-col justify-center min-h-[48px]">
+          <label className="timer-setting flex-1 min-w-0">
             <div className="w-full flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Ripartenza</span>
               <span className="text-xs font-bold text-primary tabular-nums font-headline">{formatSendoff(ripartenzaSecondi)}</span>
@@ -437,12 +472,24 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
           {!sessionStarted && (
             <span className="lane-start-hint">
               {selectedStartAthleteIds.size > 0
-                ? `${selectedStartAthleteIds.size} al via generale`
-                : 'Seleziona chi parte al primo via'}
+                ? `${selectedStartAthleteIds.size} in partenza generale`
+                : 'Tocca un nome: spunta = partenza generale'}
             </span>
           )}
         </div>
         <div className="lane-toolbar-actions">
+          {sessionStarted && (
+            <button
+              type="button"
+              onClick={handleGeneralLap}
+              disabled={!isRunning}
+              className="lane-add-button"
+              aria-label="Registra un passaggio per tutti gli atleti in vasca"
+              title="Lap per tutti"
+            >
+              <Flag size={15} /> Lap
+            </button>
+          )}
           <label className="sr-only" htmlFor="athlete-to-assign">Atleta da assegnare</label>
           <select
             id="athlete-to-assign"
@@ -550,16 +597,14 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                   ? 0
                   : Math.max(0, now - segmentStart);
                 const isSelectedForStart = selectedStartAthleteIds.has(athlete.id);
-                const action = !sessionStarted
-                  ? isSelectedForStart ? 'AL VIA' : 'SCEGLI'
-                  : athlete.startedAtMs === null
+                const action = athlete.startedAtMs === null
                   ? 'AVVIA'
                   : waitingUntil !== null
                     ? `TRA ${formatMs(waitingUntil - now)}`
                     : 'LAP';
                 const isDisabled = sessionStarted && (!isRunning || waitingUntil !== null);
                 const ariaLabel = !sessionStarted
-                  ? `${isSelectedForStart ? 'Rimuovi' : 'Seleziona'} ${athlete.atletaNome} ${isSelectedForStart ? 'dal' : 'per il'} primo via generale`
+                  ? `${isSelectedForStart ? 'Rimuovi' : 'Aggiungi'} ${athlete.atletaNome} ${isSelectedForStart ? 'dalla' : 'alla'} partenza generale`
                   : `${action === 'AVVIA' ? 'Avvia crono' : action === 'LAP' ? 'Registra nuotata' : `Ripartenza tra ${formatMs(waitingUntil! - now)}`} per ${athlete.atletaNome}`;
 
                 return (
@@ -574,12 +619,11 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                       aria-label={ariaLabel}
                       aria-pressed={!sessionStarted ? isSelectedForStart : undefined}
                     >
-                      <span className="athlete-class">{athlete.classe}</span>
                       <span className="athlete-timing-info">
                         <span className="athlete-name">{athlete.atletaNome}</span>
                         <span className="athlete-time">
                           {!sessionStarted
-                            ? isSelectedForStart ? 'Via generale' : 'Partenza individuale'
+                            ? isSelectedForStart ? 'Partenza generale' : 'Partenza singola'
                             : athlete.startedAtMs === null
                               ? 'In attesa di partenza'
                             : waitingUntil !== null
@@ -587,7 +631,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                               : formatMs(elapsed)}
                         </span>
                       </span>
-                      <span className="athlete-action">{action}</span>
+                      {sessionStarted && <span className="athlete-action">{action}</span>}
                     </button>
                     {lanes.length > 1 && (
                       <select
@@ -602,7 +646,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                           if (destinationLaneId) moveAthleteToLane(lane.id, athlete.id, destinationLaneId);
                         }}
                       >
-                        <option value="">Sposta ↻</option>
+                        <option value="">Sposta</option>
                         {lanes
                           .filter(destination => destination.id !== lane.id && destination.athletes.length < MAX_ATHLETES_PER_LANE)
                           .map(destination => (
