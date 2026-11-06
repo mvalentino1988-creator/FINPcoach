@@ -39,7 +39,7 @@ export const BordoVascaScreen: React.FC = () => {
         <button
           type="button"
           onClick={() => setVista('cronometro')}
-          className={`flex-1 min-h-[44px] px-3 rounded-xl font-headline font-bold text-sm flex items-center justify-center gap-2 transition ${
+          className={`flex-1 min-h-12 px-3 rounded-xl font-headline font-bold text-sm flex items-center justify-center gap-2 transition ${
             vista === 'cronometro' ? 'bg-primary text-on-primary shadow-primary-sm' : 'bg-surface-container text-on-surface'
           }`}
         >
@@ -49,7 +49,7 @@ export const BordoVascaScreen: React.FC = () => {
         <button
           type="button"
           onClick={() => setVista('regia')}
-          className={`flex-1 min-h-[44px] px-3 rounded-xl font-headline font-bold text-sm flex items-center justify-center gap-2 transition ${
+          className={`flex-1 min-h-12 px-3 rounded-xl font-headline font-bold text-sm flex items-center justify-center gap-2 transition ${
             vista === 'regia' ? 'bg-primary text-on-primary shadow-primary-sm' : 'bg-surface-container text-on-surface'
           }`}
         >

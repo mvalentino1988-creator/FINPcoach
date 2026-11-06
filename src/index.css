@@ -1407,7 +1407,7 @@
     }
 
     .timer-console-clock output {
-      font-size: clamp(1.125rem, 6vw, 1.625rem);
+      font-size: clamp(1.5rem, 10vw, 2.25rem);
     }
 
     .timer-console-actions {
@@ -1530,7 +1530,7 @@
     }
 
     .athlete-time {
-      font-size: 0.75rem;
+      font-size: 0.875rem;
     }
 
     .athlete-action {
