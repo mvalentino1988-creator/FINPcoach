@@ -1141,14 +1141,14 @@
   }
 
   .athlete-move-select {
-    width: 4.5rem;
+    width: 4.25rem;
     min-height: 2.75rem;
     padding: 0 0.25rem;
     border: 1px solid var(--color-outline-variant);
     border-radius: 0.625rem;
     background: var(--color-surface-container-lowest);
     color: var(--color-on-surface);
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     font-weight: 700;
   }
 
@@ -1190,7 +1190,7 @@
   }
 
   .athlete-timing-row.has-move-select {
-    grid-template-columns: minmax(0, 1fr) 4.5rem 2rem;
+    grid-template-columns: minmax(0, 1fr) 4.25rem 2rem;
   }
 
   .athlete-timing-button {
@@ -1452,13 +1452,13 @@
     }
 
     .athlete-timing-row.has-move-select {
-      grid-template-columns: minmax(0, 1fr) 4.25rem 2.75rem;
+      grid-template-columns: minmax(0, 1fr) 4rem 2.75rem;
     }
 
     .athlete-move-select {
-      width: 4.25rem;
+      width: 4rem;
       min-height: 2.75rem;
-      font-size: 0.8125rem;
+      font-size: 0.75rem;
     }
 
     .athlete-timing-button {

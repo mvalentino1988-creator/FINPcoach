@@ -59,18 +59,10 @@ const RIPARTENZA_PRESETS = [
   { value: 1800, label: "30'00\"" },
 ];
 
-const formatRipartenzaLabel = (totalSec: number): string => {
-  const mins = Math.floor(totalSec / 60);
-  const secs = totalSec % 60;
-  if (mins === 0) return `${secs}"`;
-  if (secs === 0) return `${mins}'00"`;
-  return `${mins}'${String(secs).padStart(2, '0')}"`;
-};
-
 const formatSendoff = (totalSec: number): string => {
   const m = Math.floor(totalSec / 60);
   const s = totalSec % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
+  return `${m}.${String(s).padStart(2, '0')}`;
 };
 
 const formatMs = (ms: number) => {
@@ -411,9 +403,8 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
             <RotateCcw size={17} />
           </button>
           <label className="timer-setting flex-1 min-w-0">
-            <div className="w-full flex items-center justify-between">
+            <div className="w-full flex items-center">
               <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Vasca</span>
-              <span className="text-xs font-bold text-primary tabular-nums font-headline">{vascaMetri} m</span>
             </div>
             <select
               value={vascaMetri}
@@ -469,11 +460,9 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
             <span className="lane-toolbar-divider" />
             <strong>{lanes.length}</strong><span>/{MAX_LANES} corsie</span>
           </div>
-          {!sessionStarted && (
+          {!sessionStarted && selectedStartAthleteIds.size > 0 && (
             <span className="lane-start-hint">
-              {selectedStartAthleteIds.size > 0
-                ? `${selectedStartAthleteIds.size} in partenza generale`
-                : 'Tocca un nome: spunta = partenza generale'}
+              {selectedStartAthleteIds.size} in partenza generale
             </span>
           )}
         </div>

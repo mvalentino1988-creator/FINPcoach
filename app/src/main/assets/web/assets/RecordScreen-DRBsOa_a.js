@@ -1,4 +1,4 @@
-import{c as g,u as _,r,j as e,h as X,f as D,I as F,X as B,ap as H}from"./index-BL8-nZYH.js";import{R as n,C as J}from"./recordService-COOaXi14.js";import{T as K,a as Q}from"./AltroScreen-DB8Hb59D.js";import{U as Y}from"./user-CS2TUYWq.js";import{M as Z}from"./map-pin-CO8gyz14.js";import"./vendor-react-C8w-UNLI.js";import"./vendor-firebase-CSpUq0xm.js";/**
+import{c as g,u as _,r,j as e,h as X,f as D,I as F,X as B,ap as H}from"./index-B0KIrbrr.js";import{R as n,C as J}from"./recordService-B_3_XEAF.js";import{T as K,a as Q}from"./AltroScreen-D13-aLJw.js";import{U as Y}from"./user-DhhxgB2E.js";import{M as Z}from"./map-pin-DtCp-DPV.js";import"./vendor-react-C8w-UNLI.js";import"./vendor-firebase-CSpUq0xm.js";/**
  * @license lucide-react v0.469.0 - ISC
  *
  * This source code is licensed under the ISC license.
