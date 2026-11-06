@@ -944,14 +944,19 @@
     font-weight: 700;
   }
 
-  .timer-setting select {
+  .timer-setting select,
+  .timer-setting input {
     width: 100%;
-    min-width: 0;
+    height: 1.75rem;
+    min-height: 0;
     padding: 0 0.25rem 0 0;
     border: 0;
     outline: 0;
     background: transparent;
     color: var(--color-on-surface);
+  }
+
+  .timer-setting select {
     cursor: pointer;
   }
 
@@ -1150,6 +1155,8 @@
     color: var(--color-on-surface);
     font-size: 0.75rem;
     font-weight: 700;
+    appearance: none;
+    -webkit-appearance: none;
   }
 
   .athlete-move-select:disabled {

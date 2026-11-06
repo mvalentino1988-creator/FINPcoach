@@ -59,10 +59,12 @@ const RIPARTENZA_PRESETS = [
   { value: 1800, label: "30'00\"" },
 ];
 
-const formatSendoff = (totalSec: number): string => {
-  const m = Math.floor(totalSec / 60);
-  const s = totalSec % 60;
-  return `${m}.${String(s).padStart(2, '0')}`;
+const formatRipartenza = (totalSec: number): string => {
+  const mins = Math.floor(totalSec / 60);
+  const secs = totalSec % 60;
+  if (mins === 0) return `${secs}"`;
+  if (secs === 0) return `${mins}'00"`;
+  return `${mins}'${String(secs).padStart(2, '0')}"`;
 };
 
 const formatMs = (ms: number) => {
@@ -128,6 +130,17 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     [atleti, assignedAthleteIds],
   );
   const assignedCount = assignedAthleteIds.size;
+
+  // Le corsie vuote non occupano spazio: resta solo il primo slot libero in coda.
+  const visibleLanes = useMemo(() => {
+    const nonEmpty = lanes.filter(lane => lane.athletes.length > 0);
+    const firstEmpty = lanes.find(lane => lane.athletes.length === 0);
+    return firstEmpty ? [...nonEmpty, firstEmpty] : nonEmpty;
+  }, [lanes]);
+  const displayIndexById = useMemo(
+    () => new Map(visibleLanes.map((lane, index) => [lane.id, index + 1] as const)),
+    [visibleLanes],
+  );
 
   useEffect(() => {
     if (selectedAthleteId === '' || !availableAthletes.some(athlete => athlete.id === selectedAthleteId)) {
@@ -373,11 +386,11 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     window.setTimeout(() => setSalvatoFeedback(null), 3000);
   };
 
-  const columnClass = lanes.length === 1
+  const columnClass = visibleLanes.length === 1
     ? 'cronometro-lanes-one'
-    : lanes.length === 2
+    : visibleLanes.length === 2
       ? 'cronometro-lanes-count-2'
-      : lanes.length === 3
+      : visibleLanes.length === 3
         ? 'cronometro-lanes-count-3'
         : 'cronometro-lanes-count-4';
 
@@ -419,7 +432,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
           <label className="timer-setting flex-1 min-w-0">
             <div className="w-full flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Ripartenza</span>
-              <span className="text-xs font-bold text-primary tabular-nums font-headline">{formatSendoff(ripartenzaSecondi)}</span>
+              <span className="text-xs font-bold text-primary tabular-nums font-headline">{formatRipartenza(ripartenzaSecondi)}</span>
             </div>
             <div className="flex items-center gap-1 w-full">
               <input
@@ -458,7 +471,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
           <div className="lane-toolbar-summary">
             <strong>{assignedCount}</strong><span>atleti</span>
             <span className="lane-toolbar-divider" />
-            <strong>{lanes.length}</strong><span>/{MAX_LANES} corsie</span>
+            <strong>{visibleLanes.length}</strong><span>/{MAX_LANES} corsie</span>
           </div>
           {!sessionStarted && selectedStartAthleteIds.size > 0 && (
             <span className="lane-start-hint">
@@ -507,25 +520,25 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
       <section
         aria-label="Corsie cronometrate"
         className={`cronometro-lanes ${columnClass}`}
-        style={{ '--lane-count': lanes.length } as React.CSSProperties}
+        style={{ '--lane-count': visibleLanes.length } as React.CSSProperties}
       >
-        {lanes.map(lane => (
+        {visibleLanes.map((lane, laneIdx) => (
           <article key={lane.id} className="cronometro-lane-card">
             <header className="cronometro-lane-card-header">
-              <span className="lane-number">C{lane.laneNumber}</span>
+              <span className="lane-number">C{laneIdx + 1}</span>
               <span className="lane-athlete-count">{lane.athletes.length}<span>/{MAX_ATHLETES_PER_LANE}</span></span>
 
               <div className="flex items-center gap-1 ml-auto mr-1">
                 <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Rip:</span>
                 <div className="flex items-center gap-1 bg-surface-container-high rounded-xl px-2 py-0.5 border border-outline-variant">
-                  <span className="text-[10px] font-bold text-primary tabular-nums font-headline">{formatSendoff(lane.ripartenzaSecondi ?? ripartenzaSecondi)}</span>
+                  <span className="text-[10px] font-bold text-primary tabular-nums font-headline">{formatRipartenza(lane.ripartenzaSecondi ?? ripartenzaSecondi)}</span>
                   <input
                     type="number"
                     min={5}
                     max={3600}
                     step={5}
                     value={lane.ripartenzaText ?? String(lane.ripartenzaSecondi)}
-                    aria-label={`Ripartenza corsia ${lane.laneNumber} in secondi`}
+                    aria-label={`Ripartenza corsia ${laneIdx + 1} in secondi`}
                     onChange={e => {
                       const text = e.target.value;
                       setLanes(curr => curr.map(l => {
@@ -557,7 +570,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
               </div>
 
               {lane.athletes.length === 0 && lanes.length > 1 && (
-                <button type="button" onClick={() => removeLane(lane.id)} className="lane-remove-button" aria-label={`Rimuovi corsia ${lane.laneNumber}`}>
+                <button type="button" onClick={() => removeLane(lane.id)} className="lane-remove-button" aria-label={`Rimuovi corsia ${laneIdx + 1}`}>
                   <X size={15} />
                 </button>
               )}
@@ -566,7 +579,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                   type="button"
                   onClick={() => addAthleteToLane(lane.id)}
                   className="lane-assign-button"
-                  aria-label={`Aggiungi ${availableAthletes.find(athlete => athlete.id === selectedAthleteId)?.nome ?? 'atleta'} in corsia ${lane.laneNumber}`}
+                  aria-label={`Aggiungi ${availableAthletes.find(athlete => athlete.id === selectedAthleteId)?.nome ?? 'atleta'} in corsia ${laneIdx + 1}`}
                 >
                   <Plus size={16} />
                 </button>
@@ -597,7 +610,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                   : `${action === 'AVVIA' ? 'Avvia crono' : action === 'LAP' ? 'Registra nuotata' : `Ripartenza tra ${formatMs(waitingUntil! - now)}`} per ${athlete.atletaNome}`;
 
                 return (
-                  <div className={`athlete-timing-row ${lanes.length > 1 ? 'has-move-select' : ''}`} key={athlete.id}>
+                  <div className={`athlete-timing-row ${visibleLanes.length > 1 ? 'has-move-select' : ''}`} key={athlete.id}>
                     <button
                       type="button"
                       className={`athlete-timing-button ${athlete.startedAtMs !== null && waitingUntil === null ? 'is-active' : ''} ${waitingUntil !== null ? 'is-waiting' : ''} ${!sessionStarted && isSelectedForStart ? 'is-selected' : ''}`}
@@ -622,12 +635,12 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                       </span>
                       {sessionStarted && <span className="athlete-action">{action}</span>}
                     </button>
-                    {lanes.length > 1 && (
+                    {visibleLanes.length > 1 && (
                       <select
                         className="athlete-move-select"
                         value=""
                         aria-label={`Sposta ${athlete.atletaNome} in un'altra corsia`}
-                        disabled={!lanes.some(destination =>
+                        disabled={!visibleLanes.some(destination =>
                           destination.id !== lane.id && destination.athletes.length < MAX_ATHLETES_PER_LANE
                         )}
                         onChange={event => {
@@ -636,10 +649,10 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                         }}
                       >
                         <option value="">Sposta</option>
-                        {lanes
+                        {visibleLanes
                           .filter(destination => destination.id !== lane.id && destination.athletes.length < MAX_ATHLETES_PER_LANE)
                           .map(destination => (
-                            <option key={destination.id} value={destination.id}>C{destination.laneNumber}</option>
+                            <option key={destination.id} value={destination.id}>C{displayIndexById.get(destination.id)}</option>
                           ))}
                       </select>
                     )}
@@ -647,7 +660,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                       type="button"
                       className="athlete-remove-button"
                       onClick={() => removeAthleteFromLane(lane.id, athlete.id)}
-                      aria-label={`Rimuovi ${athlete.atletaNome} dalla corsia ${lane.laneNumber}`}
+                      aria-label={`Rimuovi ${athlete.atletaNome} dalla corsia ${laneIdx + 1}`}
                     >
                       <Minus size={14} />
                     </button>
