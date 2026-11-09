@@ -117,12 +117,19 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
   const handleDownload = () => {
     try {
       const json = FINPStorage.exportBackup();
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const fileName = `FINPcoach_backup_${dateStr}.json`;
+      const bridge = (window as unknown as { AndroidBridge?: { exportTextFile?: (n: string, c: string) => boolean } }).AndroidBridge;
+      if (bridge?.exportTextFile?.(fileName, json)) {
+        setSuccessMsg('Backup salvato in Download!');
+        setTimeout(() => setSuccessMsg(null), 3000);
+        return;
+      }
       const blob = new Blob([json], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      const dateStr = new Date().toISOString().slice(0, 10);
       a.href = url;
-      a.download = `FINPcoach_backup_${dateStr}.json`;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

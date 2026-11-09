@@ -103,19 +103,23 @@ export const AtletiScreen: React.FC = () => {
       <section className="shrink-0 ds-card p-3.5 sm:p-4 space-y-3">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-primary">Squadra FINP</span>
-            <h2 className="text-sm sm:text-base font-bold font-headline">Gestione Rosa Atleti</h2>
+            <span className="font-label-caps text-label-caps uppercase tracking-wider text-primary font-bold">Squadra FINP</span>
+            <h2 className="font-display-lg-mobile text-display-lg-mobile text-on-surface tracking-tight">Gestione Rosa Atleti</h2>
           </div>
           <button
             onClick={() => setNuovoOpen(true)}
-            className="min-h-[44px] px-3.5 py-2 rounded-xl bg-primary text-on-primary font-bold text-xs flex items-center gap-1.5 shadow-sm hover:brightness-110 transition shrink-0"
+            className="min-h-[44px] px-4 py-2 rounded-xl bg-gradient-blue text-on-primary font-headline-sm font-bold text-sm flex items-center gap-1.5 shadow-primary-sm hover:brightness-110 transition shrink-0"
           >
-            <UserPlus size={15} />
+            <UserPlus size={16} />
             <span>Nuovo</span>
           </button>
         </div>
         <div className="flex items-center justify-between gap-2 text-xs text-on-surface-variant pt-1.5 border-t border-outline-variant">
           <span>{atleti.length} {atleti.length === 1 ? 'Atleta registrato' : 'Atleti registrati'}</span>
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-container font-label-caps text-label-caps uppercase">
+            <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
+            ROSA ATTIVA
+          </span>
         </div>
       </section>
 
@@ -197,25 +201,25 @@ export const AtletiScreen: React.FC = () => {
               key={a.id}
               type="button"
               onClick={() => setSelezionatoId(a.id)}
-              className="w-full text-left ds-card p-3.5 flex items-center gap-3 hover:bg-surface-container-low transition"
+              className="w-full text-left ds-card p-3 flex items-center gap-3 hover:bg-surface-container-low transition"
             >
-              <div className="w-11 h-11 rounded-2xl bg-primary text-on-primary font-headline text-sm font-bold flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-full bg-gradient-blue text-on-primary font-headline text-sm font-bold flex items-center justify-center shrink-0 shadow-inner">
                 {a.nome?.[0] || 'A'}{a.cognome?.[0] || 'T'}
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="font-headline font-bold text-sm text-on-surface truncate">
+                <div className="font-headline-sm text-headline-sm font-bold text-on-surface truncate">
                   {a.cognome} {a.nome}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                  <span className="px-2 py-0.5 rounded-full bg-surface-container text-primary font-bold text-[11px] font-headline">
+                  <span className="px-1.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-label-caps font-bold">
                     {formatClassi(a)}
                   </span>
-                  <span className="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-medium text-[11px]">
+                  <span className="px-1.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-caps text-label-caps">
                     {a.stato === 'UFFICIALE' ? 'Nazionale A' : 'In attesa'}
                   </span>
                   {eta != null && (
-                    <span className="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-medium text-[11px]">
+                    <span className="px-1.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-caps text-label-caps">
                       {eta} anni
                     </span>
                   )}

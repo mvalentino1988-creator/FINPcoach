@@ -308,161 +308,95 @@ export class FINPStorage {
   // ---------------- Seed data for authentic FINP paralympic experience
   private static createSeedAtleti(): Atleta[] {
     return [
-      {
-        id: 1,
-        nome: 'Marco',
-        cognome: 'Rossi',
-        dataNascita: '2004-05-12',
-        classeS: 9,
-        classeSB: 8,
-        classeSM: 9,
-        stato: 'UFFICIALE',
-        fattoreVolume: 1.0,
-        note: 'Amputazione transtibiale arto inferiore sinistro.',
-        volumeAuto: true
-      },
-      {
-        id: 2,
-        nome: 'Sofia',
-        cognome: 'Bianchi',
-        dataNascita: '2001-08-20',
-        classeS: 4,
-        classeSB: 3,
-        classeSM: 4,
-        stato: 'UFFICIALE',
-        fattoreVolume: 0.85,
-        note: 'Paraplegia T6 da lesione midollare dorsale, controllo tronco ridotto.',
-        volumeAuto: true
-      },
-      {
-        id: 3,
-        nome: 'Matteo',
-        cognome: 'Galli',
-        dataNascita: '2010-03-15',
-        classeS: 7,
-        classeSB: 6,
-        classeSM: 7,
-        stato: 'IN_ATTESA',
-        fattoreVolume: 0.8,
-        note: 'Emiparesi spastica lato destro esito paralisi cerebrale infantile.',
-        volumeAuto: true
-      }
+      { id: 1, nome: 'Marco', cognome: 'Rossi', dataNascita: '2004-05-12', classeS: 9, classeSB: 8, classeSM: 9, stato: 'UFFICIALE', fattoreVolume: 1.0, note: 'Amputazione transtibiale arto inferiore sinistro.', volumeAuto: true },
+      { id: 2, nome: 'Sofia', cognome: 'Bianchi', dataNascita: '2001-08-20', classeS: 4, classeSB: 3, classeSM: 4, stato: 'UFFICIALE', fattoreVolume: 0.85, note: 'Paraplegia T6 da lesione midollare dorsale.', volumeAuto: true },
+      { id: 3, nome: 'Matteo', cognome: 'Galli', dataNascita: '2010-03-15', classeS: 7, classeSB: 6, classeSM: 7, stato: 'IN_ATTESA', fattoreVolume: 0.8, note: 'Emiparesi spastica lato destro.', volumeAuto: true },
+      { id: 4, nome: 'Elena', cognome: 'Moretti', dataNascita: '1998-11-04', classeS: 11, classeSB: 11, classeSM: 11, stato: 'UFFICIALE', fattoreVolume: 0.9, note: 'Ipovisione profonda / cecità legale.', volumeAuto: true },
+      { id: 5, nome: 'Alessandro', cognome: 'Conti', dataNascita: '2006-02-18', classeS: 6, classeSB: 5, classeSM: 6, stato: 'UFFICIALE', fattoreVolume: 0.9, note: 'Acondroplasia, displasia scheletrica.', volumeAuto: true },
+      { id: 6, nome: 'Giulia', cognome: 'Romano', dataNascita: '2003-07-22', classeS: 8, classeSB: 7, classeSM: 8, stato: 'UFFICIALE', fattoreVolume: 0.95, note: 'Danno plesso brachiale arto superiore destro.', volumeAuto: true },
+      { id: 7, nome: 'Davide', cognome: 'Ferrari', dataNascita: '1995-09-30', classeS: 10, classeSB: 9, classeSM: 10, stato: 'UFFICIALE', fattoreVolume: 1.0, note: 'Amputazione transradiale braccio destro.', volumeAuto: true },
+      { id: 8, nome: 'Chiara', cognome: 'Ricci', dataNascita: '2008-12-05', classeS: 13, classeSB: 13, classeSM: 13, stato: 'IN_ATTESA', fattoreVolume: 0.85, note: 'Sindrome di Stargardt (minorazione visiva).', volumeAuto: true },
+      { id: 9, nome: 'Lorenzo', cognome: 'Marino', dataNascita: '1990-04-14', classeS: 5, classeSB: 4, classeSM: 5, stato: 'UFFICIALE', fattoreVolume: 0.8, note: 'Tetraparesi spastica lieve.', volumeAuto: true },
+      { id: 10, nome: 'Francesca', cognome: 'Barbieri', dataNascita: '2005-06-25', classeS: 9, classeSB: 9, classeSM: 9, stato: 'UFFICIALE', fattoreVolume: 0.9, note: 'Atassia cerebellare lieve.', volumeAuto: true },
+      { id: 11, nome: 'Simone', cognome: 'De Luca', dataNascita: '2000-01-19', classeS: 14, classeSB: 14, classeSM: 14, stato: 'UFFICIALE', fattoreVolume: 1.0, note: 'Disabilità intellettiva (S14).', volumeAuto: true },
+      { id: 12, nome: 'Martina', cognome: 'Colombo', dataNascita: '2007-10-08', classeS: 6, classeSB: 6, classeSM: 6, stato: 'IN_ATTESA', fattoreVolume: 0.85, note: 'Artrogriposi multipla congenita.', volumeAuto: true },
+      { id: 13, nome: 'Federico', cognome: 'Rinaldi', dataNascita: '1992-03-27', classeS: 8, classeSB: 8, classeSM: 8, stato: 'UFFICIALE', fattoreVolume: 0.9, note: 'Esiti poliomielite arto inferiore destro.', volumeAuto: true },
+      { id: 14, nome: 'Alice', cognome: 'Gatti', dataNascita: '2009-08-14', classeS: 10, classeSB: 9, classeSM: 10, stato: 'IN_ATTESA', fattoreVolume: 0.8, note: 'Spina bifida mielomeningocele.', volumeAuto: true },
+      { id: 15, nome: 'Tommaso', cognome: 'Esposito', dataNascita: '1996-05-02', classeS: 7, classeSB: 7, classeSM: 7, stato: 'UFFICIALE', fattoreVolume: 0.95, note: 'Amputazione tibiale bilaterale.', volumeAuto: true },
+      { id: 16, nome: 'Giorgia', cognome: 'Vitale', dataNascita: '2002-09-11', classeS: 12, classeSB: 12, classeSM: 12, stato: 'UFFICIALE', fattoreVolume: 0.9, note: 'Retinite pigmentosa.', volumeAuto: true },
+      { id: 17, nome: 'Luca', cognome: 'Fontana', dataNascita: '2004-01-30', classeS: 5, classeSB: 5, classeSM: 5, stato: 'UFFICIALE', fattoreVolume: 0.85, note: 'Sclerosi multipla in fase stabile.', volumeAuto: true },
+      { id: 18, nome: 'Sara', cognome: 'Santoro', dataNascita: '2011-06-17', classeS: 9, classeSB: 8, classeSM: 9, stato: 'IN_ATTESA', fattoreVolume: 0.75, note: 'Focomelia arto superiore sinistro.', volumeAuto: true },
+      { id: 19, nome: 'Andrea', cognome: 'Landi', dataNascita: '1988-02-09', classeS: 11, classeSB: 11, classeSM: 11, stato: 'UFFICIALE', fattoreVolume: 0.9, note: 'Cecità totale acquisita.', volumeAuto: true },
+      { id: 20, nome: 'Valentina', cognome: 'Costa', dataNascita: '2006-11-23', classeS: 14, classeSB: 14, classeSM: 14, stato: 'UFFICIALE', fattoreVolume: 0.95, note: 'Disabilità intellettivo-relazionale.', volumeAuto: true }
     ];
   }
 
   private static createSeedCondizioni(): CondizioneMedica[] {
     return [
-      {
-        id: 1,
-        atletaId: 1,
-        descrizione: 'Amputazione transtibiale arto inferiore sinistro',
-        limitazioni: 'Spinta dal blocco monolaterale con gamba destra, virata controllata.',
-        attiva: true
-      },
-      {
-        id: 2,
-        atletaId: 2,
-        descrizione: 'Paraplegia dorsale T6 completa',
-        limitazioni: 'Assenza spinta gambe, utilizzo pull-buoy in riscaldamento e fondo.',
-        attiva: true
-      },
-      {
-        id: 3,
-        atletaId: 3,
-        descrizione: 'Emiparesi spastica emilato destro',
-        limitazioni: 'Evitare serie ad altissimo lattato (C1/C2) che innescano spasticità.',
-        attiva: true
-      }
+      { id: 1, atletaId: 1, descrizione: 'Amputazione transtibiale arto inferiore sinistro', limitazioni: 'Spinta dal blocco monolaterale con gamba destra.', attiva: true },
+      { id: 2, atletaId: 2, descrizione: 'Paraplegia dorsale T6 completa', limitazioni: 'Assenza spinta gambe, utilizzo pull-buoy in riscaldamento.', attiva: true },
+      { id: 3, atletaId: 3, descrizione: 'Emiparesi spastica emilato destro', limitazioni: 'Evitare serie ad altissimo lattato.', attiva: true },
+      { id: 4, atletaId: 4, descrizione: 'Ipovisione profonda S11', limitazioni: 'Utilizzo di tappetini di segnalazione prima del muro.', attiva: true },
+      { id: 5, atletaId: 5, descrizione: 'Acondroplasia', limitazioni: 'Attenzione alle frequenze di bracciata nel misto.', attiva: true },
+      { id: 6, atletaId: 6, descrizione: 'Danno plesso brachiale destro', limitazioni: 'Recupero braccio destro modificato.', attiva: true },
+      { id: 7, atletaId: 7, descrizione: 'Amputazione transradiale braccio destro', limitazioni: 'Virata e subacquea simmetrica.', attiva: true },
+      { id: 8, atletaId: 8, descrizione: 'Sindrome di Stargardt', limitazioni: 'Controllo illuminazione a bordo vasca.', attiva: true },
+      { id: 9, atletaId: 9, descrizione: 'Tetraparesi spastica lieve', limitazioni: 'Gestione del recupero tra le serie.', attiva: true },
+      { id: 10, atletaId: 10, descrizione: 'Atassia cerebellare lieve', limitazioni: 'Attenzione all’equilibrio sui blocchi di partenza.', attiva: true },
+      { id: 11, atletaId: 11, descrizione: 'Disabilità intellettiva S14', limitazioni: 'Spiegazioni visive e ripetizione dei set.', attiva: true },
+      { id: 12, atletaId: 12, descrizione: 'Artrogriposi multipla congenita', limitazioni: 'Mobilità articolare ridotta agli arti.', attiva: true },
+      { id: 13, atletaId: 13, descrizione: 'Esiti poliomielite arto inferiore', limitazioni: 'Propulsione prevalente superiore.', attiva: true },
+      { id: 14, atletaId: 14, descrizione: 'Spina bifida', limitazioni: 'Monitoraggio sensibilità e affaticamento.', attiva: true },
+      { id: 15, atletaId: 15, descrizione: 'Amputazione tibiale bilaterale', limitazioni: 'Partenza da dentro l’acqua o blocco adattato.', attiva: true },
+      { id: 16, atletaId: 16, descrizione: 'Retinite pigmentosa', limitazioni: 'Campo visivo ridotto.', attiva: true },
+      { id: 17, atletaId: 17, descrizione: 'Sclerosi multipla stabile', limitazioni: 'Gestione della temperatura dell’acqua.', attiva: true },
+      { id: 18, atletaId: 18, descrizione: 'Focomelia arto superiore sinistro', limitazioni: 'Adattamento asimmetrico della bracciata.', attiva: true },
+      { id: 19, atletaId: 19, descrizione: 'Cecità totale S11', limitazioni: 'Taping obbligatorio e tappers ai 5 metri.', attiva: true },
+      { id: 20, atletaId: 20, descrizione: 'Disabilità intellettivo-relazionale', limitazioni: 'Supporto costante nella gestione dei recuperi.', attiva: true }
     ];
   }
 
   private static createSeedTempi(): Tempo[] {
     return [
-      {
-        id: 1,
-        atletaId: 1,
-        data: '2026-06-20',
-        stile: 'STILE_LIBERO',
-        distanzaMetri: 100,
-        centesimi: 6420, // 1:04.20
-        contesto: 'GARA',
-        vascaMetri: 25,
-        note: 'Campionati Italiani FINP vasca corta'
-      },
-      {
-        id: 2,
-        atletaId: 1,
-        data: '2026-06-21',
-        stile: 'STILE_LIBERO',
-        distanzaMetri: 50,
-        centesimi: 2910, // 29.10
-        contesto: 'GARA',
-        vascaMetri: 25,
-        note: 'Record personale'
-      },
-      {
-        id: 3,
-        atletaId: 1,
-        data: '2026-09-25',
-        stile: 'STILE_LIBERO',
-        distanzaMetri: 400,
-        centesimi: 30215, // 5:02.15
-        contesto: 'TEST',
-        vascaMetri: 25,
-        note: 'Test CSS inizio stagione'
-      },
-      {
-        id: 4,
-        atletaId: 2,
-        data: '2026-05-18',
-        stile: 'STILE_LIBERO',
-        distanzaMetri: 100,
-        centesimi: 10530, // 1:45.30
-        contesto: 'GARA',
-        vascaMetri: 25,
-        note: 'Gara regionale'
-      },
-      {
-        id: 5,
-        atletaId: 2,
-        data: '2026-05-18',
-        stile: 'STILE_LIBERO',
-        distanzaMetri: 50,
-        centesimi: 4820, // 48.20
-        contesto: 'GARA',
-        vascaMetri: 25,
-        note: 'Primato personale'
-      }
+      { id: 1, atletaId: 1, data: '2026-06-20', stile: 'STILE_LIBERO', distanzaMetri: 100, centesimi: 6420, contesto: 'GARA', vascaMetri: 25, note: 'Campionati Italiani FINP' },
+      { id: 2, atletaId: 2, data: '2026-06-21', stile: 'STILE_LIBERO', distanzaMetri: 50, centesimi: 4820, contesto: 'GARA', vascaMetri: 25, note: 'Record personale' },
+      { id: 3, atletaId: 3, data: '2026-09-25', stile: 'STILE_LIBERO', distanzaMetri: 100, centesimi: 7850, contesto: 'TEST', vascaMetri: 25, note: 'Test iniziale' },
+      { id: 4, atletaId: 4, data: '2026-07-10', stile: 'DORSO', distanzaMetri: 100, centesimi: 8210, contesto: 'GARA', vascaMetri: 25, note: 'Meeting estivo' },
+      { id: 5, atletaId: 5, data: '2026-06-15', stile: 'RANA', distanzaMetri: 50, centesimi: 4120, contesto: 'GARA', vascaMetri: 25, note: 'Ottima prova' },
+      { id: 6, atletaId: 6, data: '2026-08-01', stile: 'STILE_LIBERO', distanzaMetri: 200, centesimi: 15400, contesto: 'TEST', vascaMetri: 25, note: 'Test aerobico' },
+      { id: 7, atletaId: 7, data: '2026-06-20', stile: 'FARFALLA', distanzaMetri: 50, centesimi: 3150, contesto: 'GARA', vascaMetri: 25, note: 'Finale nazionale' },
+      { id: 8, atletaId: 8, data: '2026-09-12', stile: 'STILE_LIBERO', distanzaMetri: 400, centesimi: 31020, contesto: 'TEST', vascaMetri: 25, note: 'Test CSS' },
+      { id: 9, atletaId: 9, data: '2026-05-18', stile: 'STILE_LIBERO', distanzaMetri: 50, centesimi: 5900, contesto: 'GARA', vascaMetri: 25, note: 'Gara regionale' },
+      { id: 10, atletaId: 10, data: '2026-06-21', stile: 'MISTI', distanzaMetri: 200, centesimi: 17200, contesto: 'GARA', vascaMetri: 25, note: 'Campionato' },
+      { id: 11, atletaId: 11, data: '2026-06-20', stile: 'STILE_LIBERO', distanzaMetri: 100, centesimi: 6110, contesto: 'GARA', vascaMetri: 25, note: 'Podio nazionale' },
+      { id: 12, atletaId: 12, data: '2026-07-02', stile: 'RANA', distanzaMetri: 100, centesimi: 11200, contesto: 'TEST', vascaMetri: 25, note: 'Verifica tecnica' },
+      { id: 13, atletaId: 13, data: '2026-06-18', stile: 'STILE_LIBERO', distanzaMetri: 50, centesimi: 3640, contesto: 'GARA', vascaMetri: 25, note: 'Gara di velocità' },
+      { id: 14, atletaId: 14, data: '2026-08-15', stile: 'DORSO', distanzaMetri: 50, centesimi: 4320, contesto: 'TEST', vascaMetri: 25, note: 'Test rapido' },
+      { id: 15, atletaId: 15, data: '2026-06-20', stile: 'STILE_LIBERO', distanzaMetri: 100, centesimi: 7210, contesto: 'GARA', vascaMetri: 25, note: 'Italiani FINP' },
+      { id: 16, atletaId: 16, data: '2026-07-22', stile: 'STILE_LIBERO', distanzaMetri: 100, centesimi: 6980, contesto: 'GARA', vascaMetri: 25, note: 'Meeting regionale' },
+      { id: 17, atletaId: 17, data: '2026-09-01', stile: 'STILE_LIBERO', distanzaMetri: 50, centesimi: 5410, contesto: 'TEST', vascaMetri: 25, note: 'Test ripresa' },
+      { id: 18, atletaId: 18, data: '2026-06-21', stile: 'STILE_LIBERO', distanzaMetri: 50, centesimi: 4210, contesto: 'GARA', vascaMetri: 25, note: 'Esordio' },
+      { id: 19, atletaId: 19, data: '2026-06-20', stile: 'STILE_LIBERO', distanzaMetri: 100, centesimi: 7450, contesto: 'GARA', vascaMetri: 25, note: 'Campionato S11' },
+      { id: 20, atletaId: 20, data: '2026-06-20', stile: 'STILE_LIBERO', distanzaMetri: 100, centesimi: 6320, contesto: 'GARA', vascaMetri: 25, note: 'Finale S14' }
     ];
   }
 
   private static createSeedLog(): LogSeduta[] {
     const logs: LogSeduta[] = [];
-    const baseDate = '2026-09-21';
     let id = 1;
-    // Generate some sessions for athlete 1 & 2
-    for (let w = 0; w < 4; w++) {
-      const d1 = `2026-09-${23 + w * 2}`;
-      logs.push({
-        id: id++,
-        atletaId: 1,
-        data: d1,
-        presente: true,
-        durataMin: 75,
-        metriEffettivi: 2200,
-        rpe: 7,
-        note: 'Buona andatura A2/B1'
-      });
-      logs.push({
-        id: id++,
-        atletaId: 2,
-        data: d1,
-        presente: true,
-        durataMin: 60,
-        metriEffettivi: 1800,
-        rpe: 6,
-        note: 'Lavoro tecnico e pull-buoy'
-      });
+    for (let atletaId = 1; atletaId <= 20; atletaId++) {
+      for (let w = 0; w < 3; w++) {
+        logs.push({
+          id: id++,
+          atletaId,
+          data: `2026-09-${22 + w * 2}`,
+          presente: true,
+          durataMin: 75,
+          metriEffettivi: 2000 + (atletaId % 5) * 100,
+          rpe: 6 + (atletaId % 4),
+          note: 'Allenamento completato regolarmente'
+        });
+      }
     }
     return logs;
   }

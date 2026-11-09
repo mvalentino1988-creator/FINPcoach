@@ -33,32 +33,32 @@ export const BordoVascaScreen: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-1 min-h-0 flex-col gap-2 overflow-hidden">
+    <div className="flex flex-1 min-h-0 flex-col gap-1.5 overflow-hidden h-full">
       {/* Toggle da bordo vasca */}
-      <div className="shrink-0 ds-card p-2 flex items-center gap-1.5">
+      <div className="shrink-0 ds-card p-1 sm:p-1.5 flex items-center gap-1.5">
         <button
           type="button"
           onClick={() => setVista('cronometro')}
-          className={`flex-1 min-h-12 px-3 rounded-xl font-headline font-bold text-sm flex items-center justify-center gap-2 transition ${
+          className={`flex-1 min-h-10 sm:min-h-11 px-3 rounded-lg sm:rounded-xl font-headline font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition ${
             vista === 'cronometro' ? 'bg-primary text-on-primary shadow-primary-sm' : 'bg-surface-container text-on-surface'
           }`}
         >
-          <Timer size={18} />
+          <Timer size={16} />
           <span>Cronometro</span>
         </button>
         <button
           type="button"
           onClick={() => setVista('regia')}
-          className={`flex-1 min-h-12 px-3 rounded-xl font-headline font-bold text-sm flex items-center justify-center gap-2 transition ${
+          className={`flex-1 min-h-10 sm:min-h-11 px-3 rounded-lg sm:rounded-xl font-headline font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition ${
             vista === 'regia' ? 'bg-primary text-on-primary shadow-primary-sm' : 'bg-surface-container text-on-surface'
           }`}
         >
-          <SlidersHorizontal size={18} />
+          <SlidersHorizontal size={16} />
           <span>Regia</span>
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
         {vista === 'cronometro' ? <CronometroLiveMultiCorsia /> : <RegiaTecnicaCorsie />}
       </div>
     </div>

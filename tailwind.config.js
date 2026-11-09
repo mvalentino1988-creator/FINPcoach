@@ -39,14 +39,19 @@ export default {
         'primary-fixed':             'var(--color-primary-fixed, #60a5fa)',
         'primary-fixed-dim':         'var(--color-primary-fixed-dim, #3b82f6)',
         'on-primary-fixed':          'var(--color-on-primary-fixed, #ffffff)',
+        'on-primary-fixed-variant':  'var(--color-on-primary-fixed-variant, #003cac)',
+        'inverse-primary':           'var(--color-inverse-primary, #b5c4ff)',
+        'primary-bright':            'var(--color-primary-bright, #2563eb)',
 
         /* Secondary — Teal */
         secondary:                   'rgb(var(--color-secondary-rgb, 13 148 136) / <alpha-value>)',
         'secondary-container':       'var(--color-secondary-container, #ccfbf1)',
         'on-secondary':              'var(--color-on-secondary, #ffffff)',
         'on-secondary-container':    'var(--color-on-secondary-container, #134e4a)',
-        'secondary-fixed':           '#5eead4',
-        'on-secondary-fixed':        '#134e4a',
+        'secondary-fixed':           'var(--color-secondary-fixed, #89f5e7)',
+        'secondary-fixed-dim':       'var(--color-secondary-fixed-dim, #6bd8cb)',
+        'on-secondary-fixed':        'var(--color-on-secondary-fixed, #00201d)',
+        'on-secondary-fixed-variant':'var(--color-on-secondary-fixed-variant, #005049)',
 
         /* Tertiary — Warm accent */
         tertiary:                    'rgb(var(--color-tertiary-rgb, 234 88 12) / <alpha-value>)',
@@ -55,7 +60,14 @@ export default {
         'on-tertiary-container':     'var(--color-on-tertiary-container, #7c2d12)',
         'tertiary-fixed':            'var(--color-tertiary-fixed, #ffedd5)',
         'tertiary-fixed-dim':        'var(--color-tertiary-fixed-dim, #fdba74)',
-        'on-tertiary-fixed':         'var(--color-on-tertiary-fixed, #431407)',
+        'on-tertiary-fixed':         'var(--color-on-tertiary-fixed, #370e00)',
+        'on-tertiary-fixed-variant': 'var(--color-on-tertiary-fixed-variant, #7f2b00)',
+
+        /* Status extra (design Stitch) */
+        'status-live':               'var(--color-status-live, #10b981)',
+        'status-alert':              'var(--color-status-alert, #ef4444)',
+        'accent-gold':               'var(--color-accent-gold, #f59e0b)',
+        'border-hairline':           'var(--color-border-hairline, #e2e7ff)',
 
         /* Semantic */
         success:                     '#059669',
@@ -110,6 +122,9 @@ export default {
         'space-md':      '0.875rem',
         'space-lg':      '1.25rem',
         'space-xl':      '1.75rem',
+        'margin':        '0.75rem',
+        'margin-desktop':'1.5rem',
+        'gutter-desktop':'1.25rem',
         'tap':           '48px',
         'tap-lg':        '56px',
         'sidebar':       '256px',
@@ -125,8 +140,12 @@ export default {
            sbagliato. */
         'body-bold':    ["'Public Sans'", 'system-ui', 'sans-serif'],
         'body-base':    ["'Public Sans'", 'system-ui', 'sans-serif'],
+        'body-lg':      ["'Public Sans'", 'system-ui', 'sans-serif'],
         'headline-sm':  ["'Space Grotesk'", 'system-ui', 'sans-serif'],
         'label-caps':   ["'Space Grotesk'", 'system-ui', 'sans-serif'],
+        'display-lg-mobile': ["'Space Grotesk'", 'system-ui', 'sans-serif'],
+        'stat-timer':   ["'Space Grotesk'", 'system-ui', 'sans-serif'],
+        'stat-timer-mobile': ["'Space Grotesk'", 'system-ui', 'sans-serif'],
       },
 
       fontSize: {
@@ -135,6 +154,9 @@ export default {
         'headline-md': ['clamp(16px, 0.35vw + 14px, 20px)', { lineHeight: '1.3', fontWeight: '600' }],
         'headline-sm': ['clamp(14px, 0.2vw + 13px, 17px)', { lineHeight: '1.35', fontWeight: '600' }],
         'body-lg':     ['16px', { lineHeight: '24px', fontWeight: '400' }],
+        'display-lg-mobile': ['28px', { lineHeight: '32px', letterSpacing: '-0.03em', fontWeight: '700' }],
+        'stat-timer':  ['44px', { lineHeight: '48px', letterSpacing: '-0.04em', fontWeight: '700' }],
+        'stat-timer-mobile': ['32px', { lineHeight: '36px', letterSpacing: '-0.03em', fontWeight: '700' }],
         'body-base':   ['14px', { lineHeight: '20px', fontWeight: '400' }],
         'body-bold':   ['14px', { lineHeight: '20px', fontWeight: '700' }],
         'label-lg':    ['13px', { lineHeight: '16px', fontWeight: '600' }],

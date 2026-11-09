@@ -134,7 +134,11 @@ export const RegiaTecnicaCorsie: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => window.print()}
+                onClick={() => {
+                  const bridge = (window as unknown as { AndroidBridge?: { printPage?: () => void } }).AndroidBridge;
+                  if (bridge?.printPage) bridge.printPage();
+                  else window.print();
+                }}
                 className="ds-btn-primary !min-h-[48px] !px-3.5 text-xs shrink-0 font-bold"
               >
                 <Printer size={15} />

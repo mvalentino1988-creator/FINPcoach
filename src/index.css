@@ -13,7 +13,7 @@
 @tailwind utilities;
 
 :root {
-  --gradient-blue: linear-gradient(135deg, #0b5fff 0%, #2563eb 55%, #0ea5e9 100%);
+  --gradient-blue: linear-gradient(135deg, #0b5fff 0%, #0049cc 100%);
 }
 
 .bg-gradient-blue {
@@ -30,60 +30,69 @@
     --header-h: 60px;
     --dock-h: 64px;
     --gutter: clamp(0.875rem, 0.6rem + 1vw, 1.5rem);
-    --radius-card: 24px;
-    --radius-btn: 16px;
+    --radius-card: 14px;
+    --radius-btn: 12px;
 
     /* =====================================================
-       LIGHT THEME — Premium Modern Palette
+       LIGHT THEME — Stitch "FINPcoach" Design System
        ===================================================== */
-    --color-bg:                    #f4f7fb;
-    --color-surface:               #f4f7fb;
-    --color-surface-bright:        #ffffff;
-    --color-surface-dim:           #dbe4f0;
+    --color-bg:                    #faf8ff;
+    --color-surface:               #faf8ff;
+    --color-surface-bright:        #faf8ff;
+    --color-surface-dim:           #d2d9f4;
     --color-surface-container-lowest: #ffffff;
-    --color-surface-container-low: #edf3f9;
-    --color-surface-container:     #e2eaf4;
-    --color-surface-container-high:#cfdcea;
-    --color-surface-container-highest: #aebfd4;
-    --color-surface-variant:       #e2eaf4;
-    --color-background:            #f4f7fb;
+    --color-surface-container-low: #f2f3ff;
+    --color-surface-container:     #eaedff;
+    --color-surface-container-high:#e2e7ff;
+    --color-surface-container-highest: #dae2fd;
+    --color-surface-variant:       #dae2fd;
+    --color-background:            #faf8ff;
 
-    --color-on-surface:            #0f172a;
-    --color-on-surface-variant:    #475569;
-    --color-on-background:         #0f172a;
+    --color-on-surface:            #131b2e;
+    --color-on-surface-variant:    #424656;
+    --color-on-background:         #131b2e;
 
-    --color-outline:               #8aa0b8;
-    --color-outline-variant:       #dbe5f0;
+    --color-outline:               #737687;
+    --color-outline-variant:       #c3c5d9;
 
-    /* Primary — deep water blue */
-    --color-primary:               #0b5fff;
-    --color-primary-rgb:           11 95 255;
-    --color-primary-container:     #2563eb;
-    --color-primary-container-rgb: 37 99 235;
+    /* Primary — deep FINP blue */
+    --color-primary:               #0049cc;
+    --color-primary-rgb:           0 73 204;
+    --color-primary-container:     #0b5fff;
+    --color-primary-container-rgb: 11 95 255;
     --color-on-primary:            #ffffff;
     --color-on-primary-rgb:        255 255 255;
-    --color-on-primary-container:  #ffffff;
-    --color-on-primary-container-rgb: 255 255 255;
-    --color-primary-fixed:         #bfdbfe;
-    --color-primary-fixed-dim:     #60a5fa;
-    --color-on-primary-fixed:      #0b2545;
+    --color-on-primary-container:  #eff0ff;
+    --color-on-primary-container-rgb: 239 240 255;
+    --color-primary-fixed:         #dbe1ff;
+    --color-primary-fixed-dim:     #b5c4ff;
+    --color-on-primary-fixed:      #00164d;
+    --color-on-primary-fixed-variant: #003cac;
+    --color-primary-bright:        #2563eb;
 
-    /* Secondary — clear water teal */
-    --color-secondary:             #0d9488;
-    --color-secondary-rgb:         13 148 136;
-    --color-secondary-container:   #ccfbf1;
+    /* Secondary — lagoon teal */
+    --color-secondary:             #006a61;
+    --color-secondary-rgb:         0 106 97;
+    --color-secondary-container:   #86f2e4;
     --color-on-secondary:          #ffffff;
-    --color-on-secondary-container:#134e4a;
+    --color-on-secondary-rgb:      255 255 255;
+    --color-on-secondary-container:#006f66;
+    --color-secondary-fixed:       #89f5e7;
+    --color-secondary-fixed-dim:   #6bd8cb;
+    --color-on-secondary-fixed:    #00201d;
+    --color-on-secondary-fixed-variant: #005049;
 
-    /* Tertiary — warm accent */
-    --color-tertiary:              #ea580c;
-    --color-tertiary-rgb:          234 88 12;
-    --color-tertiary-container:    #ffedd5;
+    /* Tertiary — warm coral */
+    --color-tertiary:              #983400;
+    --color-tertiary-rgb:          152 52 0;
+    --color-tertiary-container:    #c14400;
     --color-on-tertiary:           #ffffff;
-    --color-on-tertiary-container: #7c2d12;
-    --color-tertiary-fixed:        #ffedd5;
-    --color-tertiary-fixed-dim:    #fdba74;
-    --color-on-tertiary-fixed:     #431407;
+    --color-on-tertiary-rgb:       255 255 255;
+    --color-on-tertiary-container: #ffeee8;
+    --color-tertiary-fixed:        #ffdbce;
+    --color-tertiary-fixed-dim:    #ffb599;
+    --color-on-tertiary-fixed:     #370e00;
+    --color-on-tertiary-fixed-variant: #7f2b00;
 
     /* Semantic */
     --color-success:               #18734f;
@@ -92,73 +101,101 @@
     --color-warning:               #9b6700;
     --color-warning-container:     #f5e8bc;
     --color-on-warning-container:  #5b3e00;
-    --color-error:                 #b33a35;
-    --color-error-container:       #f8dfd9;
-    --color-on-error-container:    #70251f;
+    --color-error:                 #ba1a1a;
     --color-on-error:              #ffffff;
+    --color-error-container:       #ffdad6;
+    --color-on-error-container:    #93000a;
+
+    /* Status extra (design Stitch) */
+    --color-status-live:           #10b981;
+    --color-status-alert:          #ef4444;
+    --color-accent-gold:           #f59e0b;
+    --color-border-hairline:       #e2e7ff;
 
     /* Inverse */
-    --color-inverse-surface:       #0f172a;
-    --color-inverse-on-surface:    #f8fafc;
+    --color-inverse-surface:       #283044;
+    --color-inverse-on-surface:    #eef0ff;
+    --color-inverse-primary:       #b5c4ff;
   }
 
   .dark {
     color-scheme: dark;
-    --color-bg:                    #0b1220;
-    --color-surface:               #0b1220;
-    --color-surface-bright:        #16233a;
-    --color-surface-dim:           #060b14;
-    --color-surface-container-lowest: #0f1a2e;
-    --color-surface-container-low: #16233a;
-    --color-surface-container:     #1e2f4a;
-    --color-surface-container-high:#2a3f5f;
-    --color-surface-container-highest: #3b547a;
-    --color-surface-variant:       #1e2f4a;
-    --color-background:            #0b1220;
+    --color-bg:                    #0c141f;
+    --color-surface:               #0b131e;
+    --color-surface-bright:        #323a46;
+    --color-surface-dim:           #0c141f;
+    --color-surface-container-lowest: #060b11;
+    --color-surface-container-low: #0f1a27;
+    --color-surface-container:     #18202b;
+    --color-surface-container-high:#1a2d44;
+    --color-surface-container-highest: #2d3541;
+    --color-surface-variant:       #2d3541;
+    --color-background:            #0c141f;
 
-    --color-on-surface:            #e6edf7;
-    --color-on-surface-variant:    #a9bcd0;
-    --color-on-background:         #e6edf7;
+    --color-on-surface:            #dbe3f3;
+    --color-on-surface-variant:    #bac9cc;
+    --color-on-background:         #dbe3f3;
 
-    --color-outline:               #5f7a99;
-    --color-outline-variant:       #22334d;
+    --color-outline:               #849396;
+    --color-outline-variant:       #3b494c;
 
-    --color-primary:               #93c5fd;
-    --color-primary-rgb:           147 197 253;
-    --color-primary-container:     #3b82f6;
-    --color-primary-container-rgb: 59 130 246;
-    --color-on-primary:            #0b1220;
-    --color-on-primary-rgb:        11 18 32;
-    --color-on-primary-container:  #dbeafe;
-    --color-on-primary-container-rgb: 219 234 254;
-    --color-primary-fixed:         #1e3a8a;
-    --color-primary-fixed-dim:     #3b82f6;
-    --color-on-primary-fixed:      #dbeafe;
-    --color-secondary:             #5eead4;
-    --color-secondary-rgb:         94 234 212;
-    --color-secondary-container:   #134e4a;
-    --color-on-secondary:          #042f2e;
-    --color-on-secondary-container:#ccfbf1;
-    --color-tertiary:              #fdba74;
-    --color-tertiary-rgb:          253 186 116;
-    --color-tertiary-container:    #431407;
-    --color-on-tertiary:           #0b1220;
-    --color-on-tertiary-container: #ffedd5;
-    --color-tertiary-fixed:        #431407;
-    --color-tertiary-fixed-dim:    #7c2d12;
-    --color-on-tertiary-fixed:     #ffedd5;
+    /* Primary — cyan live accent */
+    --color-primary:               #c3f5ff;
+    --color-primary-rgb:           195 245 255;
+    --color-primary-container:     #004e58;
+    --color-primary-container-rgb: 0 78 88;
+    --color-on-primary:            #00363d;
+    --color-on-primary-rgb:        0 54 61;
+    --color-on-primary-container:  #00626e;
+    --color-on-primary-container-rgb: 0 98 110;
+    --color-primary-fixed:         #9cf0ff;
+    --color-primary-fixed-dim:     #00daf3;
+    --color-on-primary-fixed:      #001f24;
+    --color-on-primary-fixed-variant: #004f58;
+    --color-primary-bright:        #38bdf8;
+
+    --color-secondary:             #adc6ff;
+    --color-secondary-rgb:         173 198 255;
+    --color-secondary-container:   #0566d9;
+    --color-on-secondary:          #002e6a;
+    --color-on-secondary-rgb:      0 46 106;
+    --color-on-secondary-container:#e6ecff;
+    --color-secondary-fixed:       #d8e2ff;
+    --color-secondary-fixed-dim:   #adc6ff;
+    --color-on-secondary-fixed:    #001a42;
+    --color-on-secondary-fixed-variant: #004395;
+
+    --color-tertiary:              #ffe8db;
+    --color-tertiary-rgb:          255 232 219;
+    --color-tertiary-container:    #ffc49c;
+    --color-on-tertiary:           #4f2500;
+    --color-on-tertiary-rgb:       79 37 0;
+    --color-on-tertiary-container: #8c4600;
+    --color-tertiary-fixed:        #ffdcc5;
+    --color-tertiary-fixed-dim:    #ffb783;
+    --color-on-tertiary-fixed:     #301400;
+    --color-on-tertiary-fixed-variant: #713700;
+
     --color-success:               #82d3a6;
     --color-success-container:     #244d38;
     --color-on-success-container:  #c4f1d2;
     --color-warning:               #e8c66c;
     --color-warning-container:     #534315;
     --color-on-warning-container:  #f4e4ae;
-    --color-error:                 #f09a88;
-    --color-error-container:       #542b27;
-    --color-on-error-container:    #ffd8cf;
-    --color-on-error:              #32110e;
-    --color-inverse-surface:       #e6edf7;
-    --color-inverse-on-surface:    #0b1220;
+    --color-error:                 #ffb4ab;
+    --color-on-error:              #690005;
+    --color-error-container:       #93000a;
+    --color-on-error-container:    #ffdad6;
+
+    /* Status extra (design Stitch) */
+    --color-status-live:           #10b981;
+    --color-status-alert:          #ef4444;
+    --color-accent-gold:           #f59e0b;
+    --color-border-hairline:       #2d4464;
+
+    --color-inverse-surface:       #dbe3f3;
+    --color-inverse-on-surface:    #29313d;
+    --color-inverse-primary:       #006875;
   }
 
   html {
@@ -550,19 +587,33 @@
     }
 
     .cronometro-lanes {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      grid-template-rows: none !important;
-      grid-auto-rows: minmax(9rem, max-content);
-      align-content: start !important;
-      gap: 0.375rem;
-      overflow-x: hidden;
-      overflow-y: auto;
-      overscroll-behavior: contain;
-      padding-bottom: max(0.75rem, var(--safe-bottom)) !important;
+      display: grid;
+      flex: 1 1 0%;
+      min-height: 0;
+      min-width: 0;
+      overflow: hidden !important;
+      gap: 0.25rem;
+      padding-bottom: 0 !important;
     }
 
     .cronometro-lanes-one {
       grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: 1fr !important;
+    }
+
+    .cronometro-lanes-count-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: 1fr !important;
+    }
+
+    .cronometro-lanes-count-3 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .cronometro-lanes-count-4 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(2, minmax(0, 1fr)) !important;
     }
 
     .cronometro-lane {
@@ -844,10 +895,23 @@
     align-items: center;
     gap: clamp(0.5rem, 1.2vw, 1rem);
     padding: clamp(0.625rem, 1.4vw, 1rem);
-    border: 1px solid var(--color-outline-variant);
-    border-radius: 1.25rem;
-    background: linear-gradient(120deg, var(--color-surface-container-lowest), var(--color-surface-container-low));
-    box-shadow: var(--shadow-card);
+    border: 1px solid color-mix(in srgb, var(--color-inverse-on-surface) 18%, transparent);
+    border-radius: 1rem;
+    background: var(--color-inverse-surface);
+    color: var(--color-inverse-on-surface);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .timer-console::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--color-primary-container), var(--color-secondary), var(--color-primary));
   }
 
   .timer-console-clock {
@@ -855,26 +919,25 @@
     flex-direction: column;
     gap: 0.125rem;
     min-width: 0;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.875rem;
-    background: var(--color-inverse-surface);
+    padding: 0;
+    background: transparent;
     color: var(--color-inverse-on-surface);
   }
 
   .timer-console-label {
-    color: color-mix(in srgb, var(--color-inverse-on-surface) 86%, transparent);
-    font-size: 0.75rem;
+    color: color-mix(in srgb, var(--color-secondary-fixed, var(--color-secondary)) 90%, transparent);
+    font-size: 0.7rem;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
   }
 
   .timer-console-clock output {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: clamp(1.625rem, 3.5vw, 2.625rem);
+    font-size: clamp(2rem, 5.5vw, 3.25rem);
     font-weight: 700;
     letter-spacing: -0.04em;
-    line-height: 1.1;
+    line-height: 1;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
@@ -889,13 +952,14 @@
   }
 
   .timer-console-start,
+  .timer-console-lap,
   .timer-console-reset,
   .lane-add-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.4rem;
-    min-height: 3rem;
+    min-height: 2.75rem;
     border: 0;
     border-radius: 0.875rem;
     font-size: 0.8125rem;
@@ -914,7 +978,15 @@
     color: var(--color-on-tertiary-fixed);
   }
 
+  .timer-console-lap {
+    padding: 0 1rem;
+    background: color-mix(in srgb, var(--color-inverse-on-surface) 14%, transparent);
+    color: var(--color-inverse-on-surface);
+    border: 1px solid color-mix(in srgb, var(--color-inverse-on-surface) 22%, transparent);
+  }
+
   .timer-console-start:active,
+  .timer-console-lap:active:not(:disabled),
   .timer-console-reset:active,
   .lane-add-button:active {
     transform: scale(0.97);
@@ -922,8 +994,18 @@
 
   .timer-console-reset {
     width: 2.75rem;
-    background: var(--color-surface-container);
-    color: var(--color-on-surface-variant);
+    background: color-mix(in srgb, var(--color-inverse-on-surface) 10%, transparent);
+    color: color-mix(in srgb, var(--color-inverse-on-surface) 80%, transparent);
+  }
+
+  .timer-console .timer-setting {
+    border-color: color-mix(in srgb, var(--color-inverse-on-surface) 22%, transparent);
+    background: color-mix(in srgb, var(--color-inverse-on-surface) 8%, transparent);
+    color: color-mix(in srgb, var(--color-inverse-on-surface) 75%, transparent);
+  }
+
+  .timer-console .timer-setting input {
+    color: var(--color-inverse-on-surface);
   }
 
   .timer-setting {
@@ -1358,50 +1440,58 @@
     .cronometro-lanes-count-2,
     .cronometro-lanes-count-3,
     .cronometro-lanes-count-4 {
-      grid-template-columns: minmax(0, 1fr);
-      grid-auto-rows: minmax(5.5rem, 1fr);
-      overflow-y: auto;
+      overflow: hidden !important;
     }
-
   }
 
   @media (max-width: 639px) {
     .timer-console {
       grid-template-columns: minmax(0, 1fr);
-      gap: 0.375rem;
-      padding: 0.5rem;
-      border-radius: 1rem;
+      gap: 0.35rem;
+      padding: 0.4rem;
+      border-radius: 0.875rem;
     }
 
     .timer-console-clock {
-      padding: 0.375rem;
-      border-radius: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.625rem;
       text-align: center;
     }
 
     .timer-console-clock output {
-      font-size: clamp(1.75rem, 11vw, 2.5rem);
+      font-size: clamp(1.6rem, 8vw, 2.2rem);
     }
 
     .timer-console-actions {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
       gap: 0.3rem;
     }
 
     .timer-console-start {
-      grid-column: span 3;
+      flex: 1 1 auto;
+      min-height: 2.5rem;
+      padding-inline: 0.75rem;
+    }
+
+    .timer-console-lap {
+      flex: 1 1 auto;
+      min-height: 2.5rem;
+      padding-inline: 0.75rem;
     }
 
     .timer-console-reset {
-      width: 100%;
+      flex: 0 0 2.5rem;
+      min-height: 2.5rem;
+      padding: 0;
     }
 
     .timer-setting {
-      grid-column: span 4;
+      flex: 1 1 100%;
       min-width: 0;
       gap: 0.125rem;
-      padding: 0.25rem 0.375rem;
+      padding: 0.2rem 0.375rem;
       font-size: 0.75rem;
     }
 
@@ -1499,8 +1589,7 @@
 
   @media (max-width: 479px) {
     .cronometro-lanes {
-      grid-template-columns: minmax(0, 1fr);
-      grid-auto-rows: minmax(5.5rem, max-content);
+      overflow: hidden !important;
     }
 
     .athlete-name {
@@ -1574,27 +1663,27 @@
      CARDS
      ============================================================================ */
   .ds-card {
-    @apply bg-surface-container-lowest rounded-[24px] border border-outline-variant
+    @apply bg-surface-container-lowest rounded-xl border border-outline-variant
            shadow-card transition-all duration-250 hover:shadow-pop;
     border-color: var(--color-outline-variant);
   }
 
   .ds-card-flat {
-    @apply bg-surface-container-low rounded-[24px];
+    @apply bg-surface-container-low rounded-xl;
   }
 
   .ds-card-primary {
     background: var(--gradient-blue);
-    @apply text-white rounded-[24px] shadow-primary-sm hover:shadow-primary-md transition-all duration-250;
+    @apply text-white rounded-xl shadow-primary-sm hover:shadow-primary-md transition-all duration-250;
   }
 
   .ds-card-tertiary {
-    background: linear-gradient(135deg, #ea580c 0%, #f97316 60%, #fb923c 100%);
-    @apply text-white rounded-[24px] shadow-tertiary-glow hover:shadow-tertiary-lg transition-all duration-250;
+    background: linear-gradient(135deg, #983400 0%, #c14400 100%);
+    @apply text-white rounded-xl shadow-tertiary-glow hover:shadow-tertiary-lg transition-all duration-250;
   }
 
   .ds-card-elevated {
-    @apply bg-surface-container-lowest rounded-[24px] border border-outline-variant
+    @apply bg-surface-container-lowest rounded-xl border border-outline-variant
            shadow-pop hover:shadow-float transition-all duration-250;
     border-color: var(--color-outline-variant);
   }
@@ -1608,7 +1697,7 @@
            hover:brightness-110 active:scale-[0.96] transition-all duration-250;
     background: var(--gradient-blue);
     border-radius: var(--radius-btn);
-    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.32);
+    box-shadow: 0 4px 20px rgba(0, 73, 204, 0.32);
   }
 
   .ds-btn-secondary {
@@ -1643,7 +1732,7 @@
            hover:brightness-110 active:scale-[0.96] transition-all duration-250;
     background: var(--gradient-blue);
     border-radius: var(--radius-btn);
-    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.32);
+    box-shadow: 0 4px 20px rgba(0, 73, 204, 0.32);
   }
 
   .ds-btn-icon {
@@ -1986,25 +2075,13 @@
 
 @media (min-width: 480px) and (max-width: 639px) {
   .cronometro-lanes {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: none !important;
-    grid-auto-rows: minmax(9rem, max-content);
-    align-content: start !important;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding-bottom: max(0.75rem, var(--safe-bottom)) !important;
-  }
-
-  .cronometro-lanes-one {
-    grid-template-columns: minmax(0, 1fr);
+    overflow: hidden !important;
   }
 }
 
 @media (max-width: 479px) {
   .cronometro-lanes {
-    grid-template-columns: minmax(0, 1fr);
-    grid-auto-rows: minmax(5.5rem, max-content);
+    overflow: hidden !important;
   }
 }
 

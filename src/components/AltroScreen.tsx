@@ -50,19 +50,22 @@ export const AltroScreen: React.FC = () => {
           title="Strumenti e archivio"
           meta="Piano stagionale, dati e fonti ufficiali."
         />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
           {SEZIONI.map(({ id, titolo, desc, Icon }) => (
             <button
               key={id}
               type="button"
               onClick={() => setSezione(id)}
-              className="ds-card p-5 text-left flex flex-col gap-3 hover:-translate-y-0.5 transition-all"
+              className="ds-card p-4 text-left flex items-center gap-3 hover:-translate-y-0.5 transition-all"
             >
-              <span className="w-11 h-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
-                <Icon size={22} />
+              <span className="w-12 h-12 rounded-xl bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center shrink-0">
+                <Icon size={24} />
               </span>
-              <span className="font-headline font-bold text-on-surface">{titolo}</span>
-              <span className="text-xs text-on-surface-variant leading-relaxed">{desc}</span>
+              <span className="min-w-0 flex-1">
+                <span className="font-headline-sm text-headline-sm font-bold text-on-surface block">{titolo}</span>
+                <span className="text-xs text-on-surface-variant leading-relaxed block mt-0.5">{desc}</span>
+              </span>
+              <ChevronLeft size={18} className="text-on-surface-variant rotate-180 shrink-0" />
             </button>
           ))}
         </div>

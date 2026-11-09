@@ -121,22 +121,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const root = document.documentElement;
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
+    const getAndroidSystemDark = (): boolean | null => {
+      try {
+        const bridge = (window as unknown as { AndroidBridge?: { getSystemIsDark?: () => boolean } }).AndroidBridge;
+        if (bridge && typeof bridge.getSystemIsDark === 'function') {
+          return bridge.getSystemIsDark();
+        }
+      } catch (e) {}
+      return null;
+    };
+
     const updateTheme = () => {
-      const isDark = themeMode === 'scuro' || (themeMode === 'sistema' && mediaQuery.matches);
+      let isDark = themeMode === 'scuro';
+      if (themeMode === 'sistema') {
+        const androidDark = getAndroidSystemDark();
+        isDark = androidDark !== null ? androidDark : mediaQuery.matches;
+      }
       root.classList.toggle('dark', isDark);
       root.style.colorScheme = isDark ? 'dark' : 'light';
       (window as unknown as { AndroidBridge?: { setSystemBarsDark?: (dark: boolean) => void } })
         .AndroidBridge?.setSystemBarsDark?.(isDark);
     };
 
+    const handleAndroidThemeChange = (e: CustomEvent<{ isDark?: boolean }>) => {
+      if (themeMode === 'sistema' && e.detail && typeof e.detail.isDark === 'boolean') {
+        const isDark = e.detail.isDark;
+        root.classList.toggle('dark', isDark);
+        root.style.colorScheme = isDark ? 'dark' : 'light';
+        (window as unknown as { AndroidBridge?: { setSystemBarsDark?: (dark: boolean) => void } })
+          .AndroidBridge?.setSystemBarsDark?.(isDark);
+      }
+    };
+
     updateTheme();
+    window.addEventListener('android-system-theme-changed', handleAndroidThemeChange as EventListener);
+
     if (typeof mediaQuery.addEventListener === 'function') {
       mediaQuery.addEventListener('change', updateTheme);
-      return () => mediaQuery.removeEventListener('change', updateTheme);
+      return () => {
+        mediaQuery.removeEventListener('change', updateTheme);
+        window.removeEventListener('android-system-theme-changed', handleAndroidThemeChange as EventListener);
+      };
     }
 
     mediaQuery.addListener(updateTheme);
-    return () => mediaQuery.removeListener(updateTheme);
+    return () => {
+      mediaQuery.removeListener(updateTheme);
+      window.removeEventListener('android-system-theme-changed', handleAndroidThemeChange as EventListener);
+    };
   }, [themeMode]);
 
   // Save changes
