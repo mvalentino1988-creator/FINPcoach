@@ -52,7 +52,7 @@ export const OnboardingModal: React.FC<Props> = ({ onComplete }) => {
                 onClick={() => setSelectedTheme(item.id as any)}
                 className={`flex flex-col items-center justify-center gap-2.5 p-4 rounded-xl border font-label-caps text-label-caps uppercase tracking-wider transition-all ${
                   selectedTheme === item.id
-                    ? 'border-primary/40 bg-primary-fixed text-primary shadow-sm'
+                    ? 'border-primary/40 bg-primary-fixed text-on-primary-fixed-variant shadow-sm'
                     : 'border-outline-variant bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
                 }`}
               >

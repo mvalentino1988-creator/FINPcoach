@@ -1,23 +1,21 @@
 import React, { useEffect, useRef } from 'react';
 import { AthleteHydroProfile, HydrodynamicsEngine } from '../domain/hydrodynamicsEngine';
 import { Activity, Shield, Zap } from 'lucide-react';
+import { chartVar, useThemeTick } from '../lib/chartTheme';
 
 interface Props {
   mainAtleta: AthleteHydroProfile;
   top10List: AthleteHydroProfile[];
 }
 
-const CHART_BG = '#F2F3FF';      // surface-container-low
-const GRID_COLOR = '#E2E8F0';
-const TICK_COLOR = '#64748B';
-const TITLE_COLOR = '#424656';   // on-surface-variant
-const LINE_FORCE = '#0B5FFF';    // primary-container
-const LINE_POWER = '#006A61';    // secondary
 const LINE_BENCHMARK = 'rgba(148, 163, 184, 0.45)';
 
 export const HydrodynamicsChartsView: React.FC<Props> = ({ mainAtleta, top10List }) => {
   const canvasTopRef = useRef<HTMLCanvasElement | null>(null);
   const canvasBottomRef = useRef<HTMLCanvasElement | null>(null);
+  const themeTick = useThemeTick();
+  const lineForce = chartVar('--color-secondary', '#006A61');
+  const linePower = chartVar('--color-primary', '#0B5FFF');
 
   const areaAtleta = HydrodynamicsEngine.calcolaAreaResistenza(mainAtleta.kCoeff, mainAtleta.velocitaMedia * 1.2);
 
@@ -29,6 +27,13 @@ export const HydrodynamicsChartsView: React.FC<Props> = ({ mainAtleta, top10List
 
     const width = canvas.width;
     const height = canvas.height;
+
+    const CHART_BG = chartVar('--color-surface-container-low', '#F2F3FF');
+    const GRID_COLOR = chartVar('--color-outline-variant', '#E2E8F0');
+    const TICK_COLOR = chartVar('--color-on-surface-variant', '#64748B');
+    const TITLE_COLOR = chartVar('--color-on-surface-variant', '#424656');
+    const LINE_FORCE = chartVar('--color-secondary', '#006A61');
+    const LINE_POWER = chartVar('--color-primary', '#0B5FFF');
 
     ctx.fillStyle = CHART_BG;
     ctx.fillRect(0, 0, width, height);
@@ -97,7 +102,7 @@ export const HydrodynamicsChartsView: React.FC<Props> = ({ mainAtleta, top10List
     ctx.font = 'bold 11px "Space Grotesk", sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText('Forza Resistente F(v) = k · v² [Newton]', padding, padding - 15);
-  }, [mainAtleta, top10List]);
+  }, [mainAtleta, top10List, themeTick]);
 
   useEffect(() => {
     const canvas = canvasBottomRef.current;
@@ -107,6 +112,13 @@ export const HydrodynamicsChartsView: React.FC<Props> = ({ mainAtleta, top10List
 
     const width = canvas.width;
     const height = canvas.height;
+
+    const CHART_BG = chartVar('--color-surface-container-low', '#F2F3FF');
+    const GRID_COLOR = chartVar('--color-outline-variant', '#E2E8F0');
+    const TICK_COLOR = chartVar('--color-on-surface-variant', '#64748B');
+    const TITLE_COLOR = chartVar('--color-on-surface-variant', '#424656');
+    const LINE_FORCE = chartVar('--color-secondary', '#006A61');
+    const LINE_POWER = chartVar('--color-primary', '#0B5FFF');
 
     ctx.fillStyle = CHART_BG;
     ctx.fillRect(0, 0, width, height);
@@ -175,7 +187,7 @@ export const HydrodynamicsChartsView: React.FC<Props> = ({ mainAtleta, top10List
     ctx.font = 'bold 11px "Space Grotesk", sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText('Potenza Intra-ciclo P(t) = k · v(t)³ [Watt / Bracciata]', padding, padding - 15);
-  }, [mainAtleta, top10List]);
+  }, [mainAtleta, top10List, themeTick]);
 
   return (
     <div className="ds-card p-4 sm:p-6 space-y-5">
@@ -192,11 +204,11 @@ export const HydrodynamicsChartsView: React.FC<Props> = ({ mainAtleta, top10List
 
         <div className="flex items-center gap-2 text-xs flex-wrap">
           <span className="ds-chip-neutral">
-            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: LINE_FORCE }} />
+            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: lineForce }} />
             Forza (F) Atleta
           </span>
           <span className="ds-chip-neutral">
-            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: LINE_POWER }} />
+            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: linePower }} />
             Potenza (P) Atleta
           </span>
         </div>

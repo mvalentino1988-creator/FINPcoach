@@ -196,7 +196,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
                     type="button"
                     onClick={() => setSalvaComeTemplate(salvaComeTemplate === idx ? null : idx)}
                     className={`w-9 h-9 flex items-center justify-center rounded-lg transition ${
-                      salvaComeTemplate === idx ? 'text-primary bg-primary-fixed/40' : 'text-on-surface-variant hover:text-primary hover:bg-primary-fixed/30'
+                      salvaComeTemplate === idx ? 'text-on-primary-fixed-variant bg-primary-fixed/40' : 'text-on-surface-variant hover:text-on-primary-fixed-variant hover:bg-primary-fixed/30'
                     }`}
                     title="Salva come template"
                     aria-label="Salva come template"

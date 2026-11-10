@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../data/AppContext';
 import { todayISO } from '../domain/dateUtils';
 import { requestKeepScreenOn, releaseKeepScreenOn } from '../lib/wakeLock';
-import { CheckCircle2, Flag, Gauge, LayoutGrid, Pause, Play, Plus, RotateCcw, Save } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, ChevronRight, Flag, Gauge, LayoutGrid, Pause, Play, Plus, RotateCcw, Save } from 'lucide-react';
 
 interface Split {
   lap: number;
@@ -31,43 +31,6 @@ interface LaneState {
 
 const MAX_LANES = 8;
 const MAX_ATHLETES_PER_LANE = 6;
-
-// Accento laterale delle corsie (stile mockup: border-l colorata)
-const LANE_ACCENT_BORDERS = [
-  'border-primary',
-  'border-secondary',
-  'border-tertiary-container',
-  'border-primary-container',
-  'border-tertiary',
-  'border-secondary-container',
-  'border-outline',
-  'border-primary-fixed-dim',
-];
-
-const LANE_CHIPS = [
-  'bg-primary text-on-primary',
-  'bg-secondary text-on-secondary',
-  'bg-tertiary-container text-on-tertiary',
-  'bg-primary-container text-on-primary',
-  'bg-tertiary text-on-tertiary',
-  'bg-secondary-container text-on-secondary-container',
-  'bg-surface-container-highest text-on-surface',
-  'bg-primary-fixed-dim text-on-primary-fixed',
-];
-
-const LANE_STATUS_STYLES: Record<string, string> = {
-  'IN ACQUA': 'bg-secondary-container/70 text-on-secondary-container',
-  'PAUSA': 'bg-tertiary-fixed/70 text-on-tertiary-fixed-variant',
-  'IN ATTESA': 'bg-surface-container text-on-surface-variant',
-  'LIBERA': 'bg-surface-container text-on-surface-variant',
-};
-
-const ATHLETE_STATUS_STYLES: Record<string, string> = {
-  'AL VIA': 'bg-primary text-on-primary',
-  'IN ATTESA': 'bg-surface-container-high text-on-surface-variant',
-  'PAUSA': 'bg-tertiary-fixed text-on-tertiary-fixed-variant',
-  'IN ACQUA': 'bg-secondary-container/70 text-on-secondary-container',
-};
 
 const initialsOf = (fullName: string): string =>
   fullName
@@ -158,6 +121,45 @@ const getFirstAthletesIds = (laneList: LaneState[]): Set<string> => {
   return ids;
 };
 
+// Stato corsia per chip di navigazione
+const laneStatusOf = (lane: LaneState, sessionStarted: boolean, masterTime: number): 'LIBERA' | 'IN ATTESA' | 'IN ACQUA' | 'PAUSA' => {
+  if (lane.athletes.length === 0) return 'LIBERA';
+  if (!sessionStarted) return 'IN ATTESA';
+  const hasActive = lane.athletes.some(
+    a => a.startedAtMs !== null && !(a.nextStartAtMs !== null && masterTime < a.nextStartAtMs)
+  );
+  if (hasActive) return 'IN ACQUA';
+  const hasStarted = lane.athletes.some(a => a.startedAtMs !== null);
+  return hasStarted ? 'PAUSA' : 'IN ATTESA';
+};
+
+const LANE_DOT: Record<string, string> = {
+  'IN ACQUA': 'bg-secondary',
+  'PAUSA': 'bg-tertiary',
+  'IN ATTESA': 'bg-on-surface-variant/50',
+  'LIBERA': 'bg-outline',
+};
+
+const LANE_STATUS_LABEL: Record<string, string> = {
+  'IN ACQUA': 'In acqua',
+  'PAUSA': 'Pausa',
+  'IN ATTESA': 'In attesa',
+  'LIBERA': 'Libera',
+};
+
+const ATHLETE_STATUS_STYLE: Record<string, string> = {
+  'AL VIA': 'bg-primary text-on-primary',
+  'IN ATTESA': 'bg-surface-container-high text-on-surface-variant',
+  'PAUSA': 'bg-tertiary-fixed text-on-tertiary-fixed-variant',
+  'IN ACQUA': 'bg-secondary-container text-on-secondary-container',
+};
+
+const ACTION_STYLE: Record<string, string> = {
+  LAP: 'bg-primary text-on-primary',
+  VIA: 'bg-tertiary text-on-tertiary',
+  PAUSA: 'bg-tertiary-container text-on-tertiary',
+};
+
 export const CronometroLiveMultiCorsia: React.FC = () => {
   const { atleti, stagione, aggiungiTempo } = useApp();
   const [isRunning, setIsRunning] = useState(false);
@@ -177,6 +179,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
   const [ripartenzaSecondi, setRipartenzaSecondi] = useState(90);
   const [salvatoFeedback, setSalvatoFeedback] = useState<string | null>(null);
   const [selectedAthleteId, setSelectedAthleteId] = useState<number | ''>('');
+  const [activeLaneId, setActiveLaneId] = useState<number | null>(null);
 
   // Mantieni lo schermo acceso quando il cronometro è attivo
   useEffect(() => {
@@ -216,7 +219,26 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     [visibleLanes],
   );
 
-  // Prossimo atleta al via / in attesa di ripartenza (chip "Prossimo al via" del mockup)
+  // Corsia attiva: se quella salvata non esiste più, si prende la prima
+  const activeLane = useMemo(() => {
+    if (visibleLanes.length === 0) return null;
+    return visibleLanes.find(l => l.id === activeLaneId) ?? visibleLanes[0];
+  }, [visibleLanes, activeLaneId]);
+
+  const prevLane = () => {
+    if (!activeLane) return;
+    const idx = visibleLanes.findIndex(l => l.id === activeLane.id);
+    const prev = visibleLanes[(idx - 1 + visibleLanes.length) % visibleLanes.length];
+    setActiveLaneId(prev.id);
+  };
+  const nextLane = () => {
+    if (!activeLane) return;
+    const idx = visibleLanes.findIndex(l => l.id === activeLane.id);
+    const next = visibleLanes[(idx + 1) % visibleLanes.length];
+    setActiveLaneId(next.id);
+  };
+
+  // Prossimo atleta al via / in attesa di ripartenza (chip "Prossimo al via")
   const nextAthlete = useMemo(() => {
     const now = masterTime;
     let best: { name: string; etaMs: number | null } | null = null;
@@ -236,13 +258,12 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     return best;
   }, [lanes, masterTime]);
 
-  // Ultimi 3 split registrati (feed live in coda, come nel mockup)
+  // Ultimi 3 split registrati (feed live in coda)
   const latestSplits = useMemo(() => {
     const items: {
       key: string;
       laneIndex: number;
       name: string;
-      classe: string;
       time: string;
       lap: number;
       recordedAtMs: number;
@@ -256,7 +277,6 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
             key: athlete.id,
             laneIndex,
             name: athlete.atletaNome,
-            classe: athlete.classe,
             time: split.time,
             lap: split.lap,
             recordedAtMs: split.recordedAtMs,
@@ -498,28 +518,25 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     window.setTimeout(() => setSalvatoFeedback(null), 3000);
   };
 
-  const columnClass = visibleLanes.length === 1
-    ? 'cronometro-lanes-one'
-    : visibleLanes.length === 2
-      ? 'cronometro-lanes-count-2'
-      : visibleLanes.length === 3
-        ? 'cronometro-lanes-count-3'
-        : 'cronometro-lanes-count-4';
+  const activeLaneIndex = activeLane ? visibleLanes.findIndex(l => l.id === activeLane.id) : -1;
+  const activeLaneStatus = activeLane ? laneStatusOf(activeLane, sessionStarted, masterTime) : 'LIBERA';
 
   return (
-    <div className="cronometro-screen flex flex-1 min-h-0 flex-col gap-1.5 overflow-hidden h-full w-full select-none">
-      {/* Console cronometro master — stile mockup: pannello scuro ad alto contrasto */}
-      <section className="shrink-0 rounded-2xl bg-inverse-surface text-inverse-on-surface p-2.5 shadow-md flex flex-col gap-1.5 relative overflow-hidden border border-outline/20">
-        <div className="flex items-center justify-between gap-1.5">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span className={`w-2 h-2 rounded-full inline-block ${isRunning ? 'bg-secondary-fixed animate-ping' : 'bg-surface-dim'}`} />
-            <span className="font-label-caps text-[10px] text-secondary-fixed font-bold tracking-wider uppercase truncate">
-              {isRunning ? 'Cronometro Master Live' : sessionStarted ? 'Sessione in pausa' : 'Cronometro Master Pronto'}
+    <div className="flex flex-col h-full gap-2 overflow-hidden select-none">
+      {/* ============================================================
+          CONSOLE MASTER — cronometro grande, alto contrasto
+          ============================================================ */}
+      <section className="shrink-0 rounded-2xl bg-inverse-surface text-inverse-on-surface px-4 py-3 shadow-md flex flex-col gap-2.5 border border-outline/20">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className={`w-2.5 h-2.5 rounded-full inline-block shrink-0 ${isRunning ? 'bg-secondary-fixed animate-ping' : 'bg-on-surface/30'}`} />
+            <span className="font-label-caps text-[11px] text-secondary-fixed font-bold tracking-wider uppercase truncate">
+              {isRunning ? 'Cronometro Live' : sessionStarted ? 'Sessione in pausa' : 'Pronto'}
             </span>
           </div>
           {!sessionStarted ? (
-            <label className="flex items-center gap-1 rounded-lg bg-inverse-on-surface/10 border border-inverse-on-surface/15 px-2 py-1 flex-shrink-0">
-              <span className="font-label-caps text-[9px] uppercase text-surface-dim tracking-wider">Cadenza</span>
+            <label className="flex items-center gap-2 rounded-xl bg-inverse-on-surface/10 border border-inverse-on-surface/20 px-3 py-1.5 flex-shrink-0">
+              <span className="font-label-caps text-[10px] uppercase text-on-surface/60 tracking-wider">Cadenza</span>
               <input
                 type="text"
                 inputMode="decimal"
@@ -542,115 +559,115 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                   setRipartenzaSecondi(finalVal);
                   setLanes(curr => curr.map(l => ({ ...l, ripartenzaSecondi: finalVal })));
                 }}
-                className="w-12 bg-transparent text-inverse-on-surface font-headline-sm text-[13px] font-bold text-center focus:outline-none tabular-nums"
+                className="w-16 bg-transparent text-inverse-on-surface font-headline-sm text-lg font-bold text-center focus:outline-none tabular-nums"
               />
             </label>
           ) : (
-            <span className="font-label-caps text-[9px] bg-inverse-on-surface/10 text-inverse-on-surface px-2 py-0.5 rounded font-semibold flex-shrink-0">
+            <span className="font-label-caps text-[11px] bg-inverse-on-surface/10 text-inverse-on-surface px-2.5 py-1 rounded-lg font-semibold flex-shrink-0">
               Rip: {formatRipartenza(ripartenzaSecondi)}
             </span>
           )}
         </div>
 
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-end justify-between gap-3">
           <output
             aria-label="Tempo squadra"
-            className="font-stat-timer-mobile text-[34px] leading-none text-inverse-on-surface font-bold tracking-tight tabular-nums"
+            className="font-stat-timer text-inverse-on-surface font-bold tracking-tight tabular-nums leading-none"
           >
             {formatMs(masterTime)}
           </output>
           {nextAthlete && (
-            <div className="flex items-center gap-2 bg-inverse-on-surface/10 border border-inverse-on-surface/15 rounded-xl px-2.5 py-1 min-w-0">
-              <div className="flex flex-col text-right min-w-0">
-                <span className="font-label-caps text-[8.5px] uppercase text-surface-dim">Prossimo al via</span>
-                <span className="font-headline-sm text-[12px] font-bold text-secondary-fixed leading-tight truncate max-w-[9rem]">
+            <div className="flex items-center gap-2.5 bg-inverse-on-surface/10 border border-inverse-on-surface/20 rounded-2xl px-3.5 py-2 min-w-0">
+              <div className="flex flex-col items-end min-w-0">
+                <span className="font-label-caps text-[10px] uppercase text-on-surface/60">Prossimo al via</span>
+                <span className="font-headline-sm text-base font-bold text-secondary-fixed leading-tight truncate max-w-[10rem]">
                   {nextAthlete.name}
                 </span>
               </div>
               {nextAthlete.etaMs !== null && (
-                <div className="flex flex-col items-center justify-center bg-secondary text-on-secondary px-2 py-0.5 rounded-lg shadow-sm leading-none flex-shrink-0">
-                  <span className="font-stat-timer-mobile text-[14px] font-bold leading-none tabular-nums">
+                <div className="flex flex-col items-center justify-center bg-secondary text-on-secondary px-3 py-1.5 rounded-xl shadow-sm leading-none flex-shrink-0">
+                  <span className="font-stat-timer-mobile text-xl font-bold leading-none tabular-nums">
                     {Math.max(0, Math.ceil(nextAthlete.etaMs / 1000))}s
                   </span>
-                  <span className="font-label-caps text-[7px] uppercase tracking-wider">Countdown</span>
+                  <span className="font-label-caps text-[9px] uppercase tracking-wider mt-0.5">Countdown</span>
                 </div>
               )}
             </div>
           )}
         </div>
 
-        <div className="grid grid-cols-12 gap-1.5">
+        <div className="grid grid-cols-12 gap-2">
           <button
             type="button"
             onClick={toggleMaster}
-            className={`col-span-6 h-11 rounded-xl font-headline-sm text-[14px] font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-transform select-none ${
+            className={`col-span-6 h-14 rounded-2xl font-headline-sm text-lg font-bold flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-transform select-none ${
               isRunning ? 'bg-secondary text-on-secondary' : 'bg-tertiary text-on-tertiary'
             }`}
             aria-label={isRunning ? 'Pausa sessione' : sessionStarted ? 'Riprendi sessione' : 'Avvia sessione e atleti selezionati'}
           >
-            {isRunning ? <Pause size={20} /> : <Play size={20} />}
+            {isRunning ? <Pause size={24} /> : <Play size={24} />}
             <span>{isRunning ? 'PAUSA' : sessionStarted ? 'RIPRENDI' : 'VIA GENERALE'}</span>
           </button>
           <button
             type="button"
             onClick={handleGeneralLap}
             disabled={!isRunning}
-            className={`col-span-4 h-11 rounded-xl bg-primary-container text-on-primary-container font-headline-sm text-[13px] font-bold flex items-center justify-center gap-1 shadow-sm active:scale-[0.98] transition-transform select-none ${
+            className={`col-span-4 h-14 rounded-2xl bg-primary-container text-on-primary font-headline-sm text-base font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-transform select-none ${
               !isRunning ? 'opacity-40 cursor-not-allowed' : ''
             }`}
             aria-label="Registra Lap per tutti gli atleti attivi"
             title="Tocco / Lap generale"
           >
-            <Flag size={18} />
+            <Flag size={20} />
             <span>TOCCO / LAP</span>
           </button>
           <button
             type="button"
             onClick={resetMaster}
             aria-label="Azzera sessione"
-            className="col-span-2 h-11 rounded-xl bg-inverse-on-surface/15 hover:bg-inverse-on-surface/25 text-inverse-on-surface flex flex-col items-center justify-center active:scale-[0.98] transition-transform"
+            className="col-span-2 h-14 rounded-2xl bg-inverse-on-surface/15 hover:bg-inverse-on-surface/25 text-inverse-on-surface flex flex-col items-center justify-center active:scale-[0.98] transition-transform"
             title="Azzera sessione"
           >
-            <RotateCcw size={16} />
-            <span className="font-label-caps text-[8px] uppercase leading-none mt-0.5">Azzera</span>
+            <RotateCcw size={20} />
+            <span className="font-label-caps text-[10px] uppercase leading-none mt-1">Azzera</span>
           </button>
         </div>
       </section>
 
       {!sessionStarted && (
         <section
-          className="shrink-0 rounded-xl bg-surface-container p-2 shadow-sm border border-outline-variant/30 flex flex-col gap-1.5"
+          className="shrink-0 rounded-2xl bg-surface-container-lowest p-3 shadow-sm border border-outline-variant/50 flex flex-col gap-2"
           aria-label="Configurazione corsie e atleti"
         >
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <LayoutGrid size={15} className="text-primary shrink-0" />
-              <span className="font-label-caps text-[10px] uppercase font-bold text-on-surface-variant tracking-wider truncate">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <LayoutGrid size={17} className="text-primary shrink-0" />
+              <span className="font-headline-sm text-sm uppercase font-bold text-on-surface tracking-wide truncate">
                 Matrice Corsie in Vasca
               </span>
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
-              <span className="px-1.5 py-0.5 rounded bg-surface-container-lowest font-label-caps text-[9px] font-bold text-on-surface">
+              <span className="px-2 py-1 rounded-lg bg-surface-container font-label-caps text-[10px] font-bold text-on-surface">
                 {assignedCount} atleti
               </span>
-              <span className="px-1.5 py-0.5 rounded bg-surface-container-lowest font-label-caps text-[9px] font-bold text-on-surface-variant">
+              <span className="px-2 py-1 rounded-lg bg-surface-container font-label-caps text-[10px] font-bold text-on-surface-variant">
                 {visibleLanes.length}/{MAX_LANES} corsie
               </span>
               {selectedStartAthleteIds.size > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full bg-secondary-container/70 text-on-secondary-container font-label-caps text-[9px] font-bold uppercase">
+                <span className="px-2 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-caps text-[10px] font-bold uppercase">
                   {selectedStartAthleteIds.size} al via
                 </span>
               )}
             </div>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <label className="sr-only" htmlFor="athlete-to-assign">Atleta da assegnare</label>
             <select
               id="athlete-to-assign"
               value={selectedAthleteId}
               onChange={event => setSelectedAthleteId(event.target.value ? Number(event.target.value) : '')}
               disabled={availableAthletes.length === 0}
-              className="flex-1 min-w-0 min-h-9 px-2.5 rounded-lg bg-surface-container-lowest border border-outline-variant text-xs font-semibold text-on-surface disabled:opacity-60"
+              className="flex-1 min-w-0 min-h-11 px-3 rounded-xl bg-surface-container-low border border-outline-variant text-sm font-semibold text-on-surface disabled:opacity-60"
             >
               {availableAthletes.length === 0
                 ? <option value="">Tutti assegnati</option>
@@ -662,120 +679,135 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
               type="button"
               onClick={addLane}
               disabled={lanes.length >= MAX_LANES}
-              className="h-9 px-3 rounded-lg bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-[10px] font-bold uppercase tracking-wide flex items-center gap-1 active:scale-95 transition-transform disabled:opacity-45"
+              className="h-11 px-4 rounded-xl bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-xs font-bold uppercase tracking-wide flex items-center gap-1.5 active:scale-95 transition-transform disabled:opacity-45"
             >
-              <Plus size={14} /> Corsia
+              <Plus size={16} /> Corsia
             </button>
           </div>
         </section>
       )}
 
       {salvatoFeedback && (
-        <div role="status" className="timer-save-feedback shrink-0">
-          <CheckCircle2 size={16} /> {salvatoFeedback}
+        <div role="status" className="shrink-0 flex items-center justify-center gap-2 rounded-xl bg-success-container text-on-success-container px-3 py-2 font-headline-sm text-sm font-bold">
+          <CheckCircle2 size={18} /> {salvatoFeedback}
         </div>
       )}
 
-      <section
-        aria-label="Corsie cronometrate"
-        className={`cronometro-lanes flex-1 min-h-0 w-full overflow-hidden ${columnClass}`}
-        style={{ '--lane-count': visibleLanes.length } as React.CSSProperties}
-      >
-        {visibleLanes.map((lane, laneIdx) => {
-          const accentBorder = LANE_ACCENT_BORDERS[laneIdx % LANE_ACCENT_BORDERS.length];
-          const accentChip = LANE_CHIPS[laneIdx % LANE_CHIPS.length];
-          const laneHasActive = lane.athletes.some(
-            athlete => athlete.startedAtMs !== null && !(athlete.nextStartAtMs !== null && masterTime < athlete.nextStartAtMs)
-          );
-          const laneHasStarted = lane.athletes.some(athlete => athlete.startedAtMs !== null);
-          const laneStatus = lane.athletes.length === 0
-            ? 'LIBERA'
-            : !sessionStarted
-              ? 'IN ATTESA'
-              : laneHasActive
-                ? 'IN ACQUA'
-                : laneHasStarted
-                  ? 'PAUSA'
-                  : 'IN ATTESA';
-          const laneStatusStyle = LANE_STATUS_STYLES[laneStatus];
+      {/* ============================================================
+          NAVIGAZIONE CORSE — una corsia alla volta, focus totale
+          ============================================================ */}
+      {activeLane && (
+        <>
+          <div className="shrink-0 flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={prevLane}
+              disabled={visibleLanes.length < 2}
+              aria-label="Corsia precedente"
+              className="w-10 h-10 rounded-xl bg-surface-container-lowest shadow-sm border border-outline-variant/50 flex items-center justify-center text-on-surface disabled:opacity-40 active:scale-95 transition"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <div className="flex-1 flex items-center justify-center gap-1.5 flex-wrap">
+              {visibleLanes.map((lane, idx) => {
+                const status = laneStatusOf(lane, sessionStarted, masterTime);
+                const isActive = lane.id === activeLane.id;
+                return (
+                  <button
+                    key={lane.id}
+                    type="button"
+                    onClick={() => setActiveLaneId(lane.id)}
+                    className={`flex items-center gap-1.5 px-2.5 h-9 rounded-xl font-headline-sm text-[13px] font-bold whitespace-nowrap transition active:scale-[0.97] ${
+                      isActive
+                        ? 'bg-primary text-on-primary shadow-sm'
+                        : 'bg-surface-container-lowest text-on-surface border border-outline-variant/50'
+                    }`}
+                  >
+                    <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-on-primary' : LANE_DOT[status]}`} />
+                    Corsia {displayIndexById.get(lane.id) ?? idx + 1}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={nextLane}
+              disabled={visibleLanes.length < 2}
+              aria-label="Corsia successiva"
+              className="w-10 h-10 rounded-xl bg-surface-container-lowest shadow-sm border border-outline-variant/50 flex items-center justify-center text-on-surface disabled:opacity-40 active:scale-95 transition"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
 
-          return (
-          <article
-            key={lane.id}
-            className={`relative flex flex-col min-h-0 min-w-0 h-full overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm border-l-[3.5px] ${accentBorder}`}
-          >
-            <header className="shrink-0 flex items-center gap-1 px-1.5 py-1 border-b border-surface-container-highest/60">
-              <span className={`w-5 h-5 rounded ${accentChip} font-headline-sm text-[11px] font-bold flex items-center justify-center shrink-0`}>
-                {laneIdx + 1}
+          {/* Corsia attiva a tutta larghezza */}
+          <article className="flex-1 min-h-0 flex flex-col rounded-2xl bg-surface-container-lowest shadow-card border border-outline-variant/40 overflow-hidden">
+            <header className="shrink-0 flex items-center gap-2.5 px-3.5 py-2.5 border-b border-surface-container-highest/60">
+              <span className="w-9 h-9 rounded-xl bg-primary text-on-primary font-headline-sm text-lg font-bold flex items-center justify-center shadow-sm">
+                {activeLaneIndex + 1}
               </span>
-              <span className={`px-1.5 py-0.5 rounded font-label-caps text-[8px] font-bold uppercase tracking-wide shrink-0 ${laneStatusStyle}`}>
-                {laneStatus}
-              </span>
-              <span className="font-label-caps text-[8px] text-on-surface-variant font-semibold shrink-0">
-                {lane.athletes.length} atl
-              </span>
-
-              <div className="flex items-center gap-1 ml-auto">
-                <span className="text-[9px] font-label-caps uppercase text-on-surface-variant">Rip</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-headline-sm text-base font-bold text-on-surface">Corsia {activeLaneIndex + 1}</span>
+                  <span className={`px-2 py-0.5 rounded-full font-label-caps text-[10px] font-bold uppercase tracking-wide ${
+                    activeLaneStatus === 'IN ACQUA'
+                      ? 'bg-secondary-container text-on-secondary-container'
+                      : activeLaneStatus === 'PAUSA'
+                        ? 'bg-tertiary-fixed text-on-tertiary-fixed-variant'
+                        : 'bg-surface-container-high text-on-surface-variant'
+                  }`}>
+                    {LANE_STATUS_LABEL[activeLaneStatus]}
+                  </span>
+                </div>
+                <span className="font-label-caps text-[10px] text-on-surface-variant">
+                  {activeLane.athletes.length} {activeLane.athletes.length === 1 ? 'atleta' : 'atleti'}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="font-label-caps text-[10px] uppercase text-on-surface-variant">Rip</span>
                 {!sessionStarted ? (
                   <input
                     type="text"
                     inputMode="decimal"
-                    value={lane.ripartenzaText ?? formatRipartenza(lane.ripartenzaSecondi ?? ripartenzaSecondi)}
-                    placeholder="1.30"
-                    aria-label={`Ripartenza corsia ${laneIdx + 1}`}
-                    onChange={e => {
-                      const text = e.target.value;
-                      setLanes(curr => curr.map(l => {
-                        if (l.id !== lane.id) return l;
-                        const parsed = parseRipartenza(text);
-                        return {
-                          ...l,
-                          ripartenzaText: text,
-                          ripartenzaSecondi: parsed === null ? l.ripartenzaSecondi : parsed,
-                        };
-                      }));
+                    defaultValue={formatRipartenza(activeLane.ripartenzaSecondi ?? ripartenzaSecondi)}
+                    key={`${activeLane.id}-${activeLane.ripartenzaSecondi}`}
+                    aria-label={`Ripartenza corsia ${activeLaneIndex + 1}`}
+                    onBlur={e => {
+                      const parsed = parseRipartenza(e.target.value);
+                      const finalVal = parsed === null || parsed < 5 ? 90 : parsed;
+                      setLanes(curr => curr.map(l => (l.id === activeLane.id ? { ...l, ripartenzaSecondi: finalVal } : l)));
+                      e.target.value = formatRipartenza(finalVal);
                     }}
-                    onBlur={() => {
-                      setLanes(curr => curr.map(l => {
-                        if (l.id !== lane.id) return l;
-                        const parsed = parseRipartenza(l.ripartenzaText ?? '');
-                        const finalVal = parsed === null || parsed < 5 ? 90 : parsed;
-                        return {
-                          ...l,
-                          ripartenzaText: undefined,
-                          ripartenzaSecondi: finalVal,
-                        };
-                      }));
-                    }}
-                    className="w-10 bg-transparent text-primary font-bold text-[11px] text-right focus:outline-none tabular-nums"
+                    className="w-16 bg-surface-container-lowest border border-outline-variant rounded-lg px-2 py-1.5 text-sm font-bold text-primary text-center focus:outline-none focus:ring-2 focus:ring-primary/30 tabular-nums"
                   />
                 ) : (
-                  <span className="text-primary font-bold text-[11px] tabular-nums">
-                    {formatRipartenza(lane.ripartenzaSecondi ?? ripartenzaSecondi)}
+                  <span className="text-sm font-bold text-primary tabular-nums">
+                    {formatRipartenza(activeLane.ripartenzaSecondi ?? ripartenzaSecondi)}
                   </span>
                 )}
               </div>
-
-              {!sessionStarted && lane.athletes.length < MAX_ATHLETES_PER_LANE && availableAthletes.length > 0 && (
+              {!sessionStarted && activeLane.athletes.length < MAX_ATHLETES_PER_LANE && availableAthletes.length > 0 && (
                 <button
                   type="button"
-                  onClick={() => addAthleteToLane(lane.id)}
-                  className="w-6 h-6 rounded-md bg-surface-container-low text-primary flex items-center justify-center shrink-0 active:scale-90 transition-transform"
-                  aria-label={`Aggiungi ${availableAthletes.find(athlete => athlete.id === selectedAthleteId)?.nome ?? 'atleta'} in corsia ${laneIdx + 1}`}
+                  onClick={() => addAthleteToLane(activeLane.id)}
+                  className="h-10 px-3.5 rounded-xl bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-xs font-bold uppercase tracking-wide flex items-center gap-1.5 active:scale-95 transition-transform"
+                  aria-label="Aggiungi atleta alla corsia"
                 >
-                  <Plus size={14} />
+                  <Plus size={16} /> Aggiungi
                 </button>
               )}
             </header>
 
-            <div className="cronometro-athletes flex-1 min-h-0 flex flex-col gap-1 overflow-hidden p-1">
-              {lane.athletes.length === 0 ? (
-                <div className="lane-empty-state flex-1 flex items-center justify-center text-xs text-on-surface-variant">
-                  Scegli un atleta e premi +
+            {/* Atleti della corsia — card grandi, tempo leggibile a distanza */}
+            <div className="flex-1 min-h-0 flex flex-col gap-2 p-2.5 overflow-hidden">
+              {activeLane.athletes.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center gap-2 text-on-surface-variant">
+                  <LayoutGrid size={28} className="opacity-40" />
+                  <p className="text-sm font-semibold">Corsia vuota</p>
+                  <p className="text-xs opacity-70">Scegli un atleta sopra e premi «Aggiungi»</p>
                 </div>
               ) : (
-                lane.athletes.map((athlete, athleteIdx) => {
+                activeLane.athletes.map((athlete, athleteIdx) => {
                   const now = masterTime;
                   const waitingUntil = athlete.nextStartAtMs !== null && now < athlete.nextStartAtMs ? athlete.nextStartAtMs : null;
                   const segmentStart = athlete.nextStartAtMs ?? athlete.startedAtMs;
@@ -799,7 +831,6 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                       : waitingUntil !== null
                         ? 'PAUSA'
                         : 'IN ACQUA';
-                  const athleteStatusStyle = ATHLETE_STATUS_STYLES[athleteStatus];
                   const statusSubline = !sessionStarted
                     ? (isSelectedForStart ? 'Partenza generale' : 'Su invito')
                     : athlete.startedAtMs === null
@@ -816,96 +847,67 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                       : formatMs(elapsed);
 
                   return (
-                    <div className="athlete-timing-row flex-1 min-h-0 flex flex-col justify-center overflow-hidden" key={athlete.id}>
+                    <div
+                      key={athlete.id}
+                      className={`flex-1 min-h-0 flex flex-col rounded-2xl transition ${
+                        !sessionStarted && isSelectedForStart ? 'ring-2 ring-primary bg-primary-fixed/30' : 'bg-surface-container-low'
+                      }`}
+                    >
                       <button
                         type="button"
-                        className={`athlete-timing-button h-full min-h-0 w-full transition ${
-                          athlete.startedAtMs !== null && waitingUntil === null ? 'is-active' : ''
-                        } ${waitingUntil !== null ? 'is-waiting' : ''} ${
-                          !sessionStarted && isSelectedForStart ? 'is-selected border-primary ring-1 ring-primary' : ''
-                        }`}
-                        onClick={() => (sessionStarted ? handleAthletePress(lane.id, athlete.id) : toggleInitialStart(athlete.id))}
+                        className="flex-1 min-h-0 w-full flex items-center gap-3 px-3.5 py-2 text-left active:scale-[0.99] transition-transform"
+                        onClick={() => (sessionStarted ? handleAthletePress(activeLane.id, athlete.id) : toggleInitialStart(athlete.id))}
                         disabled={isDisabled}
                         aria-label={ariaLabel}
                         aria-pressed={!sessionStarted ? isSelectedForStart : undefined}
                       >
-                        <span className="min-w-0 flex items-center gap-1.5 text-left">
-                          <span className="w-5 h-5 rounded-full bg-surface-container-high text-on-surface font-label-caps text-[9px] font-bold flex items-center justify-center shrink-0">
-                            {athleteIdx + 1}
+                        <span className="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface font-headline-sm text-sm font-bold flex items-center justify-center shrink-0">
+                          {athleteIdx + 1}
+                        </span>
+                        <span className="w-12 h-12 rounded-full bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center font-headline-sm text-xl font-bold shrink-0 shadow-inner">
+                          {initialsOf(athlete.atletaNome)}
+                        </span>
+                        <span className="flex-1 min-w-0 flex flex-col gap-1">
+                          <span className="font-headline-sm text-lg font-bold text-on-surface leading-tight truncate">
+                            {athlete.atletaNome}
                           </span>
-                          <span className="w-7 h-7 rounded-full bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center font-headline-sm text-[11px] font-bold shrink-0">
-                            {initialsOf(athlete.atletaNome)}
-                          </span>
-                          <span className="flex flex-col min-w-0 gap-0.5">
-                            <span className="flex items-center gap-1 min-w-0">
-                              <span className="font-body-bold text-[13px] text-on-surface truncate">{athlete.atletaNome}</span>
-                              <span className="px-1 py-0.5 rounded bg-surface-container-highest text-primary font-label-caps text-[8px] font-bold shrink-0">
-                                {athlete.classe}
-                              </span>
+                          <span className="flex items-center gap-2 min-w-0">
+                            <span className={`px-2 py-0.5 rounded-full font-label-caps text-[10px] font-bold uppercase tracking-wide shrink-0 ${ATHLETE_STATUS_STYLE[athleteStatus]}`}>
+                              {athleteStatus === 'AL VIA' ? 'Al via' : athleteStatus === 'IN ATTESA' ? 'In attesa' : athleteStatus === 'PAUSA' ? 'Pausa' : 'In acqua'}
                             </span>
-                            <span className="flex items-center gap-1 min-w-0">
-                              <span className={`px-1.5 py-0.5 rounded font-label-caps text-[7.5px] font-bold uppercase tracking-wide shrink-0 ${athleteStatusStyle}`}>
-                                {athleteStatus}
-                              </span>
-                              <span className="font-label-caps text-[8px] text-on-surface-variant truncate">
-                                {statusSubline}
-                              </span>
+                            <span className="font-label-caps text-xs text-on-surface-variant truncate">
+                              {statusSubline}
                             </span>
                           </span>
                         </span>
                         {sessionStarted && (
-                          <span className="flex flex-col items-end gap-0.5 shrink-0">
+                          <span className="flex flex-col items-end gap-1 shrink-0">
                             {bigTime !== null && (
-                              <span className={`font-headline-sm text-[14px] font-bold tabular-nums leading-none ${
+                              <span className={`font-stat-timer-mobile text-4xl font-bold tabular-nums leading-none ${
                                 waitingUntil !== null ? 'text-tertiary' : 'text-on-surface'
                               }`}>
                                 {bigTime}
                               </span>
                             )}
-                            <span className={`font-label-caps text-[8px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded ${
-                              action === 'LAP'
-                                ? 'bg-primary text-on-primary'
-                                : action === 'VIA'
-                                  ? 'bg-tertiary text-on-tertiary'
-                                  : 'bg-tertiary-container text-on-tertiary'
-                            }`}>
+                            <span className={`font-label-caps text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-xl ${ACTION_STYLE[action]}`}>
                               {action}
                             </span>
                           </span>
                         )}
                       </button>
 
-                      {!sessionStarted && visibleLanes.length > 1 && (
-                        <select
-                          className="athlete-move-select mt-0.5 text-[10px] py-0.5 px-1 rounded border border-outline-variant bg-surface-container-lowest text-on-surface"
-                          value=""
-                          aria-label={`Sposta ${athlete.atletaNome} in un'altra corsia`}
-                          disabled={!visibleLanes.some(destination => destination.id !== lane.id && destination.athletes.length < MAX_ATHLETES_PER_LANE)}
-                          onChange={event => {
-                            const destinationLaneId = Number(event.target.value);
-                            if (destinationLaneId) moveAthleteToLane(lane.id, athlete.id, destinationLaneId);
-                          }}
-                        >
-                          <option value="">Sposta...</option>
-                          {visibleLanes
-                            .filter(destination => destination.id !== lane.id && destination.athletes.length < MAX_ATHLETES_PER_LANE)
-                            .map(destination => (
-                              <option key={destination.id} value={destination.id}>
-                                Corsia {displayIndexById.get(destination.id)}
-                              </option>
-                            ))}
-                        </select>
-                      )}
-
+                      {/* Salvataggio ultimo split quando il master è fermo */}
                       {!isRunning && athlete.splitList.length > 0 && (
-                        <div className="flex items-center justify-between text-[10px] text-on-surface-variant px-1 pt-0.5 shrink-0">
-                          <span>Lap {athlete.splitList[0].lap}: {athlete.splitList[0].time}</span>
+                        <div className="shrink-0 flex items-center justify-between px-3.5 pb-2.5">
+                          <span className="text-xs font-semibold text-on-surface-variant">
+                            Ultimo split: Lap {athlete.splitList[0].lap} · {athlete.splitList[0].time}
+                          </span>
                           <button
                             type="button"
                             onClick={() => handleSalvaNelRegistro(athlete)}
-                            className="text-primary font-bold hover:underline inline-flex items-center gap-0.5"
+                            className="h-9 px-3 rounded-lg bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-[11px] font-bold uppercase tracking-wide inline-flex items-center gap-1.5 active:scale-95 transition-transform"
                           >
-                            <Save size={11} /> Salva
+                            <Save size={13} /> Salva
                           </button>
                         </div>
                       )}
@@ -915,40 +917,34 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
               )}
             </div>
           </article>
-          );
-        })}
-      </section>
+        </>
+      )}
 
+      {/* Feed ultimi split — sempre leggibile, in fondo */}
       {latestSplits.length > 0 && (
         <section
-          className="shrink-0 rounded-xl bg-surface-container p-2 flex flex-col gap-1 border border-outline-variant/30"
+          className="shrink-0 rounded-2xl bg-surface-container-lowest p-2.5 shadow-sm border border-outline-variant/40"
           aria-label="Ultimi split registrati"
         >
-          <div className="flex items-center justify-between px-0.5">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <Gauge size={14} className="text-primary shrink-0" />
-              <span className="font-label-caps text-[10px] uppercase font-bold text-on-surface-variant tracking-wider truncate">
-                Ultimi Split Registrati
-              </span>
-            </div>
-            <span className="font-label-caps text-[9px] text-primary font-bold flex-shrink-0">Live Feed</span>
+          <div className="flex items-center gap-2 px-1 pb-1.5">
+            <Gauge size={15} className="text-primary" />
+            <span className="font-label-caps text-[11px] uppercase font-bold text-on-surface-variant tracking-wider">
+              Ultimi Split
+            </span>
           </div>
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-3 gap-2">
             {latestSplits.map(split => (
               <div
                 key={split.key}
-                className="rounded-lg bg-secondary-container/40 p-1.5 border border-secondary/30 flex flex-col leading-tight min-w-0"
+                className="rounded-xl bg-secondary-container/50 px-2.5 py-2 flex flex-col leading-tight min-w-0 border border-secondary/30"
               >
                 <div className="flex items-center justify-between gap-1">
-                  <span className="font-bold text-on-surface font-headline-sm text-[11px] truncate">
-                    C{split.laneIndex} • {split.name}
+                  <span className="font-bold text-on-secondary-container text-sm truncate">
+                    C{split.laneIndex} · {split.name}
                   </span>
-                  <span className="text-secondary font-bold text-[9px] flex-shrink-0">LAP {split.lap}</span>
+                  <span className="text-on-secondary-container/70 font-bold text-[10px] flex-shrink-0">L{split.lap}</span>
                 </div>
-                <div className="flex items-center justify-between mt-0.5">
-                  <span className="text-on-surface font-bold text-[12px] tabular-nums">{split.time}</span>
-                  <span className="text-on-surface-variant text-[9px]">{split.classe}</span>
-                </div>
+                <span className="text-on-secondary-container font-bold text-lg tabular-nums mt-0.5">{split.time}</span>
               </div>
             ))}
           </div>

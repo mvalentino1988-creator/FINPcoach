@@ -191,7 +191,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
 
       {/* Athlete banner selector */}
       <div className="ds-card p-3 shadow-card flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg bg-primary-fixed/60 flex items-center justify-center text-primary shrink-0">
+        <div className="w-9 h-9 rounded-lg bg-primary-fixed/60 flex items-center justify-center text-on-primary-fixed-variant shrink-0">
           <User size={18} />
         </div>
         <div className="flex-1 min-w-0">
@@ -202,15 +202,10 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
             className="w-full bg-transparent font-headline-sm text-headline-sm text-on-surface border-0 p-0 focus:ring-0 cursor-pointer"
           >
             {atleti.map(a => (
-              <option key={a.id} value={a.id}>{a.cognome} {a.nome} (S{a.classeS ?? '?'})</option>
+              <option key={a.id} value={a.id}>{a.cognome} {a.nome}</option>
             ))}
           </select>
         </div>
-        {atletaSel.classeS != null && (
-          <span className="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-label-caps text-label-caps shrink-0">
-            S{atletaSel.classeS}
-          </span>
-        )}
       </div>
 
       {/* Form Check Alert Card */}
@@ -346,7 +341,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
             <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
             <span className="truncate">Registra Nuovo Tempo / Test</span>
           </h3>
-          <label className="px-3 py-1.5 min-h-[40px] bg-surface-container-lowest hover:bg-primary-fixed/40 text-primary border border-primary/25 rounded-full font-label-caps text-label-caps cursor-pointer transition flex items-center gap-1.5 shrink-0 active:scale-95">
+          <label className="px-3 py-1.5 min-h-[40px] bg-surface-container-lowest hover:bg-primary-fixed/40 hover:text-on-primary-fixed-variant text-primary border border-primary/25 rounded-full font-label-caps text-label-caps cursor-pointer transition flex items-center gap-1.5 shrink-0 active:scale-95">
             {ocrLoading ? <Loader2 size={13} className="animate-spin" /> : <Camera size={13} />}
             <span>{ocrLoading ? 'OCR…' : 'Screenshot'}</span>
             <input

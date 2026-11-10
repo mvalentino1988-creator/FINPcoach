@@ -311,9 +311,6 @@ export const RegiaTecnicaCorsie: React.FC = () => {
                             <span className="font-body-bold text-[13px] text-on-surface truncate min-w-0 flex-1">
                               <Marquee text={`${ath.cognome} ${ath.nome}`} />
                             </span>
-                            <span className="px-1.5 py-0.2 rounded-full bg-surface-container-highest text-primary font-label-caps text-[8.5px] font-bold shrink-0">
-                              {ath.classeS != null ? `S${ath.classeS}` : 'S?'}
-                            </span>
                           </div>
                           {profilo?.passo100mCentesimi != null ? (
                             <div className="font-label-caps text-[9px] text-on-surface-variant truncate">

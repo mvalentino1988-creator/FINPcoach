@@ -242,7 +242,7 @@ export const DatiScreen: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setCalendarioEspanso(v => !v)}
-                    className={`ds-btn-secondary !min-h-[44px] !px-3 text-xs whitespace-nowrap justify-center ${calendarioEspanso ? 'bg-primary-fixed/40 border-primary/30 text-primary' : ''}`}
+                    className={`ds-btn-secondary !min-h-[44px] !px-3 text-xs whitespace-nowrap justify-center ${calendarioEspanso ? 'bg-primary-fixed/40 border-primary/30 text-on-primary-fixed-variant' : ''}`}
                   >
                     <Calendar size={15} />
                     <span>{calendarioEspanso ? 'Chiudi Mese' : 'Mese'}</span>
@@ -329,7 +329,7 @@ export const DatiScreen: React.FC = () => {
                             workoutGiorno
                               ? 'bg-primary text-on-primary font-bold shadow-sm'
                               : isOggi
-                              ? 'bg-primary-fixed/50 text-primary font-bold border border-primary/30'
+                              ? 'bg-primary-fixed/50 text-on-primary-fixed-variant font-bold border border-primary/30'
                               : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
                           }`}
                         >

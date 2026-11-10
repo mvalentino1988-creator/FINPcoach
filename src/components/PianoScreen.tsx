@@ -93,7 +93,7 @@ const NuovaStagioneForm: React.FC<any> = ({
                 <CalendarDays size={22} />
               </span>
               <div className="min-w-0">
-                <p className="font-label-caps text-label-caps uppercase tracking-[0.16em] text-primary-fixed">Pianificatore FINP</p>
+                <p className="font-label-caps text-label-caps uppercase tracking-[0.16em] text-on-primary/80">Pianificatore FINP</p>
                 <h2 className="font-headline text-headline-lg leading-tight">Nuova stagione agonistica</h2>
               </div>
             </div>
@@ -101,7 +101,7 @@ const NuovaStagioneForm: React.FC<any> = ({
               Auto-plan
             </span>
           </div>
-          <p className="relative mt-3 max-w-md text-sm leading-relaxed text-primary-fixed/90">
+          <p className="relative mt-3 max-w-md text-sm leading-relaxed text-on-primary/80">
             Definisci l'arco della stagione: il sistema genererà macrocicli, mesocicli e microcicli in base a età, carico storico, chiusure e gare.
           </p>
         </div>
@@ -930,10 +930,10 @@ export const PianoScreen: React.FC = () => {
                       <div className="flex items-center justify-between gap-2">
                         <span className="truncate font-headline-sm text-headline-sm font-bold">{ma.nome}</span>
                         {isCurrent && (
-                          <span className={`h-2 w-2 shrink-0 rounded-full ${isSelected ? 'bg-secondary-fixed' : 'bg-status-live'}`} />
+                          <span className={`h-2 w-2 shrink-0 rounded-full ${isSelected ? 'bg-on-primary/80' : 'bg-status-live'}`} />
                         )}
                       </div>
-                      <span className={`mt-1 block truncate font-label-caps text-label-caps ${isSelected ? 'text-primary-fixed' : 'text-on-surface-variant'}`}>
+                      <span className={`mt-1 block truncate font-label-caps text-label-caps ${isSelected ? 'text-on-primary/80' : 'text-on-surface-variant'}`}>
                         {formattaData(ma.inizio)} – {formattaData(ma.fine)}
                       </span>
                     </button>
@@ -982,7 +982,7 @@ export const PianoScreen: React.FC = () => {
                               {numMicro} sett.
                             </span>
                             {isCurrent && (
-                              <span className={`h-2 w-2 rounded-full ${isSelected ? 'bg-secondary-fixed' : 'bg-status-live'}`} title="Settimana corrente attiva" />
+                              <span className={`h-2 w-2 rounded-full ${isSelected ? 'bg-on-primary/80' : 'bg-status-live'}`} title="Settimana corrente attiva" />
                             )}
                           </button>
                         );
@@ -1061,10 +1061,10 @@ export const PianoScreen: React.FC = () => {
                               } ${isFocused && !isCurrentWeek ? 'ring-2 ring-secondary/40' : ''}`}
                             >
                               <div className="flex items-center justify-between gap-2">
-                                <span className={`truncate font-label-caps text-label-caps uppercase ${isCurrentWeek ? 'text-primary-fixed' : 'text-on-surface-variant'}`}>
+                                <span className={`truncate font-label-caps text-label-caps uppercase ${isCurrentWeek ? 'text-on-primary/80' : 'text-on-surface-variant'}`}>
                                   {formattaData(mi.inizio)} – {formattaData(mi.fine)}
                                 </span>
-                                {isCurrentWeek && <CircleDot size={13} className="shrink-0 text-secondary-fixed" />}
+                                {isCurrentWeek && <CircleDot size={13} className="shrink-0 text-on-primary/80" />}
                               </div>
                               <div className="mt-1 flex items-end justify-between gap-2">
                                 <span className="font-headline-sm text-headline-sm font-bold">{mi.volumeTargetMetri.toLocaleString('it-IT')}m</span>
@@ -1072,7 +1072,7 @@ export const PianoScreen: React.FC = () => {
                                   {TIPO_MICROCICLO_LABEL[mi.tipo]}
                                 </span>
                               </div>
-                              <span className={`mt-1 block font-label-caps text-label-caps uppercase ${isCurrentWeek ? 'text-primary-fixed/80' : 'text-on-surface-variant'}`}>
+                              <span className={`mt-1 block font-label-caps text-label-caps uppercase ${isCurrentWeek ? 'text-on-primary/70' : 'text-on-surface-variant'}`}>
                                 {mi.sedutePreviste} sedute · {mi.sedutePreviste > 0 ? Math.round(mi.volumeTargetMetri / mi.sedutePreviste).toLocaleString('it-IT') : 0}m cad.
                               </span>
                             </button>

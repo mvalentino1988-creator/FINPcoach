@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { AthleticPerformance, BiomechanicsEngine, EliteClusterPoint } from '../domain/biomechanicsEngine';
+import { chartVar, useThemeTick } from '../lib/chartTheme';
 
 interface Props {
   athletePerformances: AthleticPerformance[];
@@ -15,6 +16,7 @@ export const ParaSwimmingCanvasChart: React.FC<Props> = ({
   height = 360
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const themeTick = useThemeTick();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -22,7 +24,13 @@ export const ParaSwimmingCanvasChart: React.FC<Props> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.fillStyle = '#F2F3FF';
+    const bg = chartVar('--color-surface-container-low', '#F2F3FF');
+    const grid = chartVar('--color-outline-variant', '#E2E8F0');
+    const tick = chartVar('--color-on-surface-variant', '#64748B');
+    const axis = chartVar('--color-on-surface', '#0F172A');
+    const curve = chartVar('--color-secondary', '#006874');
+
+    ctx.fillStyle = bg;
     ctx.fillRect(0, 0, width, height);
 
     const padding = 50;
@@ -37,7 +45,7 @@ export const ParaSwimmingCanvasChart: React.FC<Props> = ({
     const toX = (v: number) => padding + ((v - minV) / (maxV - minV)) * chartW;
     const toY = (c: number) => height - padding - ((c - minC) / (maxC - minC)) * chartH;
 
-    ctx.strokeStyle = '#E2E8F0';
+    ctx.strokeStyle = grid;
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 4]);
 
@@ -48,7 +56,7 @@ export const ParaSwimmingCanvasChart: React.FC<Props> = ({
       ctx.lineTo(x, height - padding);
       ctx.stroke();
 
-      ctx.fillStyle = '#64748B';
+      ctx.fillStyle = tick;
       ctx.font = '10px "Space Grotesk", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(`${v.toFixed(1)}m/s`, x, height - padding + 15);
@@ -61,14 +69,14 @@ export const ParaSwimmingCanvasChart: React.FC<Props> = ({
       ctx.lineTo(width - padding, y);
       ctx.stroke();
 
-      ctx.fillStyle = '#64748B';
+      ctx.fillStyle = tick;
       ctx.font = '10px "Space Grotesk", sans-serif';
       ctx.textAlign = 'right';
       ctx.fillText(`${c}`, padding - 8, y + 3);
     }
     ctx.setLineDash([]);
 
-    ctx.strokeStyle = '#006874';
+    ctx.strokeStyle = curve;
     ctx.lineWidth = 3;
     ctx.beginPath();
 
@@ -141,7 +149,7 @@ export const ParaSwimmingCanvasChart: React.FC<Props> = ({
       });
     }
 
-    ctx.fillStyle = '#0F172A';
+    ctx.fillStyle = axis;
     ctx.font = 'bold 11px "Space Grotesk", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Velocità Media (m/s)', width / 2, height - 10);
@@ -151,7 +159,7 @@ export const ParaSwimmingCanvasChart: React.FC<Props> = ({
     ctx.rotate(-Math.PI / 2);
     ctx.fillText('Costo Energetico C(v) [J/m/kg]', 0, 0);
     ctx.restore();
-  }, [athletePerformances, eliteClusters, width, height]);
+  }, [athletePerformances, eliteClusters, width, height, themeTick]);
 
   return (
     <div className="w-full min-w-0 overflow-hidden ds-card p-3 sm:p-4 shadow-card space-y-3">
@@ -165,7 +173,7 @@ export const ParaSwimmingCanvasChart: React.FC<Props> = ({
         </div>
         <div className="flex items-center gap-2 text-xs flex-wrap">
           <span className="ds-chip-neutral">
-            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#006874' }} />
+            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: chartVar('--color-secondary', '#006874') }} />
             Curva Teorica
           </span>
           <span className="ds-chip-neutral">

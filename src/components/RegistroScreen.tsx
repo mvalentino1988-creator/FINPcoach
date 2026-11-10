@@ -208,7 +208,7 @@ export const RegistroScreen: React.FC = () => {
                   condizioni: condizioniAtleta,
                 }).codici);
               }}
-              className="w-full flex items-center justify-center gap-2.5 p-3 bg-primary-fixed/30 hover:bg-primary-fixed/50 text-primary border border-primary/20 rounded-xl font-headline-sm font-bold text-xs transition active:scale-[0.99]"
+              className="w-full flex items-center justify-center gap-2.5 p-3 bg-primary-fixed/30 hover:bg-primary-fixed/50 text-on-primary-fixed-variant border border-primary/20 rounded-xl font-headline-sm font-bold text-xs transition active:scale-[0.99]"
             >
               <Waves size={16} />
               <span>Focus codici della seduta</span>
@@ -262,8 +262,7 @@ export const RegistroScreen: React.FC = () => {
                         {a.cognome} {a.nome}
                       </span>
                       <span className="font-label-caps text-[10px] text-on-surface-variant font-medium normal-case tracking-normal">
-                        {a.classeS != null ? `S${a.classeS} ` : ''}
-                        · Fattore volume: {Math.round(a.fattoreVolume * 100)}%
+                        Fattore volume: {Math.round(a.fattoreVolume * 100)}%
                       </span>
                     </div>
                   </label>
