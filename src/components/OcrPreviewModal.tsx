@@ -23,60 +23,69 @@ export const OcrPreviewModal: React.FC<Props> = ({ isOpen, initialText, onConfir
   const serieParsed = ParserScheda.parseSerie(text);
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 backdrop-blur-sm">
-      <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl p-4 sm:p-6 max-w-lg w-full shadow-float space-y-4 border border-slate-200/70 max-h-[92dvh] overflow-y-auto">
-        <div className="flex items-start justify-between gap-3 border-b border-slate-200/70 pb-3">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 animate-fade-in">
+      <div className="bg-surface-container-lowest rounded-t-3xl sm:rounded-3xl p-0 max-w-lg w-full shadow-float border border-outline-variant max-h-[92dvh] overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 px-4 sm:px-5 pt-4 sm:pt-5 pb-3 border-b border-outline-variant shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 shrink-0 rounded-xl bg-primary-fixed text-primary-container flex items-center justify-center">
-              <Camera size={18} />
+            <div className="w-10 h-10 shrink-0 rounded-xl bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center">
+              <Camera size={20} />
             </div>
             <div className="min-w-0">
-              <h3 className="font-bold text-on-surface text-base leading-tight">Anteprima OCR & Modifica</h3>
-              <p className="text-xs text-on-surface-variant">Verifica e correggi il testo riconosciuto prima di confermare.</p>
+              <h3 className="font-label-caps text-label-caps uppercase tracking-wider text-on-surface leading-tight">
+                Anteprima OCR
+              </h3>
+              <p className="text-xs text-on-surface-variant mt-0.5">
+                Verifica e correggi il testo riconosciuto prima di confermare.
+              </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onCancel}
             aria-label="Chiudi anteprima OCR"
-            className="p-3 -m-1 shrink-0 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition"
+            className="ds-btn-icon shrink-0"
           >
             <X size={18} />
           </button>
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-xs font-bold text-on-surface uppercase tracking-wider">
-            Testo Estratto (Modificabile)
-          </label>
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            className="w-full h-40 p-3 border border-outline-variant rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-          />
+        {/* Body */}
+        <div className="p-4 sm:p-5 space-y-4 overflow-y-auto">
+          <div className="space-y-2">
+            <label className="ds-label block">
+              Testo Estratto (Modificabile)
+            </label>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              className="ds-input !h-auto min-h-[10rem] p-3 font-mono text-xs resize-none"
+            />
+          </div>
+
+          {/* Live Parsed Preview */}
+          <div className="p-3 bg-surface-container-low border border-outline-variant rounded-xl space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-on-surface-variant">Volume Totale Calcolato:</span>
+              <span className="ds-chip-blue !min-h-0 !py-0.5">{metriStimati} m</span>
+            </div>
+            <div className="max-h-36 overflow-y-auto space-y-1.5">
+              {serieParsed.map((s, i) => (
+                <div key={i} className="flex items-center justify-between text-xs bg-surface-container-lowest p-2.5 rounded-lg border border-outline-variant">
+                  <span className="font-medium text-on-surface">{s.descrizione}</span>
+                  <span className="font-bold text-primary">{s.metriTotali}m ({s.codice})</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Live Parsed Preview */}
-        <div className="p-3 bg-surface-container-low border border-slate-200/70 rounded-xl space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-on-surface-variant">Volume Totale Calcolato:</span>
-            <span className="font-bold text-primary-container text-sm">{metriStimati} m</span>
-          </div>
-          <div className="max-h-36 overflow-y-auto space-y-1">
-            {serieParsed.map((s, i) => (
-              <div key={i} className="flex items-center justify-between text-xs bg-surface-container-lowest p-3 rounded-lg border border-slate-200/70">
-                <span className="font-medium text-on-surface">{s.descrizione}</span>
-                <span className="font-bold text-primary-container">{s.metriTotali}m ({s.codice})</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex gap-3 pt-2 border-t border-slate-200/70">
+        {/* Footer */}
+        <div className="flex gap-3 px-4 sm:px-5 py-4 border-t border-outline-variant bg-surface-container-low shrink-0">
           <button
             type="button"
             onClick={() => onConfirm(text)}
-            className="flex-1 flex items-center justify-center gap-1.5 px-4 h-12 bg-primary-container hover:bg-primary text-on-primary rounded-xl text-sm font-bold transition shadow-card"
+            className="ds-btn-primary flex-1"
           >
             <Check size={16} />
             <span>Conferma e Inserisci</span>
@@ -84,7 +93,7 @@ export const OcrPreviewModal: React.FC<Props> = ({ isOpen, initialText, onConfir
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 h-12 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl text-sm font-bold transition"
+            className="ds-btn-secondary"
           >
             Annulla
           </button>

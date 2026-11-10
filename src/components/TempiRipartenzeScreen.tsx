@@ -130,8 +130,10 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
   if (!atletaSel) {
     return (
       <div className="p-8 text-center ds-card">
-        <User size={36} className="mx-auto text-outline mb-2" />
-        <h3 className="font-bold text-on-surface">Nessun atleta registrato</h3>
+        <div className="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center mx-auto mb-3">
+          <User size={24} className="text-outline" />
+        </div>
+        <h3 className="font-headline-sm text-headline-sm text-on-surface">Nessun atleta registrato</h3>
         <p className="text-xs text-on-surface-variant mt-1">Aggiungi un atleta nella sezione Atleti per inserire tempi e calcolare ripartenze.</p>
       </div>
     );
@@ -177,50 +179,60 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
   return (
     <div className="space-y-4">
       {/* Title */}
-      <div>
-        <h2 className="ds-title flex items-center gap-2">
-          <Timer size={22} className="text-primary-container" />
-          <span>Tempi Gara & Calcolo Ripartenze</span>
-        </h2>
-        <p className="text-xs text-on-surface-variant mt-0.5">
-          Gestione cronometrica, tabelle di andatura e ripartenze A1–D.
-        </p>
+      <div className="flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+        <div className="min-w-0">
+          <h2 className="font-headline-sm text-headline-sm text-on-surface">Tempi Gara &amp; Calcolo Ripartenze</h2>
+          <p className="font-label-caps text-label-caps text-on-surface-variant truncate">
+            Cronsometria, tabelle di andatura e ripartenze A1–D
+          </p>
+        </div>
       </div>
 
-      {/* Athlete Dropdown Selector */}
+      {/* Athlete banner selector */}
       <div className="ds-card p-3 shadow-card flex items-center gap-3">
-        <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider shrink-0">
-          Atleta:
-        </span>
-        <select
-          value={atletaSel.id}
-          onChange={(e) => setAtletaSelId(Number(e.target.value))}
-          className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface text-xs"
-        >
-          {atleti.map(a => (
-            <option key={a.id} value={a.id}>{a.cognome} {a.nome} (S{a.classeS ?? '?'})</option>
-          ))}
-        </select>
+        <div className="w-9 h-9 rounded-lg bg-primary-fixed/60 flex items-center justify-center text-primary shrink-0">
+          <User size={18} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <span className="font-label-caps text-[10px] text-on-surface-variant uppercase block">Atleta attivo</span>
+          <select
+            value={atletaSel.id}
+            onChange={(e) => setAtletaSelId(Number(e.target.value))}
+            className="w-full bg-transparent font-headline-sm text-headline-sm text-on-surface border-0 p-0 focus:ring-0 cursor-pointer"
+          >
+            {atleti.map(a => (
+              <option key={a.id} value={a.id}>{a.cognome} {a.nome} (S{a.classeS ?? '?'})</option>
+            ))}
+          </select>
+        </div>
+        {atletaSel.classeS != null && (
+          <span className="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-label-caps text-label-caps shrink-0">
+            S{atletaSel.classeS}
+          </span>
+        )}
       </div>
 
       {/* Form Check Alert Card */}
       {formCheck && formCheck.necessario && (
-        <div className="p-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl space-y-2 text-xs text-on-surface">
+        <div className="p-3.5 bg-surface-container-lowest border border-outline-variant/60 rounded-xl shadow-sm space-y-2 text-xs text-on-surface">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3 font-bold text-on-surface text-sm">
-              <Timer size={16} className="text-tertiary-container" />
-              <span>{formCheck.titoloTest}</span>
+            <div className="flex items-center gap-3 font-bold text-on-surface text-sm min-w-0">
+              <span className="w-8 h-8 rounded-lg bg-tertiary-container text-on-tertiary-container flex items-center justify-center shrink-0">
+                <Timer size={16} />
+              </span>
+              <span className="truncate">{formCheck.titoloTest}</span>
             </div>
             <button
               type="button"
               onClick={() => setTestModalOpen(true)}
-              className="ds-btn-primary !min-h-[36px] !px-3 text-xs shrink-0"
+              className="ds-btn-primary !min-h-[40px] !px-3 text-xs shrink-0"
             >
               <Sparkles size={14} />
               <span>Esegui Test Ora</span>
             </button>
           </div>
-          <p className="text-on-surface-variant">{formCheck.motivazione}</p>
+          <p className="text-on-surface-variant pl-11">{formCheck.motivazione}</p>
         </div>
       )}
 
@@ -235,31 +247,45 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
         />
       )}
 
-      {/* CSS Critical Swim Speed Card */}
+      {/* CSS Critical Swim Speed Card (bento) */}
       {cssResult && (
-        <div className="p-4 bg-surface-container-low border border-outline-variant rounded-xl shadow-card flex items-center justify-between gap-3 text-xs">
-          <div>
-            <div className="flex items-center gap-1.5 text-primary font-bold uppercase tracking-wider">
-              <Flame size={15} className="text-primary-container" />
-              <span>Velocità Critica CSS (B1)</span>
+        <div className="bg-surface-container-lowest rounded-xl p-3 shadow-sm space-y-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Flame size={16} className="text-tertiary shrink-0" />
+              <span className="font-headline-sm text-headline-sm text-on-surface truncate">Critical Swim Speed (CSS)</span>
+              <span className="font-label-caps text-label-caps px-2 py-0.5 rounded bg-primary-fixed/40 text-primary font-bold whitespace-nowrap">T-400 / T-100</span>
             </div>
-            <p className="text-on-surface-variant text-xs mt-0.5">{cssResult.spiegazioneMetodologica}</p>
           </div>
-          <span className="px-3 py-1.5 rounded-xl bg-primary text-on-primary font-bold text-xs shrink-0">
-            {cssResult.passo100mFormatted} /100m
-          </span>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-surface-container-low p-2 rounded-lg flex flex-col min-w-0">
+              <span className="font-label-caps text-[10px] text-on-surface-variant uppercase">Passo 100m (B1)</span>
+              <span className="font-stat-timer-mobile text-[24px] text-primary tracking-tight tabular-nums mt-0.5">
+                {cssResult.passo100mFormatted}
+              </span>
+              <span className="font-label-caps text-[10px] text-secondary font-bold truncate">{cssResult.spiegazioneMetodologica}</span>
+            </div>
+            <div className="bg-gradient-to-br from-surface-container to-surface-container-high p-2 rounded-lg flex flex-col justify-center">
+              <span className="font-label-caps text-[10px] text-on-surface-variant uppercase font-bold">Soglia aerobica</span>
+              <span className="font-headline-sm text-headline-sm text-on-surface font-bold mt-0.5">Velocità Critica</span>
+              <span className="font-label-caps text-[10px] text-on-surface-variant">Usata per i ritmi A1–D</span>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Tabella Ritmi & Ripartenze a 5 secondi (Compatta senza note) */}
+      {/* Tabella Ritmi & Ripartenze a 5 secondi */}
       {tabellaRitmi && (
         <div className="ds-card p-4 shadow-card space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-outline-variant">
-            <h3 className="font-bold text-on-surface text-xs uppercase tracking-wider">
-              Tabella Ritmi A1–D · Passo 100m & Ripartenze
-            </h3>
-            <span className="text-xs text-primary-container font-bold">
-              Tempo 100m: {formattaTempo(tabellaRitmi.tempoRiferimento100mCentesimi)}
+          <div className="flex items-center justify-between gap-2 pb-2 border-b border-outline-variant/60">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+              <h3 className="font-headline-sm text-headline-sm text-on-surface truncate">
+                Tabella Ritmi A1–D
+              </h3>
+            </div>
+            <span className="font-label-caps text-label-caps text-primary font-bold whitespace-nowrap tabular-nums">
+              100m: {formattaTempo(tabellaRitmi.tempoRiferimento100mCentesimi)}
             </span>
           </div>
 
@@ -270,15 +296,15 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
               return (
                 <div
                   key={k}
-                  className="p-3 rounded-xl border border-outline-variant bg-surface-container-low flex flex-col justify-between text-xs space-y-1"
+                  className="p-2.5 rounded-lg border border-outline-variant/60 bg-surface-container-low flex flex-col justify-between text-xs space-y-1.5"
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-1">
                     <BadgeCodice codice={k} />
-                    <span className="font-bold text-on-surface text-xs">{r.passo100mFormatted}</span>
+                    <span className="font-stat-timer-mobile text-[15px] text-on-surface tabular-nums leading-none">{r.passo100mFormatted}</span>
                   </div>
-                  <div className="pt-1 border-t border-outline-variant flex items-center justify-between text-xs">
-                    <span className="text-on-surface-variant font-medium">Rip:</span>
-                    <span className="font-bold text-primary-container">{r.ripartenzaFormatted}</span>
+                  <div className="pt-1.5 border-t border-outline-variant/60 flex items-center justify-between">
+                    <span className="font-label-caps text-[9px] text-on-surface-variant uppercase">Ripartenza</span>
+                    <span className="font-headline-sm text-headline-sm text-primary font-bold tabular-nums">{r.ripartenzaFormatted}</span>
                   </div>
                 </div>
               );
@@ -292,19 +318,19 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
         {primati.length === 0 ? (
           <p className="text-xs text-on-surface-variant py-2">Nessun primato di gara registrato.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
             {primati.map((p, i) => (
               <div
                 key={i}
-                className="p-3 bg-surface-container-low border border-outline-variant rounded-xl flex items-center justify-between text-xs"
+                className="p-2.5 bg-surface-container-low rounded-lg border border-outline-variant/50 flex items-center justify-between gap-2 text-xs"
               >
-                <div>
-                  <span className="font-bold text-on-surface block">
+                <div className="min-w-0">
+                  <span className="font-body-bold text-body-bold text-on-surface block truncate">
                     {p.stile.replace('_', ' ')} {p.distanzaMetri} m ({p.vascaMetri}m)
                   </span>
-                  <span className="text-xs text-on-surface-variant">{formattaData(p.data)}</span>
+                  <span className="font-label-caps text-[10px] text-on-surface-variant">{formattaData(p.data)}</span>
                 </div>
-                <span className="font-bold text-primary-container text-sm">
+                <span className="font-stat-timer-mobile text-[18px] text-primary-container tabular-nums leading-none shrink-0">
                   {formattaTempo(p.centesimi)}
                 </span>
               </div>
@@ -313,16 +339,16 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
         )}
       </Sezione>
 
-      {/* Add New Time Form (Compact with unified OCR button) */}
+      {/* Add New Time Form */}
       <div className="ds-card p-4 shadow-card space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold text-on-surface text-xs uppercase tracking-wider flex items-center gap-2">
-            <Plus size={15} className="text-primary-container" />
-            <span>Registra Nuovo Tempo / Test</span>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+            <span className="truncate">Registra Nuovo Tempo / Test</span>
           </h3>
-          <label className="px-3 py-1.5 bg-surface-container-low hover:bg-primary-fixed text-primary-container border border-primary-fixed-dim rounded-xl text-xs font-bold cursor-pointer transition flex items-center gap-1.5">
+          <label className="px-3 py-1.5 min-h-[40px] bg-surface-container-lowest hover:bg-primary-fixed/40 text-primary border border-primary/25 rounded-full font-label-caps text-label-caps cursor-pointer transition flex items-center gap-1.5 shrink-0 active:scale-95">
             {ocrLoading ? <Loader2 size={13} className="animate-spin" /> : <Camera size={13} />}
-            <span>{ocrLoading ? 'OCR in corso...' : 'Carica Screenshot'}</span>
+            <span>{ocrLoading ? 'OCR…' : 'Screenshot'}</span>
             <input
               type="file"
               accept="image/*"
@@ -357,44 +383,44 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
         <form onSubmit={handleSalvaTempo} className="space-y-3 text-xs pt-1">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-semibold text-on-surface-variant mb-1">Data</label>
+              <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Data</label>
               <input
                 type="text"
                 value={dataTesto}
                 onChange={e => setDataTesto(e.target.value)}
-                className="w-full px-3 h-11 border border-outline-variant rounded-xl"
+                className="ds-input !h-11"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-on-surface-variant mb-1">Distanza (m)</label>
+              <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Distanza (m)</label>
               <input
                 type="number"
                 value={distanza}
                 onChange={e => setDistanza(e.target.value)}
-                className="w-full px-3 h-11 border border-outline-variant rounded-xl font-bold"
+                className="ds-input !h-11 font-bold"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-on-surface-variant mb-1">Tempo (es. 1:04.20)</label>
+              <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Tempo (es. 1:04.20)</label>
               <input
                 type="text"
                 placeholder="es. 1:04.20"
                 value={tempoTesto}
                 onChange={e => setTempoTesto(e.target.value)}
-                className="w-full px-3 h-11 border border-outline-variant rounded-xl font-bold text-sm text-primary-container"
+                className="ds-input !h-11 font-bold text-base text-primary tabular-nums"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-semibold text-on-surface-variant mb-1">Stile</label>
+              <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Stile</label>
               <select
                 value={stile}
                 onChange={e => setStile(e.target.value as Stile)}
-                className="w-full px-3 h-11 bg-surface-container-low border border-outline-variant rounded-xl font-semibold text-on-surface"
+                className="ds-select !h-11 font-semibold"
               >
                 <option value="STILE_LIBERO">Stile libero</option>
                 <option value="DORSO">Dorso</option>
@@ -405,11 +431,11 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="block font-semibold text-on-surface-variant mb-1">Contesto</label>
+              <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Contesto</label>
               <select
                 value={contesto}
                 onChange={e => setContesto(e.target.value as ContestoTempo)}
-                className="w-full px-3 h-11 bg-surface-container-low border border-outline-variant rounded-xl font-semibold text-on-surface"
+                className="ds-select !h-11 font-semibold"
               >
                 <option value="GARA">Gara</option>
                 <option value="ALLENAMENTO">Allenamento</option>
@@ -418,11 +444,11 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="block font-semibold text-on-surface-variant mb-1">Vasca</label>
+              <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Vasca</label>
               <select
                 value={vasca}
                 onChange={e => setVasca(Number(e.target.value))}
-                className="w-full px-3 h-11 bg-surface-container-low border border-outline-variant rounded-xl font-semibold text-on-surface"
+                className="ds-select !h-11 font-semibold"
               >
                 <option value={25}>Vasca 25m</option>
                 <option value={50}>Vasca 50m</option>
@@ -433,7 +459,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
           <button
             type="submit"
             disabled={!formValido}
-            className="w-full h-11 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-bold rounded-xl text-xs transition shadow-card"
+            className="w-full h-12 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-headline-sm font-bold rounded-xl text-xs transition shadow-card active:scale-[0.99]"
           >
             Registra Tempo
           </button>
@@ -461,21 +487,23 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
               return (
                 <div
                   key={t.id}
-                  className="p-3 bg-surface-container-low border border-outline-variant rounded-xl flex items-center justify-between text-xs"
+                  className="p-2.5 bg-surface-container-low/70 rounded-lg border border-outline-variant/50 flex items-center justify-between gap-2 text-xs"
                 >
-                  <div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <span className="font-bold text-on-surface">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-body-bold text-body-bold text-on-surface">
                         {t.stile.replace('_', ' ')} {t.distanzaMetri} m
                       </span>
-                      <span className="font-bold text-primary-container text-sm">{formattaTempo(t.centesimi)}</span>
+                      <span className="font-stat-timer-mobile text-[16px] text-primary tabular-nums leading-none">
+                        {formattaTempo(t.centesimi)}
+                      </span>
                       {puntiWps != null && (
-                        <span className="text-xs font-bold px-1.5 py-0.2 rounded bg-tertiary-fixed text-on-tertiary-fixed">
-                          {puntiWps} Punti WPS
+                        <span className="font-label-caps text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed uppercase">
+                          {puntiWps} WPS
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-on-surface-variant mt-0.5 flex items-center gap-1.5 flex-wrap">
+                    <div className="font-label-caps text-[10px] text-on-surface-variant mt-1 flex items-center gap-1.5 flex-wrap normal-case tracking-normal">
                       <span>{formattaData(t.data)} · {t.contesto.toLowerCase()} · vasca {t.vascaMetri}m</span>
                       <span>•</span>
                       <span className="text-primary font-semibold flex items-center gap-0.5" title={`Tempo convertito vasca da ${vascaDest}m`}>
@@ -488,7 +516,8 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
 
                   <button
                     onClick={() => eliminaTempo(t.id)}
-                    className="p-1.5 text-on-surface-variant hover:text-error rounded-lg hover:bg-surface-container-high"
+                    className="w-9 h-9 flex items-center justify-center text-on-surface-variant hover:text-error rounded-lg hover:bg-error-container/50 transition shrink-0"
+                    aria-label="Elimina tempo"
                   >
                     <Trash2 size={16} />
                   </button>

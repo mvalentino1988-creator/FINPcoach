@@ -205,38 +205,44 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
     );
   }
 
+  const syncStato = syncEnabled && FirebaseSync.getCurrentUser()
+    ? { label: 'Connesso e sincronizzato', dot: 'bg-status-live' }
+    : isConfigured
+      ? { label: 'Configurato, accesso richiesto', dot: 'bg-accent-gold' }
+      : { label: 'Modalità Offline Locale', dot: 'bg-outline' };
+
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl shadow-float max-w-md w-full border border-slate-200/70 max-h-[92dvh] flex flex-col overflow-hidden">
+      <div className="bg-surface-container-lowest rounded-t-3xl sm:rounded-3xl shadow-float max-w-md w-full border border-outline-variant max-h-[92dvh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-200/70 flex items-center justify-between gap-3 bg-surface-container-low shrink-0">
+        <div className="p-4 sm:px-5 border-b border-outline-variant flex items-center justify-between gap-3 bg-surface-container-low shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shadow-card shrink-0">
-              <Database size={18} />
+            <div className="w-10 h-10 rounded-xl bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center shrink-0">
+              <Database size={20} />
             </div>
             <div className="min-w-0">
-              <h2 className="font-bold text-on-surface text-base leading-tight">
-                Gestione Dati & Backup
+              <h2 className="font-label-caps text-label-caps uppercase tracking-wider text-on-surface leading-tight">
+                Dati & Backup
               </h2>
-              <span className="text-xs text-on-surface-variant leading-snug block">
-                Salvataggio locale sicuro & Esportazione JSON
+              <span className="text-xs text-on-surface-variant leading-snug block mt-0.5">
+                Esportazione JSON e sincronizzazione cloud
               </span>
             </div>
           </div>
           <button
             onClick={onClose}
             aria-label="Chiudi"
-            className="shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2 text-on-surface-variant hover:text-on-surface-variant rounded-lg hover:bg-surface-container-high transition"
+            className="ds-btn-icon shrink-0"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-3.5 sm:p-6 space-y-3 sm:space-y-4 text-[13px] leading-relaxed flex-1 min-h-0 overflow-y-auto">
+        <div className="p-4 sm:p-5 space-y-3 text-[13px] leading-relaxed flex-1 min-h-0 overflow-y-auto">
           {successMsg && (
-            <div className="flex items-center gap-3 p-3 bg-surface-container-low text-primary border border-primary-fixed-dim rounded-xl font-bold">
-              <CheckCircle size={16} className="text-primary shrink-0" />
+            <div className="flex items-center gap-3 p-3 bg-success-container text-on-success-container border border-success/25 rounded-xl font-bold">
+              <CheckCircle size={16} className="text-success shrink-0" />
               <span>{successMsg}</span>
             </div>
           )}
@@ -248,37 +254,39 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
             </div>
           )}
 
-          <div className="p-3 bg-surface-container-low/60 rounded-xl border border-primary-fixed-dim flex items-start gap-3">
-            <ShieldCheck size={18} className="text-primary-container shrink-0 mt-0.5" />
+          <div className="p-3.5 bg-primary-fixed/40 border border-primary/20 rounded-xl flex items-start gap-3">
+            <ShieldCheck size={18} className="text-primary shrink-0 mt-0.5" />
             <p className="text-on-surface-variant leading-relaxed text-xs">
               Tutti i dati della squadra, visite mediche, programmazione e presenze sono memorizzati localmente nel tuo browser con persistenza crittografica sul dispositivo.
             </p>
           </div>
 
           {/* Firebase Sync Section (Always Visible) */}
-          <div className="p-3 bg-gradient-to-r from-surface-container-low to-blue-50/50 rounded-xl border border-primary-fixed-dim space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+          <div className="p-3.5 bg-surface-container-low rounded-xl border border-outline-variant space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
                 {syncEnabled && FirebaseSync.getCurrentUser() ? (
-                  <Cloud size={18} className="text-primary-container" />
+                  <Cloud size={18} className="text-primary shrink-0" />
                 ) : (
-                  <CloudOff size={18} className="text-on-surface-variant" />
+                  <CloudOff size={18} className="text-on-surface-variant shrink-0" />
                 )}
-                <div>
+                <div className="min-w-0">
                   <div className="font-bold text-on-surface text-xs">Sincronizzazione Cloud (Firebase)</div>
-                  <div className="text-xs text-on-surface-variant">
-                    {isConfigured ? (syncEnabled && FirebaseSync.getCurrentUser() ? '🟢 Connesso e sincronizzato' : '🟠 Configurato, accesso richiesto') : '⚪ Modalità Offline Locale'}
+                  <div className="text-xs text-on-surface-variant flex items-center gap-1.5">
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${syncStato.dot}`} />
+                    {syncStato.label}
                   </div>
                 </div>
               </div>
               <button
                 onClick={handleToggleSync}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  syncEnabled ? 'bg-primary-container' : 'bg-surface-container-highest'
+                aria-label="Attiva sincronizzazione cloud"
+                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                  syncEnabled ? 'bg-primary' : 'bg-surface-container-highest'
                 }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-surface-container-lowest transition-transform ${
+                  className={`inline-block h-4 w-4 transform rounded-full bg-surface-container-lowest shadow transition-transform ${
                     syncEnabled ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
@@ -286,14 +294,14 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-on-surface-variant">
+              <div className="flex items-center justify-between gap-2 text-xs">
+                <span className="text-on-surface-variant truncate">
                   {FirebaseSync.getCurrentUser() ? `Account: ${FirebaseSync.getCurrentUser()?.email}` : (isConfigured ? 'Nessun account collegato' : 'Credenziali .env assenti')}
                 </span>
                 {FirebaseSync.getCurrentUser() && (
                   <button
                     onClick={handleLogout}
-                    className="text-error hover:text-error font-medium flex items-center gap-1"
+                    className="ds-btn-danger !min-h-[32px] !px-2.5 !py-1 text-[11px] shrink-0"
                   >
                     <LogOut size={12} />
                     Logout
@@ -310,7 +318,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
                   handleManualSync();
                 }}
                 disabled={syncing}
-                className="w-full min-h-[48px] bg-primary-container hover:bg-primary text-on-primary rounded-lg text-xs font-bold transition flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="ds-btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {syncing ? (
                   <>
@@ -330,13 +338,13 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
           </div>
 
           {/* Versione App & Note Aggiornamenti */}
-          <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant space-y-1.5 text-xs">
-            <div className="flex items-center justify-between font-bold text-on-surface">
-              <span className="flex items-center gap-1.5">
-                <Info size={14} className="text-primary" />
+          <div className="p-3.5 bg-surface-container-low rounded-xl border border-outline-variant space-y-1.5 text-xs">
+            <div className="flex items-center justify-between font-bold text-on-surface gap-2">
+              <span className="flex items-center gap-1.5 min-w-0">
+                <Info size={14} className="text-primary shrink-0" />
                 Versione FINPcoach
               </span>
-              <span className="px-3 py-0.5 rounded-full bg-surface-container text-primary font-mono text-xs">
+              <span className="ds-chip-blue !min-h-[26px] font-mono">
                 v0.2.0
               </span>
             </div>
@@ -352,16 +360,16 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
             {/* Download Backup */}
             <button
               onClick={handleDownload}
-              className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200/70 hover:border-primary-container hover:bg-surface-container-low transition group font-bold text-on-surface"
+              className="w-full flex items-center justify-between gap-3 p-3.5 rounded-xl border border-outline-variant bg-surface-container-low hover:border-primary/40 hover:bg-surface-container transition group text-left"
             >
-              <div className="flex items-center gap-3">
-                <Download size={16} className="text-primary-container group-hover:scale-110 transition" />
-                <div className="text-left">
-                  <div>Esporta Backup Completo (JSON)</div>
+              <div className="flex items-center gap-3 min-w-0">
+                <Download size={17} className="text-primary shrink-0 group-hover:scale-110 transition" />
+                <div className="min-w-0">
+                  <div className="font-bold text-on-surface text-sm">Esporta Backup Completo (JSON)</div>
                   <div className="text-xs text-on-surface-variant font-normal">Salva atleti, piani, tempi e registro su file</div>
                 </div>
               </div>
-              <span className="text-xs text-primary-container font-bold">Scarica</span>
+              <span className="ds-chip-blue shrink-0">Scarica</span>
             </button>
 
             {/* Import Backup */}
@@ -374,57 +382,57 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200/70 hover:border-primary-container hover:bg-surface-container-low transition group font-bold text-on-surface"
+              className="w-full flex items-center justify-between gap-3 p-3.5 rounded-xl border border-outline-variant bg-surface-container-low hover:border-primary/40 hover:bg-surface-container transition group text-left"
             >
-              <div className="flex items-center gap-3">
-                <Upload size={16} className="text-primary-container group-hover:scale-110 transition" />
-                <div className="text-left">
-                  <div>Importa / Ripristina Backup</div>
+              <div className="flex items-center gap-3 min-w-0">
+                <Upload size={17} className="text-primary shrink-0 group-hover:scale-110 transition" />
+                <div className="min-w-0">
+                  <div className="font-bold text-on-surface text-sm">Importa / Ripristina Backup</div>
                   <div className="text-xs text-on-surface-variant font-normal">Carica un file JSON esportato in precedenza</div>
                 </div>
               </div>
-              <span className="text-xs text-primary-container font-bold">Sfoglia</span>
+              <span className="ds-chip-blue shrink-0">Sfoglia</span>
             </button>
 
             {/* Reset to Seed Demo */}
             <button
               onClick={handleResetDemo}
-              className="w-full flex items-center justify-between p-3 rounded-xl border border-error/40 hover:border-error/50 hover:bg-error-container/50 transition group font-semibold text-error mt-2"
+              className="w-full flex items-center justify-between gap-3 p-3.5 rounded-xl border border-error/30 bg-error-container/40 hover:border-error/50 hover:bg-error-container/60 transition group text-left"
             >
-              <div className="flex items-center gap-3">
-                <RefreshCw size={15} className="text-error group-hover:rotate-180 transition duration-500" />
-                <div className="text-left">
-                  <div>Ripristina Dati Esempio FINP</div>
-                  <div className="text-xs text-error font-normal">Ricarica i profili atleti e la stagione dimostrativa</div>
+              <div className="flex items-center gap-3 min-w-0">
+                <RefreshCw size={16} className="text-error shrink-0 group-hover:rotate-180 transition duration-500" />
+                <div className="min-w-0">
+                  <div className="font-bold text-error text-sm">Ripristina Dati Esempio FINP</div>
+                  <div className="text-xs text-on-error-container font-normal">Ricarica i profili atleti e la stagione dimostrativa</div>
                 </div>
               </div>
-              <span className="text-xs text-error font-bold">Reset</span>
+              <span className="ds-chip-coral shrink-0">Reset</span>
             </button>
 
             {/* Clear squad - back to empty state */}
             <button
               onClick={handleClearSquad}
-              className="w-full flex items-center justify-between p-3 rounded-xl border border-outline hover:border-on-surface-variant hover:bg-surface-container transition group font-semibold text-on-surface"
+              className="w-full flex items-center justify-between gap-3 p-3.5 rounded-xl border border-outline-variant bg-surface-container-low hover:border-on-surface-variant/50 hover:bg-surface-container transition group text-left"
             >
-              <div className="flex items-center gap-3">
-                <Trash2 size={15} className="text-on-surface-variant group-hover:text-error transition" />
-                <div className="text-left">
-                  <div>Svuota squadra</div>
+              <div className="flex items-center gap-3 min-w-0">
+                <Trash2 size={16} className="text-on-surface-variant shrink-0 group-hover:text-error transition" />
+                <div className="min-w-0">
+                  <div className="font-bold text-on-surface text-sm">Svuota squadra</div>
                   <div className="text-xs text-on-surface-variant font-normal">
                     Azzera tutto e riparti da una squadra vuota
                   </div>
                 </div>
               </div>
-              <span className="text-xs text-on-surface-variant font-bold">Svuota</span>
+              <span className="ds-chip-neutral shrink-0">Svuota</span>
             </button>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-3 bg-surface-container-low border-t border-slate-200/70 flex justify-end shrink-0">
+        <div className="p-3 sm:px-5 bg-surface-container-low border-t border-outline-variant flex justify-end shrink-0">
           <button
             onClick={onClose}
-            className="px-4 h-12 text-xs font-bold text-on-surface-variant hover:text-on-surface rounded-lg hover:bg-surface-container-high transition"
+            className="ds-btn-ghost"
           >
             Chiudi
           </button>

@@ -96,28 +96,30 @@ export const RevisioneSchedaModal: React.FC<Props> = ({ open, testo, onClose, on
   const metriAttuali = ParserScheda.calcolaMetriDaTesto(righe.join('\n'));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
-      <div className="w-full sm:max-w-2xl bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl shadow-xl border border-slate-200/70 max-h-[94vh] overflow-y-auto">
-        <div className="flex items-center justify-between gap-3 p-4 border-b border-slate-200/70 sticky top-0 bg-surface-container-lowest">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-fade-in">
+      <div className="w-full sm:max-w-2xl bg-surface-container-lowest rounded-t-3xl sm:rounded-3xl border border-outline-variant shadow-float max-h-[94dvh] overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-5 pt-4 sm:pt-5 pb-3 border-b border-outline-variant shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <span className="w-9 h-9 rounded-lg bg-primary text-on-primary flex items-center justify-center shrink-0">
-              <Brain size={18} />
+            <span className="w-10 h-10 rounded-xl bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center shrink-0">
+              <Brain size={20} />
             </span>
             <div className="min-w-0">
-              <h3 className="font-headline-sm text-headline-sm text-on-surface truncate">
-                Revisione e apprendimento parser
+              <h3 className="font-label-caps text-label-caps uppercase tracking-wider text-on-surface truncate">
+                Revisione e Apprendimento Parser
               </h3>
-              <p className="ds-label !normal-case">
+              <p className="text-xs text-on-surface-variant mt-0.5 truncate">
                 {nonComprese.size} righe da interpretare · {metriAttuali} m riconosciuti
               </p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="ds-btn-icon" aria-label="Chiudi">
+          <button type="button" onClick={onClose} className="ds-btn-icon shrink-0" aria-label="Chiudi">
             <X size={18} />
           </button>
         </div>
 
-        <div className="p-4 space-y-3">
+        {/* Body */}
+        <div className="p-4 sm:p-5 space-y-3 overflow-y-auto">
           {righe.map((riga, idx) => {
             if (!riga.trim()) return null;
             const nonCompreso = nonComprese.has(riga.trim());
@@ -129,16 +131,16 @@ export const RevisioneSchedaModal: React.FC<Props> = ({ open, testo, onClose, on
                 key={idx}
                 className={`rounded-xl border p-3 space-y-2 ${
                   nonCompreso
-                    ? 'border-tertiary bg-tertiary-fixed/20'
-                    : 'border-slate-200/70 bg-surface-container-low'
+                    ? 'border-tertiary/40 bg-tertiary-fixed/20'
+                    : 'border-outline-variant bg-surface-container-low'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-body-base font-body-bold text-on-surface truncate">{riga}</span>
                   {nonCompreso ? (
-                    <span className="ds-chip bg-tertiary text-on-tertiary">Da correggere</span>
+                    <span className="ds-chip-tertiary shrink-0">Da correggere</span>
                   ) : (
-                    <span className="ds-chip bg-secondary-container text-on-secondary-container">
+                    <span className="ds-chip-secondary shrink-0">
                       {serie?.metriTotali ?? 0} m
                     </span>
                   )}
@@ -158,7 +160,7 @@ export const RevisioneSchedaModal: React.FC<Props> = ({ open, testo, onClose, on
                                 : `${suggerimento.distanza}`;
                           correggiRiga(idx, val);
                         }}
-                        className="self-start inline-flex items-center gap-1.5 px-3 h-9 rounded-lg bg-surface-container text-xs font-bold text-on-surface"
+                        className="self-start ds-btn-ghost !min-h-[36px] !px-3 !py-1.5 text-xs"
                       >
                         <Sparkles size={14} />
                         <span>{suggerimento.descrizione}</span>
@@ -169,15 +171,17 @@ export const RevisioneSchedaModal: React.FC<Props> = ({ open, testo, onClose, on
                         value={correzioni[idx] || ''}
                         onChange={(e) => correggiRiga(idx, e.target.value)}
                         placeholder="es. 4x100 stile libero"
-                        className="flex-1 px-3 h-11 border border-outline-variant rounded-lg text-sm"
+                        className="ds-input !h-11 flex-1"
                       />
-                      <button type="button" onClick={() => apprendi(idx)} className="ds-btn-primary">
+                      <button type="button" onClick={() => apprendi(idx)} className="ds-btn-primary !min-h-[44px] shrink-0">
                         <Check size={16} />
                         <span>Impara</span>
                       </button>
                     </div>
                     {imparate[idx] && (
-                      <span className="text-xs font-bold text-secondary">Regola salvata: verrà usata da ora in poi.</span>
+                      <span className="ds-chip-green self-start !min-h-0">
+                        Regola salvata: verrà usata da ora in poi.
+                      </span>
                     )}
                   </div>
                 )}
@@ -185,11 +189,11 @@ export const RevisioneSchedaModal: React.FC<Props> = ({ open, testo, onClose, on
             );
           })}
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-outline-variant">
             <button type="button" onClick={applicaTutto} className="ds-btn-primary flex-1">
               Applica scheda corretta
             </button>
-            <button type="button" onClick={onClose} className="ds-btn-ghost">
+            <button type="button" onClick={onClose} className="ds-btn-secondary">
               Annulla
             </button>
           </div>

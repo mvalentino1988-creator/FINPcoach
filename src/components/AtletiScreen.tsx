@@ -19,18 +19,22 @@ import { AtletaBiomeccanicaView } from './AtletaBiomeccanicaView';
 import { GareAmmissibiliCard } from './GareAmmissibiliCard';
 import {
   AlertTriangle,
+  BadgeCheck,
   Calendar,
   Check,
+  ChevronRight,
   Edit2,
   HeartPulse,
   RefreshCw,
   Search,
+  ShieldCheck,
   Sliders,
   Sparkles,
   Timer,
   Trash2,
   User,
   UserPlus,
+  Users,
   Waves,
   X
 } from 'lucide-react';
@@ -89,6 +93,33 @@ export const AtletiScreen: React.FC = () => {
     return list.length > 0 ? list.join(' · ') : 'Classi non indicate';
   };
 
+  const contaCategoria = (cat: typeof categoriaFiltro): number => {
+    if (cat === 'ALL') return atleti.length;
+    return atleti.filter(a => {
+      const s = a.classeS;
+      if (s == null) return false;
+      if (cat === 'S1-S6') return s >= 1 && s <= 6;
+      if (cat === 'S7-S10') return s >= 7 && s <= 10;
+      if (cat === 'S11-S13') return s >= 11 && s <= 13;
+      if (cat === 'S14') return s === 14;
+      return true;
+    }).length;
+  };
+
+  const classiValide = atleti.map(a => a.classeS).filter((s): s is number => s != null);
+  const classiRange = classiValide.length > 0
+    ? `S${Math.min(...classiValide)}–S${Math.max(...classiValide)}`
+    : '—';
+  const atletiConTempi = atleti.filter(a => tempi.some(t => t.atletaId === a.id)).length;
+
+  const FILTRI_CLASSI: { id: typeof categoriaFiltro; label: string }[] = [
+    { id: 'ALL', label: 'TUTTI' },
+    { id: 'S1-S6', label: 'S1–S6' },
+    { id: 'S7-S10', label: 'S7–S10' },
+    { id: 'S11-S13', label: 'S11–S13' },
+    { id: 'S14', label: 'S14' }
+  ];
+
   // Pull to refresh
   const pullToRefresh = usePullToRefresh({
     onRefresh: async () => {
@@ -99,56 +130,94 @@ export const AtletiScreen: React.FC = () => {
 
   return (
     <div className="flex flex-1 min-h-0 flex-col gap-3 overflow-hidden">
-      {/* Team Summary Hero Card with "+ Nuovo" Button */}
-      <section className="shrink-0 ds-card p-3.5 sm:p-4 space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <span className="font-label-caps text-label-caps uppercase tracking-wider text-primary font-bold">Squadra FINP</span>
-            <h2 className="font-display-lg-mobile text-display-lg-mobile text-on-surface tracking-tight">Gestione Rosa Atleti</h2>
+      {/* Team Metrics Micro-Card + Stat Tiles (Stitch: gestione_atleti) */}
+      <section className="shrink-0 bg-surface-container-lowest rounded-xl p-3 shadow-sm">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-primary-fixed flex items-center justify-center text-on-primary-fixed shrink-0">
+              <Users size={18} />
+            </div>
+            <div className="min-w-0">
+              <h2 className="font-headline-sm text-headline-sm text-on-surface leading-tight truncate">Squadra Agonistica FINP</h2>
+              <p className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider truncate">
+                {atleti.length} {atleti.length === 1 ? 'atleta registrato' : 'atleti registrati'} · World Para Swimming
+              </p>
+            </div>
           </div>
-          <button
-            onClick={() => setNuovoOpen(true)}
-            className="min-h-[44px] px-4 py-2 rounded-xl bg-gradient-blue text-on-primary font-headline-sm font-bold text-sm flex items-center gap-1.5 shadow-primary-sm hover:brightness-110 transition shrink-0"
-          >
-            <UserPlus size={16} />
-            <span>Nuovo</span>
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-caps text-label-caps font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
+              ROSA ATTIVA
+            </span>
+            <button
+              onClick={() => setNuovoOpen(true)}
+              className="h-10 px-3.5 rounded-lg bg-primary text-on-primary font-headline-sm text-headline-sm flex items-center gap-1.5 shadow-primary-sm hover:brightness-110 transition shrink-0"
+            >
+              <UserPlus size={16} />
+              <span className="hidden xs:inline">Nuovo Atleta</span>
+              <span className="xs:hidden">Nuovo</span>
+            </button>
+          </div>
         </div>
-        <div className="flex items-center justify-between gap-2 text-xs text-on-surface-variant pt-1.5 border-t border-outline-variant">
-          <span>{atleti.length} {atleti.length === 1 ? 'Atleta registrato' : 'Atleti registrati'}</span>
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-container font-label-caps text-label-caps uppercase">
-            <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
-            ROSA ATTIVA
-          </span>
+
+        {/* Top Stats Bar: Squad Summary */}
+        <div className="grid grid-cols-3 gap-2 mt-2.5">
+          <div className="bg-surface-container-low rounded-xl p-2.5 flex flex-col justify-between shadow-sm">
+            <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Atleti FINP</span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="font-headline-lg text-headline-lg text-primary leading-none">{atleti.length}</span>
+              <span className="font-label-caps text-label-caps text-secondary">Attivi</span>
+            </div>
+          </div>
+          <div className="bg-surface-container-low rounded-xl p-2.5 flex flex-col justify-between shadow-sm">
+            <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Classi WPS</span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="font-headline-lg text-headline-lg text-on-surface leading-none">{classiRange}</span>
+            </div>
+          </div>
+          <div className="bg-surface-container-low rounded-xl p-2.5 flex flex-col justify-between shadow-sm">
+            <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Con Tempi</span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="font-headline-lg text-headline-lg text-secondary leading-none">{atletiConTempi}</span>
+              <span className="font-label-caps text-label-caps text-on-surface-variant">/ {atleti.length}</span>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Search & Class Category Filters */}
+      {/* Search & Classification Filter Hub */}
       {atleti.length > 0 && (
-        <div className="shrink-0 ds-card p-3 space-y-2">
-          <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+        <div className="shrink-0 flex flex-col gap-2">
+          <div className="relative w-full flex items-center">
+            <Search size={18} className="absolute left-3 text-outline pointer-events-none" />
             <input
               type="text"
-              placeholder="Cerca per cognome o nome..."
+              placeholder="Cerca atleta per nome o classe..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 min-h-[48px] bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm placeholder:text-on-surface-variant focus:bg-surface-container-lowest focus:border-primary-container focus:outline-none focus:ring-1 focus:ring-primary/20 transition"
+              className="w-full h-12 pl-10 pr-3 bg-surface-container-low text-on-surface placeholder:text-outline font-body-base text-body-base rounded-xl outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/30 transition-colors shadow-sm"
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <select
-              value={categoriaFiltro}
-              onChange={e => setCategoriaFiltro(e.target.value as any)}
-              className="w-full min-h-[44px] bg-surface-container-low border border-outline-variant rounded-xl px-3 font-headline font-bold text-xs sm:text-sm text-on-surface focus:border-primary"
-            >
-              <option value="ALL">Filtra per classe: Tutte le classi</option>
-              <option value="S1-S6">Classi S1–S6</option>
-              <option value="S7-S10">Classi S7–S10</option>
-              <option value="S11-S13">Classi S11–S13</option>
-              <option value="S14">Classe S14</option>
-            </select>
+          {/* Functional Class Horizontal Filter Pill Carousel */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none' }}>
+            {FILTRI_CLASSI.map(f => {
+              const attivo = categoriaFiltro === f.id;
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setCategoriaFiltro(f.id)}
+                  className={`whitespace-nowrap px-3 py-1.5 rounded-full font-label-caps text-label-caps font-bold transition-all shrink-0 ${
+                    attivo
+                      ? 'bg-primary text-on-primary shadow-sm'
+                      : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
+                  }`}
+                >
+                  {f.label} ({contaCategoria(f.id)})
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -156,24 +225,39 @@ export const AtletiScreen: React.FC = () => {
       {/* Area elenco scrollabile internamente per bloccare lo scroll di pagina */}
       <div className="flex-1 min-h-0 overflow-y-auto">
         {atleti.length === 0 && (
-        <div className="p-8 text-center bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant">
-          <User size={36} className="mx-auto text-outline mb-2" />
-          <h3 className="font-bold text-on-surface">Nessun atleta inserito</h3>
-          <p className="text-xs text-on-surface-variant mt-1 max-w-sm mx-auto">
+        <div className="p-10 text-center bg-surface-container-low rounded-xl shadow-sm">
+          <div className="w-14 h-14 rounded-full bg-surface-container-high flex items-center justify-center text-outline mx-auto mb-3">
+            <User size={26} />
+          </div>
+          <h3 className="font-headline-sm text-headline-sm text-on-surface">Nessun atleta inserito</h3>
+          <p className="font-body-base text-body-base text-on-surface-variant mt-1 max-w-sm mx-auto">
             Aggiungi il primo atleta per iniziare a gestire classi sportive, condizioni mediche e schede personalizzate.
           </p>
         </div>
       )}
 
       {atleti.length > 0 && atletiFiltrati.length === 0 && (
-        <div className="p-6 text-center ds-card">
-          <p className="text-xs text-on-surface-variant">Nessun atleta corrisponde ai filtri di ricerca impostati.</p>
+        <div className="p-10 text-center bg-surface-container-low rounded-xl shadow-sm">
+          <div className="w-14 h-14 rounded-full bg-surface-container-high flex items-center justify-center text-outline mx-auto mb-3">
+            <Search size={24} />
+          </div>
+          <h3 className="font-headline-sm text-headline-sm text-on-surface">Nessun atleta trovato</h3>
+          <p className="font-body-base text-body-base text-on-surface-variant mt-1">
+            Nessun nuotatore corrisponde ai filtri selezionati. Prova a reimpostare i criteri di ricerca.
+          </p>
+          <button
+            type="button"
+            onClick={() => { setSearchQuery(''); setCategoriaFiltro('ALL'); }}
+            className="mt-3 px-4 py-2 bg-primary-fixed text-on-primary-fixed-variant rounded-xl font-headline-sm text-headline-sm active:scale-95 transition-transform"
+          >
+            Mostra tutti gli atleti
+          </button>
         </div>
       )}
 
       {/* Pull to Refresh Indicator */}
       {pullToRefresh.isPulling && (
-        <div className="flex items-center justify-center py-2 text-xs text-on-surface-variant">
+        <div className="flex items-center justify-center py-2 font-label-caps text-label-caps text-on-surface-variant uppercase">
           <RefreshCw 
             size={16} 
             className={`mr-2 ${pullToRefresh.isRefreshing ? 'animate-spin' : ''}`} 
@@ -182,8 +266,8 @@ export const AtletiScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Athletes list */}
-      <div className="flex flex-col gap-2.5">
+      {/* Athletes roster cards — desktop: 2-col grid (xl 3-col) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
         {atletiFiltrati.map(a => {
           const mieiTempi = tempi.filter(t => t.atletaId === a.id);
           const eta = a.dataNascita ? yearsBetween(a.dataNascita, oggi) : null;
@@ -201,43 +285,83 @@ export const AtletiScreen: React.FC = () => {
               key={a.id}
               type="button"
               onClick={() => setSelezionatoId(a.id)}
-              className="w-full text-left ds-card p-3 flex items-center gap-3 hover:bg-surface-container-low transition"
+              className="w-full text-left bg-surface-container-lowest rounded-xl p-4 shadow-card hover:shadow-pop transition flex flex-col gap-3"
             >
-              <div className="w-12 h-12 rounded-full bg-gradient-blue text-on-primary font-headline text-sm font-bold flex items-center justify-center shrink-0 shadow-inner">
-                {a.nome?.[0] || 'A'}{a.cognome?.[0] || 'T'}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="font-headline-sm text-headline-sm font-bold text-on-surface truncate">
-                  {a.cognome} {a.nome}
-                </div>
-                <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                  <span className="px-1.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-label-caps font-bold">
-                    {formatClassi(a)}
-                  </span>
-                  <span className="px-1.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-caps text-label-caps">
-                    {a.stato === 'UFFICIALE' ? 'Nazionale A' : 'In attesa'}
-                  </span>
-                  {eta != null && (
-                    <span className="px-1.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-caps text-label-caps">
-                      {eta} anni
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col items-end gap-1.5 shrink-0">
-                {formCheck.necessario && (
-                  <span className="w-7 h-7 rounded-full bg-error-container text-error flex items-center justify-center" title="Aggiorna i tempi di riferimento">
-                    <AlertTriangle size={14} />
-                  </span>
-                )}
-                <div className="text-right" aria-label={`Miglior tempo ${migliorTempo}`}>
-                  <div className="text-[10px] font-bold text-on-surface-variant uppercase">Miglior</div>
-                  <div className={`font-headline font-bold tabular-nums text-sm ${haTempi ? 'text-tertiary' : 'text-on-surface-variant'}`}>
-                    {migliorTempo}
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative w-14 h-14 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center font-headline-sm font-bold shrink-0 shadow-inner">
+                    {a.nome?.[0] || 'A'}{a.cognome?.[0] || 'T'}
+                    {a.stato === 'UFFICIALE' && (
+                      <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-secondary ring-2 ring-surface-container-lowest flex items-center justify-center">
+                        <Check size={9} strokeWidth={3.5} className="text-on-secondary" />
+                      </span>
+                    )}
+                    {formCheck.necessario && (
+                      <span
+                        className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-error-container text-error ring-2 ring-surface-container-lowest flex items-center justify-center"
+                        title="Aggiorna i tempi di riferimento"
+                      >
+                        <AlertTriangle size={9} />
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-headline-sm text-headline-sm text-on-surface font-bold truncate">
+                        {a.cognome} {a.nome}
+                      </h3>
+                      {a.stato === 'UFFICIALE' && (
+                        <BadgeCheck size={15} className="text-primary shrink-0" />
+                      )}
+                    </div>
+                    <p className="font-label-caps text-label-caps text-on-surface-variant mt-1 truncate">
+                      {eta != null ? `${eta} anni · ` : ''}{a.stato === 'UFFICIALE' ? 'Squadra Nazionale' : 'In attesa di revisione'}
+                    </p>
+                    <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                      {a.classeS != null && (
+                        <span className="px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-label-caps">S{a.classeS}</span>
+                      )}
+                      {a.classeSB != null && (
+                        <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-caps text-label-caps">SB{a.classeSB}</span>
+                      )}
+                      {a.classeSM != null && (
+                        <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-caps text-label-caps">SM{a.classeSM}</span>
+                      )}
+                      {a.classeS == null && a.classeSB == null && a.classeSM == null && (
+                        <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-caps text-label-caps">Senza classe</span>
+                      )}
+                    </div>
+                    {a.codiciEccezione && a.codiciEccezione.length > 0 && (
+                      <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                        {a.codiciEccezione.map(codice => (
+                          <span key={codice} className="w-5 h-5 rounded-md bg-warning-container text-on-warning-container font-label-caps text-label-caps font-bold flex items-center justify-center">
+                            {codice}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
+                <div className="flex flex-col items-end shrink-0 bg-surface-container-low rounded-xl px-2.5 py-1.5 shadow-sm">
+                  <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Miglior</span>
+                  <span className={`font-stat-timer-mobile text-stat-timer-mobile tracking-tight leading-none mt-0.5 ${haTempi ? 'text-primary' : 'text-on-surface-variant'}`}>
+                    {migliorTempo}
+                  </span>
+                </div>
+              </div>
+              <div className="bg-surface-container-low rounded-xl px-3 py-2 flex items-center justify-between gap-2">
+                <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full font-label-caps text-label-caps font-bold ${
+                  a.stato === 'UFFICIALE'
+                    ? 'bg-secondary-container text-on-secondary-container'
+                    : 'bg-surface-container-high text-on-surface-variant'
+                }`}>
+                  <ShieldCheck size={12} />
+                  {a.stato === 'UFFICIALE' ? 'IDONEO' : 'REVIEW'}
+                </span>
+                <span className="font-label-caps text-label-caps text-on-surface-variant uppercase flex items-center gap-1">
+                  Scheda atleta
+                  <ChevronRight size={14} />
+                </span>
               </div>
             </button>
           );
@@ -533,7 +657,7 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
             <button
               type="submit"
               disabled={!valido}
-              className="px-5 h-12 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-bold rounded-xl text-xs transition shadow-card"
+              className="px-5 h-12 bg-primary hover:bg-primary-container disabled:opacity-50 text-on-primary font-headline-sm text-headline-sm rounded-xl transition shadow-primary-sm"
             >
               Salva Atleta
             </button>
@@ -640,25 +764,25 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <div className="relative shrink-0">
-                <div className="w-12 h-12 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold text-base shadow-card ring-2 ring-primary/20">
+                <div className="w-12 h-12 rounded-full bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center font-headline-sm font-bold shadow-card ring-2 ring-primary-fixed-dim">
                   {atleta.nome?.[0] || 'A'}{atleta.cognome?.[0] || 'T'}
                 </div>
-                <div className="absolute -bottom-1 -right-1 bg-primary text-on-primary p-0.5 rounded-full flex items-center justify-center shadow-card">
-                  <Check size={12} className="stroke-[3]" />
+                <div className="absolute -bottom-1 -right-1 bg-secondary text-on-secondary p-0.5 rounded-full flex items-center justify-center shadow-card ring-2 ring-surface-container-low">
+                  <Check size={10} strokeWidth={3.5} />
                 </div>
               </div>
               <div className="min-w-0">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h2 className="font-bold text-on-surface text-lg sm:text-xl leading-tight max-w-full" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="font-headline-sm text-headline-md text-on-surface leading-tight max-w-full">
                     {atleta.cognome} {atleta.nome}
                   </h2>
                   {eta != null && (
-                    <span className="text-[12px] font-bold px-3 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed uppercase shrink-0">
+                    <span className="font-label-caps text-label-caps font-bold px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed-variant uppercase shrink-0">
                       {eta} anni
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-on-surface-variant font-medium mt-0.5 leading-snug">
+                <div className="font-label-caps text-label-caps text-on-surface-variant font-semibold mt-0.5 leading-snug uppercase tracking-wider">
                   Fed. FINP / World Para Swimming · Squadra Nazionale
                 </div>
               </div>
@@ -680,22 +804,31 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
 
           {/* Paralympic Passport & Class Badges */}
           <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-3 bg-surface-container-lowest rounded-xl p-3 border border-outline-variant">
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="text-xs font-bold bg-on-primary-fixed text-primary-fixed px-3 py-1 rounded-md uppercase tracking-wider shrink-0">
+            <div className="flex items-center gap-2 min-w-0 flex-wrap">
+              <span className="font-label-caps text-label-caps font-bold bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded uppercase tracking-wider shrink-0">
                 {atleta.classeS != null ? `S${atleta.classeS}` : 'S-'}
-                {atleta.classeSB != null ? ` · SB${atleta.classeSB}` : ''}
-                {atleta.classeSM != null ? ` · SM${atleta.classeSM}` : ''}
               </span>
-              <span className="text-xs text-on-surface-variant font-semibold leading-snug">
+              {atleta.classeSB != null && (
+                <span className="font-label-caps text-label-caps bg-surface-container text-on-surface-variant px-2 py-0.5 rounded uppercase">
+                  SB{atleta.classeSB}
+                </span>
+              )}
+              {atleta.classeSM != null && (
+                <span className="font-label-caps text-label-caps bg-surface-container text-on-surface-variant px-2 py-0.5 rounded uppercase">
+                  SM{atleta.classeSM}
+                </span>
+              )}
+              <span className="font-label-caps text-label-caps text-on-surface-variant font-semibold leading-snug">
                 Passaporto Ufficiale FINP / WPS
               </span>
             </div>
-            <span className={`text-[12px] font-bold px-3 py-0.5 rounded uppercase self-start xs:self-auto shrink-0 ${
+            <span className={`inline-flex items-center gap-1.5 font-label-caps text-label-caps font-bold px-3 py-1 rounded-full uppercase self-start xs:self-auto shrink-0 ${
               atleta.stato === 'UFFICIALE'
-                ? 'bg-primary-fixed text-primary'
-                : 'bg-tertiary-fixed text-on-tertiary-fixed'
+                ? 'bg-secondary-container text-on-secondary-container'
+                : 'bg-tertiary-fixed text-on-tertiary-fixed-variant'
             }`}>
-              {atleta.stato === 'UFFICIALE' ? 'CONF' : 'REVIEW'}
+              <span className={`w-1.5 h-1.5 rounded-full ${atleta.stato === 'UFFICIALE' ? 'bg-secondary' : 'bg-tertiary'}`} />
+              {atleta.stato === 'UFFICIALE' ? 'Ufficiale' : 'In revisione'}
             </span>
           </div>
 
@@ -722,43 +855,46 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
             </div>
           )}
 
-          {/* Tabs */}
-          <div className="grid grid-cols-3 gap-2 bg-surface-container rounded-xl p-1.5 text-center">
+          {/* Tabs — segmented control (Stitch view toggle) */}
+          <div className="flex items-center gap-1 bg-surface-container-low rounded-xl p-1">
             <button
               type="button"
               onClick={() => setTabDettaglio('biomeccanica')}
-              className={`min-h-[52px] py-2 px-2 rounded-lg text-xs sm:text-sm font-bold leading-tight transition flex flex-col items-center justify-center gap-1.5 ${
+              className={`flex-1 min-h-[44px] py-2 px-2 rounded-lg font-label-caps text-label-caps uppercase tracking-wider font-bold transition flex items-center justify-center gap-1.5 ${
                 tabDettaglio === 'biomeccanica'
-                  ? 'bg-surface-container-lowest text-primary shadow-primary-sm'
-                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low'
+                  ? 'bg-surface-container-lowest text-primary shadow-sm'
+                  : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
-              <Sliders size={16} />
-              <span>Biomeccanica</span>
+              <Sliders size={15} />
+              <span className="hidden xs:inline">Biomeccanica</span>
+              <span className="xs:hidden">Bio</span>
             </button>
             <button
               type="button"
               onClick={() => setTabDettaglio('progressione')}
-              className={`min-h-[52px] py-2 px-2 rounded-lg text-xs sm:text-sm font-bold leading-tight transition flex flex-col items-center justify-center gap-1.5 ${
+              className={`flex-1 min-h-[44px] py-2 px-2 rounded-lg font-label-caps text-label-caps uppercase tracking-wider font-bold transition flex items-center justify-center gap-1.5 ${
                 tabDettaglio === 'progressione'
-                  ? 'bg-surface-container-lowest text-primary shadow-primary-sm'
-                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low'
+                  ? 'bg-surface-container-lowest text-primary shadow-sm'
+                  : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
-              <Timer size={16} />
-              <span>Progressione</span>
+              <Timer size={15} />
+              <span className="hidden xs:inline">Progressione</span>
+              <span className="xs:hidden">Tempi</span>
             </button>
             <button
               type="button"
               onClick={() => setTabDettaglio('certificati')}
-              className={`min-h-[52px] py-2 px-2 rounded-lg text-xs sm:text-sm font-bold leading-tight transition flex flex-col items-center justify-center gap-1.5 ${
+              className={`flex-1 min-h-[44px] py-2 px-2 rounded-lg font-label-caps text-label-caps uppercase tracking-wider font-bold transition flex items-center justify-center gap-1.5 ${
                 tabDettaglio === 'certificati'
-                  ? 'bg-surface-container-lowest text-primary shadow-primary-sm'
-                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low'
+                  ? 'bg-surface-container-lowest text-primary shadow-sm'
+                  : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
-              <HeartPulse size={16} />
-              <span>Certificati</span>
+              <HeartPulse size={15} />
+              <span className="hidden xs:inline">Certificati</span>
+              <span className="xs:hidden">Note</span>
             </button>
           </div>
         </div>
@@ -791,8 +927,8 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                     {condizioni.filter(c => c.attiva).map(c => {
                       const analisi = FINPSpecialistAI.analizza(c.descrizione, c.limitazioni, eta);
                       return (
-                        <div key={c.id} className="p-3 bg-surface-container-lowest rounded-xl border border-primary-fixed-dim space-y-2 text-xs">
-                          <div className="font-bold text-on-surface text-xs">
+                        <div key={c.id} className="p-3 bg-surface-container-low rounded-lg border border-primary-fixed-dim/60 space-y-2 text-xs">
+                          <div className="font-headline-sm text-headline-sm text-on-surface">
                             Condizione: {c.descrizione}
                           </div>
                           <p className="text-on-surface-variant leading-relaxed">{analisi.riassuntoIdrodinamico}</p>
@@ -847,7 +983,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                 <button
                   type="button"
                   onClick={generaCodici}
-                  className="flex items-center justify-center gap-3 p-3.5 rounded-xl bg-primary-container hover:bg-primary text-on-primary font-bold text-xs transition shadow-card"
+                  className="flex items-center justify-center gap-2 p-3.5 rounded-xl bg-primary text-on-primary font-headline-sm text-headline-sm transition shadow-primary-sm hover:brightness-110 active:scale-[0.98]"
                 >
                   <Waves size={16} />
                   <span>Proponi codici di oggi</span>
@@ -855,7 +991,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                 <button
                   type="button"
                   onClick={() => setGestioneTempiOpen(true)}
-                  className="flex items-center justify-center gap-3 p-3.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-xs transition"
+                  className="flex items-center justify-center gap-2 p-3.5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-headline-sm text-headline-sm transition active:scale-[0.98]"
                 >
                   <Timer size={16} />
                   <span>Storico Tempi & Test ({tempi.length})</span>
@@ -875,10 +1011,10 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                   {micro.filter((m: any) => !isBefore(m.fine, oggi)).slice(0, 4).map((m: any) => {
                     const v = VolumeIndividuale.settimana(m, atleta, assenze);
                     return (
-                      <div key={m.id} className="p-3 bg-surface-container-low border border-outline-variant rounded-xl text-center">
-                        <div className="text-xs text-on-surface-variant font-medium">{formattaData(m.inizio)}</div>
-                        <div className="text-sm font-bold text-primary-container">{v.metri} m</div>
-                        <div className="text-xs text-on-surface-variant capitalize">{m.tipo.toLowerCase()}</div>
+                      <div key={m.id} className="p-2.5 bg-surface-container-low rounded-lg text-center shadow-sm">
+                        <div className="font-label-caps text-label-caps text-on-surface-variant uppercase">{formattaData(m.inizio)}</div>
+                        <div className="font-headline-md text-headline-md text-primary mt-0.5 tabular-nums">{v.metri} m</div>
+                        <div className="font-label-caps text-label-caps text-on-surface-variant capitalize mt-0.5">{m.tipo.toLowerCase()}</div>
                       </div>
                     );
                   })}
@@ -902,10 +1038,10 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                   {condizioni.map(c => (
                 <div
                   key={c.id}
-                  className="p-3 bg-surface-container-low border border-outline-variant rounded-xl flex items-center justify-between gap-3 text-xs"
+                  className="p-3 bg-surface-container-low rounded-lg border border-outline-variant flex items-center justify-between gap-3 text-xs"
                 >
                   <div className="min-w-0">
-                    <span className="font-bold text-on-surface block break-words">{c.descrizione}</span>
+                    <span className="font-headline-sm text-headline-sm text-on-surface block break-words">{c.descrizione}</span>
                     {c.limitazioni && (
                       <span className="text-on-surface-variant block mt-0.5 break-words">Limitazioni: {c.limitazioni}</span>
                     )}
@@ -970,10 +1106,10 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
               {assenze.map(a => (
                 <div
                   key={a.id}
-                  className="p-3 bg-surface-container-low border border-outline-variant rounded-xl flex items-center justify-between gap-3 text-xs"
+                  className="p-3 bg-surface-container-low rounded-lg border border-outline-variant flex items-center justify-between gap-3 text-xs"
                 >
                   <div className="min-w-0">
-                    <span className="font-bold text-on-surface">
+                    <span className="font-headline-sm text-headline-sm text-on-surface">
                       {formattaData(a.dal)} – {formattaData(a.al)}
                     </span>
                     {a.motivo && <span className="text-on-surface-variant ml-2 break-words">({a.motivo})</span>}
@@ -1211,7 +1347,7 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
             <button
               type="submit"
               disabled={!valido}
-              className="w-full h-12 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary rounded-lg font-bold transition shadow-card"
+              className="w-full h-12 bg-primary hover:bg-primary-container disabled:opacity-50 text-on-primary rounded-xl font-headline-sm text-headline-sm transition shadow-primary-sm"
             >
               Aggiungi Tempo
             </button>

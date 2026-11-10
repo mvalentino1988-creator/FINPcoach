@@ -181,25 +181,33 @@ export const DatiScreen: React.FC = () => {
         />
       </div>
 
-      {/* TABS A MENU A TENDINA PULITO E LEGGIBILE */}
-      <div className="shrink-0 ds-card p-2 sm:p-2.5">
-        <div className="flex items-center gap-2">
-          <span className="ds-label shrink-0">Sezione:</span>
-          <select
-            value={tab}
-            onChange={e => {
-              const next = e.target.value as DatiTab;
-              setTab(next);
-              sessionStorage.setItem('finp_dati_tab', next);
+      {/* TABS — segmented dock stile Stitch */}
+      <div className="shrink-0 bg-surface-container-high/80 p-1 rounded-xl flex items-center shadow-sm gap-1 overflow-x-auto ds-hscroll">
+        {([
+          { key: 'schede', label: 'Schede Vasca', icon: <ClipboardList size={16} /> },
+          { key: 'tempi', label: 'Tempi & Ripartenze', icon: <Timer size={16} /> },
+          { key: 'registro', label: 'Registro & Carico', icon: <CheckCircle2 size={16} /> },
+          { key: 'biomeccanica', label: 'Biomeccanica & WPS', icon: <Activity size={16} /> },
+        ] as { key: DatiTab; label: string; icon: React.ReactNode }[]).map(t => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => {
+              setTab(t.key);
+              sessionStorage.setItem('finp_dati_tab', t.key);
             }}
-            className="w-full min-h-[44px] bg-surface-container-low border border-outline-variant rounded-xl px-3 font-headline font-bold text-xs sm:text-sm text-on-surface focus:border-primary"
+            aria-current={tab === t.key ? 'page' : undefined}
+            className={`flex-1 min-w-[120px] py-2 px-2 rounded-lg font-label-lg text-label-lg text-center transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+              tab === t.key
+                ? 'bg-surface-container-lowest text-primary shadow-sm font-bold'
+                : 'text-on-surface-variant hover:text-on-surface'
+            }`}
           >
-            <option value="schede">Schede vasca</option>
-            <option value="tempi">Tempi e ripartenze</option>
-            <option value="registro">Registro presenze e carico</option>
-            <option value="biomeccanica">Analisi biomeccanica e WPS</option>
-          </select>
-        </div>
+            {t.icon}
+            <span className="hidden sm:inline">{t.label}</span>
+            <span className="sm:hidden">{t.label.split(' ')[0]}</span>
+          </button>
+        ))}
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto space-y-3">
@@ -208,13 +216,13 @@ export const DatiScreen: React.FC = () => {
           <>
             {/* Header controlli Calendario / Lista (Segmented Control) */}
             {!editMode && (
-              <div className="shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant">
-                <div className="flex items-center bg-surface-container rounded-xl p-1 gap-1 w-full sm:w-auto">
+              <div className="shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 bg-surface-container-lowest p-2.5 rounded-xl shadow-sm border border-outline-variant/50">
+                <div className="flex items-center bg-surface-container-high/80 p-0.5 rounded-lg gap-0.5 w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={() => setVistaSchede('calendario')}
-                    className={`flex-1 sm:flex-none px-3 py-2 min-h-[40px] whitespace-nowrap rounded-lg text-xs font-bold font-headline transition ${
-                      vistaSchede === 'calendario' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant'
+                    className={`flex-1 sm:flex-none px-3 py-1.5 min-h-[40px] whitespace-nowrap rounded-md font-label-caps text-label-caps transition ${
+                      vistaSchede === 'calendario' ? 'bg-surface-container-lowest text-primary shadow-sm font-bold' : 'text-on-surface-variant'
                     }`}
                   >
                     Calendario
@@ -222,8 +230,8 @@ export const DatiScreen: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setVistaSchede('lista')}
-                    className={`flex-1 sm:flex-none px-3 py-2 min-h-[40px] whitespace-nowrap rounded-lg text-xs font-bold font-headline transition ${
-                      vistaSchede === 'lista' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant'
+                    className={`flex-1 sm:flex-none px-3 py-1.5 min-h-[40px] whitespace-nowrap rounded-md font-label-caps text-label-caps transition ${
+                      vistaSchede === 'lista' ? 'bg-surface-container-lowest text-primary shadow-sm font-bold' : 'text-on-surface-variant'
                     }`}
                   >
                     Lista
@@ -234,7 +242,7 @@ export const DatiScreen: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setCalendarioEspanso(v => !v)}
-                    className="ds-btn-secondary !min-h-[44px] !px-3 text-xs whitespace-nowrap justify-center"
+                    className={`ds-btn-secondary !min-h-[44px] !px-3 text-xs whitespace-nowrap justify-center ${calendarioEspanso ? 'bg-primary-fixed/40 border-primary/30 text-primary' : ''}`}
                   >
                     <Calendar size={15} />
                     <span>{calendarioEspanso ? 'Chiudi Mese' : 'Mese'}</span>
@@ -261,20 +269,25 @@ export const DatiScreen: React.FC = () => {
                       const parsed = parseData(calendarioData);
                       if (parsed) setCalendarioData(formattaData(addDays(parsed, -7)));
                     }}
-                    className="p-1.5 rounded-lg hover:bg-surface-container"
+                    className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high active:scale-95 transition"
+                    aria-label="Settimana precedente"
                   >
                     <ChevronLeft size={18} />
                   </button>
-                  <h3 className="font-headline font-bold text-xs sm:text-sm text-on-surface">
-                    {calendarioData}
-                  </h3>
+                  <div className="flex flex-col items-center">
+                    <h3 className="font-headline-sm text-headline-sm text-on-surface">
+                      {calendarioData}
+                    </h3>
+                    <span className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wide">Settimana</span>
+                  </div>
                   <button
                     type="button"
                     onClick={() => {
                       const parsed = parseData(calendarioData);
                       if (parsed) setCalendarioData(formattaData(addDays(parsed, 7)));
                     }}
-                    className="p-1.5 rounded-lg hover:bg-surface-container"
+                    className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high active:scale-95 transition"
+                    aria-label="Settimana successiva"
                   >
                     <ChevronRight size={18} />
                   </button>
@@ -282,7 +295,7 @@ export const DatiScreen: React.FC = () => {
 
                 <div className="grid grid-cols-7 gap-1">
                   {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(g => (
-                    <div key={g} className="text-center text-xs font-bold text-on-surface-variant uppercase">
+                    <div key={g} className="text-center font-label-caps text-[10px] text-on-surface-variant uppercase">
                       {g}
                     </div>
                   ))}
@@ -296,7 +309,7 @@ export const DatiScreen: React.FC = () => {
                     const cells: JSX.Element[] = [];
 
                     for (let i = 0; i < giornoSettimana; i++) {
-                      cells.push(<div key={`e-${i}`} className="h-9" />);
+                      cells.push(<div key={`e-${i}`} className="h-10" />);
                     }
 
                     for (let g = 1; g <= giorniMese; g++) {
@@ -312,17 +325,17 @@ export const DatiScreen: React.FC = () => {
                           onClick={() => {
                             if (workoutGiorno) setSelectedWorkoutId(workoutGiorno.id);
                           }}
-                          className={`h-9 rounded-xl flex flex-col items-center justify-center relative transition ${
+                          className={`h-10 rounded-lg flex flex-col items-center justify-center relative transition active:scale-95 ${
                             workoutGiorno
                               ? 'bg-primary text-on-primary font-bold shadow-sm'
                               : isOggi
-                              ? 'bg-primary text-on-primary font-bold border border-primary/30'
+                              ? 'bg-primary-fixed/50 text-primary font-bold border border-primary/30'
                               : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
                           }`}
                         >
-                          <span className="text-xs leading-none">{g}</span>
+                          <span className="font-headline-sm text-[13px] leading-none tabular-nums">{g}</span>
                           {workoutGiorno && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-tertiary mt-0.5" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-tertiary-fixed mt-0.5" />
                           )}
                         </button>
                       );
@@ -337,30 +350,33 @@ export const DatiScreen: React.FC = () => {
             {editMode && (
               <div className="ds-card p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-headline font-bold text-sm text-on-surface">Nuovo Allenamento</h3>
-                  <button onClick={() => setEditMode(false)} className="p-1 rounded-lg hover:bg-surface-container">
+                  <h3 className="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-primary" />
+                    Nuovo Allenamento
+                  </h3>
+                  <button onClick={() => setEditMode(false)} className="ds-btn-icon" aria-label="Chiudi">
                     <X size={18} />
                   </button>
                 </div>
 
                 <div className="space-y-3 text-xs">
                   <div>
-                    <label className="font-bold text-on-surface mb-1 block">Data Allenamento</label>
+                    <label className="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1 block">Data Allenamento</label>
                     <input
                       type="text"
                       value={workoutDate}
                       onChange={e => setWorkoutDate(formatDataInput(e.target.value))}
-                      className="w-full px-3 min-h-[48px] bg-surface-container-low border border-outline-variant rounded-xl font-bold"
+                      className="ds-input !h-12 font-bold"
                     />
                   </div>
 
                   <div>
-                    <label className="font-bold text-on-surface mb-1 block">Testo Scheda / Serie</label>
+                    <label className="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1 block">Testo Scheda / Serie</label>
                     <textarea
                       value={customWorkout}
                       onChange={e => setCustomWorkout(e.target.value)}
                       placeholder="Esempio: 400m Stile libero A1, 4x100m B1 a 1'30''..."
-                      className="w-full h-36 p-3 bg-surface-container-low border border-outline-variant rounded-xl font-mono text-xs resize-none"
+                      className="w-full h-36 p-3 bg-surface-container-low border border-outline-variant/60 rounded-xl font-mono text-xs resize-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                     />
                   </div>
 
@@ -379,7 +395,7 @@ export const DatiScreen: React.FC = () => {
             {/* DISPLAY SELECTED WORKOUT OR AUTO GENERATED */}
             {!editMode && selectedWorkout ? (
               <div className="ds-card p-4 space-y-3">
-                <div className="flex items-center justify-between border-b border-outline-variant pb-2">
+                <div className="flex items-center justify-between border-b border-outline-variant/60 pb-2">
                   <button
                     type="button"
                     onClick={() => setSelectedWorkoutId(null)}
@@ -388,14 +404,21 @@ export const DatiScreen: React.FC = () => {
                     <ChevronLeft size={16} />
                     <span>Indietro</span>
                   </button>
-                  <span className="font-headline font-bold text-xs text-on-surface-variant">
+                  <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">
                     {selectedWorkout.data}
                   </span>
                 </div>
-                <h3 className="font-headline font-bold text-sm text-on-surface">
-                  Allenamento del {selectedWorkout.data}
-                </h3>
-                <div className="p-3 bg-surface-container-low rounded-xl font-mono text-xs whitespace-pre-wrap">
+                <div>
+                  <h3 className="font-headline-sm text-headline-sm text-on-surface">
+                    Allenamento del {selectedWorkout.data}
+                  </h3>
+                  {selectedWorkout.metriTotali != null && (
+                    <p className="font-label-caps text-[10px] text-primary font-bold mt-0.5">
+                      {selectedWorkout.metriTotali.toLocaleString('it-IT')} m · {selectedWorkout.fonte ?? 'manuale'}
+                    </p>
+                  )}
+                </div>
+                <div className="p-3 bg-surface-container-low rounded-xl font-mono text-xs whitespace-pre-wrap leading-relaxed">
                   {selectedWorkout.testo}
                 </div>
               </div>
@@ -436,10 +459,13 @@ export const DatiScreen: React.FC = () => {
       {/* MODAL MODALITÀ NUOVO ALLENAMENTO */}
       {modalitaNuovoModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface-container-lowest rounded-3xl p-6 max-w-sm w-full shadow-float border border-outline-variant space-y-4 text-on-surface animate-fade-in">
+          <div className="bg-surface-container-lowest rounded-3xl p-6 max-w-sm w-full shadow-float border border-outline-variant/60 space-y-4 text-on-surface animate-fade-in">
             <div className="flex items-center justify-between">
-              <h3 className="font-headline font-bold text-base">Nuovo Allenamento</h3>
-              <button onClick={() => setModalitaNuovoModal(false)} className="p-1 rounded-lg hover:bg-surface-container">
+              <h3 className="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-primary" />
+                Nuovo Allenamento
+              </h3>
+              <button onClick={() => setModalitaNuovoModal(false)} className="ds-btn-icon" aria-label="Chiudi">
                 <X size={18} />
               </button>
             </div>
@@ -451,13 +477,13 @@ export const DatiScreen: React.FC = () => {
                   setModalitaNuovoModal(false);
                   setEditMode(true);
                 }}
-                className="w-full p-3.5 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant text-left flex items-center gap-3 transition"
+                className="w-full p-3.5 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/60 text-left flex items-center gap-3 transition active:scale-[0.99]"
               >
-                <div className="w-10 min-h-[48px] rounded-xl bg-primary text-on-primary flex items-center justify-center shrink-0 font-bold">
+                <div className="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center shrink-0 font-bold shadow-primary-sm">
                   <ClipboardList size={18} />
                 </div>
                 <div>
-                  <div className="font-headline font-bold text-xs">Scrivi a mano</div>
+                  <div className="font-headline-sm text-headline-sm font-bold">Scrivi a mano</div>
                   <div className="text-xs text-on-surface-variant">Inserisci liberamente testo o serie</div>
                 </div>
               </button>
@@ -469,13 +495,13 @@ export const DatiScreen: React.FC = () => {
                   setEditMode(true);
                   setOcrModalOpen(true);
                 }}
-                className="w-full p-3.5 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant text-left flex items-center gap-3 transition"
+                className="w-full p-3.5 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/60 text-left flex items-center gap-3 transition active:scale-[0.99]"
               >
-                <div className="w-10 min-h-[48px] rounded-xl bg-secondary text-white flex items-center justify-center shrink-0 font-bold">
+                <div className="w-10 h-10 rounded-xl bg-secondary text-on-secondary flex items-center justify-center shrink-0 font-bold">
                   <Bot size={18} />
                 </div>
                 <div>
-                  <div className="font-headline font-bold text-xs">Genera con IA</div>
+                  <div className="font-headline-sm text-headline-sm font-bold">Genera con IA</div>
                   <div className="text-xs text-on-surface-variant">Carica uno screenshot o usa l'IA</div>
                 </div>
               </button>

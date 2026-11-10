@@ -19,7 +19,7 @@ export const BadgeCodice: React.FC<Props> = ({ codice, className = '' }) => {
         type="button"
         onClick={() => setModalOpen(true)}
         style={{ backgroundColor: info.containerBg, color: info.textColor }}
-        className={`inline-flex items-center px-3 min-h-[48px] rounded-full font-label-caps text-label-caps uppercase tracking-wider transition hover:opacity-90 shadow-card ${className}`}
+        className={`inline-flex items-center px-3.5 min-h-[44px] rounded-full font-label-caps text-label-caps uppercase tracking-wider transition hover:opacity-90 hover:shadow-md active:scale-[0.97] shadow-sm ${className}`}
         title="Clicca per info fisiologiche sul codice"
         aria-label={`Codice allenamento ${info.codice}: ${info.nome}. Tocca per i dettagli fisiologici.`}
       >
@@ -29,7 +29,7 @@ export const BadgeCodice: React.FC<Props> = ({ codice, className = '' }) => {
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-surface-container-lowest rounded-t-3xl sm:rounded-2xl border border-outline-variant border-b-0 sm:border-b shadow-float p-5 w-full sm:max-w-sm sm:w-full max-h-[80vh] overflow-y-auto">
-            <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-200/70">
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-outline-variant">
               <div className="flex items-center gap-3 min-w-0">
                 <span
                   style={{ backgroundColor: info.containerBg, color: info.textColor }}
@@ -53,7 +53,7 @@ export const BadgeCodice: React.FC<Props> = ({ codice, className = '' }) => {
 
             <div className="py-4 space-y-3">
               <p className="font-body-base text-body-base text-on-surface-variant">{info.ambito}</p>
-              <div className="p-3 bg-surface-container-low rounded-xl space-y-1.5">
+              <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant space-y-1.5">
                 <div className="flex justify-between gap-3">
                   <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">
                     Frequenza cardiaca
@@ -72,7 +72,7 @@ export const BadgeCodice: React.FC<Props> = ({ codice, className = '' }) => {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="ds-btn-secondary w-full"
+              className="ds-btn-secondary w-full rounded-xl"
             >
               Chiudi
             </button>

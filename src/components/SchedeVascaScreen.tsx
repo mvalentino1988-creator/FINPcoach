@@ -207,9 +207,11 @@ export const SchedeVascaScreen: React.FC = () => {
 
   if (!stagione || atleti.length === 0) {
     return (
-      <div className="p-4 text-center bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant space-y-2">
-        <Waves size={36} className="mx-auto text-outline" />
-        <h3 className="font-bold text-on-surface">Nessuna stagione o atleta configurato</h3>
+      <div className="p-6 text-center bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant space-y-2.5">
+        <div className="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center mx-auto">
+          <Waves size={24} className="text-outline" />
+        </div>
+        <h3 className="font-headline-sm text-headline-sm text-on-surface">Nessuna stagione o atleta configurato</h3>
         <p className="text-xs text-on-surface-variant max-w-sm mx-auto">
           Per generare e visualizzare le schede di vasca, imposta prima una stagione nella scheda <strong>Piano</strong> e aggiungi almeno un atleta nella scheda <strong>Atleti</strong>.
         </p>
@@ -218,20 +220,21 @@ export const SchedeVascaScreen: React.FC = () => {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Title & Info */}
-      <div>
-        <h2 className="text-base sm:ds-title flex items-center gap-2">
-          <Waves size={18} className="text-primary-container shrink-0" />
-          <span>Schede Bordo Vasca</span>
-        </h2>
-        <p className="hidden sm:block text-xs text-on-surface-variant mt-0.5">
-          Generatore di focus in codici basato su fase agonistica, microciclo, età e parametri della seduta; gli esercizi dettagliati restano su richiesta IA.
-        </p>
+      <div className="flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+        <div className="min-w-0">
+          <h2 className="font-headline-sm text-headline-sm text-on-surface">Schede Bordo Vasca</h2>
+          <p className="font-label-caps text-label-caps text-on-surface-variant hidden sm:block">
+            Focus in codici A1–D · fase, microciclo, età e parametri seduta
+          </p>
+        </div>
       </div>
 
       <div className="p-3 ds-card shadow-card space-y-3">
-        <div className="grid grid-cols-2 gap-2" role="tablist" aria-label="Parametri proposta">
+        {/* Segmented tabs stile Stitch */}
+        <div className="grid grid-cols-2 gap-1 bg-surface-container-high/80 p-1 rounded-xl" role="tablist" aria-label="Parametri proposta">
           <button
             type="button"
             role="tab"
@@ -239,8 +242,8 @@ export const SchedeVascaScreen: React.FC = () => {
             aria-controls="panel-parametri-sessione"
             aria-selected={tabParametri === 'sessione'}
             onClick={() => setTabParametri('sessione')}
-            className={`min-h-[44px] rounded-xl px-2 text-xs font-bold font-headline transition flex items-center justify-center gap-1.5 ${
-              tabParametri === 'sessione' ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant'
+            className={`min-h-[44px] rounded-lg px-2 text-xs font-bold font-headline-sm transition flex items-center justify-center gap-1.5 ${
+              tabParametri === 'sessione' ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant'
             }`}
           >
             <Sliders size={15} /> Parametri sessione
@@ -252,8 +255,8 @@ export const SchedeVascaScreen: React.FC = () => {
             aria-controls="panel-parametri-destinatario"
             aria-selected={tabParametri === 'destinatario'}
             onClick={() => setTabParametri('destinatario')}
-            className={`min-h-[44px] rounded-xl px-2 text-xs font-bold font-headline transition flex items-center justify-center gap-1.5 ${
-              tabParametri === 'destinatario' ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant'
+            className={`min-h-[44px] rounded-lg px-2 text-xs font-bold font-headline-sm transition flex items-center justify-center gap-1.5 ${
+              tabParametri === 'destinatario' ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant'
             }`}
           >
             <User size={15} /> Parametri destinatario
@@ -267,17 +270,17 @@ export const SchedeVascaScreen: React.FC = () => {
             aria-labelledby="tab-parametri-destinatario"
             className="space-y-2 pt-2 border-t border-outline-variant animate-fade-in"
           >
-            <label className="block text-xs font-bold text-on-surface uppercase tracking-wider">
+            <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">
               Destinatario della proposta
             </label>
             <div className="flex flex-wrap gap-1.5">
               <button
                 type="button"
                 onClick={() => selezionaAtleta(null)}
-                className={`inline-flex items-center gap-1 px-3 min-h-[48px] rounded-lg text-xs font-bold transition ${
+                className={`inline-flex items-center gap-1 px-3 min-h-[44px] rounded-full font-label-caps text-label-caps transition ${
                   atletaSelId === null
-                    ? 'bg-primary-container text-on-primary shadow-card'
-                    : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+                    ? 'bg-primary-container text-on-primary-container shadow-sm font-bold'
+                    : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
                 }`}
               >
                 <Users size={13} />
@@ -288,10 +291,10 @@ export const SchedeVascaScreen: React.FC = () => {
                   key={a.id}
                   type="button"
                   onClick={() => selezionaAtleta(a.id)}
-                  className={`inline-flex items-center gap-1 px-3 min-h-[48px] rounded-lg text-xs font-semibold transition ${
+                  className={`inline-flex items-center gap-1 px-3 min-h-[44px] rounded-full font-label-caps text-label-caps transition ${
                     atletaSelId === a.id
-                      ? 'bg-primary-container text-on-primary font-bold shadow-card'
-                      : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+                      ? 'bg-primary-container text-on-primary-container shadow-sm font-bold'
+                      : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
                   }`}
                 >
                   <User size={13} />
@@ -314,7 +317,7 @@ export const SchedeVascaScreen: React.FC = () => {
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
               <div>
-                <label htmlFor="data-seduta" className="block font-semibold text-on-surface-variant mb-1 text-xs uppercase tracking-wide">Data</label>
+                <label htmlFor="data-seduta" className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Data</label>
                 <input
                   id="data-seduta"
                   type="text"
@@ -324,22 +327,23 @@ export const SchedeVascaScreen: React.FC = () => {
                     setScheda(null);
                     setSchedaSalvata(false);
                   }}
-                  className="w-full px-3 min-h-[44px] border border-outline-variant bg-surface-container-lowest text-on-surface rounded-lg font-medium text-xs"
+                  className="ds-input !h-11 font-bold"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-on-surface-variant mb-1 text-xs uppercase tracking-wide">Vasca impianto</label>
-                <div className="flex gap-1.5">
+                <span className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Vasca impianto</span>
+                <div className="flex gap-1 bg-surface-container p-0.5 rounded-lg" role="group" aria-label="Vasca impianto">
                   {[25, 50].map(v => (
                     <button
                       key={v}
                       type="button"
                       onClick={() => applicaVasca(v)}
-                      className={`flex-1 min-h-[44px] rounded-lg font-bold text-xs transition border ${
+                      aria-pressed={parametriSeduta.vascaMetri === v}
+                      className={`flex-1 min-h-[40px] rounded-md font-label-caps text-label-caps transition ${
                         parametriSeduta.vascaMetri === v
-                          ? 'bg-primary-container text-on-primary border-primary-container shadow-card'
-                          : 'bg-surface-container-low text-on-surface border-outline-variant hover:bg-surface-container'
+                          ? 'bg-primary text-on-primary shadow-sm font-bold'
+                          : 'text-on-surface-variant hover:text-on-surface'
                       }`}
                     >
                       {v}m
@@ -349,7 +353,7 @@ export const SchedeVascaScreen: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="durata-target" className="block font-semibold text-on-surface-variant mb-1 text-xs uppercase tracking-wide">Durata target (minuti)</label>
+                <label htmlFor="durata-target" className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Durata target (min)</label>
                 <input
                   id="durata-target"
                   type="number"
@@ -373,12 +377,12 @@ export const SchedeVascaScreen: React.FC = () => {
                       applicaDurata(durata);
                     }
                   }}
-                  className="w-full px-3 min-h-[44px] border border-outline-variant bg-surface-container-lowest text-on-surface rounded-lg font-bold text-xs"
+                  className="ds-input !h-11 font-bold"
                 />
               </div>
 
               <div>
-                <label htmlFor="volume-seduta" className="block font-semibold text-on-surface-variant mb-1 text-xs uppercase tracking-wide">Volume seduta</label>
+                <label htmlFor="volume-seduta" className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Volume seduta</label>
                 <input
                   id="volume-seduta"
                   type="number"
@@ -402,22 +406,22 @@ export const SchedeVascaScreen: React.FC = () => {
                   onBlur={() => {
                     if (volumeInput !== '' && volumeManuale === null) setVolumeInput('');
                   }}
-                  className="w-full px-3 min-h-[44px] border border-outline-variant bg-surface-container-lowest text-on-surface rounded-lg font-bold text-xs"
+                  className="ds-input !h-11 font-bold"
                 />
-                <p className="mt-1 text-[11px] text-on-surface-variant">
+                <p className="mt-1 font-label-caps text-[10px] text-on-surface-variant normal-case tracking-normal">
                   {volumeManuale === null
-                    ? `Consigliati ${volumeSessione} m · lascia vuoto per usare il valore suggerito`
-                    : `Consigliati ${volumeSessione} m · proposta personalizzata ${volumeManuale} m`}
+                    ? `Consigliati ${volumeSessione.toLocaleString('it-IT')} m`
+                    : `Consigliati ${volumeSessione.toLocaleString('it-IT')} m · proposta ${volumeManuale.toLocaleString('it-IT')} m`}
                 </p>
               </div>
 
               <div>
-                <label className="block font-semibold text-on-surface mb-1 text-xs uppercase tracking-wide">
+                <span className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">
                   {atletaSel ? 'Volume settimanale atleta' : 'Volume settimanale squadra'}
-                </label>
+                </span>
                 {atletaSel ? (
-                  <div className="px-3 min-h-[44px] bg-surface-container-low border border-outline-variant rounded-lg font-bold text-primary-container text-xs flex items-center">
-                    {volumeSettimanaAtleta} m
+                  <div className="px-3 min-h-[44px] bg-surface-container-low border border-outline-variant/60 rounded-xl font-stat-timer-mobile text-[18px] text-primary-container flex items-center tabular-nums">
+                    {volumeSettimanaAtleta.toLocaleString('it-IT')} <span className="font-label-caps text-[10px] ml-1">m</span>
                   </div>
                 ) : (
                   <input
@@ -431,7 +435,7 @@ export const SchedeVascaScreen: React.FC = () => {
                       setScheda(null);
                       setSchedaSalvata(false);
                     }}
-                    className="w-full px-3 min-h-[44px] border border-outline-variant bg-surface-container-lowest rounded-lg font-bold text-on-surface text-xs"
+                    className="ds-input !h-11 font-bold"
                   />
                 )}
               </div>
@@ -447,7 +451,7 @@ export const SchedeVascaScreen: React.FC = () => {
             )}
 
             {hasOverride && (
-              <div className="flex items-center justify-between gap-3 rounded-xl border border-tertiary-fixed-dim bg-surface-container-low p-3 text-xs font-medium text-on-surface-variant">
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-tertiary-fixed-dim bg-tertiary-fixed/40 p-3 text-xs font-medium text-on-surface-variant">
                 <span>
                   Vasca/durata personalizzate per {formattaData(oggi)} (override locale, ricalibra gli altri giorni della settimana).
                 </span>
@@ -463,9 +467,11 @@ export const SchedeVascaScreen: React.FC = () => {
 
       {/* Visualizzatore Scheda Vasca */}
       {!scheda ? (
-        <div className="p-4 text-center bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant space-y-2">
-          <Waves size={36} className="mx-auto text-outline" />
-          <h3 className="font-bold text-on-surface">Nessun focus selezionato</h3>
+        <div className="p-6 text-center bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant space-y-2.5">
+          <div className="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center mx-auto">
+            <Waves size={24} className="text-outline" />
+          </div>
+          <h3 className="font-headline-sm text-headline-sm text-on-surface">Nessun focus selezionato</h3>
           <p className="text-xs text-on-surface-variant max-w-md mx-auto">
             La proposta automatica mostra soltanto i codici di allenamento. Gli esercizi dettagliati vengono creati dall’IA solo su tua richiesta.
           </p>
@@ -480,11 +486,14 @@ export const SchedeVascaScreen: React.FC = () => {
         <div className="ds-card p-4 sm:p-6 space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-primary">
+              <span className="font-label-caps text-label-caps uppercase text-primary font-bold">
                 {atletaSel ? `${atletaSel.nome} ${atletaSel.cognome}` : 'Squadra'}
               </span>
-              <p className="mt-1 text-sm text-on-surface-variant">
-                {formattaData(scheda.data)} · {scheda.volume.toLocaleString('it-IT')} m · {scheda.fase.replaceAll('_', ' ').toLowerCase()}
+              <p className="mt-1 font-label-caps text-label-caps text-on-surface-variant">
+                {formattaData(scheda.data)} · {scheda.fase.replaceAll('_', ' ').toLowerCase()}
+              </p>
+              <p className="font-stat-timer-mobile text-[28px] leading-none text-on-surface tabular-nums mt-1">
+                {scheda.volume.toLocaleString('it-IT')} <span className="font-label-caps text-[11px] text-on-surface-variant">m</span>
               </p>
             </div>
             <div className="flex flex-wrap gap-2">

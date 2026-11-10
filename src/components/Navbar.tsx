@@ -11,7 +11,6 @@ import {
   Sun,
   Timer,
   Users,
-  Waves,
   X,
 } from 'lucide-react';
 import { BackupModal } from './BackupModal';
@@ -94,14 +93,14 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
         aria-current={active ? 'page' : undefined}
         className={
           mobile
-            ? `flex flex-col items-center justify-center gap-0.5 min-w-[70px] h-[52px] px-space-sm rounded-xl transition-colors ${
-                active ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:bg-surface-container'
+            ? `flex flex-col items-center justify-center min-w-[70px] h-[52px] px-space-sm rounded-xl transition-colors ${
+                active ? 'bg-primary-container text-on-primary' : 'text-on-surface-variant hover:bg-surface-container'
               }`
             : `sidebar-item ${active ? 'sidebar-item-active' : 'sidebar-item-inactive'}`
         }
       >
         <item.Icon size={mobile ? 24 : 18} className="shrink-0" />
-        <span className={mobile ? 'font-label-caps text-label-caps' : 'truncate flex-1'}>{item.label}</span>
+        <span className={mobile ? 'font-label-caps text-label-caps mt-0.5' : 'truncate flex-1'}>{item.label}</span>
         {!mobile && (
           <span className={`text-xs font-semibold tabular-nums shrink-0 ${active ? 'text-primary/60' : 'text-on-surface-variant'}`}>
             {ORDINE.indexOf(key) + 1}
@@ -124,13 +123,11 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
         <button
           type="button"
           onClick={() => vai('oggi')}
-          className="flex items-center gap-3 px-3 py-3 rounded-xl bg-surface-container-low border border-outline-variant hover:bg-surface-container transition-colors mb-2"
+          className="flex items-center gap-space-sm px-2 py-3 rounded-xl hover:bg-surface-container-low transition-colors mb-2"
         >
-          <span className="w-10 h-10 rounded-xl bg-gradient-blue flex items-center justify-center shrink-0 shadow-primary-sm">
-            <Waves size={20} className="text-white" />
-          </span>
+          <img src="/swim-icon.svg" alt="FINPcoach" className="h-9 w-9 object-contain shrink-0" />
           <span className="flex flex-col items-start min-w-0">
-            <span className="font-headline text-lg font-bold text-primary tracking-tight leading-none">
+            <span className="font-headline-sm text-headline-sm font-bold text-primary tracking-tight leading-none">
               FINPcoach
             </span>
             <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">
@@ -159,48 +156,57 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
       {/* Mobile header — stile mockup Stitch: logo + contesto + pill vasca + azioni */}
       <header
         ref={layout.headerRef}
-        className="lg:hidden sticky top-0 z-40 bg-surface/85 backdrop-blur-xl border-b border-outline-variant/50 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"
+        className="lg:hidden sticky top-0 z-40 ds-glass border-b border-[color-mix(in_srgb,var(--color-outline-variant)_40%,transparent)] shadow-[0_1px_8px_rgba(0,0,0,0.04)]"
         style={{ paddingTop: 'var(--safe-top, 0px)' }}
       >
-        <div className="mx-auto max-w-[1600px] px-gutter-mobile sm:px-gutter h-16 flex items-center justify-between gap-2">
-          <button type="button" onClick={() => vai('oggi')} className="flex items-center gap-2.5 min-w-0 min-h-[44px]">
-            <span className="w-9 h-9 rounded-xl bg-gradient-blue flex items-center justify-center shrink-0 shadow-primary-sm">
-              <Waves size={18} className="text-white" />
+        <div className="mx-auto max-w-[1600px] px-gutter h-16 flex items-center justify-between gap-space-sm">
+          {/* Brand — stile mockup Stitch: logo + titolo headline-sm + contesto uppercase */}
+        <button
+          type="button"
+          onClick={() => vai('oggi')}
+          className="flex items-center gap-space-sm min-w-0 min-h-[44px] rounded-xl px-1 -ml-1 hover:bg-surface-container-low transition-colors"
+        >
+          <img
+            src="/swim-icon.svg"
+            alt="FINPcoach"
+            className="h-8 w-8 object-contain shrink-0"
+          />
+          <span className="flex flex-col items-start min-w-0">
+            <span className="font-headline-sm text-headline-sm text-primary tracking-tight leading-none">
+              FINPcoach
             </span>
-            <span className="flex flex-col items-start min-w-0">
-              <span className="font-headline-sm text-headline-sm text-primary tracking-tight leading-none">
-                FINPcoach
-              </span>
-              <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider truncate">
-                {CONTESTO[currentTab]}
-              </span>
+            <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider truncate">
+              {CONTESTO[currentTab]}
             </span>
-          </button>
+          </span>
+        </button>
 
-          <div className="flex items-center gap-1.5 shrink-0">
-            {stagione?.vascaMetri && (
-              <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-container">
-                <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-                <span className="font-label-caps text-label-caps uppercase">Vasca {stagione.vascaMetri}m</span>
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={() => setAspettoOpen(true)}
-              aria-label="Aspetto"
-              className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-all active:scale-95"
-            >
-              <Palette size={18} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setBackupOpen(true)}
-              aria-label="Backup e dati"
-              className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-all active:scale-95"
-            >
-              <CloudDownload size={18} />
-            </button>
-          </div>
+        <div className="flex items-center gap-space-sm shrink-0">
+          {stagione?.vascaMetri && (
+            <div className="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-full bg-[color-mix(in_srgb,var(--color-secondary-container)_60%,transparent)] text-on-secondary-container whitespace-nowrap">
+              <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+              <span className="font-label-caps text-label-caps uppercase">
+                Vasca attiva{stagione.vascaMetri ? ` · ${stagione.vascaMetri}m` : ''}
+              </span>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => setAspettoOpen(true)}
+            aria-label="Aspetto"
+            className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-surface-container-high text-on-surface border border-[color-mix(in_srgb,var(--color-outline-variant)_40%,transparent)] hover:bg-surface-container-highest transition-all active:scale-95"
+          >
+            <Palette size={17} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setBackupOpen(true)}
+            aria-label="Backup e dati"
+            className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-surface-container-high text-on-surface border border-[color-mix(in_srgb,var(--color-outline-variant)_40%,transparent)] hover:bg-surface-container-highest transition-all active:scale-95"
+          >
+            <CloudDownload size={17} />
+          </button>
+        </div>
         </div>
       </header>
 
@@ -208,10 +214,10 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
       <nav
         ref={layout.dockRef}
         aria-label="Navigazione principale"
-        className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-surface/85 backdrop-blur-xl border-t border-outline-variant/50 shadow-[0_-1px_12px_rgba(0,0,0,0.05)]"
+        className="lg:hidden fixed bottom-0 inset-x-0 z-40 ds-glass border-t border-[color-mix(in_srgb,var(--color-outline-variant)_40%,transparent)] shadow-[0_-1px_12px_rgba(0,0,0,0.05)]"
         style={{ paddingBottom: 'var(--safe-bottom, 10px)' }}
       >
-        <div className="h-[68px] px-2 flex items-center justify-around gap-1">
+        <div className="h-20 px-space-sm flex items-center justify-around gap-space-xs">
           {ORDINE.map(k => renderItem(k, true))}
         </div>
       </nav>
@@ -221,14 +227,14 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-fade-in" onClick={() => setAspettoOpen(false)}>
           <div className="bg-surface-container-lowest rounded-2xl p-5 max-w-md w-full shadow-float border border-outline-variant space-y-5 text-on-surface animate-slide-up" onClick={e => e.stopPropagation()} role="dialog" aria-label="Aspetto">
             <div className="flex items-center justify-between">
-              <h3 className="font-headline text-base font-bold">Aspetto</h3>
+              <h3 className="font-headline-sm text-headline-sm font-bold">Aspetto</h3>
               <button type="button" onClick={() => setAspettoOpen(false)} aria-label="Chiudi" className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-surface-container transition">
                 <X size={18} />
               </button>
             </div>
 
             <div className="space-y-2.5">
-              <span className="block text-xs font-bold text-primary uppercase tracking-widest">Tema</span>
+              <span className="block font-label-caps text-label-caps uppercase tracking-wider text-primary">Tema</span>
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { id: 'sistema' as const, label: 'Sistema', icon: <Monitor size={18} /> },
@@ -239,7 +245,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
                     key={item.id}
                     type="button"
                     onClick={() => setThemeMode(item.id)}
-                    className={`flex flex-col items-center justify-center gap-1.5 p-3.5 rounded-xl border text-xs font-bold transition-all ${
+                    className={`flex flex-col items-center justify-center gap-1.5 p-3.5 rounded-xl border font-label-caps text-label-caps uppercase tracking-wider transition-all ${
                       themeMode === item.id ? 'border-primary/30 bg-primary/10 text-primary' : 'border-outline-variant bg-surface-container-low text-on-surface hover:bg-surface-container'
                     }`}
                   >

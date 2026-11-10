@@ -22,7 +22,7 @@ export const ParaSwimmingCanvasChart: React.FC<Props> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.fillStyle = '#FAFAFF';
+    ctx.fillStyle = '#F2F3FF';
     ctx.fillRect(0, 0, width, height);
 
     const padding = 50;
@@ -154,13 +154,34 @@ export const ParaSwimmingCanvasChart: React.FC<Props> = ({
   }, [athletePerformances, eliteClusters, width, height]);
 
   return (
-    <div className="w-full min-w-0 overflow-hidden ds-card p-3 shadow-card">
-      <canvas
-        ref={canvasRef}
-        width={width}
-        height={height}
-        className="mx-auto block max-w-full h-auto"
-      />
+    <div className="w-full min-w-0 overflow-hidden ds-card p-3 sm:p-4 shadow-card space-y-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1 pt-1">
+        <div className="min-w-0">
+          <h3 className="font-headline-sm text-sm text-on-surface flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary-container shrink-0" />
+            Curva a U del Costo Energetico C(v)
+          </h3>
+          <p className="ds-label mt-0.5">J/m/kg vs Velocità (m/s)</p>
+        </div>
+        <div className="flex items-center gap-2 text-xs flex-wrap">
+          <span className="ds-chip-neutral">
+            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#006874' }} />
+            Curva Teorica
+          </span>
+          <span className="ds-chip-neutral">
+            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#F59E0B' }} />
+            Mio Atleta
+          </span>
+        </div>
+      </div>
+      <div className="min-w-0 overflow-hidden bg-surface-container-low rounded-xl border border-outline-variant p-2">
+        <canvas
+          ref={canvasRef}
+          width={width}
+          height={height}
+          className="mx-auto block max-w-full h-auto"
+        />
+      </div>
     </div>
   );
 };

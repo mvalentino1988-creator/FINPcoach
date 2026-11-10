@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useEffect, useState } from 'react';
-import { CalendarDays, ChevronLeft, Database, Trophy, Waves } from 'lucide-react';
+import { CalendarDays, ChevronRight, Database, Trophy, Waves } from 'lucide-react';
 import { PageHeader } from './PageHeader';
 import { pushBackHandler } from '../lib/backHandler';
 
@@ -56,16 +56,16 @@ export const AltroScreen: React.FC = () => {
               key={id}
               type="button"
               onClick={() => setSezione(id)}
-              className="ds-card p-4 text-left flex items-center gap-3 hover:-translate-y-0.5 transition-all"
+              className="ds-card p-space-md text-left flex items-center gap-3 hover:-translate-y-0.5 transition-all"
             >
-              <span className="w-12 h-12 rounded-xl bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center shrink-0">
-                <Icon size={24} />
+              <span className="w-11 h-11 rounded-xl bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center shrink-0">
+                <Icon size={22} />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="font-headline-sm text-headline-sm font-bold text-on-surface block">{titolo}</span>
                 <span className="text-xs text-on-surface-variant leading-relaxed block mt-0.5">{desc}</span>
               </span>
-              <ChevronLeft size={18} className="text-on-surface-variant rotate-180 shrink-0" />
+              <ChevronRight size={18} className="text-on-surface-variant shrink-0" />
             </button>
           ))}
         </div>
@@ -80,9 +80,9 @@ export const AltroScreen: React.FC = () => {
       <button
         type="button"
         onClick={() => setSezione('home')}
-        className="self-start inline-flex items-center gap-2 min-h-[44px] px-3 rounded-xl bg-surface-container-low text-on-surface-variant hover:bg-surface-container font-headline font-bold text-xs"
+        className="self-start inline-flex items-center gap-2 min-h-[40px] px-3 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-headline-sm text-headline-sm font-bold transition-colors"
       >
-        <ChevronLeft size={16} />
+        <ChevronRight size={16} className="rotate-180" />
         <span>Indietro · {titolo}</span>
       </button>
       <div className={sezione === 'piano' ? 'flex-1 min-h-0 overflow-y-auto' : 'flex-1 min-h-0 overflow-hidden'}>

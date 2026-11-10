@@ -2,12 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../data/AppContext';
 import { todayISO } from '../domain/dateUtils';
 import { requestKeepScreenOn, releaseKeepScreenOn } from '../lib/wakeLock';
-import { CheckCircle2, Flag, Pause, Play, Plus, RotateCcw, Save } from 'lucide-react';
+import { CheckCircle2, Flag, Gauge, LayoutGrid, Pause, Play, Plus, RotateCcw, Save } from 'lucide-react';
 
 interface Split {
   lap: number;
   time: string;
   timestampMs: number;
+  recordedAtMs: number;
 }
 
 interface AthleteInLane {
@@ -30,6 +31,51 @@ interface LaneState {
 
 const MAX_LANES = 8;
 const MAX_ATHLETES_PER_LANE = 6;
+
+// Accento laterale delle corsie (stile mockup: border-l colorata)
+const LANE_ACCENT_BORDERS = [
+  'border-primary',
+  'border-secondary',
+  'border-tertiary-container',
+  'border-primary-container',
+  'border-tertiary',
+  'border-secondary-container',
+  'border-outline',
+  'border-primary-fixed-dim',
+];
+
+const LANE_CHIPS = [
+  'bg-primary text-on-primary',
+  'bg-secondary text-on-secondary',
+  'bg-tertiary-container text-on-tertiary',
+  'bg-primary-container text-on-primary',
+  'bg-tertiary text-on-tertiary',
+  'bg-secondary-container text-on-secondary-container',
+  'bg-surface-container-highest text-on-surface',
+  'bg-primary-fixed-dim text-on-primary-fixed',
+];
+
+const LANE_STATUS_STYLES: Record<string, string> = {
+  'IN ACQUA': 'bg-secondary-container/70 text-on-secondary-container',
+  'PAUSA': 'bg-tertiary-fixed/70 text-on-tertiary-fixed-variant',
+  'IN ATTESA': 'bg-surface-container text-on-surface-variant',
+  'LIBERA': 'bg-surface-container text-on-surface-variant',
+};
+
+const ATHLETE_STATUS_STYLES: Record<string, string> = {
+  'AL VIA': 'bg-primary text-on-primary',
+  'IN ATTESA': 'bg-surface-container-high text-on-surface-variant',
+  'PAUSA': 'bg-tertiary-fixed text-on-tertiary-fixed-variant',
+  'IN ACQUA': 'bg-secondary-container/70 text-on-secondary-container',
+};
+
+const initialsOf = (fullName: string): string =>
+  fullName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(word => word[0]?.toUpperCase() ?? '')
+    .join('') || '?';
 
 // Notazione: 45 s · 1:30 · 2:00
 const formatRipartenza = (totalSec: number): string => {
@@ -170,6 +216,57 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     [visibleLanes],
   );
 
+  // Prossimo atleta al via / in attesa di ripartenza (chip "Prossimo al via" del mockup)
+  const nextAthlete = useMemo(() => {
+    const now = masterTime;
+    let best: { name: string; etaMs: number | null } | null = null;
+    for (const lane of lanes) {
+      for (const athlete of lane.athletes) {
+        if (athlete.startedAtMs === null) {
+          return { name: athlete.atletaNome, etaMs: null };
+        }
+        if (athlete.nextStartAtMs !== null && athlete.nextStartAtMs > now) {
+          const eta = athlete.nextStartAtMs - now;
+          if (best === null || best.etaMs === null || eta < best.etaMs) {
+            best = { name: athlete.atletaNome, etaMs: eta };
+          }
+        }
+      }
+    }
+    return best;
+  }, [lanes, masterTime]);
+
+  // Ultimi 3 split registrati (feed live in coda, come nel mockup)
+  const latestSplits = useMemo(() => {
+    const items: {
+      key: string;
+      laneIndex: number;
+      name: string;
+      classe: string;
+      time: string;
+      lap: number;
+      recordedAtMs: number;
+    }[] = [];
+    lanes.forEach(lane => {
+      const laneIndex = displayIndexById.get(lane.id) ?? 0;
+      lane.athletes.forEach(athlete => {
+        const split = athlete.splitList[0];
+        if (split) {
+          items.push({
+            key: athlete.id,
+            laneIndex,
+            name: athlete.atletaNome,
+            classe: athlete.classe,
+            time: split.time,
+            lap: split.lap,
+            recordedAtMs: split.recordedAtMs,
+          });
+        }
+      });
+    });
+    return items.sort((a, b) => b.recordedAtMs - a.recordedAtMs).slice(0, 3);
+  }, [lanes, displayIndexById]);
+
   useEffect(() => {
     if (selectedAthleteId === '' || !availableAthletes.some(athlete => athlete.id === selectedAthleteId)) {
       setSelectedAthleteId(availableAthletes[0]?.id ?? '');
@@ -270,6 +367,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
             lap: athlete.splitList.length + 1,
             time: formatMs(currentTime - segmentStart),
             timestampMs: currentTime - segmentStart,
+            recordedAtMs: currentTime,
           };
           const scheduledStart = segmentStart + effectiveRipartenza * 1000;
           const nextStartAtMs = Math.max(scheduledStart, currentTime);
@@ -304,6 +402,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
             lap: athlete.splitList.length + 1,
             time: formatMs(currentTime - segmentStart),
             timestampMs: currentTime - segmentStart,
+            recordedAtMs: currentTime,
           };
           const scheduledStart = segmentStart + effectiveRipartenza * 1000;
           const nextStartAtMs = Math.max(scheduledStart, currentTime);
@@ -409,50 +508,18 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
 
   return (
     <div className="cronometro-screen flex flex-1 min-h-0 flex-col gap-1.5 overflow-hidden h-full w-full select-none">
-      <section className="timer-console shrink-0">
-        <div className="timer-console-clock">
-          <span className="timer-console-label">Tempo squadra</span>
-          <output aria-label="Tempo squadra" className={isRunning ? 'is-running' : ''}>
-            {formatMs(masterTime)}
-          </output>
-        </div>
-
-        <div className="timer-console-actions">
-          <button
-            type="button"
-            onClick={toggleMaster}
-            className={`timer-console-start ${isRunning ? 'is-running' : ''}`}
-            aria-label={isRunning ? 'Pausa sessione' : sessionStarted ? 'Riprendi sessione' : 'Avvia sessione e atleti selezionati'}
-          >
-            {isRunning ? <Pause size={18} /> : <Play size={18} />}
-            <span>{isRunning ? 'Pausa' : sessionStarted ? 'Riprendi' : 'Via'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleGeneralLap}
-            disabled={!isRunning}
-            className={`timer-console-lap ${!isRunning ? 'opacity-40 cursor-not-allowed' : 'shadow-sm'}`}
-            aria-label="Registra Lap per tutti gli atleti attivi"
-            title="Lap generale"
-          >
-            <Flag size={18} />
-            <span>Lap Generale</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={resetMaster}
-            aria-label="Azzera sessione"
-            className="timer-console-reset"
-            title="Azzera sessione"
-          >
-            <RotateCcw size={17} />
-          </button>
-
+      {/* Console cronometro master — stile mockup: pannello scuro ad alto contrasto */}
+      <section className="shrink-0 rounded-2xl bg-inverse-surface text-inverse-on-surface p-2.5 shadow-md flex flex-col gap-1.5 relative overflow-hidden border border-outline/20">
+        <div className="flex items-center justify-between gap-1.5">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className={`w-2 h-2 rounded-full inline-block ${isRunning ? 'bg-secondary-fixed animate-ping' : 'bg-surface-dim'}`} />
+            <span className="font-label-caps text-[10px] text-secondary-fixed font-bold tracking-wider uppercase truncate">
+              {isRunning ? 'Cronometro Master Live' : sessionStarted ? 'Sessione in pausa' : 'Cronometro Master Pronto'}
+            </span>
+          </div>
           {!sessionStarted ? (
-            <label className="timer-setting is-inline flex-1 min-w-[105px]">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Ripartenza</span>
+            <label className="flex items-center gap-1 rounded-lg bg-inverse-on-surface/10 border border-inverse-on-surface/15 px-2 py-1 flex-shrink-0">
+              <span className="font-label-caps text-[9px] uppercase text-surface-dim tracking-wider">Cadenza</span>
               <input
                 type="text"
                 inputMode="decimal"
@@ -475,38 +542,115 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                   setRipartenzaSecondi(finalVal);
                   setLanes(curr => curr.map(l => ({ ...l, ripartenzaSecondi: finalVal })));
                 }}
-                className="flex-1 bg-transparent font-headline font-bold text-xs text-on-surface focus:outline-none tabular-nums text-center"
+                className="w-12 bg-transparent text-inverse-on-surface font-headline-sm text-[13px] font-bold text-center focus:outline-none tabular-nums"
               />
             </label>
           ) : (
-            <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container text-xs font-bold font-headline text-on-surface-variant">
-              <span>Rip: {formatRipartenza(ripartenzaSecondi)}</span>
+            <span className="font-label-caps text-[9px] bg-inverse-on-surface/10 text-inverse-on-surface px-2 py-0.5 rounded font-semibold flex-shrink-0">
+              Rip: {formatRipartenza(ripartenzaSecondi)}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between gap-2">
+          <output
+            aria-label="Tempo squadra"
+            className="font-stat-timer-mobile text-[34px] leading-none text-inverse-on-surface font-bold tracking-tight tabular-nums"
+          >
+            {formatMs(masterTime)}
+          </output>
+          {nextAthlete && (
+            <div className="flex items-center gap-2 bg-inverse-on-surface/10 border border-inverse-on-surface/15 rounded-xl px-2.5 py-1 min-w-0">
+              <div className="flex flex-col text-right min-w-0">
+                <span className="font-label-caps text-[8.5px] uppercase text-surface-dim">Prossimo al via</span>
+                <span className="font-headline-sm text-[12px] font-bold text-secondary-fixed leading-tight truncate max-w-[9rem]">
+                  {nextAthlete.name}
+                </span>
+              </div>
+              {nextAthlete.etaMs !== null && (
+                <div className="flex flex-col items-center justify-center bg-secondary text-on-secondary px-2 py-0.5 rounded-lg shadow-sm leading-none flex-shrink-0">
+                  <span className="font-stat-timer-mobile text-[14px] font-bold leading-none tabular-nums">
+                    {Math.max(0, Math.ceil(nextAthlete.etaMs / 1000))}s
+                  </span>
+                  <span className="font-label-caps text-[7px] uppercase tracking-wider">Countdown</span>
+                </div>
+              )}
             </div>
           )}
+        </div>
+
+        <div className="grid grid-cols-12 gap-1.5">
+          <button
+            type="button"
+            onClick={toggleMaster}
+            className={`col-span-6 h-11 rounded-xl font-headline-sm text-[14px] font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-transform select-none ${
+              isRunning ? 'bg-secondary text-on-secondary' : 'bg-tertiary text-on-tertiary'
+            }`}
+            aria-label={isRunning ? 'Pausa sessione' : sessionStarted ? 'Riprendi sessione' : 'Avvia sessione e atleti selezionati'}
+          >
+            {isRunning ? <Pause size={20} /> : <Play size={20} />}
+            <span>{isRunning ? 'PAUSA' : sessionStarted ? 'RIPRENDI' : 'VIA GENERALE'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleGeneralLap}
+            disabled={!isRunning}
+            className={`col-span-4 h-11 rounded-xl bg-primary-container text-on-primary-container font-headline-sm text-[13px] font-bold flex items-center justify-center gap-1 shadow-sm active:scale-[0.98] transition-transform select-none ${
+              !isRunning ? 'opacity-40 cursor-not-allowed' : ''
+            }`}
+            aria-label="Registra Lap per tutti gli atleti attivi"
+            title="Tocco / Lap generale"
+          >
+            <Flag size={18} />
+            <span>TOCCO / LAP</span>
+          </button>
+          <button
+            type="button"
+            onClick={resetMaster}
+            aria-label="Azzera sessione"
+            className="col-span-2 h-11 rounded-xl bg-inverse-on-surface/15 hover:bg-inverse-on-surface/25 text-inverse-on-surface flex flex-col items-center justify-center active:scale-[0.98] transition-transform"
+            title="Azzera sessione"
+          >
+            <RotateCcw size={16} />
+            <span className="font-label-caps text-[8px] uppercase leading-none mt-0.5">Azzera</span>
+          </button>
         </div>
       </section>
 
       {!sessionStarted && (
-        <section className="lane-toolbar shrink-0" aria-label="Configurazione corsie e atleti">
-          <div className="lane-toolbar-details">
-            <div className="lane-toolbar-summary">
-              <strong>{assignedCount}</strong><span>atleti</span>
-              <span className="lane-toolbar-divider" />
-              <strong>{visibleLanes.length}</strong><span>/{MAX_LANES} corsie</span>
-            </div>
-            {selectedStartAthleteIds.size > 0 && (
-              <span className="lane-start-hint font-medium text-primary">
-                {selectedStartAthleteIds.size} al via generale
+        <section
+          className="shrink-0 rounded-xl bg-surface-container p-2 shadow-sm border border-outline-variant/30 flex flex-col gap-1.5"
+          aria-label="Configurazione corsie e atleti"
+        >
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <LayoutGrid size={15} className="text-primary shrink-0" />
+              <span className="font-label-caps text-[10px] uppercase font-bold text-on-surface-variant tracking-wider truncate">
+                Matrice Corsie in Vasca
               </span>
-            )}
+            </div>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <span className="px-1.5 py-0.5 rounded bg-surface-container-lowest font-label-caps text-[9px] font-bold text-on-surface">
+                {assignedCount} atleti
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-surface-container-lowest font-label-caps text-[9px] font-bold text-on-surface-variant">
+                {visibleLanes.length}/{MAX_LANES} corsie
+              </span>
+              {selectedStartAthleteIds.size > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full bg-secondary-container/70 text-on-secondary-container font-label-caps text-[9px] font-bold uppercase">
+                  {selectedStartAthleteIds.size} al via
+                </span>
+              )}
+            </div>
           </div>
-          <div className="lane-toolbar-actions">
+          <div className="flex items-center gap-1.5">
             <label className="sr-only" htmlFor="athlete-to-assign">Atleta da assegnare</label>
             <select
               id="athlete-to-assign"
               value={selectedAthleteId}
               onChange={event => setSelectedAthleteId(event.target.value ? Number(event.target.value) : '')}
               disabled={availableAthletes.length === 0}
+              className="flex-1 min-w-0 min-h-9 px-2.5 rounded-lg bg-surface-container-lowest border border-outline-variant text-xs font-semibold text-on-surface disabled:opacity-60"
             >
               {availableAthletes.length === 0
                 ? <option value="">Tutti assegnati</option>
@@ -514,8 +658,13 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                   <option key={athlete.id} value={athlete.id}>{athlete.cognome} {athlete.nome}</option>
                 ))}
             </select>
-            <button type="button" onClick={addLane} disabled={lanes.length >= MAX_LANES} className="lane-add-button">
-              <Plus size={15} /> Corsia
+            <button
+              type="button"
+              onClick={addLane}
+              disabled={lanes.length >= MAX_LANES}
+              className="h-9 px-3 rounded-lg bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-[10px] font-bold uppercase tracking-wide flex items-center gap-1 active:scale-95 transition-transform disabled:opacity-45"
+            >
+              <Plus size={14} /> Corsia
             </button>
           </div>
         </section>
@@ -532,14 +681,42 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
         className={`cronometro-lanes flex-1 min-h-0 w-full overflow-hidden ${columnClass}`}
         style={{ '--lane-count': visibleLanes.length } as React.CSSProperties}
       >
-        {visibleLanes.map((lane, laneIdx) => (
-          <article key={lane.id} className="cronometro-lane-card flex flex-col min-h-0 min-w-0 h-full overflow-hidden rounded-xl border border-outline-variant bg-surface-container-low">
-            <header className="cronometro-lane-card-header shrink-0 flex items-center gap-1 px-2 py-1 text-xs font-bold border-b border-outline-variant/60 bg-surface-container">
-              <span className="lane-number">Corsia {laneIdx + 1}</span>
-              <span className="lane-athlete-count">{lane.athletes.length}<span>/{MAX_ATHLETES_PER_LANE}</span></span>
+        {visibleLanes.map((lane, laneIdx) => {
+          const accentBorder = LANE_ACCENT_BORDERS[laneIdx % LANE_ACCENT_BORDERS.length];
+          const accentChip = LANE_CHIPS[laneIdx % LANE_CHIPS.length];
+          const laneHasActive = lane.athletes.some(
+            athlete => athlete.startedAtMs !== null && !(athlete.nextStartAtMs !== null && masterTime < athlete.nextStartAtMs)
+          );
+          const laneHasStarted = lane.athletes.some(athlete => athlete.startedAtMs !== null);
+          const laneStatus = lane.athletes.length === 0
+            ? 'LIBERA'
+            : !sessionStarted
+              ? 'IN ATTESA'
+              : laneHasActive
+                ? 'IN ACQUA'
+                : laneHasStarted
+                  ? 'PAUSA'
+                  : 'IN ATTESA';
+          const laneStatusStyle = LANE_STATUS_STYLES[laneStatus];
 
-              <div className="flex items-center gap-1 ml-auto mr-1">
-                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Rip:</span>
+          return (
+          <article
+            key={lane.id}
+            className={`relative flex flex-col min-h-0 min-w-0 h-full overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm border-l-[3.5px] ${accentBorder}`}
+          >
+            <header className="shrink-0 flex items-center gap-1 px-1.5 py-1 border-b border-surface-container-highest/60">
+              <span className={`w-5 h-5 rounded ${accentChip} font-headline-sm text-[11px] font-bold flex items-center justify-center shrink-0`}>
+                {laneIdx + 1}
+              </span>
+              <span className={`px-1.5 py-0.5 rounded font-label-caps text-[8px] font-bold uppercase tracking-wide shrink-0 ${laneStatusStyle}`}>
+                {laneStatus}
+              </span>
+              <span className="font-label-caps text-[8px] text-on-surface-variant font-semibold shrink-0">
+                {lane.athletes.length} atl
+              </span>
+
+              <div className="flex items-center gap-1 ml-auto">
+                <span className="text-[9px] font-label-caps uppercase text-on-surface-variant">Rip</span>
                 {!sessionStarted ? (
                   <input
                     type="text"
@@ -571,10 +748,10 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                         };
                       }));
                     }}
-                    className="w-12 bg-transparent text-primary font-bold text-xs text-right focus:outline-none tabular-nums"
+                    className="w-10 bg-transparent text-primary font-bold text-[11px] text-right focus:outline-none tabular-nums"
                   />
                 ) : (
-                  <span className="text-primary font-bold text-xs tabular-nums">
+                  <span className="text-primary font-bold text-[11px] tabular-nums">
                     {formatRipartenza(lane.ripartenzaSecondi ?? ripartenzaSecondi)}
                   </span>
                 )}
@@ -584,10 +761,10 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => addAthleteToLane(lane.id)}
-                  className="lane-assign-button"
+                  className="w-6 h-6 rounded-md bg-surface-container-low text-primary flex items-center justify-center shrink-0 active:scale-90 transition-transform"
                   aria-label={`Aggiungi ${availableAthletes.find(athlete => athlete.id === selectedAthleteId)?.nome ?? 'atleta'} in corsia ${laneIdx + 1}`}
                 >
-                  <Plus size={16} />
+                  <Plus size={14} />
                 </button>
               )}
             </header>
@@ -598,7 +775,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                   Scegli un atleta e premi +
                 </div>
               ) : (
-                lane.athletes.map(athlete => {
+                lane.athletes.map((athlete, athleteIdx) => {
                   const now = masterTime;
                   const waitingUntil = athlete.nextStartAtMs !== null && now < athlete.nextStartAtMs ? athlete.nextStartAtMs : null;
                   const segmentStart = athlete.nextStartAtMs ?? athlete.startedAtMs;
@@ -607,20 +784,42 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                     : Math.max(0, now - segmentStart);
                   const isSelectedForStart = selectedStartAthleteIds.has(athlete.id);
                   const action = athlete.startedAtMs === null
-                    ? 'AVVIA'
+                    ? 'VIA'
                     : waitingUntil !== null
-                      ? `TRA ${formatMs(waitingUntil - now)}`
+                      ? 'PAUSA'
                       : 'LAP';
                   const isDisabled = sessionStarted && (!isRunning || waitingUntil !== null);
                   const ariaLabel = !sessionStarted
                     ? `${isSelectedForStart ? 'Rimuovi' : 'Aggiungi'} ${athlete.atletaNome} dalla partenza generale`
-                    : `${action === 'AVVIA' ? 'Avvia' : action === 'LAP' ? 'Lap' : 'Attesa'} per ${athlete.atletaNome}`;
+                    : `${action === 'VIA' ? 'Avvia' : action === 'LAP' ? 'Lap' : 'Attesa'} per ${athlete.atletaNome}`;
+                  const athleteStatus = !sessionStarted
+                    ? (isSelectedForStart ? 'AL VIA' : 'IN ATTESA')
+                    : athlete.startedAtMs === null
+                      ? 'IN ATTESA'
+                      : waitingUntil !== null
+                        ? 'PAUSA'
+                        : 'IN ACQUA';
+                  const athleteStatusStyle = ATHLETE_STATUS_STYLES[athleteStatus];
+                  const statusSubline = !sessionStarted
+                    ? (isSelectedForStart ? 'Partenza generale' : 'Su invito')
+                    : athlete.startedAtMs === null
+                      ? 'In attesa via'
+                      : waitingUntil !== null
+                        ? `tra ${formatMs(waitingUntil - now)} · ult. ${athlete.splitList[0]?.time ?? '--'}`
+                        : athlete.splitList.length > 0
+                          ? `Lap ${athlete.splitList[0].lap}: ${athlete.splitList[0].time}`
+                          : 'In vasca';
+                  const bigTime = !sessionStarted || athlete.startedAtMs === null
+                    ? null
+                    : waitingUntil !== null
+                      ? formatMs(waitingUntil - now)
+                      : formatMs(elapsed);
 
                   return (
                     <div className="athlete-timing-row flex-1 min-h-0 flex flex-col justify-center overflow-hidden" key={athlete.id}>
                       <button
                         type="button"
-                        className={`athlete-timing-button h-full min-h-0 w-full flex items-center justify-between p-2 rounded-lg transition ${
+                        className={`athlete-timing-button h-full min-h-0 w-full transition ${
                           athlete.startedAtMs !== null && waitingUntil === null ? 'is-active' : ''
                         } ${waitingUntil !== null ? 'is-waiting' : ''} ${
                           !sessionStarted && isSelectedForStart ? 'is-selected border-primary ring-1 ring-primary' : ''
@@ -630,41 +829,48 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                         aria-label={ariaLabel}
                         aria-pressed={!sessionStarted ? isSelectedForStart : undefined}
                       >
-                        <span className="athlete-timing-info min-w-0 flex-1 text-left flex flex-col justify-center">
-                          <span className="athlete-name font-bold text-xs truncate flex items-center gap-1.5 text-on-surface">
-                            <span>{athlete.atletaNome}</span>
-                            <span className="text-[10px] text-on-surface-variant font-normal">({athlete.classe})</span>
+                        <span className="min-w-0 flex items-center gap-1.5 text-left">
+                          <span className="w-5 h-5 rounded-full bg-surface-container-high text-on-surface font-label-caps text-[9px] font-bold flex items-center justify-center shrink-0">
+                            {athleteIdx + 1}
                           </span>
-                          <span className="athlete-time text-[11px] font-headline font-semibold text-primary truncate flex items-center gap-1">
-                            {!sessionStarted ? (
-                              <span
-                                className={`inline-block px-1.5 py-0.2 rounded text-[10px] font-bold ${
-                                  isSelectedForStart ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'
-                                }`}
-                              >
-                                {isSelectedForStart ? '1° AL VIA' : 'SINGOLO'}
+                          <span className="w-7 h-7 rounded-full bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center font-headline-sm text-[11px] font-bold shrink-0">
+                            {initialsOf(athlete.atletaNome)}
+                          </span>
+                          <span className="flex flex-col min-w-0 gap-0.5">
+                            <span className="flex items-center gap-1 min-w-0">
+                              <span className="font-body-bold text-[13px] text-on-surface truncate">{athlete.atletaNome}</span>
+                              <span className="px-1 py-0.5 rounded bg-surface-container-highest text-primary font-label-caps text-[8px] font-bold shrink-0">
+                                {athlete.classe}
                               </span>
-                            ) : athlete.startedAtMs === null ? (
-                              <span className="text-on-surface-variant text-[10px]">In attesa</span>
-                            ) : waitingUntil !== null ? (
-                              <span className="text-tertiary">Riposo (ult. {athlete.splitList[0]?.time ?? '--'})</span>
-                            ) : (
-                              <span>
-                                {formatMs(elapsed)}
-                                {athlete.splitList.length > 0 && (
-                                  <span className="text-[10px] text-on-surface-variant font-normal ml-1">
-                                    [Lap {athlete.splitList[0].lap}: {athlete.splitList[0].time}]
-                                  </span>
-                                )}
+                            </span>
+                            <span className="flex items-center gap-1 min-w-0">
+                              <span className={`px-1.5 py-0.5 rounded font-label-caps text-[7.5px] font-bold uppercase tracking-wide shrink-0 ${athleteStatusStyle}`}>
+                                {athleteStatus}
                               </span>
-                            )}
+                              <span className="font-label-caps text-[8px] text-on-surface-variant truncate">
+                                {statusSubline}
+                              </span>
+                            </span>
                           </span>
                         </span>
                         {sessionStarted && (
-                          <span className={`athlete-action shrink-0 font-bold text-xs px-2 py-1 rounded-md ${
-                            action === 'LAP' ? 'bg-primary text-on-primary' : action === 'AVVIA' ? 'bg-tertiary text-on-tertiary' : 'bg-surface-container text-on-surface-variant'
-                          }`}>
-                            {action}
+                          <span className="flex flex-col items-end gap-0.5 shrink-0">
+                            {bigTime !== null && (
+                              <span className={`font-headline-sm text-[14px] font-bold tabular-nums leading-none ${
+                                waitingUntil !== null ? 'text-tertiary' : 'text-on-surface'
+                              }`}>
+                                {bigTime}
+                              </span>
+                            )}
+                            <span className={`font-label-caps text-[8px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded ${
+                              action === 'LAP'
+                                ? 'bg-primary text-on-primary'
+                                : action === 'VIA'
+                                  ? 'bg-tertiary text-on-tertiary'
+                                  : 'bg-tertiary-container text-on-tertiary'
+                            }`}>
+                              {action}
+                            </span>
                           </span>
                         )}
                       </button>
@@ -709,8 +915,45 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
               )}
             </div>
           </article>
-        ))}
+          );
+        })}
       </section>
+
+      {latestSplits.length > 0 && (
+        <section
+          className="shrink-0 rounded-xl bg-surface-container p-2 flex flex-col gap-1 border border-outline-variant/30"
+          aria-label="Ultimi split registrati"
+        >
+          <div className="flex items-center justify-between px-0.5">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Gauge size={14} className="text-primary shrink-0" />
+              <span className="font-label-caps text-[10px] uppercase font-bold text-on-surface-variant tracking-wider truncate">
+                Ultimi Split Registrati
+              </span>
+            </div>
+            <span className="font-label-caps text-[9px] text-primary font-bold flex-shrink-0">Live Feed</span>
+          </div>
+          <div className="grid grid-cols-3 gap-1.5">
+            {latestSplits.map(split => (
+              <div
+                key={split.key}
+                className="rounded-lg bg-secondary-container/40 p-1.5 border border-secondary/30 flex flex-col leading-tight min-w-0"
+              >
+                <div className="flex items-center justify-between gap-1">
+                  <span className="font-bold text-on-surface font-headline-sm text-[11px] truncate">
+                    C{split.laneIndex} • {split.name}
+                  </span>
+                  <span className="text-secondary font-bold text-[9px] flex-shrink-0">LAP {split.lap}</span>
+                </div>
+                <div className="flex items-center justify-between mt-0.5">
+                  <span className="text-on-surface font-bold text-[12px] tabular-nums">{split.time}</span>
+                  <span className="text-on-surface-variant text-[9px]">{split.classe}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };

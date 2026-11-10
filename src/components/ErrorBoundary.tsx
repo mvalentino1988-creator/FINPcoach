@@ -27,12 +27,12 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-surface p-4">
-          <div className="bg-surface-container-lowest rounded-xl p-6 max-w-md w-full shadow-float border border-slate-200/70 text-center space-y-4">
-            <div className="w-14 h-14 rounded-xl bg-error-container text-error flex items-center justify-center mx-auto">
+          <div className="ds-card-elevated p-6 max-w-md w-full text-center space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-error-container text-error flex items-center justify-center mx-auto">
               <AlertTriangle size={28} />
             </div>
             <div>
-              <h2 className="font-bold text-on-surface text-lg">Si è verificato un imprevisto</h2>
+              <h2 className="font-headline font-bold text-on-surface text-lg">Si è verificato un imprevisto</h2>
               <p className="text-xs text-on-surface-variant mt-1">
                 L'applicazione ha riscontrato un errore di rendering. I tuoi dati locali sono al sicuro nello storage.
               </p>
@@ -43,21 +43,21 @@ export class ErrorBoundary extends Component<Props, State> {
                 </div>
               )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <button
                 type="button"
                 onClick={() => {
                   sessionStorage.removeItem('finp_active_tab');
                   window.location.reload();
                 }}
-                className="flex-1 py-2.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-xl text-xs font-bold transition"
+                className="ds-btn-secondary flex-1"
               >
                 Reset Tab
               </button>
               <button
                 type="button"
                 onClick={() => window.location.reload()}
-                className="flex-1 py-2.5 bg-primary-container hover:bg-primary text-on-primary rounded-xl text-xs font-bold transition flex items-center justify-center gap-3 shadow-card"
+                className="ds-btn-primary flex-1"
               >
                 <RefreshCw size={16} />
                 <span>Ricarica</span>

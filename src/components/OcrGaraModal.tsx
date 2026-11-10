@@ -19,6 +19,9 @@ const STILI: { key: Stile; label: string }[] = [
   { key: 'MISTI', label: 'Misti' }
 ];
 
+const inputCompatto =
+  'h-9 px-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs font-medium text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition';
+
 export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfirm, onCancel }) => {
   const [righe, setRighe] = useState<TempoEstrattoOcr[]>([]);
   const [rawText, setRawText] = useState(initialRawText);
@@ -52,36 +55,42 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 backdrop-blur-sm">
-      <div className="bg-surface-container-lowest rounded-t-2xl sm:rounded-xl p-4 sm:p-6 max-w-3xl w-full shadow-float space-y-4 border border-slate-200/70 max-h-[92dvh] flex flex-col">
-        <div className="flex items-center justify-between border-b border-slate-200/70 pb-3 shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-primary-fixed text-primary-container flex items-center justify-center">
-              <Trophy size={18} />
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 animate-fade-in">
+      <div className="bg-surface-container-lowest rounded-t-3xl sm:rounded-3xl p-0 max-w-3xl w-full shadow-float border border-outline-variant max-h-[92dvh] flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-5 pt-4 sm:pt-5 pb-3 border-b border-outline-variant shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 shrink-0 rounded-xl bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center">
+              <Trophy size={20} />
             </div>
-            <div>
-              <h3 className="font-bold text-on-surface text-base">Importa Tempi di Gara da Screenshot</h3>
-              <p className="text-xs text-on-surface-variant">Verifica, seleziona e correggi i tempi rilevati prima dell'importazione.</p>
+            <div className="min-w-0">
+              <h3 className="font-label-caps text-label-caps uppercase tracking-wider text-on-surface leading-tight">
+                Importa Tempi di Gara
+              </h3>
+              <p className="text-xs text-on-surface-variant mt-0.5">
+                Verifica, seleziona e correggi i tempi rilevati prima dell'importazione.
+              </p>
             </div>
           </div>
-          <button type="button" onClick={onCancel} className="p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition">
+          <button type="button" onClick={onCancel} className="ds-btn-icon shrink-0" aria-label="Chiudi">
             <X size={18} />
           </button>
         </div>
 
-        <div className="flex items-center justify-between shrink-0">
-          <div className="flex gap-2">
+        {/* Toolbar: mode toggle */}
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3 shrink-0">
+          <div className="inline-flex items-center gap-1 p-1 bg-surface-container-low rounded-full">
             <button
               type="button"
               onClick={() => setModoTesto(false)}
-              className={`px-3 h-12 rounded-lg text-xs font-bold transition ${!modoTesto ? 'bg-primary-container text-on-primary' : 'bg-surface-container text-on-surface'}`}
+              className={`px-3.5 h-9 rounded-full text-xs font-bold transition ${!modoTesto ? 'bg-surface-container-lowest text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
             >
               Tabella Tempi Rilevati ({righe.length})
             </button>
             <button
               type="button"
               onClick={() => setModoTesto(true)}
-              className={`px-3 h-12 rounded-lg text-xs font-bold transition ${modoTesto ? 'bg-primary-container text-on-primary' : 'bg-surface-container text-on-surface'}`}
+              className={`px-3.5 h-9 rounded-full text-xs font-bold transition ${modoTesto ? 'bg-surface-container-lowest text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
             >
               Testo OCR Grezzo
             </button>
@@ -90,41 +99,42 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
             <button
               type="button"
               onClick={handleRicalcolaDaTesto}
-              className="px-3 h-12 bg-surface-container-low text-primary-container rounded-lg text-xs font-bold hover:bg-primary-fixed transition"
+              className="ds-btn-secondary !min-h-[36px] !px-3 !py-1.5 text-xs"
             >
               Ricalcola Tabella da Testo
             </button>
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-3 min-h-0">
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-4 sm:px-5 pb-4 space-y-3 min-h-0">
           {modoTesto ? (
             <textarea
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
-              className="w-full h-64 p-3 border border-outline-variant rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary"
+              className="ds-input !h-auto min-h-[16rem] p-3 font-mono text-xs resize-none"
             />
           ) : (
             righe.length === 0 ? (
-              <div className="text-center py-12 text-on-surface-variant text-xs">
+              <div className="ds-card-flat text-center py-12 text-on-surface-variant text-xs">
                 Nessun tempo rilevato automaticamente. Prova a passare a "Testo OCR Grezzo" per correggerlo.
               </div>
             ) : (
               <div className="space-y-2">
                 {righe.map((r) => (
-                  <div key={r.id} className={`p-3 rounded-xl border transition flex flex-col sm:flex-row sm:items-center gap-3 text-xs ${r.selezionato ? 'bg-surface-container-low/40 border-primary-fixed-dim' : 'bg-surface-container-low border-slate-200/70 opacity-60'}`}>
+                  <div key={r.id} className={`p-3 rounded-xl border transition flex flex-col sm:flex-row sm:items-center gap-3 text-xs ${r.selezionato ? 'bg-primary-fixed/15 border-primary/40' : 'bg-surface-container-low border-outline-variant opacity-60'}`}>
                     <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
                         checked={r.selezionato}
                         onChange={(e) => handleAggiornaRiga(r.id, 'selezionato', e.target.checked)}
-                        className="w-4 h-4 rounded text-primary-container"
+                        className="w-4 h-4 rounded accent-primary"
                       />
                       <input
                         type="text"
                         value={r.data}
                         onChange={(e) => handleAggiornaRiga(r.id, 'data', e.target.value)}
-                        className="w-24 px-3 py-1 border border-outline-variant rounded font-semibold text-center"
+                        className={`${inputCompatto} w-24 text-center font-semibold`}
                         placeholder="Data"
                       />
                     </div>
@@ -134,48 +144,49 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
                         type="text"
                         value={r.luogo}
                         onChange={(e) => handleAggiornaRiga(r.id, 'luogo', e.target.value)}
-                        className="px-3 py-1 border border-outline-variant rounded font-medium"
+                        className={inputCompatto}
                         placeholder="Luogo / Gara"
                       />
 
                       <select
                         value={r.stile}
                         onChange={(e) => handleAggiornaRiga(r.id, 'stile', e.target.value)}
-                        className="px-3 py-1 border border-outline-variant rounded font-medium"
+                        className={inputCompatto}
                       >
                         {STILI.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                       </select>
 
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
                         <input
                           type="number"
                           value={r.distanzaMetri}
                           onChange={(e) => handleAggiornaRiga(r.id, 'distanzaMetri', parseInt(e.target.value) || 100)}
-                          className="w-16 px-3 py-1 border border-outline-variant rounded font-bold text-center"
+                          className={`${inputCompatto} w-16 text-center font-bold`}
                         />
                         <span className="text-on-surface-variant font-bold">m</span>
                         <select
                           value={r.vascaMetri}
                           onChange={(e) => handleAggiornaRiga(r.id, 'vascaMetri', parseInt(e.target.value))}
-                          className="px-1.5 py-1 border border-outline-variant rounded font-bold"
+                          className={`${inputCompatto} !w-auto px-2 font-bold`}
                         >
                           <option value={25}>25m</option>
                           <option value={50}>50m</option>
                         </select>
                       </div>
 
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
                         <input
                           type="text"
                           value={r.tempoTesto}
                           onChange={(e) => handleAggiornaRiga(r.id, 'tempoTesto', e.target.value)}
-                          className="flex-1 px-3 py-1 border border-outline-variant rounded font-bold text-primary-container text-center"
+                          className={`${inputCompatto} flex-1 text-center font-bold text-primary`}
                           placeholder="Tempo"
                         />
                         <button
                           type="button"
                           onClick={() => handleEliminaRiga(r.id)}
-                          className="p-1 text-on-surface-variant hover:text-error transition"
+                          aria-label="Elimina riga"
+                          className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error-container/50 rounded-lg transition"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -188,11 +199,12 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
           )}
         </div>
 
-        <div className="flex gap-3 pt-3 border-t border-slate-200/70 shrink-0">
+        {/* Footer */}
+        <div className="flex flex-col sm:flex-row gap-3 px-4 sm:px-5 py-4 border-t border-outline-variant bg-surface-container-low shrink-0">
           <button
             type="button"
             onClick={handleConferma}
-            className="flex-1 flex items-center justify-center gap-1.5 px-4 h-12 bg-primary-container hover:bg-primary text-on-primary rounded-xl text-sm font-bold transition shadow-card"
+            className="ds-btn-primary flex-1"
           >
             <Check size={16} />
             <span>Importa Tempi Selezionati ({righe.filter(r => r.selezionato).length})</span>
@@ -200,7 +212,7 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 h-12 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl text-sm font-bold transition"
+            className="ds-btn-secondary"
           >
             Annulla
           </button>

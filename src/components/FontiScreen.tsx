@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { Trophy, BookOpen, CalendarDays, RefreshCw, CheckCircle2, Waves } from 'lucide-react';
+import { Trophy, BookOpen, CalendarDays, RefreshCw, CheckCircle2, Waves, BookMarked, Database } from 'lucide-react';
 import { CalendarioScreen } from './CalendarioScreen';
 import { AutoUpdateService, UpdateStatus } from '../domain/autoUpdateService';
 
@@ -24,63 +24,74 @@ export const FontiScreen: React.FC = () => {
     setChecking(false);
   };
 
-  const tabs: { key: FontiTab; label: string; icon: React.ReactNode }[] = [
-    { key: 'record', label: 'Record', icon: <Trophy size={16} /> },
-    { key: 'regolamenti', label: 'Regolamenti', icon: <BookOpen size={16} /> },
-    { key: 'calendario', label: 'Calendario', icon: <CalendarDays size={16} /> }
+  const tabs: { key: FontiTab; label: string; icon: React.ReactNode; short: string }[] = [
+    { key: 'record', label: 'Record & Minimi', short: 'Record', icon: <Trophy size={16} /> },
+    { key: 'calendario', label: 'Calendario Gare', short: 'Calendario', icon: <CalendarDays size={16} /> },
+    { key: 'regolamenti', label: 'Regolamento WPS', short: 'Regole', icon: <BookOpen size={16} /> }
   ];
 
   return (
     <div className="flex flex-1 min-h-0 flex-col gap-3 overflow-hidden">
-      <div className="shrink-0 flex items-center justify-between gap-2">
-        <button
-          type="button"
-          onClick={() => setTab('record')}
-          aria-current={tab === 'record' ? 'page' : undefined}
-          className={`min-h-[44px] rounded-xl px-3.5 flex items-center gap-2 text-xs font-bold transition ${
-            tab === 'record' ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-primary border border-outline-variant'
-          }`}
-        >
-          <Trophy size={16} />
-          Archivio ufficiale
-        </button>
+      {/* Sub-header & snapshot pill (Stitch: Fonti & Regolamenti) */}
+      <div className="shrink-0 flex items-center justify-between gap-2 pt-1">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary shadow-sm shrink-0">
+            <BookMarked size={18} />
+          </div>
+          <div className="min-w-0">
+            <h1 className="font-headline-sm text-headline-sm text-on-surface leading-tight truncate">Fonti &amp; Regolamenti</h1>
+            <p className="font-label-caps text-label-caps text-on-surface-variant truncate">FINP • WORLD PARA SWIMMING</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-container/60 text-on-secondary-container shadow-sm shrink-0">
+          <Database size={13} />
+          <span className="font-label-caps text-[10px] tracking-tight">Snapshot offline</span>
+        </div>
+      </div>
+
+      {/* Segmented Nav (tactile glass dock) */}
+      <div className="shrink-0 bg-surface-container-high/80 p-1 rounded-xl flex items-center shadow-sm gap-1">
+        {tabs.map(t => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setTab(t.key)}
+            aria-current={tab === t.key ? 'page' : undefined}
+            className={`flex-1 min-w-0 py-2 px-1 rounded-lg font-label-lg text-label-lg text-center transition-all flex items-center justify-center gap-1.5 ${
+              tab === t.key
+                ? 'bg-surface-container-lowest text-primary shadow-sm font-bold'
+                : 'text-on-surface-variant hover:text-on-surface'
+            }`}
+          >
+            {t.icon}
+            <span className="hidden sm:inline truncate">{t.label}</span>
+            <span className="sm:hidden truncate">{t.short}</span>
+          </button>
+        ))}
         <button
           type="button"
           disabled={checking}
           onClick={handleVerificaOra}
-          className="ds-btn-secondary !min-h-[44px] !px-3 text-xs disabled:opacity-50"
+          className="shrink-0 min-h-[44px] px-2.5 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-lowest/60 transition-all flex items-center gap-1 disabled:opacity-50"
           title="Verifica aggiornamenti con i siti ufficiali FINP/WPS"
+          aria-label="Verifica aggiornamenti"
         >
           <RefreshCw size={15} className={checking ? 'animate-spin' : ''} />
-          <span>{checking ? 'Controllo...' : 'Verifica'}</span>
+          <span className="hidden md:inline font-label-caps text-[10px] font-bold uppercase tracking-wide">
+            {checking ? 'Controllo…' : 'Verifica'}
+          </span>
         </button>
       </div>
 
       {updateStatus && (
         <div
           role="status"
-          className="shrink-0 flex items-start gap-2 rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2.5 text-xs text-on-surface-variant"
+          className="shrink-0 flex items-start gap-2 rounded-xl border border-outline-variant/60 bg-surface-container-low px-3 py-2.5 text-xs text-on-surface-variant"
         >
           <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-secondary" />
           <span>{updateStatus.messaggio}</span>
         </div>
       )}
-
-      {/* TABS A MENU A TENDINA PULITO E LEGGIBILE */}
-      <div className="shrink-0 ds-card p-2 sm:p-2.5">
-        <div className="flex items-center gap-2">
-          <span className="ds-label shrink-0">Sezione:</span>
-          <select
-            value={tab}
-            onChange={e => setTab(e.target.value as FontiTab)}
-            className="w-full min-h-[44px] bg-surface-container-low border border-outline-variant rounded-xl px-3 font-headline font-bold text-xs sm:text-sm text-on-surface focus:border-primary"
-          >
-            <option value="record">Record FINP / Italia / Europa / Mondo</option>
-            <option value="regolamenti">Regolamenti federali e circolari</option>
-            <option value="calendario">Calendario gare agonistiche</option>
-          </select>
-        </div>
-      </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto">
         <Suspense fallback={

@@ -37,23 +37,39 @@
        LIGHT THEME — Stitch "FINPcoach" Design System
        ===================================================== */
     --color-bg:                    #faf8ff;
+    --color-bg-rgb: 250 248 255;
     --color-surface:               #faf8ff;
+    --color-surface-rgb: 250 248 255;
     --color-surface-bright:        #faf8ff;
+    --color-surface-bright-rgb: 250 248 255;
     --color-surface-dim:           #d2d9f4;
+    --color-surface-dim-rgb: 210 217 244;
     --color-surface-container-lowest: #ffffff;
+    --color-surface-container-lowest-rgb: 255 255 255;
     --color-surface-container-low: #f2f3ff;
+    --color-surface-container-low-rgb: 242 243 255;
     --color-surface-container:     #eaedff;
+    --color-surface-container-rgb: 234 237 255;
     --color-surface-container-high:#e2e7ff;
+    --color-surface-container-high-rgb: 226 231 255;
     --color-surface-container-highest: #dae2fd;
+    --color-surface-container-highest-rgb: 218 226 253;
     --color-surface-variant:       #dae2fd;
+    --color-surface-variant-rgb: 218 226 253;
     --color-background:            #faf8ff;
+    --color-background-rgb: 250 248 255;
 
     --color-on-surface:            #131b2e;
+    --color-on-surface-rgb: 19 27 46;
     --color-on-surface-variant:    #424656;
+    --color-on-surface-variant-rgb: 66 70 86;
     --color-on-background:         #131b2e;
+    --color-on-background-rgb: 19 27 46;
 
     --color-outline:               #737687;
+    --color-outline-rgb: 115 118 135;
     --color-outline-variant:       #c3c5d9;
+    --color-outline-variant-rgb: 195 197 217;
 
     /* Primary — deep FINP blue */
     --color-primary:               #0049cc;
@@ -65,79 +81,129 @@
     --color-on-primary-container:  #eff0ff;
     --color-on-primary-container-rgb: 239 240 255;
     --color-primary-fixed:         #dbe1ff;
+    --color-primary-fixed-rgb: 219 225 255;
     --color-primary-fixed-dim:     #b5c4ff;
+    --color-primary-fixed-dim-rgb: 181 196 255;
     --color-on-primary-fixed:      #00164d;
+    --color-on-primary-fixed-rgb: 0 22 77;
     --color-on-primary-fixed-variant: #003cac;
+    --color-on-primary-fixed-variant-rgb: 0 60 172;
     --color-primary-bright:        #2563eb;
+    --color-primary-bright-rgb: 37 99 235;
 
     /* Secondary — lagoon teal */
     --color-secondary:             #006a61;
     --color-secondary-rgb:         0 106 97;
     --color-secondary-container:   #86f2e4;
+    --color-secondary-container-rgb: 134 242 228;
     --color-on-secondary:          #ffffff;
     --color-on-secondary-rgb:      255 255 255;
     --color-on-secondary-container:#006f66;
+    --color-on-secondary-container-rgb: 0 111 102;
     --color-secondary-fixed:       #89f5e7;
+    --color-secondary-fixed-rgb: 137 245 231;
     --color-secondary-fixed-dim:   #6bd8cb;
+    --color-secondary-fixed-dim-rgb: 107 216 203;
     --color-on-secondary-fixed:    #00201d;
+    --color-on-secondary-fixed-rgb: 0 32 29;
     --color-on-secondary-fixed-variant: #005049;
+    --color-on-secondary-fixed-variant-rgb: 0 80 73;
 
     /* Tertiary — warm coral */
     --color-tertiary:              #983400;
     --color-tertiary-rgb:          152 52 0;
     --color-tertiary-container:    #c14400;
+    --color-tertiary-container-rgb: 193 68 0;
     --color-on-tertiary:           #ffffff;
     --color-on-tertiary-rgb:       255 255 255;
     --color-on-tertiary-container: #ffeee8;
+    --color-on-tertiary-container-rgb: 255 238 232;
     --color-tertiary-fixed:        #ffdbce;
+    --color-tertiary-fixed-rgb: 255 219 206;
     --color-tertiary-fixed-dim:    #ffb599;
+    --color-tertiary-fixed-dim-rgb: 255 181 153;
     --color-on-tertiary-fixed:     #370e00;
+    --color-on-tertiary-fixed-rgb: 55 14 0;
     --color-on-tertiary-fixed-variant: #7f2b00;
+    --color-on-tertiary-fixed-variant-rgb: 127 43 0;
 
     /* Semantic */
     --color-success:               #18734f;
+    --color-success-rgb: 24 115 79;
     --color-success-container:     #d5efdc;
+    --color-success-container-rgb: 213 239 220;
     --color-on-success-container:  #17452e;
+    --color-on-success-container-rgb: 23 69 46;
     --color-warning:               #9b6700;
+    --color-warning-rgb: 155 103 0;
     --color-warning-container:     #f5e8bc;
+    --color-warning-container-rgb: 245 232 188;
     --color-on-warning-container:  #5b3e00;
+    --color-on-warning-container-rgb: 91 62 0;
     --color-error:                 #ba1a1a;
+    --color-error-rgb: 186 26 26;
     --color-on-error:              #ffffff;
+    --color-on-error-rgb: 255 255 255;
     --color-error-container:       #ffdad6;
+    --color-error-container-rgb: 255 218 214;
     --color-on-error-container:    #93000a;
+    --color-on-error-container-rgb: 147 0 10;
 
     /* Status extra (design Stitch) */
     --color-status-live:           #10b981;
+    --color-status-live-rgb: 16 185 129;
     --color-status-alert:          #ef4444;
+    --color-status-alert-rgb: 239 68 68;
     --color-accent-gold:           #f59e0b;
+    --color-accent-gold-rgb: 245 158 11;
     --color-border-hairline:       #e2e7ff;
+    --color-border-hairline-rgb: 226 231 255;
 
     /* Inverse */
     --color-inverse-surface:       #283044;
+    --color-inverse-surface-rgb: 40 48 68;
     --color-inverse-on-surface:    #eef0ff;
+    --color-inverse-on-surface-rgb: 238 240 255;
     --color-inverse-primary:       #b5c4ff;
+    --color-inverse-primary-rgb: 181 196 255;
   }
 
   .dark {
     color-scheme: dark;
     --color-bg:                    #0c141f;
+    --color-bg-rgb: 12 20 31;
     --color-surface:               #0b131e;
+    --color-surface-rgb: 11 19 30;
     --color-surface-bright:        #323a46;
+    --color-surface-bright-rgb: 50 58 70;
     --color-surface-dim:           #0c141f;
+    --color-surface-dim-rgb: 12 20 31;
     --color-surface-container-lowest: #060b11;
+    --color-surface-container-lowest-rgb: 6 11 17;
     --color-surface-container-low: #0f1a27;
+    --color-surface-container-low-rgb: 15 26 39;
     --color-surface-container:     #18202b;
+    --color-surface-container-rgb: 24 32 43;
     --color-surface-container-high:#1a2d44;
+    --color-surface-container-high-rgb: 26 45 68;
     --color-surface-container-highest: #2d3541;
+    --color-surface-container-highest-rgb: 45 53 65;
     --color-surface-variant:       #2d3541;
+    --color-surface-variant-rgb: 45 53 65;
     --color-background:            #0c141f;
+    --color-background-rgb: 12 20 31;
 
     --color-on-surface:            #dbe3f3;
+    --color-on-surface-rgb: 219 227 243;
     --color-on-surface-variant:    #bac9cc;
+    --color-on-surface-variant-rgb: 186 201 204;
     --color-on-background:         #dbe3f3;
+    --color-on-background-rgb: 219 227 243;
 
     --color-outline:               #849396;
+    --color-outline-rgb: 132 147 150;
     --color-outline-variant:       #3b494c;
+    --color-outline-variant-rgb: 59 73 76;
 
     /* Primary — cyan live accent */
     --color-primary:               #c3f5ff;
@@ -149,53 +215,87 @@
     --color-on-primary-container:  #00626e;
     --color-on-primary-container-rgb: 0 98 110;
     --color-primary-fixed:         #9cf0ff;
+    --color-primary-fixed-rgb: 156 240 255;
     --color-primary-fixed-dim:     #00daf3;
+    --color-primary-fixed-dim-rgb: 0 218 243;
     --color-on-primary-fixed:      #001f24;
+    --color-on-primary-fixed-rgb: 0 31 36;
     --color-on-primary-fixed-variant: #004f58;
+    --color-on-primary-fixed-variant-rgb: 0 79 88;
     --color-primary-bright:        #38bdf8;
+    --color-primary-bright-rgb: 56 189 248;
 
     --color-secondary:             #adc6ff;
     --color-secondary-rgb:         173 198 255;
     --color-secondary-container:   #0566d9;
+    --color-secondary-container-rgb: 5 102 217;
     --color-on-secondary:          #002e6a;
     --color-on-secondary-rgb:      0 46 106;
     --color-on-secondary-container:#e6ecff;
+    --color-on-secondary-container-rgb: 230 236 255;
     --color-secondary-fixed:       #d8e2ff;
+    --color-secondary-fixed-rgb: 216 226 255;
     --color-secondary-fixed-dim:   #adc6ff;
+    --color-secondary-fixed-dim-rgb: 173 198 255;
     --color-on-secondary-fixed:    #001a42;
+    --color-on-secondary-fixed-rgb: 0 26 66;
     --color-on-secondary-fixed-variant: #004395;
+    --color-on-secondary-fixed-variant-rgb: 0 67 149;
 
     --color-tertiary:              #ffe8db;
     --color-tertiary-rgb:          255 232 219;
     --color-tertiary-container:    #ffc49c;
+    --color-tertiary-container-rgb: 255 196 156;
     --color-on-tertiary:           #4f2500;
     --color-on-tertiary-rgb:       79 37 0;
     --color-on-tertiary-container: #8c4600;
+    --color-on-tertiary-container-rgb: 140 70 0;
     --color-tertiary-fixed:        #ffdcc5;
+    --color-tertiary-fixed-rgb: 255 220 197;
     --color-tertiary-fixed-dim:    #ffb783;
+    --color-tertiary-fixed-dim-rgb: 255 183 131;
     --color-on-tertiary-fixed:     #301400;
+    --color-on-tertiary-fixed-rgb: 48 20 0;
     --color-on-tertiary-fixed-variant: #713700;
+    --color-on-tertiary-fixed-variant-rgb: 113 55 0;
 
     --color-success:               #82d3a6;
+    --color-success-rgb: 130 211 166;
     --color-success-container:     #244d38;
+    --color-success-container-rgb: 36 77 56;
     --color-on-success-container:  #c4f1d2;
+    --color-on-success-container-rgb: 196 241 210;
     --color-warning:               #e8c66c;
+    --color-warning-rgb: 232 198 108;
     --color-warning-container:     #534315;
+    --color-warning-container-rgb: 83 67 21;
     --color-on-warning-container:  #f4e4ae;
+    --color-on-warning-container-rgb: 244 228 174;
     --color-error:                 #ffb4ab;
+    --color-error-rgb: 255 180 171;
     --color-on-error:              #690005;
+    --color-on-error-rgb: 105 0 5;
     --color-error-container:       #93000a;
+    --color-error-container-rgb: 147 0 10;
     --color-on-error-container:    #ffdad6;
+    --color-on-error-container-rgb: 255 218 214;
 
     /* Status extra (design Stitch) */
     --color-status-live:           #10b981;
+    --color-status-live-rgb: 16 185 129;
     --color-status-alert:          #ef4444;
+    --color-status-alert-rgb: 239 68 68;
     --color-accent-gold:           #f59e0b;
+    --color-accent-gold-rgb: 245 158 11;
     --color-border-hairline:       #2d4464;
+    --color-border-hairline-rgb: 45 68 100;
 
     --color-inverse-surface:       #dbe3f3;
+    --color-inverse-surface-rgb: 219 227 243;
     --color-inverse-on-surface:    #29313d;
+    --color-inverse-on-surface-rgb: 41 49 61;
     --color-inverse-primary:       #006875;
+    --color-inverse-primary-rgb: 0 104 117;
   }
 
   html {

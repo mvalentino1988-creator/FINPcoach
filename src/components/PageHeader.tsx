@@ -10,17 +10,21 @@ export interface PageHeaderProps {
 
 export const PageHeader: React.FC<PageHeaderProps> = ({ label, title, meta, icon, right }) => {
   return (
-    <section className="relative overflow-hidden rounded-2xl bg-surface-container-low border border-outline-variant px-4 py-2.5 sm:py-3.5 shadow-card flex items-center justify-between gap-2 sm:gap-4 max-[639px]:flex-col max-[639px]:items-stretch">
+    <section className="relative overflow-hidden rounded-xl bg-surface-container-lowest border border-outline-variant px-space-md py-space-sm sm:px-space-lg sm:py-space-md shadow-card flex items-center justify-between gap-space-sm sm:gap-space-lg max-[639px]:flex-col max-[639px]:items-stretch">
       {/* Subtle decorative blob */}
       <div className="absolute -right-10 -bottom-10 w-24 h-24 rounded-full bg-primary/10 pointer-events-none" />
       <div className="relative z-10 min-w-0 flex-1">
         <div className="flex items-center gap-1.5 mb-0.5">
-          {icon && <span className="text-primary shrink-0">{icon}</span>}
-          <span className="min-w-0 truncate text-xs font-bold uppercase tracking-widest text-primary/80 font-headline" title={label}>
+          {icon && (
+            <span className="w-6 h-6 rounded-md bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center shrink-0 [&>svg]:w-3.5 [&>svg]:h-3.5">
+              {icon}
+            </span>
+          )}
+          <span className="min-w-0 truncate font-label-caps text-label-caps uppercase tracking-wider text-primary" title={label}>
             {label}
           </span>
         </div>
-        <h1 className="text-base sm:text-headline-sm text-on-surface tracking-tight leading-snug font-bold font-headline whitespace-normal break-words">
+        <h1 className="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-snug font-bold whitespace-normal break-words">
           {title}
         </h1>
         {meta && typeof meta === 'string' ? (

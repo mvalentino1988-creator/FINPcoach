@@ -43,21 +43,27 @@ export const Sezione: React.FC<Props> = ({
 
   const toneClasses =
     tono === 'safe'
-      ? 'bg-warning/5 border-warning/30'
+      ? 'bg-warning-container/40 border-warning/40'
       : 'bg-surface-container-lowest border-outline-variant';
 
   return (
-    <div className={`rounded-2xl border shadow-card overflow-hidden ${toneClasses} ${className}`}>
+    <div className={`rounded-xl border shadow-card overflow-hidden ${toneClasses} ${className}`}>
       <button
         type="button"
         onClick={() => setAperto(!aperto)}
         aria-expanded={aperto}
-        className="w-full px-4 py-3 min-h-[52px] flex items-center justify-between gap-3 font-headline text-sm font-bold text-on-surface hover:bg-surface-container-low transition-colors select-none"
+        className="w-full px-space-md py-space-sm min-h-[52px] flex items-center justify-between gap-3 font-headline-sm text-headline-sm font-bold text-on-surface hover:bg-surface-container-low transition-colors select-none"
         title={titolo}
       >
         <div className="flex items-center gap-3 min-w-0 flex-1">
           {icon && (
-            <span className={`shrink-0 ${tono === 'safe' ? 'text-warning' : 'text-primary'}`}>
+            <span
+              className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 [&>svg]:w-4 [&>svg]:h-4 ${
+                tono === 'safe'
+                  ? 'bg-warning-container text-on-warning-container'
+                  : 'bg-primary-fixed text-on-primary-fixed-variant'
+              }`}
+            >
               {icon}
             </span>
           )}
@@ -70,13 +76,13 @@ export const Sezione: React.FC<Props> = ({
             )}
           </div>
           {badge !== undefined && (
-            <span className="px-3 py-0.5 rounded-full text-xs font-bold bg-primary text-on-primary shrink-0">
+            <span className="px-2.5 py-0.5 rounded-full font-label-caps text-label-caps uppercase bg-primary-fixed text-on-primary-fixed shrink-0">
               {badge}
             </span>
           )}
         </div>
         <div className="flex items-center gap-1 shrink-0 text-on-surface-variant">
-          {aperto ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          {aperto ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
         </div>
       </button>
 
@@ -89,7 +95,7 @@ export const Sezione: React.FC<Props> = ({
       )}
 
       {aperto && (
-        <div className="p-4 pt-0 border-t border-outline-variant space-y-3 mt-1">
+        <div className="px-space-md pb-space-md pt-space-sm border-t border-outline-variant space-y-3">
           {children}
         </div>
       )}

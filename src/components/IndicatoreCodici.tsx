@@ -23,7 +23,7 @@ export const IndicatoreCodici: React.FC<Props> = ({
     <div className="space-y-1.5">
       {/* Barra segmentata proporzionale */}
       <div
-        className="h-2.5 w-full bg-surface-container rounded-full flex overflow-hidden gap-0.5"
+        className="h-2 w-full bg-surface-container-highest rounded-full flex overflow-hidden"
         role="img"
         aria-label="Ripartizione fisiologica del carico"
       >
@@ -54,9 +54,9 @@ export const IndicatoreCodici: React.FC<Props> = ({
                 className="w-2 h-2 rounded-full shrink-0"
                 style={{ backgroundColor: info.textColor }}
               />
-              <span className="font-label-md text-label-md text-on-surface">
+              <span className="font-label-caps text-label-caps uppercase text-on-surface">
                 {info.codice}
-                <span className="text-on-surface-variant font-normal">
+                <span className="text-on-surface-variant font-normal normal-case">
                   {dettaglio ? ` ${pct}% · ${metri}m` : ` ${pct}%`}
                 </span>
               </span>

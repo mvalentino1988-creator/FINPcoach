@@ -65,7 +65,7 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="ds-title flex items-center gap-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+        <h2 className="ds-title flex items-center gap-2">
           <Activity size={22} className="text-primary-container" />
           <span>Analisi Biomeccanica & Costo Energetico C(v)</span>
         </h2>
@@ -74,20 +74,20 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
         </p>
       </div>
 
-      <div className="p-3 bg-surface-container-low/80 border border-primary-fixed-dim rounded-xl flex items-center justify-between text-xs text-primary-container font-semibold">
-        <div className="flex items-center gap-2">
-          <RefreshCw size={15} />
-          <span>Sincronizzazione Temporale Mensile: {syncStatus.lastUpdateDate}</span>
+      <div className="ds-card p-3 sm:p-4 flex items-center justify-between gap-2 text-xs text-primary-container">
+        <div className="flex items-center gap-2 min-w-0">
+          <RefreshCw size={15} className="shrink-0" />
+          <span className="font-semibold truncate">Sincronizzazione Temporale Mensile: {syncStatus.lastUpdateDate}</span>
         </div>
-        <span className="px-3 py-0.5 rounded-full bg-primary-container text-on-primary font-bold text-xs">
+        <span className="ds-chip-blue shrink-0">
           {syncStatus.refreshed ? 'Cluster Ricalcolati' : 'Allineato 30gg'}
         </span>
       </div>
 
       <div className="ds-card p-4 shadow-card space-y-3">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           <div>
-            <label className="block font-bold text-on-surface mb-1">Atleta</label>
+            <label className="ds-label block mb-1">Atleta</label>
             <select
               value={atletaSel?.id ?? ''}
               onChange={(e) => setAtletaSelId(e.target.value ? Number(e.target.value) : null)}
@@ -100,7 +100,7 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
           </div>
 
           <div>
-            <label className="block font-bold text-on-surface mb-1">Stile</label>
+            <label className="ds-label block mb-1">Stile</label>
             <select
               value={stile}
               onChange={(e) => setStile(e.target.value as Stile)}
@@ -115,7 +115,7 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
           </div>
 
           <div>
-            <label className="block font-bold text-on-surface mb-1">Distanza Gara</label>
+            <label className="ds-label block mb-1">Distanza Gara</label>
             <select
               value={distanza}
               onChange={(e) => setDistanza(Number(e.target.value))}
@@ -129,7 +129,7 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
           </div>
 
           <div>
-            <label className="block font-bold text-on-surface mb-1">Filtro Elite Competitors</label>
+            <label className="ds-label block mb-1">Filtro Elite Competitors</label>
             <select
               value={livelloGeo}
               onChange={(e) => setLivelloGeo(e.target.value as LivelloGeografico)}
@@ -166,35 +166,14 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
       })()}
 
       <Sezione titolo="Legenda Colori Classi S & Marker Atleta" icon={<Award size={16} className="text-tertiary-container" />} storageKey="para_biomech_legend" defaultAperto={false}>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 text-xs font-semibold">
-          <div className="flex items-center gap-3 p-3 bg-error-container rounded-xl border border-error/40">
-            <span className="w-3 h-3 rounded-full bg-error shrink-0" />
-            <span className="text-on-error-container">Classe S1-S2</span>
-          </div>
-          <div className="flex items-center gap-3 p-3 bg-tertiary-fixed/40 rounded-xl border border-tertiary-fixed-dim">
-            <span className="w-3 h-3 rounded-full bg-tertiary-container shrink-0" />
-            <span className="text-on-tertiary-fixed">Classe S3-S4</span>
-          </div>
-          <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-xl border border-yellow-200">
-            <span className="w-3 h-3 rounded-full bg-yellow-500 shrink-0" />
-            <span className="text-yellow-900">Classe S5-S6</span>
-          </div>
-          <div className="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl border border-primary-fixed-dim">
-            <span className="w-3 h-3 rounded-full bg-emerald-500 shrink-0" />
-            <span className="text-on-primary-fixed">Classe S7-S8</span>
-          </div>
-          <div className="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl border border-outline-variant">
-            <span className="w-3 h-3 rounded-full bg-secondary shrink-0" />
-            <span className="text-on-surface">Classe S9</span>
-          </div>
-          <div className="flex items-center gap-3 p-3 bg-surface-container-high rounded-xl border border-outline-variant">
-            <span className="w-3 h-3 rounded-full bg-secondary-container shrink-0" />
-            <span className="text-on-surface">Classe S10</span>
-          </div>
-          <div className="flex items-center gap-3 p-3 bg-tertiary-fixed rounded-xl border border-tertiary sm:col-span-2">
-            <span className="w-3.5 h-3.5 bg-tertiary-container border border-white rounded-xs shrink-0" />
-            <span className="text-on-tertiary-fixed font-bold">Mio Atleta (Prestazioni Reali)</span>
-          </div>
+        <div className="flex flex-wrap gap-2 pt-1 text-xs font-semibold">
+          <span className="ds-chip-coral"><span className="w-2.5 h-2.5 rounded-full bg-error shrink-0" />Classe S1-S2</span>
+          <span className="ds-chip-tertiary"><span className="w-2.5 h-2.5 rounded-full bg-tertiary-container shrink-0" />Classe S3-S4</span>
+          <span className="ds-chip-neutral"><span className="w-2.5 h-2.5 rounded-full bg-accent-gold shrink-0" />Classe S5-S6</span>
+          <span className="ds-chip-green"><span className="w-2.5 h-2.5 rounded-full bg-status-live shrink-0" />Classe S7-S8</span>
+          <span className="ds-chip-blue"><span className="w-2.5 h-2.5 rounded-full bg-primary-container shrink-0" />Classe S9</span>
+          <span className="ds-chip-secondary"><span className="w-2.5 h-2.5 rounded-full bg-secondary-container shrink-0" />Classe S10</span>
+          <span className="ds-chip-tertiary"><span className="w-3 h-3 bg-tertiary-container border border-white rounded-xs shrink-0" />Mio Atleta (Prestazioni Reali)</span>
         </div>
       </Sezione>
 
@@ -212,14 +191,14 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
       </Sezione>
 
       <div className="ds-card p-4 shadow-card space-y-3">
-        <h3 className="font-bold text-on-surface text-xs uppercase tracking-wider flex items-center gap-2">
+        <h3 className="font-headline-sm text-on-surface text-sm uppercase tracking-wider flex items-center gap-2">
           <Plus size={15} className="text-primary-container" />
           <span>Aggiungi Nuova Prestazione Reale Atleta ({stile.replace('_', ' ')} {distanza}m)</span>
         </h3>
 
         <form onSubmit={handleAddPerformance} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
           <div>
-            <label className="block font-semibold text-on-surface-variant mb-1">Data (Seleziona da calendario)</label>
+            <label className="ds-label block mb-1">Data (Seleziona da calendario)</label>
             <input
               type="date"
               value={dataTesto}
@@ -229,7 +208,7 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
           </div>
 
           <div>
-            <label className="block font-semibold text-on-surface-variant mb-1">Tempo Totale (secondi, es. 28.5 o 62.3)</label>
+            <label className="ds-label block mb-1">Tempo Totale (secondi, es. 28.5 o 62.3)</label>
             <input
               type="number"
               step="0.01"
@@ -244,7 +223,7 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
             <button
               type="submit"
               disabled={!tempoTesto.trim() || parseFloat(tempoTesto) <= 0}
-              className="w-full h-11 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-bold rounded-xl text-xs transition shadow-card"
+              className="w-full h-11 min-h-[44px] bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-headline-sm font-bold rounded-xl text-xs transition shadow-card active:scale-[0.98]"
             >
               Aggiungi Prestazione
             </button>
@@ -258,16 +237,16 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
         ) : (
           <div className="space-y-2 pt-1 text-xs">
             {filteredPerformances.map((p, idx) => (
-              <div key={p.id} className="p-3 bg-surface-container-low/40 border border-tertiary-fixed-dim rounded-xl flex items-center justify-between">
-                <div>
-                  <span className="font-bold text-on-surface block">
+              <div key={p.id} className="p-3 bg-surface-container-low/50 border border-outline-variant rounded-xl flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <span className="font-headline-sm font-bold text-on-surface block truncate">
                     #{idx + 1} · {p.data} — {p.tempoSecondi.toFixed(2)}s ({p.classeParalimpica})
                   </span>
                   <span className="text-xs text-on-surface-variant">
-                    Velocità: {p.velocitaMedia.toFixed(2)} m/s · Costo Energetico: {p.costoEnergetico.toFixed(1)} J/m/kg
+                    Velocità: <span className="tabular-nums">{p.velocitaMedia.toFixed(2)} m/s</span> · Costo Energetico: <span className="tabular-nums">{p.costoEnergetico.toFixed(1)} J/m/kg</span>
                   </span>
                 </div>
-                <span className="px-3 py-1 rounded-full bg-amber-200 text-on-tertiary-fixed font-bold text-xs">
+                <span className="ds-chip-neutral shrink-0 tabular-nums">
                   {p.velocitaMedia.toFixed(2)} m/s
                 </span>
               </div>

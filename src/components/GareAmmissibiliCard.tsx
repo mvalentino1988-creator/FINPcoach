@@ -42,14 +42,14 @@ export const GareAmmissibiliCard: React.FC<Props> = ({ atleta }) => {
   return (
     <section aria-labelledby="gare-ammissibili-titolo" className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <h3 id="gare-ammissibili-titolo" className="text-base font-semibold text-on-surface">
+        <h3 id="gare-ammissibili-titolo" className="font-headline-sm text-headline-sm font-bold text-on-surface">
           Gare ammissibili
         </h3>
         <select
           aria-label="Vasca"
           value={vasca}
           onChange={(e) => setVasca(e.target.value as FiltroVasca)}
-          className="rounded-lg border border-outline-variant px-3 py-1 text-sm"
+          className="h-9 rounded-lg bg-surface-container-low border border-outline-variant px-2.5 text-xs font-semibold text-on-surface focus:outline-none focus:border-primary/40 transition-colors"
         >
           <option value="tutte">Tutte le vasche</option>
           <option value="corta">Vasca corta (25 m)</option>
@@ -58,7 +58,7 @@ export const GareAmmissibiliCard: React.FC<Props> = ({ atleta }) => {
       </div>
 
       {mancanti.length > 0 && (
-        <p role="note" className="rounded-lg bg-surface-container-low p-3 text-sm text-on-tertiary-fixed">
+        <p role="note" className="rounded-xl bg-tertiary-fixed border border-tertiary-fixed-dim p-3 text-xs text-on-tertiary-fixed leading-relaxed">
           Classi mancanti: {mancanti.map((f) => FAMIGLIA_LABEL[f]).join('; ')}. Le gare collegate non
           si possono valutare finché non vengono inserite.
         </p>
@@ -71,7 +71,7 @@ export const GareAmmissibiliCard: React.FC<Props> = ({ atleta }) => {
           {ammesse.map((e) => (
             <li
               key={chiaveGara(e)}
-              className="rounded-full bg-teal-50 px-3 py-1 text-sm text-teal-900"
+              className="rounded-full bg-secondary-container px-3 py-1 font-label-caps text-label-caps uppercase tracking-wide text-on-secondary-container"
             >
               {etichettaGara(e)}
             </li>
@@ -80,19 +80,21 @@ export const GareAmmissibiliCard: React.FC<Props> = ({ atleta }) => {
       )}
 
       {nonAmmesse.length > 0 && (
-        <details className="text-sm text-on-surface-variant">
-          <summary className="cursor-pointer">Non ammesse ({nonAmmesse.length})</summary>
-          <ul className="mt-2 space-y-1">
+        <details className="rounded-xl bg-surface-container-low border border-outline-variant p-3 text-xs text-on-surface-variant">
+          <summary className="cursor-pointer font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant select-none">
+            Non ammesse ({nonAmmesse.length})
+          </summary>
+          <ul className="mt-2 space-y-1.5">
             {nonAmmesse.map((e) => (
               <li key={chiaveGara(e)}>
-                <span className="font-medium">{etichettaGara(e)}</span>: {e.motivo}
+                <span className="font-semibold text-on-surface">{etichettaGara(e)}</span>: {e.motivo}
               </li>
             ))}
           </ul>
         </details>
       )}
 
-      <p className="text-xs text-on-surface-variant">
+      <p className="text-[11px] leading-relaxed text-on-surface-variant">
         Fonte: {FONTE_PROGRAMMA.fonte}, {FONTE_PROGRAMMA.riferimento} (versione{' '}
         {FONTE_PROGRAMMA.versione}). Solo gare individuali: verifica sempre il regolamento della
         singola manifestazione.

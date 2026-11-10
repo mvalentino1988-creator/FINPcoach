@@ -13,7 +13,9 @@ import {
   ChevronRight,
   ExternalLink,
   FileText,
-  X
+  X,
+  Scale,
+  BadgeCheck
 } from 'lucide-react';
 
 type DocFiltro = 'tutti' | string;
@@ -62,7 +64,7 @@ function evidenzia(testo: string, query: string): React.ReactNode {
   uniti.forEach(([a, b], i) => {
     if (a > cursore) nodi.push(testo.slice(cursore, a));
     nodi.push(
-      <mark key={i} className="bg-amber-200 text-on-surface rounded px-0.5">
+      <mark key={i} className="bg-tertiary-fixed text-on-tertiary-fixed rounded px-0.5">
         {testo.slice(a, b)}
       </mark>
     );
@@ -144,14 +146,14 @@ export const RegolamentiScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => toggleSezione(chiave)}
-            className="w-full flex items-start gap-3 px-3 h-12 text-left hover:bg-surface-container-low transition"
+            className="w-full flex items-start gap-3 px-3 py-2.5 text-left hover:bg-surface-container-low transition"
           >
             <span className="mt-0.5 text-outline shrink-0">
               {aperta ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
             </span>
             <span className="flex-1 min-w-0">
-              <span className="block font-semibold text-on-surface text-[13px] leading-snug">{sezione.titolo}</span>
-              {!aperta && <span className="block text-xs text-on-surface-variant mt-0.5">{anteprima(sezione.testo)}</span>}
+              <span className="block font-body-bold text-body-bold text-on-surface text-[13px] leading-snug">{sezione.titolo}</span>
+              {!aperta && <span className="block font-label-caps text-[10px] text-on-surface-variant mt-0.5 normal-case tracking-normal font-medium">{anteprima(sezione.testo)}</span>}
             </span>
           </button>
         )}
@@ -172,28 +174,28 @@ export const RegolamentiScreen: React.FC = () => {
       <div
         key={chiave}
         id={`cap-${docId}-${cap.chiave}`}
-        className="border border-slate-200/70 rounded-xl overflow-hidden bg-surface-container-lowest shadow-card scroll-mt-4"
+        className="border border-outline-variant/60 rounded-xl overflow-hidden bg-surface-container-lowest shadow-sm scroll-mt-4"
       >
         <button
           type="button"
           onClick={() => toggleCapitolo(chiave)}
-          className="w-full flex items-center gap-3 p-3 text-left hover:bg-surface-container-low transition"
+          className="w-full flex items-center gap-2.5 p-3 text-left hover:bg-surface-container-low transition"
         >
           <span className="text-on-surface-variant shrink-0">
             {aperto ? <ChevronDown size={17} /> : <ChevronRight size={17} />}
           </span>
           {cap.codice && (
-            <span className="shrink-0 text-xs font-bold uppercase tracking-wider text-primary-container bg-surface-container-low border border-primary-fixed-dim rounded-md px-1.5 py-0.5">
+            <span className="shrink-0 font-headline-sm text-[12px] font-bold uppercase tracking-wide text-on-primary-fixed bg-primary-fixed rounded-md px-1.5 py-0.5">
               {cap.codice}
             </span>
           )}
-          <span className="flex-1 min-w-0 font-bold text-on-surface text-sm leading-snug">{cap.titolo}</span>
-          <span className="shrink-0 text-xs font-semibold text-on-surface-variant">
-            {cap.sezioni.length} {cap.sezioni.length === 1 ? 'articolo' : 'articoli'}
+          <span className="flex-1 min-w-0 font-body-bold text-body-bold text-on-surface text-sm leading-snug">{cap.titolo}</span>
+          <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-caps text-[9px] font-bold uppercase">
+            {cap.sezioni.length} {cap.sezioni.length === 1 ? 'art.' : 'articoli'}
           </span>
         </button>
         {aperto && (
-          <div className="border-t border-slate-200/70 divide-y divide-slate-100">
+          <div className="border-t border-outline-variant/60 divide-y divide-outline-variant/40">
             {cap.sezioni.map(s => renderSezione(docId, s, singola))}
           </div>
         )}
@@ -202,73 +204,77 @@ export const RegolamentiScreen: React.FC = () => {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Title */}
-      <div>
-        <h2 className="ds-title flex items-center gap-2">
-          <BookOpen size={22} className="text-primary-container" />
-          <span>Regolamenti FINP e World Para Swimming</span>
-        </h2>
-        <p className="text-xs text-on-surface-variant mt-0.5">
-          Cerca una parola oppure scegli una fonte e apri il capitolo desiderato. Testi offline aggiornati al {meta.aggiornato}.
-        </p>
+      <div className="flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+        <div className="min-w-0">
+          <h2 className="font-headline-sm text-headline-sm text-on-surface">Regolamento WPS &amp; Classificazioni</h2>
+          <p className="font-label-caps text-label-caps text-on-surface-variant truncate">
+            Cerca una parola oppure scegli una fonte e apri il capitolo · snapshot {meta.aggiornato}
+          </p>
+        </div>
       </div>
 
-      {/* Search */}
-      <div className="ds-card p-3 shadow-card space-y-3">
+      {/* Search (Stitch: rapid search field, 48px) */}
+      <div className="ds-card p-3 shadow-card space-y-2.5">
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none" />
           <input
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Cerca nei regolamenti (es. categorie età, partenze, staffette, classificazione…)"
-            className="w-full pl-9 pr-9 h-12 rounded-xl border border-slate-200/70 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary-container"
+            placeholder="Cerca regola (es. categorie età, partenze, staffette, S11…)"
+            className="w-full h-12 pl-10 pr-10 bg-surface-container-lowest rounded-xl border-0 text-sm text-on-surface shadow-sm focus:outline-none focus:bg-surface-container-low transition-all"
           />
           {query && (
             <button
               type="button"
               onClick={() => setQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface-variant"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container flex items-center justify-center"
               title="Cancella"
+              aria-label="Cancella ricerca"
             >
               <X size={16} />
             </button>
           )}
         </div>
 
-        {/* Document filter */}
-        <div className="flex flex-wrap gap-1.5">
+        {/* Document filter — discipline carousel pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto ds-hscroll py-0.5 -mx-1 px-1">
           <button
             type="button"
             onClick={() => setDocFiltro('tutti')}
-            className={`px-3 h-12 rounded-xl text-xs font-bold transition ${
-              docFiltro === 'tutti' ? 'bg-primary-container text-on-primary shadow-card' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+            className={`px-2.5 py-1.5 min-h-[36px] rounded-full font-label-caps text-label-caps whitespace-nowrap transition ${
+              docFiltro === 'tutti'
+                ? 'bg-primary-container text-on-primary-container shadow-sm'
+                : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
             }`}
           >
-            Tutti
+            Tutti i documenti
           </button>
           {documenti.map(d => (
             <button
               key={d.id}
               type="button"
               onClick={() => setDocFiltro(d.id)}
-              className={`px-3 h-12 rounded-xl text-xs font-bold transition ${
-                docFiltro === d.id ? 'bg-primary-container text-on-primary shadow-card' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+              className={`px-2.5 py-1.5 min-h-[36px] rounded-full font-label-caps text-label-caps whitespace-nowrap transition ${
+                docFiltro === d.id
+                  ? 'bg-primary-container text-on-primary-container shadow-sm'
+                  : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
               }`}
             >
               {d.fonte}
             </button>
           ))}
         </div>
-
       </div>
 
       {/* Results */}
       {inRicerca ? (
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-on-surface">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="font-headline-sm text-headline-sm text-on-surface">
               {risultati.length > 0
                 ? `${risultati.length} risultati per “${query.trim()}”`
                 : `Nessun risultato per “${query.trim()}”`}
@@ -276,7 +282,7 @@ export const RegolamentiScreen: React.FC = () => {
           </div>
 
           {risultati.length === 0 && (
-            <div className="p-4 rounded-xl bg-surface-container-low border border-slate-200/70 text-xs text-on-surface-variant flex items-start gap-2">
+            <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/60 text-xs text-on-surface-variant flex items-start gap-2">
               <Info size={14} className="mt-0.5 shrink-0 text-on-surface-variant" />
               <span>
                 Prova con parole più semplici o sinonimi (es. “età”, “classe”, “partenza”, “vasca”, “protesta”).
@@ -286,12 +292,12 @@ export const RegolamentiScreen: React.FC = () => {
           )}
 
           {risultati.map(r => (
-            <div key={`${r.documentoId}#${r.indice}`} className="ds-card p-4 shadow-card space-y-2">
+            <div key={`${r.documentoId}#${r.indice}`} className="bg-surface-container-lowest p-3 rounded-xl shadow-sm space-y-1.5">
               <div className="flex items-start justify-between gap-2">
-                <h4 className="font-bold text-on-surface text-sm leading-snug">
+                <h4 className="font-body-bold text-body-bold text-on-surface text-sm leading-snug">
                   {evidenzia(r.sezione.titolo, query)}
                 </h4>
-                <span className="text-xs font-bold uppercase tracking-wider text-primary-container bg-surface-container-low border border-primary-fixed-dim rounded-full px-3 py-0.5 shrink-0">
+                <span className="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-caps text-[9px] font-bold uppercase shrink-0">
                   {r.fonte}
                 </span>
               </div>
@@ -300,7 +306,7 @@ export const RegolamentiScreen: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => apriRisultato(r)}
-                  className="text-xs font-bold text-primary-container hover:underline flex items-center gap-1"
+                  className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
                 >
                   <FileText size={12} />
                   Apri nel documento
@@ -321,17 +327,17 @@ export const RegolamentiScreen: React.FC = () => {
       ) : (
         /* Browse mode */
         <div className="space-y-4">
-          <p className="text-xs text-on-surface-variant">
+          <p className="text-xs text-on-surface-variant px-1">
             {docFiltro === 'tutti' ? 'Scegli una fonte per restringere l’elenco, poi apri un capitolo.' : 'Apri un capitolo per leggere i relativi articoli.'}
           </p>
           {/* Chapters */}
           {documentiVisibili.map(({ doc, capitoli }) => (
             <div key={doc.id} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-on-surface flex items-center gap-2">
-                  <FileText size={15} className="text-primary-container" />
-                  <span>{doc.titolo}</span>
-                  <span className="text-xs font-semibold text-on-surface-variant">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2 min-w-0">
+                  <Scale size={15} className="text-primary shrink-0" />
+                  <span className="truncate">{doc.titolo}</span>
+                  <span className="font-label-caps text-[10px] font-semibold text-on-surface-variant shrink-0">
                     {capitoli.length} capitoli
                   </span>
                 </h3>
@@ -339,7 +345,7 @@ export const RegolamentiScreen: React.FC = () => {
                   href={doc.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-xs font-semibold text-on-surface-variant hover:text-on-surface flex items-center gap-1"
+                  className="text-xs font-semibold text-on-surface-variant hover:text-on-surface flex items-center gap-1 shrink-0"
                 >
                   <ExternalLink size={12} />
                   Fonte
@@ -354,8 +360,8 @@ export const RegolamentiScreen: React.FC = () => {
       )}
 
       {/* Source note */}
-      <div className="p-3 rounded-xl bg-surface-container-low border border-slate-200/70 text-xs text-on-surface-variant flex items-start gap-2">
-        <Info size={14} className="mt-0.5 shrink-0 text-on-surface-variant" />
+      <div className="p-3 rounded-xl bg-surface-container-low border border-outline-variant/60 text-xs text-on-surface-variant flex items-start gap-2">
+        <BadgeCheck size={14} className="mt-0.5 shrink-0 text-secondary" />
         <span>
           Testi consultabili offline (snapshot {meta.aggiornato}). In caso di discordanza fa fede il testo ufficiale
           pubblicato da FINP e World Para Swimming. La ricerca è locale e non sostituisce la consultazione della fonte.

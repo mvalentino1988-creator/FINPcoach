@@ -149,23 +149,24 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
-      <div className="w-full sm:max-w-2xl bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl shadow-xl border border-slate-200/70 max-h-[94vh] overflow-y-auto">
-        <div className="flex items-center justify-between gap-3 p-4 border-b border-slate-200/70 sticky top-0 bg-surface-container-lowest">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-fade-in">
+      <div className="w-full sm:max-w-2xl bg-surface-container-lowest rounded-t-3xl sm:rounded-3xl border border-outline-variant shadow-float max-h-[94dvh] overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-5 pt-4 sm:pt-5 pb-3 border-b border-outline-variant shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <span className="w-9 h-9 rounded-lg bg-primary text-on-primary flex items-center justify-center shrink-0">
-              <Bot size={18} />
+            <span className="w-10 h-10 rounded-xl bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center shrink-0">
+              <Bot size={20} />
             </span>
             <div className="min-w-0">
-              <h3 className="font-headline-sm text-headline-sm text-on-surface leading-snug">
-                Genera scheda con IA esterna
+              <h3 className="font-label-caps text-label-caps uppercase tracking-wider text-on-surface leading-snug">
+                Genera Scheda con IA Esterna
               </h3>
-              <p className="ds-label !normal-case">
+              <p className="text-xs text-on-surface-variant mt-0.5 truncate">
                 {atleta ? `${atleta.cognome} ${atleta.nome}` : 'Squadra'} · {formattaData(data)} · {volumeSessione} m
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <button type="button" onClick={() => setMostraConfig(!mostraConfig)} className="ds-btn-icon" title="Configurazione IA">
               <Settings size={18} />
             </button>
@@ -175,9 +176,10 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
           </div>
         </div>
 
-        <div className="p-4 space-y-4">
+        {/* Body */}
+        <div className="p-4 sm:p-5 space-y-4 overflow-y-auto">
           {mostraConfig && (
-            <div className="rounded-xl border border-slate-200/70 bg-surface-container-low p-3 space-y-2">
+            <div className="ds-card-flat p-3.5 space-y-2.5">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-body-bold font-body-bold text-on-surface">Endpoint OpenAI-compatible</span>
                 <span className="ds-label">Salvato in locale</span>
@@ -187,13 +189,13 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
                   value={config.endpoint}
                   onChange={(e) => setConfig({ ...config, endpoint: e.target.value })}
                   placeholder="https://api.openai.com/v1"
-                  className="px-3 h-11 border border-outline-variant rounded-lg text-sm"
+                  className="ds-input !h-11"
                 />
                 <input
                   value={config.model}
                   onChange={(e) => setConfig({ ...config, model: e.target.value })}
                   placeholder="gpt-4o-mini"
-                  className="px-3 h-11 border border-outline-variant rounded-lg text-sm"
+                  className="ds-input !h-11"
                 />
               </div>
               <input
@@ -201,33 +203,33 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
                 value={config.apiKey}
                 onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
                 placeholder="API key"
-                className="w-full px-3 h-11 border border-outline-variant rounded-lg text-sm"
+                className="ds-input"
               />
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <select
                   value={config.providerWeb}
                   onChange={(e) => setConfig({ ...config, providerWeb: e.target.value as any })}
-                  className="px-3 h-11 border border-outline-variant rounded-lg text-sm"
+                  className="ds-select flex-1"
                 >
                   <option value="chatgpt">ChatGPT</option>
                   <option value="claude">Claude</option>
                   <option value="gemini">Gemini</option>
                 </select>
-                <button type="button" onClick={salvaConfig} className="ds-btn-primary">
+                <button type="button" onClick={salvaConfig} className="ds-btn-primary !min-h-[44px]">
                   Salva configurazione
                 </button>
               </div>
             </div>
           )}
 
-          <div className="rounded-xl border border-slate-200/70 bg-surface-container-low p-3 space-y-2">
+          <div className="ds-card-flat p-3.5 space-y-2.5">
             <div className="flex items-center justify-between gap-2">
               <span className="text-body-bold font-body-bold text-on-surface">Prompt preimpostato</span>
               <div className="flex items-center gap-1">
-                <button type="button" onClick={copiaPrompt} className="ds-btn-icon" title="Copia prompt">
+                <button type="button" onClick={copiaPrompt} className="ds-btn-icon !w-9 !h-9" title="Copia prompt">
                   <Copy size={16} />
                 </button>
-                <button type="button" onClick={apriWeb} className="ds-btn-icon" title="Apri IA web">
+                <button type="button" onClick={apriWeb} className="ds-btn-icon !w-9 !h-9" title="Apri IA web">
                   <ExternalLink size={16} />
                 </button>
               </div>
@@ -235,9 +237,9 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
             <textarea
               readOnly
               value={promptGenerato}
-              className="w-full h-40 p-3 border border-outline-variant rounded-lg text-xs font-mono resize-none"
+              className="ds-input !h-auto min-h-[10rem] p-3 font-mono text-xs resize-none"
             />
-            {copiato && <p className="text-body-base font-body-base text-primary">Prompt copiato negli appunti.</p>}
+            {copiato && <p className="ds-chip-green self-start !min-h-0">Prompt copiato negli appunti.</p>}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
@@ -245,30 +247,30 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
               type="button"
               onClick={generaConAPI}
               disabled={caricamento}
-              className="ds-btn-primary flex-1"
+              className="ds-btn-primary flex-1 disabled:opacity-50"
             >
               {caricamento ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
               <span>Genera con endpoint configurato</span>
             </button>
-            <button type="button" onClick={apriWeb} className="ds-btn-ghost flex-1">
+            <button type="button" onClick={apriWeb} className="ds-btn-secondary flex-1">
               <ExternalLink size={18} />
               <span>Copia prompt e apri {config.providerWeb}</span>
             </button>
           </div>
 
           {avvisoWeb && (
-            <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-body-base font-body-base text-on-surface">
+            <div className="rounded-xl border border-primary/30 bg-primary-fixed/30 p-3 text-body-base font-body-base text-on-surface">
               {avvisoWeb}
             </div>
           )}
 
           {errore && (
-            <div className="rounded-xl border border-error/40 bg-error-container p-3 text-body-base font-body-base text-on-error-container">
+            <div className="ds-chip-coral !min-h-0 self-start">
               {errore}
             </div>
           )}
 
-          <div className="rounded-xl border border-slate-200/70 bg-surface-container-low p-3 space-y-2">
+          <div className="ds-card-flat p-3.5 space-y-2.5">
             <div className="flex items-center justify-between gap-2">
               <span className="text-body-bold font-body-bold text-on-surface">Risposta IA</span>
               <span className="ds-label">Revisione prima del salvataggio</span>
@@ -277,19 +279,19 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
               value={testoIA}
               onChange={(e) => setTestoIA(e.target.value)}
               placeholder="Incolla qui la risposta dell'IA (JSON o testo con le serie)…"
-              className="w-full h-32 p-3 border border-outline-variant rounded-lg text-xs font-mono resize-none"
+              className="ds-input !h-auto min-h-[8rem] p-3 font-mono text-xs resize-none"
             />
             {anteprimaTesto && (
-              <div className="rounded-lg border border-outline-variant bg-surface-container-lowest p-3 max-h-36 overflow-y-auto">
-                <div className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Anteprima scheda</div>
-                <pre className="whitespace-pre-wrap text-xs text-on-surface font-body">{anteprimaTesto}</pre>
+              <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-3 max-h-36 overflow-y-auto">
+                <div className="ds-label mb-1.5">Anteprima scheda</div>
+                <pre className="whitespace-pre-wrap text-xs text-on-surface font-body-base">{anteprimaTesto}</pre>
               </div>
             )}
             <button
               type="button"
               onClick={usaTestoIA}
               disabled={!anteprimaTesto}
-              className="ds-btn-primary disabled:opacity-50"
+              className="ds-btn-primary w-full disabled:opacity-50"
             >
               <Sparkles size={18} />
               <span>Salva scheda</span>

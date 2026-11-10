@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
+import { Timer, X, Check, Award, Sparkles } from 'lucide-react';
 import { Atleta, Tempo, Stile } from '../types';
 import { todayISO, formattaData } from '../domain/dateUtils';
 import { parseTempo, formattaTempo } from '../domain/tempoUtils';
-import { Timer, X, Check, Award, Sparkles } from 'lucide-react';
 
 interface Props {
   atleta: Atleta;
@@ -67,92 +67,105 @@ export const TestCalibrazioneModal: React.FC<Props> = ({ atleta, onClose, onSalv
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in text-on-surface">
-      <div className="bg-surface-container-lowest rounded-3xl p-6 max-w-md w-full shadow-float border border-outline-variant space-y-5">
-        <div className="flex items-center justify-between pb-3 border-b border-outline-variant">
-          <div className="flex items-center gap-2">
-            <div className="w-10 min-h-[48px] rounded-2xl bg-gradient-to-br from-primary to-primary-container text-white flex items-center justify-center shadow-primary-sm">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in text-on-surface">
+      <div className="bg-surface-container-lowest rounded-t-3xl sm:rounded-3xl p-0 max-w-md w-full shadow-float border border-outline-variant space-y-0 flex flex-col max-h-[92dvh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-4 border-b border-outline-variant shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 min-h-[40px] rounded-xl bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center shrink-0">
               <Award size={20} />
             </div>
-            <div>
-              <h3 className="font-headline font-bold text-base">Test di Calibrazione</h3>
-              <p className="text-xs text-on-surface-variant">{atleta.cognome} {atleta.nome} (S{classeS})</p>
+            <div className="min-w-0">
+              <h3 className="font-label-caps text-label-caps uppercase tracking-wider text-on-surface leading-tight">
+                Test di Calibrazione
+              </h3>
+              <p className="text-xs text-on-surface-variant mt-0.5 truncate">
+                {atleta.cognome} {atleta.nome} (S{classeS})
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-3 rounded-full hover:bg-surface-container">
+          <button onClick={onClose} className="ds-btn-icon shrink-0" aria-label="Chiudi">
             <X size={20} />
           </button>
         </div>
 
-        <div className="p-3.5 bg-primary rounded-2xl border border-primary/20 space-y-1.5">
-          <div className="font-headline font-bold text-xs text-primary flex items-center gap-1.5">
-            <Sparkles size={14} />
-            <span>{testInfo.titolo}</span>
-          </div>
-          <p className="text-xs text-on-surface-variant leading-relaxed">{testInfo.descrizione}</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          <div>
-            <label className="font-bold block mb-1">Tipologia Vasca</label>
-            <div className="flex gap-2">
-              {[25, 50].map(v => (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => setVasca(v)}
-                  className={`flex-1 py-2 rounded-xl font-headline font-bold transition ${vasca === v ? 'bg-primary text-on-primary shadow-primary-sm' : 'bg-surface-container text-on-surface'}`}
-                >
-                  Vasca {v}m
-                </button>
-              ))}
+        <div className="p-5 space-y-5">
+          {/* Info test */}
+          <div className="p-3.5 bg-primary-fixed/50 border border-primary-fixed-dim rounded-xl space-y-1.5">
+            <div className="font-headline font-bold text-xs text-on-primary-fixed-variant flex items-center gap-1.5">
+              <Sparkles size={14} className="text-primary" />
+              <span>{testInfo.titolo}</span>
             </div>
+            <p className="text-xs text-on-surface-variant leading-relaxed">{testInfo.descrizione}</p>
           </div>
 
-          <div>
-            <label className="font-bold block mb-1">Tempo Rilevato nel Test (mm:ss.cc o ss.cc) *</label>
-            <input
-              type="text"
-              value={tempoInput}
-              onChange={e => setTempoInput(e.target.value)}
-              placeholder="es. 1:12.45 o 29.10"
-              className="w-full px-3 h-12 bg-surface-container-low border border-outline-variant rounded-xl font-mono text-sm font-bold text-primary focus:border-primary focus:outline-none"
-              autoFocus
-            />
-            {centesimi && (
-              <div className="text-xs text-success font-bold mt-1">
-                Tempo valido riconosciuto: {formattaTempo(centesimi)}
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            <div>
+              <label className="ds-label block mb-1.5">Tipologia Vasca</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[25, 50].map(v => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setVasca(v)}
+                    className={`min-h-[44px] rounded-xl font-headline font-bold text-sm border transition ${
+                      vasca === v
+                        ? 'bg-primary text-on-primary border-primary shadow-primary-sm'
+                        : 'bg-surface-container-low text-on-surface border-outline-variant hover:bg-surface-container'
+                    }`}
+                  >
+                    Vasca {v}m
+                  </button>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
 
-          <div>
-            <label className="font-bold block mb-1">Note / Osservazioni</label>
-            <input
-              type="text"
-              value={notaTest}
-              onChange={e => setNotaTest(e.target.value)}
-              className="w-full px-3 min-h-[48px] bg-surface-container-low border border-outline-variant rounded-xl"
-            />
-          </div>
+            <div>
+              <label className="ds-label block mb-1.5">Tempo Rilevato nel Test (mm:ss.cc o ss.cc) *</label>
+              <input
+                type="text"
+                value={tempoInput}
+                onChange={e => setTempoInput(e.target.value)}
+                placeholder="es. 1:12.45 o 29.10"
+                className="ds-input !h-12 font-mono text-sm font-bold text-primary"
+                autoFocus
+              />
+              {centesimi && (
+                <div className="ds-chip-green mt-2 !min-h-0">
+                  <Check size={14} />
+                  <span>Tempo valido: {formattaTempo(centesimi)}</span>
+                </div>
+              )}
+            </div>
 
-          <div className="flex gap-3 pt-2 border-t border-outline-variant">
-            <button
-              type="submit"
-              disabled={!centesimi}
-              className="ds-btn-primary flex-1 justify-center py-3 disabled:opacity-50"
-            >
-              <Check size={16} /> Salva Risultato e Ricalcola Ritmi
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="ds-btn-secondary"
-            >
-              Annulla
-            </button>
-          </div>
-        </form>
+            <div>
+              <label className="ds-label block mb-1.5">Note / Osservazioni</label>
+              <input
+                type="text"
+                value={notaTest}
+                onChange={e => setNotaTest(e.target.value)}
+                className="ds-input"
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-outline-variant">
+              <button
+                type="submit"
+                disabled={!centesimi}
+                className="ds-btn-primary flex-1 disabled:opacity-50"
+              >
+                <Check size={16} /> Salva Risultato e Ricalcola Ritmi
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="ds-btn-secondary"
+              >
+                Annulla
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
