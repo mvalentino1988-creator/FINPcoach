@@ -8,15 +8,16 @@ import {
 import {
   BookOpen,
   Search,
-  Info,
   ChevronDown,
   ChevronRight,
   ExternalLink,
   FileText,
   X,
   Scale,
-  BadgeCheck
+  BadgeCheck,
+  SearchX
 } from 'lucide-react';
+import { EmptyState } from './ui';
 
 type DocFiltro = 'tutti' | string;
 
@@ -146,7 +147,7 @@ export const RegolamentiScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => toggleSezione(chiave)}
-            className="w-full flex items-start gap-3 px-3 py-2.5 text-left hover:bg-surface-container-low transition"
+            className="w-full flex items-start gap-3 px-3 min-h-[48px] py-2.5 text-left hover:bg-surface-container-low transition"
           >
             <span className="mt-0.5 text-outline shrink-0">
               {aperta ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
@@ -179,7 +180,7 @@ export const RegolamentiScreen: React.FC = () => {
         <button
           type="button"
           onClick={() => toggleCapitolo(chiave)}
-          className="w-full flex items-center gap-2.5 p-3 text-left hover:bg-surface-container-low transition"
+          className="w-full flex items-center gap-2.5 p-3 min-h-[48px] text-left hover:bg-surface-container-low transition"
         >
           <span className="text-on-surface-variant shrink-0">
             {aperto ? <ChevronDown size={17} /> : <ChevronRight size={17} />}
@@ -216,26 +217,31 @@ export const RegolamentiScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Search (Stitch: rapid search field, 48px) */}
+      {/* Search (campo ben visibile, 48px) */}
       <div className="ds-card p-3 shadow-card space-y-2.5">
+        <label htmlFor="ricerca-regolamenti" className="ds-label flex items-center gap-1.5">
+          <Search size={14} className="text-primary" />
+          Cerca nel regolamento
+        </label>
         <div className="relative">
           <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none" />
           <input
-            type="text"
+            id="ricerca-regolamenti"
+            type="search"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Cerca regola (es. categorie età, partenze, staffette, S11…)"
-            className="w-full h-12 pl-10 pr-10 bg-surface-container-lowest rounded-xl border-0 text-sm text-on-surface shadow-sm focus:outline-none focus:bg-surface-container-low transition-all"
+            placeholder="es. categorie età, partenze, staffette, S11…"
+            className="w-full h-12 pl-10 pr-12 bg-surface-container-lowest rounded-xl border-2 border-outline-variant text-base text-on-surface shadow-sm focus:outline-none focus:border-primary transition-all"
           />
           {query && (
             <button
               type="button"
               onClick={() => setQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container flex items-center justify-center"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container flex items-center justify-center"
               title="Cancella"
               aria-label="Cancella ricerca"
             >
-              <X size={16} />
+              <X size={18} />
             </button>
           )}
         </div>
@@ -245,7 +251,7 @@ export const RegolamentiScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => setDocFiltro('tutti')}
-            className={`px-2.5 py-1.5 min-h-[36px] rounded-full font-label-caps text-label-caps whitespace-nowrap transition ${
+            className={`px-3 min-h-[48px] rounded-full font-label-caps text-label-caps whitespace-nowrap transition ${
               docFiltro === 'tutti'
                 ? 'bg-primary-container text-on-primary-container shadow-sm'
                 : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
@@ -258,7 +264,7 @@ export const RegolamentiScreen: React.FC = () => {
               key={d.id}
               type="button"
               onClick={() => setDocFiltro(d.id)}
-              className={`px-2.5 py-1.5 min-h-[36px] rounded-full font-label-caps text-label-caps whitespace-nowrap transition ${
+              className={`px-3 min-h-[48px] rounded-full font-label-caps text-label-caps whitespace-nowrap transition ${
                 docFiltro === d.id
                   ? 'bg-primary-container text-on-primary-container shadow-sm'
                   : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
@@ -282,13 +288,13 @@ export const RegolamentiScreen: React.FC = () => {
           </div>
 
           {risultati.length === 0 && (
-            <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/60 text-xs text-on-surface-variant flex items-start gap-2">
-              <Info size={14} className="mt-0.5 shrink-0 text-on-surface-variant" />
-              <span>
-                Prova con parole più semplici o sinonimi (es. “età”, “classe”, “partenza”, “vasca”, “protesta”).
-                La ricerca è locale e non usa internet.
-              </span>
-            </div>
+            <EmptyState
+              icon={<SearchX size={40} strokeWidth={1.5} />}
+              title={`Nessun risultato per “${query.trim()}”`}
+              message="Prova con parole più semplici o sinonimi (es. “età”, “classe”, “partenza”, “vasca”, “protesta”). La ricerca è locale e non usa internet."
+              actionLabel="Cancella ricerca"
+              onAction={() => setQuery('')}
+            />
           )}
 
           {risultati.map(r => (

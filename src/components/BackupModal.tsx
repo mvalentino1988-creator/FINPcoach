@@ -3,15 +3,22 @@ import { FINPStorage } from '../data/storage';
 import { FirebaseSync, SyncStatus } from '../data/firebaseSync';
 import { isFirebaseConfigured } from '../data/firebaseConfig';
 import { LoginScreen } from './LoginScreen';
-import { Download, Upload, RefreshCw, X, CheckCircle, AlertTriangle, ShieldCheck, Database, Cloud, CloudOff, LogOut, Loader2, Trash2, Info } from 'lucide-react';
+import { Download, Upload, RefreshCw, X, ShieldCheck, Database, Cloud, CloudOff, LogOut, Loader2, Trash2, Info, AlertTriangle } from 'lucide-react';
+import { Button, Modal, ToastProvider, useToast } from './ui';
 
 interface Props {
   onClose: () => void;
 }
 
-export const BackupModal: React.FC<Props> = ({ onClose }) => {
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+export const BackupModal: React.FC<Props> = (props) => (
+  <ToastProvider>
+    <BackupModalContent {...props} />
+  </ToastProvider>
+);
+
+const BackupModalContent: React.FC<Props> = ({ onClose }) => {
+  const { toast } = useToast();
+  const [pendingImport, setPendingImport] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Firebase sync state
@@ -35,7 +42,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
   // Toggle sync
   const handleToggleSync = async () => {
     if (!isConfigured) {
-      setErrorMsg('Firebase non configurato. Controlla il file .env');
+      toast({ variant: 'error', title: 'Firebase non configurato', message: 'Controlla il file .env' });
       return;
     }
 
@@ -46,7 +53,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
       if (!FirebaseSync.getCurrentUser()) {
         setShowLogin(true);
       } else {
-        setSuccessMsg('Sincronizzazione cloud abilitata.');
+        toast({ variant: 'success', title: 'Sincronizzazione attiva', message: 'Sincronizzazione cloud abilitata.' });
       }
     } else {
       // Disable sync
@@ -55,15 +62,14 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
       await FirebaseSync.logout();
       setSyncStatus('disconnected');
       setLastSync(null);
-      setSuccessMsg('Sincronizzazione cloud disabilitata.');
+      toast({ variant: 'info', title: 'Sincronizzazione disattivata', message: 'I dati restano disponibili offline.' });
     }
-    setTimeout(() => setSuccessMsg(null), 3000);
   };
 
   // Manual sync
   const handleManualSync = async () => {
     if (!syncEnabled || !FirebaseSync.getCurrentUser()) {
-      setErrorMsg('Effettua prima il login per sincronizzare');
+      toast({ variant: 'error', title: 'Accesso richiesto', message: 'Effettua prima il login per sincronizzare' });
       return;
     }
 
@@ -91,16 +97,14 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
       if (success) {
         const state = FirebaseSync.getState();
         setLastSync(state.lastSync);
-        setSuccessMsg('Dati sincronizzati con successo!');
+        toast({ variant: 'success', title: 'Sincronizzazione completata', message: 'Dati sincronizzati con successo!' });
       } else {
-        setErrorMsg('Errore durante la sincronizzazione');
+        toast({ variant: 'error', title: 'Errore di sincronizzazione', message: 'Riprova più tardi' });
       }
     } catch (err) {
-      setErrorMsg('Errore durante la sincronizzazione');
+      toast({ variant: 'error', title: 'Errore di sincronizzazione', message: 'Impossibile raggiungere il cloud' });
     }
     setSyncing(false);
-    setTimeout(() => setSuccessMsg(null), 3000);
-    setTimeout(() => setErrorMsg(null), 3000);
   };
 
   // Logout
@@ -109,8 +113,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
       await FirebaseSync.logout();
       setSyncStatus('disconnected');
       setLastSync(null);
-      setSuccessMsg('Logout effettuato con successo');
-      setTimeout(() => setSuccessMsg(null), 3000);
+      toast({ variant: 'info', title: 'Logout effettuato', message: 'I dati rimarranno disponibili offline.' });
     }
   };
 
@@ -121,8 +124,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
       const fileName = `FINPcoach_backup_${dateStr}.json`;
       const bridge = (window as unknown as { AndroidBridge?: { exportTextFile?: (n: string, c: string) => boolean } }).AndroidBridge;
       if (bridge?.exportTextFile?.(fileName, json)) {
-        setSuccessMsg('Backup salvato in Download!');
-        setTimeout(() => setSuccessMsg(null), 3000);
+        toast({ variant: 'success', title: 'Backup esportato', message: 'Backup salvato in Download!' });
         return;
       }
       const blob = new Blob([json], { type: 'application/json' });
@@ -134,10 +136,9 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      setSuccessMsg('Backup scaricato con successo!');
-      setTimeout(() => setSuccessMsg(null), 3000);
+      toast({ variant: 'success', title: 'Backup esportato', message: 'Backup scaricato con successo!' });
     } catch {
-      setErrorMsg('Errore durante la generazione del backup.');
+      toast({ variant: 'error', title: 'Errore export', message: 'Errore durante la generazione del backup.' });
     }
   };
 
@@ -149,26 +150,39 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
     reader.onload = (event) => {
       try {
         const content = event.target?.result as string;
-        const ok = FINPStorage.importBackup(content);
-        if (ok) {
-          setSuccessMsg('Dati importati con successo! Ricarico l\'app...');
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
-        } else {
-          setErrorMsg('Formato del file di backup non valido.');
-        }
+        // Conferma in modal prima di sovrascrivere i dati esistenti
+        setPendingImport(content);
       } catch {
-        setErrorMsg('Impossibile leggere il file selezionato.');
+        toast({ variant: 'error', title: 'File non leggibile', message: 'Impossibile leggere il file selezionato.' });
       }
     };
     reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const confermaImport = () => {
+    if (pendingImport == null) return;
+    const content = pendingImport;
+    setPendingImport(null);
+    try {
+      const ok = FINPStorage.importBackup(content);
+      if (ok) {
+        toast({ variant: 'success', title: 'Import completato', message: 'Dati importati con successo! Ricarico…' });
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        toast({ variant: 'error', title: 'Backup non valido', message: 'Formato del file di backup non valido.' });
+      }
+    } catch {
+      toast({ variant: 'error', title: 'Import fallito', message: 'Impossibile leggere il file selezionato.' });
+    }
   };
 
   const handleResetDemo = () => {
     if (confirm('Vuoi davvero ripristinare i dati demo predefiniti? Tutte le modifiche attuali verranno sovrascritte.')) {
       FINPStorage.resetToDefault();
-      setSuccessMsg('Dati ripristinati! Ricarico...');
+      toast({ variant: 'success', title: 'Dati ripristinati', message: 'Ricarico…' });
       setTimeout(() => {
         window.location.reload();
       }, 800);
@@ -184,7 +198,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
       )
     ) {
       FINPStorage.startLiveSquad();
-      setSuccessMsg('Squadra svuotata! Ricarico...');
+      toast({ variant: 'success', title: 'Squadra svuotata', message: 'Ricarico…' });
       setTimeout(() => {
         window.location.reload();
       }, 800);
@@ -197,8 +211,7 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
         onLoginSuccess={() => {
           setShowLogin(false);
           setSyncStatus(FirebaseSync.getState().status);
-          setSuccessMsg('Accesso effettuato. Sincronizzazione attiva.');
-          setTimeout(() => setSuccessMsg(null), 3000);
+          toast({ variant: 'success', title: 'Accesso effettuato', message: 'Sincronizzazione attiva.' });
         }}
         onSkip={() => setShowLogin(false)}
       />
@@ -240,20 +253,6 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
 
         {/* Body */}
         <div className="p-4 sm:p-5 space-y-3 text-[13px] leading-relaxed flex-1 min-h-0 overflow-y-auto">
-          {successMsg && (
-            <div className="flex items-center gap-3 p-3 bg-success-container text-on-success-container border border-success/25 rounded-xl font-bold">
-              <CheckCircle size={16} className="text-success shrink-0" />
-              <span>{successMsg}</span>
-            </div>
-          )}
-
-          {errorMsg && (
-            <div className="flex items-center gap-3 p-3 bg-error-container text-on-error-container border border-error/40 rounded-xl font-bold">
-              <AlertTriangle size={16} className="text-error shrink-0" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-
           <div className="p-3.5 bg-primary-fixed/40 border border-primary/20 rounded-xl flex items-start gap-3">
             <ShieldCheck size={18} className="text-primary shrink-0 mt-0.5" />
             <p className="text-on-surface-variant leading-relaxed text-xs">
@@ -430,14 +429,37 @@ export const BackupModal: React.FC<Props> = ({ onClose }) => {
 
         {/* Footer */}
         <div className="p-3 sm:px-5 bg-surface-container-low border-t border-outline-variant flex justify-end shrink-0">
-          <button
-            onClick={onClose}
-            className="ds-btn-ghost"
-          >
+          <Button variant="ghost" onClick={onClose}>
             Chiudi
-          </button>
+          </Button>
         </div>
       </div>
+
+      {/* Conferma import: sovrascrittura dati */}
+      <Modal
+        open={pendingImport != null}
+        onClose={() => setPendingImport(null)}
+        title="Importa backup?"
+        size="sm"
+        footer={
+          <div className="flex gap-2">
+            <Button variant="secondary" className="flex-1" onClick={() => setPendingImport(null)}>
+              Annulla
+            </Button>
+            <Button variant="primary" className="flex-1" onClick={confermaImport}>
+              Importa e sovrascrivi
+            </Button>
+          </div>
+        }
+      >
+        <div className="flex items-start gap-3 text-sm text-on-surface-variant">
+          <AlertTriangle size={20} className="text-warning shrink-0 mt-0.5" />
+          <p>
+            L'importazione <strong className="text-on-surface">sovrascriverà tutti i dati attuali</strong> (atleti,
+            stagione, piano, tempi, registro). Esporta un backup se vuoi conservare i dati correnti.
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 };

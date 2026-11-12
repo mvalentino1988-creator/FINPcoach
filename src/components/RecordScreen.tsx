@@ -12,11 +12,11 @@ import {
   Flag,
   MapPin,
   CalendarDays,
-  X,
   TrendingUp,
   TrendingDown,
   BadgeCheck
 } from 'lucide-react';
+import { Modal, Select, Table } from './ui';
 
 const TIPO_LABEL: Record<'ITA' | 'EUR' | 'WR', string> = {
   ITA: 'Italia',
@@ -44,7 +44,7 @@ const Segmento: React.FC<{
         type="button"
         onClick={() => onChange(o.value)}
         aria-pressed={value === o.value}
-        className={`px-2.5 py-1 min-h-[32px] rounded-md font-label-caps text-label-caps transition ${
+        className={`px-3 py-1.5 min-h-[48px] rounded-md font-label-caps text-label-caps transition ${
           value === o.value
             ? 'bg-primary text-on-primary shadow-sm'
             : 'text-on-surface-variant hover:text-on-surface'
@@ -198,12 +198,13 @@ export const RecordScreen: React.FC = () => {
             onChange={cambiaGenere}
             options={generi.map(g => ({ value: g, label: g === 'M' ? 'M' : g === 'F' ? 'F' : 'Mista' }))}
           />
-          <div className="flex items-center gap-1 bg-surface-container px-2.5 py-1 rounded-lg min-w-0">
+          <div className="flex items-center gap-1.5 bg-surface-container px-2.5 py-1 min-h-[48px] rounded-lg min-w-0">
             <span className="font-label-caps text-[10px] text-on-surface-variant shrink-0">CLASSE:</span>
             <select
               value={classeEffettiva}
               onChange={e => setClasse(e.target.value)}
-              className="bg-transparent text-primary font-headline-sm text-headline-sm p-0 border-0 focus:ring-0 cursor-pointer min-w-0"
+              aria-label="Classe"
+              className="bg-transparent text-primary font-headline-sm text-headline-sm min-h-[44px] p-0 border-0 focus:ring-0 cursor-pointer min-w-0"
             >
               {classi.map(cl => <option key={cl} value={cl}>{cl}</option>)}
             </select>
@@ -211,25 +212,26 @@ export const RecordScreen: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-          <select
+          <Select
+            aria-label="Evento"
             value={eventoEffettivo}
             onChange={e => cambiaEvento(e.target.value)}
-            aria-label="Evento"
-            className="w-full h-11 px-3 bg-surface-container rounded-lg border-0 font-headline-sm text-headline-sm text-on-surface focus:ring-2 focus:ring-primary/30"
-          >
-            {eventi.map(ev => <option key={ev} value={ev}>{ev}</option>)}
-          </select>
-          <select
+            options={eventi.map(ev => ({ value: ev, label: ev }))}
+            className="!h-12"
+          />
+          <Select
+            aria-label="Atleta di confronto"
             value={atletaSelId ?? ''}
             onChange={e => setAtletaSelId(e.target.value ? Number(e.target.value) : null)}
-            aria-label="Atleta di confronto"
-            className="w-full h-11 px-3 bg-surface-container rounded-lg border-0 font-headline-sm text-headline-sm text-on-surface focus:ring-2 focus:ring-primary/30"
-          >
-            <option value="">Solo record (nessun atleta)</option>
-            {atleti.map(a => (
-              <option key={a.id} value={a.id}>{a.cognome} {a.nome} (S{a.classeS ?? '?'})</option>
-            ))}
-          </select>
+            options={[
+              { value: '', label: 'Solo record (nessun atleta)' },
+              ...atleti.map(a => ({
+                value: String(a.id),
+                label: `${a.cognome} ${a.nome} (S${a.classeS ?? '?'})`
+              }))
+            ]}
+            className="!h-12"
+          />
         </div>
       </div>
 
@@ -322,34 +324,42 @@ export const RecordScreen: React.FC = () => {
             <span>ALTRE CATEGORIE {eventoEffettivo.toUpperCase()} · {classeEffettiva}</span>
             <span>REC. ITALIA</span>
           </div>
-          {itaAltre.map(({ cat, record }) => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => record && setRecordInfo(record)}
-              className="w-full bg-surface-container-lowest p-2.5 rounded-xl shadow-sm flex items-center justify-between text-left active:scale-[0.99] transition"
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="w-9 h-9 rounded-md bg-surface-container-high text-primary flex items-center justify-center font-label-caps text-[10px] font-bold shrink-0">
-                  {cat.slice(0, 4).toUpperCase()}
+          <Table
+            columns={[
+              {
+                key: 'categoria',
+                header: 'Categoria',
+                className: 'w-[34%]'
+              },
+              { key: 'dettaglio', header: 'Dettaglio' },
+              { key: 'tempo', header: 'Record', align: 'right', numeric: true },
+              { key: 'data', header: 'Data', align: 'right', className: 'w-[70px]' }
+            ]}
+            rows={itaAltre.map(({ cat, record }) => ({
+              categoria: (
+                <span className="font-body-bold text-body-bold text-on-surface truncate block">{cat}</span>
+              ),
+              dettaglio: (
+                <span className="text-on-surface-variant truncate block">
+                  {record ? (record.d ?? record.m ?? 'Record ufficiale') : 'Non disponibile'}
                 </span>
-                <div className="min-w-0">
-                  <div className="font-body-bold text-body-bold text-on-surface truncate">{cat}</div>
-                  <div className="font-label-caps text-[10px] text-on-surface-variant truncate">
-                    {record ? (record.d ?? record.m ?? 'Record ufficiale') : 'Non disponibile'}
-                  </div>
-                </div>
-              </div>
-              <div className="text-right shrink-0 pl-2">
-                <div className="font-headline-sm text-headline-sm text-on-surface tabular-nums">
-                  {record ? record.tm : '—'}
-                </div>
-                {record?.dt && (
-                  <div className="font-label-caps text-[9px] text-on-surface-variant">{record.dt}</div>
-                )}
-              </div>
-            </button>
-          ))}
+              ),
+              tempo: record ? (
+                <span className="font-headline-sm text-headline-sm tabular-nums">{record.tm}</span>
+              ) : (
+                <span className="text-on-surface-variant">—</span>
+              ),
+              data: record?.dt ? (
+                <span className="text-on-surface-variant tabular-nums">{record.dt}</span>
+              ) : (
+                ''
+              )
+            }))}
+            onRowClick={(_row, index) => {
+              const record = itaAltre[index]?.record;
+              if (record) setRecordInfo(record);
+            }}
+          />
         </div>
       )}
 
@@ -442,33 +452,19 @@ export const RecordScreen: React.FC = () => {
       </div>
 
       {recordInfo && (
-        <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setRecordInfo(null)}
+        <Modal
+          open={!!recordInfo}
+          onClose={() => setRecordInfo(null)}
+          title="Dettagli record"
+          size="sm"
         >
-          <section
-            role="dialog"
-            aria-modal="true"
-            aria-label="Dettagli record"
-            className="w-full max-w-sm rounded-2xl bg-surface-container-lowest border border-outline-variant/60 p-5 shadow-float space-y-4 text-on-surface"
-            onClick={event => event.stopPropagation()}
-          >
-            <header className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="font-label-caps text-label-caps uppercase text-primary flex items-center gap-1.5">
-                  {TIPO_ICON[recordInfo.t]} {TIPO_LABEL[recordInfo.t]} · {recordInfo.ev} · {recordInfo.cl}
-                </p>
-                <h3 className="font-headline font-bold text-3xl tabular-nums tracking-tight">{recordInfo.tm}</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setRecordInfo(null)}
-                aria-label="Chiudi dettagli record"
-                className="w-10 h-10 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0"
-              >
-                <X size={18} />
-              </button>
-            </header>
+          <div className="space-y-4 text-on-surface">
+            <div className="min-w-0">
+              <p className="font-label-caps text-label-caps uppercase text-primary flex items-center gap-1.5">
+                {TIPO_ICON[recordInfo.t]} {TIPO_LABEL[recordInfo.t]} · {recordInfo.ev} · {recordInfo.cl}
+              </p>
+              <h3 className="font-headline font-bold text-3xl tabular-nums tracking-tight">{recordInfo.tm}</h3>
+            </div>
             <dl className="space-y-3 border-t border-outline-variant/60 pt-3 text-sm">
               <div className="flex items-start gap-2">
                 <User size={16} className="mt-0.5 shrink-0 text-primary" />
@@ -484,8 +480,8 @@ export const RecordScreen: React.FC = () => {
               </div>
               {recordInfo.m && <div><dt className="font-label-caps text-[10px] text-on-surface-variant uppercase">Manifestazione</dt><dd className="font-semibold">{recordInfo.m}</dd></div>}
             </dl>
-          </section>
-        </div>
+          </div>
+        </Modal>
       )}
     </div>
   );

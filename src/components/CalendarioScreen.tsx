@@ -3,6 +3,7 @@ import { useApp } from '../data/AppContext';
 import { CalendarioService, EventoCalendario } from '../domain/calendarioService';
 import { todayISO } from '../domain/dateUtils';
 import { CalendarDays, MapPin, Info, Plus, Check, Trash2, Star, ExternalLink, Waves } from 'lucide-react';
+import { Badge, EmptyState } from './ui';
 
 const DISCIPLINA_COLORE: Record<string, string> = {
   Nuoto: 'bg-primary-fixed text-on-primary-fixed border-primary-fixed-dim',
@@ -68,12 +69,12 @@ export const CalendarioScreen: React.FC = () => {
       </div>
 
       <div className="rounded-xl bg-surface-container-lowest border border-outline-variant p-3 shadow-card">
-        <label className="flex items-center gap-3 text-xs font-semibold text-on-surface-variant cursor-pointer select-none">
+        <label className="flex items-center gap-3 min-h-[48px] text-sm font-semibold text-on-surface cursor-pointer select-none">
           <input
             type="checkbox"
             checked={soloProssimi}
             onChange={e => setSoloProssimi(e.target.checked)}
-            className="w-4 h-4 rounded border-outline-variant accent-primary"
+            className="w-5 h-5 rounded border-outline-variant accent-primary"
           />
           Mostra solo le gare future
         </label>
@@ -87,15 +88,20 @@ export const CalendarioScreen: React.FC = () => {
       )}
 
       {gruppi.length === 0 ? (
-        <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant text-xs text-on-surface-variant">
-          Nessuna gara da mostrare con i filtri selezionati.
-        </div>
+        <EmptyState
+          icon={<CalendarDays size={40} strokeWidth={1.5} />}
+          title="Nessuna gara da mostrare"
+          message="Nessuna gara da mostrare con i filtri selezionati."
+        />
       ) : (
         <div className="space-y-5">
           {gruppi.map(([chiave, lista]) => (
             <section key={chiave} className="space-y-2">
-              <h3 className="font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant font-bold">
+              <h3 className="font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant font-bold flex items-center gap-2">
                 {CalendarioService.meseLabel(lista[0].dal)}
+                <span className="px-1.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant normal-case tracking-normal">
+                  {lista.length} {lista.length === 1 ? 'gara' : 'gare'}
+                </span>
               </h3>
               <div className="space-y-2">
                 {lista.map(evento => {
@@ -123,8 +129,8 @@ export const CalendarioScreen: React.FC = () => {
                         {inStagione ? (
                           <>
                             <span className="flex items-center gap-1 text-xs font-bold text-secondary"><Check size={13} />Già in stagione</span>
-                            <button type="button" onClick={() => rimuovi(evento)} className="text-xs font-semibold text-error hover:brightness-90 flex items-center gap-1">
-                              <Trash2 size={12} />Rimuovi
+                            <button type="button" onClick={() => rimuovi(evento)} className="text-xs font-semibold text-error hover:brightness-90 flex items-center gap-1 min-h-[48px] px-2 -mx-2">
+                              <Trash2 size={14} />Rimuovi
                             </button>
                           </>
                         ) : (
@@ -132,12 +138,16 @@ export const CalendarioScreen: React.FC = () => {
                             type="button"
                             onClick={() => aggiungi(evento)}
                             disabled={!stagione}
-                            className={`ds-btn-primary !min-h-[40px] !px-4 !py-1.5 text-xs rounded-xl ${!stagione ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`ds-btn-primary !min-h-[48px] !px-4 !py-1.5 text-xs rounded-xl ${!stagione ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
-                            <Plus size={14} />Aggiungi alla stagione
+                            <Plus size={15} />Aggiungi alla stagione
                           </button>
                         )}
-                        {evento.prioritaria && <span className="font-label-caps text-label-caps uppercase text-tertiary-container font-bold flex items-center gap-1"><Star size={11} />prioritaria</span>}
+                        {evento.prioritaria && (
+                          <Badge variant="tertiary" size="sm" icon={<Star size={11} />}>
+                            Prioritaria
+                          </Badge>
+                        )}
                       </div>
                     </article>
                   );

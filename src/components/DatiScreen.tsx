@@ -40,7 +40,7 @@ import { OcrWorkoutStandardizer } from '../domain/ocrWorkoutStandardizer';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { PageHeader } from './PageHeader';
 import { Marquee } from './Marquee';
-import { Badge, Button, Card, Modal, ToastProvider, useToast } from './ui';
+import { Badge, Button, Card, Modal, Tabs, ToastProvider, useToast } from './ui';
 import type { SwimZone } from './ui';
 import type { SeriaParsata } from '../domain/parserScheda';
 
@@ -185,34 +185,23 @@ export const DatiScreen: React.FC = () => {
         />
       </div>
 
-      {/* TABS — segmented dock stile Stitch */}
-      <div className="shrink-0 bg-surface-container-high/80 p-1 rounded-xl flex items-center shadow-sm gap-1 overflow-x-auto ds-hscroll">
-        {([
+      {/* TABS — Tabs DS */}
+      <Tabs
+        tabs={([
           { key: 'schede', label: 'Schede Vasca', icon: <ClipboardList size={16} /> },
           { key: 'tempi', label: 'Tempi & Ripartenze', icon: <Timer size={16} /> },
           { key: 'registro', label: 'Registro & Carico', icon: <CheckCircle2 size={16} /> },
           { key: 'biomeccanica', label: 'Biomeccanica & WPS', icon: <Activity size={16} /> },
-        ] as { key: DatiTab; label: string; icon: React.ReactNode }[]).map(t => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => {
-              setTab(t.key);
-              sessionStorage.setItem('finp_dati_tab', t.key);
-            }}
-            aria-current={tab === t.key ? 'page' : undefined}
-            className={`flex-1 min-w-[120px] py-2 px-2 rounded-lg font-label-lg text-label-lg text-center transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
-              tab === t.key
-                ? 'bg-surface-container-lowest text-primary shadow-sm font-bold'
-                : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            {t.icon}
-            <span className="hidden sm:inline">{t.label}</span>
-            <span className="sm:hidden">{t.label.split(' ')[0]}</span>
-          </button>
-        ))}
-      </div>
+        ] as { key: DatiTab; label: string; icon: React.ReactNode }[]).map(t => ({ id: t.key, label: t.label, icon: t.icon }))}
+        activeId={tab}
+        onChange={id => {
+          setTab(id as DatiTab);
+          sessionStorage.setItem('finp_dati_tab', id);
+        }}
+        ariaLabel="Sezioni dati"
+        className="shrink-0"
+        panelClassName="hidden"
+      />
 
       <div className="flex-1 min-h-0 overflow-y-auto space-y-3">
         {/* TAB SCHEDE: Calendario / Lista / Form */}
@@ -225,7 +214,8 @@ export const DatiScreen: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setVistaSchede('calendario')}
-                    className={`flex-1 sm:flex-none px-3 py-1.5 min-h-[40px] whitespace-nowrap rounded-md font-label-caps text-label-caps transition ${
+                    aria-pressed={vistaSchede === 'calendario'}
+                    className={`flex-1 sm:flex-none px-3 min-h-[48px] whitespace-nowrap rounded-md font-label-caps text-label-caps transition ${
                       vistaSchede === 'calendario' ? 'bg-surface-container-lowest text-primary shadow-sm font-bold' : 'text-on-surface-variant'
                     }`}
                   >
@@ -234,7 +224,8 @@ export const DatiScreen: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setVistaSchede('lista')}
-                    className={`flex-1 sm:flex-none px-3 py-1.5 min-h-[40px] whitespace-nowrap rounded-md font-label-caps text-label-caps transition ${
+                    aria-pressed={vistaSchede === 'lista'}
+                    className={`flex-1 sm:flex-none px-3 min-h-[48px] whitespace-nowrap rounded-md font-label-caps text-label-caps transition ${
                       vistaSchede === 'lista' ? 'bg-surface-container-lowest text-primary shadow-sm font-bold' : 'text-on-surface-variant'
                     }`}
                   >
@@ -273,10 +264,10 @@ export const DatiScreen: React.FC = () => {
                       const parsed = parseData(calendarioData);
                       if (parsed) setCalendarioData(formattaData(addDays(parsed, -7)));
                     }}
-                    className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high active:scale-95 transition"
+                    className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high active:scale-95 transition"
                     aria-label="Settimana precedente"
                   >
-                    <ChevronLeft size={18} />
+                    <ChevronLeft size={20} />
                   </button>
                   <div className="flex flex-col items-center">
                     <h3 className="font-headline-sm text-headline-sm text-on-surface">
@@ -290,10 +281,10 @@ export const DatiScreen: React.FC = () => {
                       const parsed = parseData(calendarioData);
                       if (parsed) setCalendarioData(formattaData(addDays(parsed, 7)));
                     }}
-                    className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high active:scale-95 transition"
+                    className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high active:scale-95 transition"
                     aria-label="Settimana successiva"
                   >
-                    <ChevronRight size={18} />
+                    <ChevronRight size={20} />
                   </button>
                 </div>
 
@@ -313,7 +304,7 @@ export const DatiScreen: React.FC = () => {
                     const cells: JSX.Element[] = [];
 
                     for (let i = 0; i < giornoSettimana; i++) {
-                      cells.push(<div key={`e-${i}`} className="h-10" />);
+                      cells.push(<div key={`e-${i}`} className="h-12" />);
                     }
 
                     for (let g = 1; g <= giorniMese; g++) {
@@ -329,7 +320,7 @@ export const DatiScreen: React.FC = () => {
                           onClick={() => {
                             if (workoutGiorno) setSelectedWorkoutId(workoutGiorno.id);
                           }}
-                          className={`h-10 rounded-lg flex flex-col items-center justify-center relative transition active:scale-95 ${
+                          className={`h-12 rounded-xl flex flex-col items-center justify-center relative transition active:scale-95 ${
                             workoutGiorno
                               ? 'bg-primary text-on-primary font-bold shadow-sm'
                               : isOggi

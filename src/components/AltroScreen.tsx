@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { CalendarDays, Database, Trophy, Waves } from 'lucide-react';
+import { Tabs } from './ui';
 
 const PianoScreen = lazy(() => import('./PianoScreen').then(m => ({ default: m.PianoScreen })));
 const DatiScreen = lazy(() => import('./DatiScreen').then(m => ({ default: m.DatiScreen })));
@@ -34,26 +35,13 @@ export const AltroScreen: React.FC = () => {
 
   return (
     <div className="flex flex-1 min-h-0 flex-col gap-3">
-      <div className="flex items-center gap-2 overflow-x-auto pb-1" aria-label="Sezioni piano">
-        {SEZIONI.map(({ id, label, Icon }) => {
-          const attivo = sezione === id;
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setSezione(id)}
-              className={`inline-flex items-center gap-2 min-h-[40px] px-3.5 rounded-full font-label-caps text-label-caps uppercase tracking-wider whitespace-nowrap transition-all ${
-                attivo
-                  ? 'bg-primary text-on-primary shadow-primary-sm'
-                  : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
-              }`}
-            >
-              <Icon size={15} />
-              <span>{label}</span>
-            </button>
-          );
-        })}
-      </div>
+      <Tabs
+        tabs={SEZIONI.map(s => ({ id: s.id, label: s.label, icon: <s.Icon size={16} /> }))}
+        activeId={sezione}
+        onChange={id => setSezione(id as SezioneAltro)}
+        ariaLabel="Sezioni piano"
+        panelClassName="hidden"
+      />
 
       <div className={sezione === 'piano' ? 'flex-1 min-h-0 overflow-y-auto' : 'flex-1 min-h-0 overflow-hidden'}>
         <Suspense fallback={<Fallback />}>

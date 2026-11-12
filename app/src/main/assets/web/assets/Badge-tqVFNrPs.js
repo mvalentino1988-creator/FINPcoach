@@ -1,0 +1,6 @@
+import{c as v,j as e,w as x}from"./index-Cruz91Yn.js";/**
+ * @license lucide-react v0.469.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const b=v("Check",[["path",{d:"M20 6 9 17l-5-5",key:"1gmf2c"}]]),m={neutral:"ds-chip-neutral",blue:"ds-chip-blue",coral:"ds-chip-coral",green:"ds-chip-green",secondary:"ds-chip-secondary",tertiary:"ds-chip-tertiary"},u={A1:"var(--color-zone-a1)",A2:"var(--color-zone-a2)",B1:"var(--color-zone-b1)",B2:"var(--color-zone-b2)",C1:"var(--color-zone-c1)",C2:"var(--color-zone-c2)",C3:"var(--color-zone-c)",D:"var(--color-zone-d)"},z={ok:"var(--color-acwr-ok)",attenzione:"var(--color-acwr-attenzione)",critico:"var(--color-acwr-critico)"};function y({variant:n="neutral",size:s="md",icon:o,className:l,children:t,zone:c,acwr:i,level:p}){const a=i??p,r=a?z[a]:c?u[c]:null,d=r?"ds-chip":m[n],h=r?{backgroundColor:`color-mix(in srgb, ${r} 10%, transparent)`,color:r,border:`1px solid color-mix(in srgb, ${r} 25%, transparent)`}:void 0;return e.jsxs("span",{className:x("ds-chip",d,s==="sm"&&"text-[10px] px-1.5 py-0.5",l),style:h,children:[o&&e.jsx("span",{className:"inline-flex shrink-0",children:o}),t]})}export{y as B,b as C};

@@ -2,6 +2,7 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Trophy, BookOpen, CalendarDays, RefreshCw, CheckCircle2, Waves, BookMarked, Database } from 'lucide-react';
 import { CalendarioScreen } from './CalendarioScreen';
 import { AutoUpdateService, UpdateStatus } from '../domain/autoUpdateService';
+import { Tabs } from './ui';
 
 const RecordScreen = lazy(() => import('./RecordScreen').then(m => ({ default: m.RecordScreen })));
 const RegolamentiScreen = lazy(() => import('./RegolamentiScreen').then(m => ({ default: m.RegolamentiScreen })));
@@ -49,34 +50,25 @@ export const FontiScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Segmented Nav (tactile glass dock) */}
-      <div className="shrink-0 bg-surface-container-high/80 p-1 rounded-xl flex items-center shadow-sm gap-1">
-        {tabs.map(t => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            aria-current={tab === t.key ? 'page' : undefined}
-            className={`flex-1 min-w-0 py-2 px-1 rounded-lg font-label-lg text-label-lg text-center transition-all flex items-center justify-center gap-1.5 ${
-              tab === t.key
-                ? 'bg-surface-container-lowest text-primary shadow-sm font-bold'
-                : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            {t.icon}
-            <span className="hidden sm:inline truncate">{t.label}</span>
-            <span className="sm:hidden truncate">{t.short}</span>
-          </button>
-        ))}
+      {/* Segmented Nav (Tabs DS + verifica aggiornamenti) */}
+      <div className="shrink-0 flex items-center gap-1">
+        <Tabs
+          tabs={tabs.map(t => ({ id: t.key, label: t.label, icon: t.icon }))}
+          activeId={tab}
+          onChange={id => setTab(id as FontiTab)}
+          ariaLabel="Sezioni fonti"
+          className="flex-1 min-w-0 bg-surface-container-high/80 rounded-xl px-1 shadow-sm"
+          panelClassName="hidden"
+        />
         <button
           type="button"
           disabled={checking}
           onClick={handleVerificaOra}
-          className="shrink-0 min-h-[44px] px-2.5 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-lowest/60 transition-all flex items-center gap-1 disabled:opacity-50"
+          className="shrink-0 min-h-[48px] px-3 rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container-lowest/60 transition-all flex items-center gap-1.5 disabled:opacity-50"
           title="Verifica aggiornamenti con i siti ufficiali FINP/WPS"
           aria-label="Verifica aggiornamenti"
         >
-          <RefreshCw size={15} className={checking ? 'animate-spin' : ''} />
+          <RefreshCw size={16} className={checking ? 'animate-spin' : ''} />
           <span className="hidden md:inline font-label-caps text-[10px] font-bold uppercase tracking-wide">
             {checking ? 'Controllo…' : 'Verifica'}
           </span>
