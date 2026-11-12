@@ -16,12 +16,12 @@ import {
   yearsBetween,
 } from '../domain/dateUtils';
 import { FINPStorage } from '../data/storage';
-import { CodiciSeduta } from './CodiciSeduta';
 import { EsercizioEditor } from './EsercizioEditor';
 import { GeneraSchedaIAModal } from './GeneraSchedaIAModal';
 import { PageHeader } from './PageHeader';
 import { ParametriSedutaModal } from './ParametriSedutaModal';
 import { codiciConsentiti, generaCodiciSeduta } from '../domain/generatoreCodiciSeduta';
+import { CODICI_ALLENAMENTO } from '../domain/codici';
 import { risolviParametriSeduta, seduteSettimana } from '../domain/parametriSeduta';
 import { calcolaVolumeSessione, type SedutaSettimana } from '../domain/volumePrescritto';
 import { VolumeIndividuale } from '../domain/volumeIndividuale';
@@ -34,6 +34,7 @@ import {
   ClipboardList,
   Copy,
   Gauge,
+  RefreshCw,
   SlidersHorizontal,
   Sparkles,
   Timer,
@@ -45,6 +46,28 @@ import {
 import type { TabKey } from './Navbar';
 
 const ORDINE_CODICI: CodiceAllenamentoKey[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'C3', 'D'];
+
+const CODICE_TONO: Record<CodiceAllenamentoKey, string> = {
+  A1: 'bg-tertiary-container/30 text-tertiary',
+  A2: 'bg-primary-container/30 text-primary',
+  B1: 'bg-secondary-container/40 text-secondary',
+  B2: 'bg-secondary-container/40 text-secondary',
+  C1: 'bg-error-container/40 text-error',
+  C2: 'bg-error-container/40 text-error',
+  C3: 'bg-error-container/40 text-error',
+  D: 'bg-tertiary-container/30 text-tertiary',
+};
+
+const CODICE_LABEL: Record<CodiceAllenamentoKey, string> = {
+  A1: 'Base aerobica',
+  A2: 'Capacità aerobica',
+  B1: 'Soglia anaerobica',
+  B2: 'VO2 max',
+  C1: 'Tolleranza lattacida',
+  C2: 'Potenza lattacida',
+  C3: 'Ritmo gara',
+  D: 'Velocità e forza',
+};
 
 const SquadraVuota: React.FC = () => {
   const vai = (tab: TabKey, sezione?: string) => {
@@ -243,91 +266,184 @@ const OggiContent: React.FC = () => {
   const statusLabel = chiusuraOggi ? 'Impianto Chiuso' : garaOggi ? 'Gara Ufficiale' : isGiornoAllenamento ? 'Allenamento Odierno' : 'Giorno di Riposo';
   const microLabel = microCorrente ? TIPO_MICROCICLO_LABEL[microCorrente.tipo] : 'Programmato';
 
+  const noteTecniche = useMemo(
+    () => condizioni
+      .filter(c => c.attiva)
+      .slice(0, 3)
+      .flatMap(c => {
+        const atleta = atleti.find(a => a.id === c.atletaId);
+        return atleta ? [{ ...c, atleta }] : [];
+      }),
+    [condizioni, atleti]
+  );
+
   return (
-    <div className="flex flex-col h-full justify-between overflow-hidden gap-2 p-2 sm:p-4 text-on-surface">
-      {/* Header compatto */}
-      <div className="flex items-center justify-between shrink-0 bg-surface-container-low px-3 py-2 rounded-xl">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse shrink-0" />
-          <span className="font-headline-sm text-headline-sm text-on-surface truncate">
-            {dowNome} {formattaData(oggi)}
-          </span>
+    <div className="oggi-screen flex flex-col h-full min-h-0 gap-space-md overflow-y-auto px-0.5 pt-1 text-on-surface">
+      {/* Telemetria giornata — stile Stitch Oggi */}
+      <div className="flex items-center justify-between gap-space-xs pt-space-xs">
+        <div className="flex flex-col min-w-0">
+          <div className="flex items-center gap-1.5 text-on-surface-variant font-label-caps uppercase tracking-wider">
+            <Calendar size={14} className="text-tertiary shrink-0" />
+            <span className="truncate">{dowNome} {formattaData(oggi)}</span>
+          </div>
+          <div className="flex items-center gap-2 mt-1 min-w-0">
+            <span className="font-headline-sm text-headline-sm text-on-surface tracking-tight truncate">
+              {isGiornoAllenamento ? 'Seduta di allenamento' : statusLabel}
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-surface-container-high flex items-center gap-1 text-primary shrink-0">
+              <Waves size={12} />
+              <span className="font-label-caps uppercase">{parametriSeduta.vascaMetri}m</span>
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">
-            Micro: <strong className="text-primary">{microLabel}</strong>
-          </span>
+        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-surface-container-low text-tertiary shrink-0">
+          <RefreshCw size={16} className="animate-breathe" />
+          <span className="font-label-caps tracking-wide">Sync FINP</span>
         </div>
       </div>
 
-      {/* Hero Session Card — Ottimizzata per sfruttare lo spazio senza scorrimenti */}
-      <div className="flex-1 min-h-0 bg-surface-container-lowest rounded-2xl p-4 shadow-sm flex flex-col justify-between border border-outline-variant/30">
-        <div className="flex items-center justify-between">
-          <span className="px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-label-caps font-bold">
-            {statusLabel}
+      {/* Hero card: periodizzazione, metriche e azioni operative */}
+      <section className="relative overflow-hidden rounded-xl bg-surface-container p-space-md">
+        <div className="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
+        <div className="absolute -left-10 -bottom-10 w-36 h-36 rounded-full bg-tertiary/10 blur-2xl pointer-events-none" />
+
+        <div className="relative flex items-center justify-between gap-space-xs mb-space-xs">
+          <span className="px-2.5 py-1 rounded bg-secondary-container text-on-secondary-container font-label-caps uppercase tracking-wider">
+            {microLabel}
           </span>
-          <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">
-            Vasca {parametriSeduta.vascaMetri}m · {parametriSeduta.durataMin} min
+          <span className="text-on-surface-variant font-label-caps uppercase truncate">
+            {macroCorrente?.nome ?? 'Piano annuale'} · {parametriSeduta.durataMin} min
           </span>
         </div>
 
-        <div className="space-y-3 my-auto py-2">
-          <div className="text-center space-y-1">
-            <span className="font-label-caps text-label-caps uppercase text-on-surface-variant tracking-widest">Focus Allenamento Odierno</span>
-            <div className="py-1">
-              <CodiciSeduta codici={propostaCodici} titolo="" compatto centrato />
+        <h2 className="relative font-headline-md text-headline-md text-on-surface font-bold leading-tight mb-space-sm">
+          {statusLabel} · focus {propostaCodici.join(' + ')}
+        </h2>
+
+        <div className="relative grid grid-cols-3 gap-space-xs">
+          <div className="bg-surface-container-low rounded-lg p-2.5 flex flex-col justify-between min-w-0">
+            <div className="flex items-center gap-1 text-on-surface-variant font-label-caps uppercase">
+              <Gauge size={14} className="text-primary shrink-0" />
+              <span className="truncate">Volume</span>
+            </div>
+            <div className="mt-1 font-headline-sm text-primary font-bold truncate">
+              {formattaMetri(volumeSessione)}<span className="text-on-surface-variant text-[11px] font-normal ml-0.5">m</span>
             </div>
           </div>
-
-          <div className="bg-surface-container-low rounded-xl p-3 flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">Volume Previsto</span>
-              <span className="font-headline-sm text-headline-sm text-on-surface">{formattaMetri(volumeSessione)} metri</span>
+          <div className="bg-surface-container-low rounded-lg p-2.5 flex flex-col justify-between min-w-0">
+            <div className="flex items-center gap-1 text-on-surface-variant font-label-caps uppercase">
+              <Timer size={14} className="text-secondary shrink-0" />
+              <span className="truncate">Carico sett.</span>
             </div>
-            <div className="flex flex-col items-end">
-              <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">Progresso</span>
-              <span className="font-headline-sm text-headline-sm text-primary font-bold">{percVolumeSettimana}% sett.</span>
+            <div className="mt-1 font-headline-sm text-secondary font-bold truncate">
+              {formattaMetri(volumeSvoltoSettimana)}<span className="text-on-surface-variant text-[11px] font-normal ml-0.5">m</span>
+            </div>
+          </div>
+          <div className="bg-surface-container-low rounded-lg p-2.5 flex flex-col justify-between min-w-0">
+            <div className="flex items-center gap-1 text-on-surface-variant font-label-caps uppercase">
+              <Users size={14} className="text-tertiary shrink-0" />
+              <span className="truncate">Presenze</span>
+            </div>
+            <div className="mt-1 font-headline-sm text-tertiary font-bold truncate">
+              {presentiOggi}<span className="text-on-surface-variant text-[11px] font-normal ml-0.5">/{atleti.length}</span>
             </div>
           </div>
         </div>
 
-        {/* Pulsanti principali d'azione */}
-        <div className="grid grid-cols-2 gap-2 mt-auto">
+        <button
+          type="button"
+          onClick={() => vai('vasca')}
+          className="relative w-full h-14 mt-space-sm rounded-xl bg-primary-container text-on-primary-container font-label-lg text-label-lg font-bold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform"
+        >
+          <Timer size={22} />
+          <span>Copia sul Cronometro Vasca</span>
+        </button>
+
+        <div className="relative grid grid-cols-2 gap-space-xs mt-space-xs">
+          <button
+            type="button"
+            onClick={() => setModalParametriOpen(true)}
+            className="h-12 rounded-xl bg-surface-container-low text-on-surface font-label-md text-label-md flex items-center justify-center gap-2 active:bg-surface-container-high transition-colors"
+          >
+            <SlidersHorizontal size={18} className="text-primary" />
+            <span>Adatta Carichi</span>
+          </button>
           <button
             type="button"
             onClick={() => setModalIAOpen(true)}
-            className="ds-btn-primary py-3 rounded-xl justify-center shadow-primary-sm"
+            className="h-12 rounded-xl bg-surface-container-low text-on-surface font-label-md text-label-md flex items-center justify-center gap-2 active:bg-surface-container-high transition-colors"
           >
-            <Sparkles size={18} />
+            <Sparkles size={18} className="text-on-surface-variant" />
             <span>Prepara con IA</span>
           </button>
-          <button
-            type="button"
-            onClick={() => vai('vasca')}
-            className="ds-btn-secondary py-3 rounded-xl justify-center"
-          >
-            <Timer size={18} />
-            <span>Bordo Vasca</span>
-          </button>
         </div>
-      </div>
+      </section>
 
-      {/* Barra inferiore compatta con pulsanti popup (Squadra, Carico, Gare) */}
-      <div className="grid grid-cols-3 gap-2 shrink-0">
+      {/* Codici metabolici FINP */}
+      <section className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between text-on-surface-variant font-label-caps uppercase tracking-wider px-0.5">
+          <span>Codici Metabolici FINP</span>
+          <span className="text-primary">{percVolumeSettimana}% sett.</span>
+        </div>
+        <div className="grid grid-cols-2 gap-1.5">
+          {[...propostaCodici]
+            .sort((a, b) => ORDINE_CODICI.indexOf(a) - ORDINE_CODICI.indexOf(b))
+            .map(codice => {
+              const info = CODICI_ALLENAMENTO[codice];
+              return (
+                <div key={codice} className="p-2 rounded-lg bg-surface-container-low flex items-center gap-2 min-w-0">
+                  <div className={`w-6 h-6 rounded flex items-center justify-center font-label-caps font-bold shrink-0 ${CODICE_TONO[codice]}`}>
+                    {codice}
+                  </div>
+                  <div className="min-w-0 flex flex-col">
+                    <span className="text-on-surface font-label-caps font-semibold truncate">{CODICE_LABEL[codice]}</span>
+                    <span className="text-on-surface-variant font-body-sm truncate text-[11px]">{info?.ambito ?? info?.nome}</span>
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      </section>
+
+      {/* Note tecniche bordo vasca da condizioni mediche attive */}
+      {noteTecniche.length > 0 && (
+        <section className="flex flex-col gap-2 rounded-xl bg-surface-container p-space-md">
+          <div className="flex items-center gap-2 text-secondary-fixed">
+            <ClipboardList size={20} className="text-secondary" />
+            <h3 className="font-label-lg text-label-lg font-bold uppercase tracking-wider">Note Tecniche Bordo Vasca</h3>
+          </div>
+          {noteTecniche.map(note => (
+            <div key={note.id} className="p-2.5 rounded-lg bg-surface-container-low flex gap-2.5">
+              <div className="px-2 py-0.5 h-6 rounded bg-secondary-container text-on-secondary-container font-label-caps font-bold shrink-0 flex items-center justify-center">
+                {note.atleta.classeS != null ? `S${note.atleta.classeS}` : 'FINP'}
+              </div>
+              <div className="flex flex-col text-on-surface min-w-0">
+                <span className="font-label-md text-label-md font-semibold text-primary">{note.atleta.cognome} {note.atleta.nome}</span>
+                <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5 leading-snug">
+                  {note.descrizione}{note.limitazioni ? ` — ${note.limitazioni}` : ''}
+                </p>
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {/* Metriche rapide: squadre, carico e gare */}
+      <div className="grid grid-cols-3 gap-1.5 shrink-0">
         <button
           type="button"
           onClick={() => setActivePopup('squadra')}
-          className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition text-on-surface"
+          className="flex flex-col items-center justify-center p-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container transition text-on-surface"
         >
           <Users size={20} className="text-primary mb-1" />
-          <span className="font-headline-sm text-headline-sm">{atleti.length} Atleti</span>
+          <span className="font-headline-sm text-headline-sm">{atleti.length}</span>
           <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Squadra</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActivePopup('carico')}
-          className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition text-on-surface"
+          className="flex flex-col items-center justify-center p-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container transition text-on-surface"
         >
           <Gauge size={20} className="text-secondary mb-1" />
           <span className="font-headline-sm text-headline-sm">{formattaMetri(volumeSvoltoSettimana)}</span>
@@ -337,7 +453,7 @@ const OggiContent: React.FC = () => {
         <button
           type="button"
           onClick={() => setActivePopup('gare')}
-          className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition text-on-surface"
+          className="flex flex-col items-center justify-center p-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container transition text-on-surface"
         >
           <Trophy size={20} className="text-tertiary-container mb-1" />
           <span className="font-headline-sm text-headline-sm">{prossimaGara ? `${prossimaGara.diffDays} gg` : '—'}</span>

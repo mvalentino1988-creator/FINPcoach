@@ -526,17 +526,18 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
       {/* ============================================================
           CONSOLE MASTER — cronometro grande, alto contrasto
           ============================================================ */}
-      <section className="shrink-0 rounded-2xl bg-inverse-surface text-inverse-on-surface px-4 py-3 shadow-md flex flex-col gap-2.5 border border-outline/20">
-        <div className="flex items-center justify-between gap-2">
+      <section className="shrink-0 rounded-xl bg-surface-container-low text-on-surface px-space-md py-space-md shadow-[0_0_24px_rgba(6,182,212,0.18)] relative overflow-hidden border border-outline-variant/40 flex flex-col gap-2.5">
+        <div className="absolute -top-12 -right-12 w-36 h-36 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="relative flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <span className={`w-2.5 h-2.5 rounded-full inline-block shrink-0 ${isRunning ? 'bg-secondary-fixed animate-ping' : 'bg-on-surface/30'}`} />
-            <span className="font-label-caps text-[11px] text-secondary-fixed font-bold tracking-wider uppercase truncate">
-              {isRunning ? 'Cronometro Live' : sessionStarted ? 'Sessione in pausa' : 'Pronto'}
+            <span className={`w-2.5 h-2.5 rounded-full inline-block shrink-0 ${isRunning ? 'bg-tertiary animate-ping' : 'bg-on-surface-variant/40'}`} />
+            <span className="font-label-caps text-[11px] text-primary font-bold tracking-wider uppercase truncate">
+              {isRunning ? 'Bordo Vasca Live' : sessionStarted ? 'Sessione in pausa' : 'Pronto'}
             </span>
           </div>
           {!sessionStarted ? (
-            <label className="flex items-center gap-2 rounded-xl bg-inverse-on-surface/10 border border-inverse-on-surface/20 px-3 py-1.5 flex-shrink-0">
-              <span className="font-label-caps text-[10px] uppercase text-on-surface/60 tracking-wider">Cadenza</span>
+            <label className="flex items-center gap-2 rounded-xl bg-surface-container text-on-surface border border-outline-variant/60 px-3 py-1.5 flex-shrink-0">
+              <span className="font-label-caps text-[10px] uppercase text-on-surface-variant tracking-wider">Cadenza</span>
               <input
                 type="text"
                 inputMode="decimal"
@@ -559,33 +560,33 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                   setRipartenzaSecondi(finalVal);
                   setLanes(curr => curr.map(l => ({ ...l, ripartenzaSecondi: finalVal })));
                 }}
-                className="w-16 bg-transparent text-inverse-on-surface font-headline-sm text-lg font-bold text-center focus:outline-none tabular-nums"
+                className="w-16 bg-transparent text-on-surface font-headline-sm text-lg font-bold text-center focus:outline-none tabular-nums"
               />
             </label>
           ) : (
-            <span className="font-label-caps text-[11px] bg-inverse-on-surface/10 text-inverse-on-surface px-2.5 py-1 rounded-lg font-semibold flex-shrink-0">
+            <span className="font-label-caps text-[11px] bg-surface-container-high text-tertiary px-2.5 py-1 rounded-lg font-semibold flex-shrink-0 shadow-[0_0_12px_rgba(69,223,164,0.18)]">
               Rip: {formatRipartenza(ripartenzaSecondi)}
             </span>
           )}
         </div>
 
-        <div className="flex items-end justify-between gap-3">
+        <div className="relative flex items-end justify-between gap-3">
           <output
             aria-label="Tempo squadra"
-            className="font-stat-timer text-inverse-on-surface font-bold tracking-tight tabular-nums leading-none"
+            className="font-stat-timer-mobile text-primary font-bold tracking-tight tabular-nums leading-none drop-shadow-[0_0_22px_rgba(76,215,246,0.45)]"
           >
             {formatMs(masterTime)}
           </output>
           {nextAthlete && (
-            <div className="flex items-center gap-2.5 bg-inverse-on-surface/10 border border-inverse-on-surface/20 rounded-2xl px-3.5 py-2 min-w-0">
+            <div className="flex items-center gap-2.5 bg-surface-container-high/80 border border-outline-variant/60 rounded-2xl px-3.5 py-2 min-w-0">
               <div className="flex flex-col items-end min-w-0">
-                <span className="font-label-caps text-[10px] uppercase text-on-surface/60">Prossimo al via</span>
-                <span className="font-headline-sm text-base font-bold text-secondary-fixed leading-tight truncate max-w-[10rem]">
+                <span className="font-label-caps text-[10px] uppercase text-on-surface-variant">Prossimo al via</span>
+                <span className="font-headline-sm text-base font-bold text-on-surface leading-tight truncate max-w-[10rem]">
                   {nextAthlete.name}
                 </span>
               </div>
               {nextAthlete.etaMs !== null && (
-                <div className="flex flex-col items-center justify-center bg-secondary text-on-secondary px-3 py-1.5 rounded-xl shadow-sm leading-none flex-shrink-0">
+                <div className="flex flex-col items-center justify-center bg-primary-container text-on-primary-container px-3 py-1.5 rounded-xl shadow-[0_0_16px_rgba(6,182,212,0.28)] leading-none flex-shrink-0">
                   <span className="font-stat-timer-mobile text-xl font-bold leading-none tabular-nums">
                     {Math.max(0, Math.ceil(nextAthlete.etaMs / 1000))}s
                   </span>
@@ -596,23 +597,23 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-12 gap-2">
+        <div className="relative grid grid-cols-12 gap-2">
           <button
             type="button"
             onClick={toggleMaster}
-            className={`col-span-6 h-14 rounded-2xl font-headline-sm text-lg font-bold flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-transform select-none ${
-              isRunning ? 'bg-secondary text-on-secondary' : 'bg-tertiary text-on-tertiary'
+            className={`col-span-6 h-14 rounded-xl font-headline-sm text-base font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform select-none ${
+              isRunning ? 'bg-surface-container-high text-on-surface' : 'bg-primary text-on-primary'
             }`}
             aria-label={isRunning ? 'Pausa sessione' : sessionStarted ? 'Riprendi sessione' : 'Avvia sessione e atleti selezionati'}
           >
-            {isRunning ? <Pause size={24} /> : <Play size={24} />}
+            {isRunning ? <Pause size={22} /> : <Play size={22} />}
             <span>{isRunning ? 'PAUSA' : sessionStarted ? 'RIPRENDI' : 'VIA GENERALE'}</span>
           </button>
           <button
             type="button"
             onClick={handleGeneralLap}
             disabled={!isRunning}
-            className={`col-span-4 h-14 rounded-2xl bg-primary-container text-on-primary font-headline-sm text-base font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-transform select-none ${
+            className={`col-span-4 h-14 rounded-xl bg-secondary text-on-secondary font-headline-sm text-base font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform select-none shadow-[0_0_18px_rgba(164,201,255,0.22)] ${
               !isRunning ? 'opacity-40 cursor-not-allowed' : ''
             }`}
             aria-label="Registra Lap per tutti gli atleti attivi"
@@ -625,7 +626,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
             type="button"
             onClick={resetMaster}
             aria-label="Azzera sessione"
-            className="col-span-2 h-14 rounded-2xl bg-inverse-on-surface/15 hover:bg-inverse-on-surface/25 text-inverse-on-surface flex flex-col items-center justify-center active:scale-[0.98] transition-transform"
+            className="col-span-2 h-14 rounded-xl bg-error-container/60 hover:bg-error-container text-error flex flex-col items-center justify-center active:scale-[0.98] transition-transform"
             title="Azzera sessione"
           >
             <RotateCcw size={20} />

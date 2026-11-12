@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../data/AppContext';
 import {
+  CalendarDays,
   CloudDownload,
   LayoutDashboard,
   Monitor,
   Moon,
-  MoreHorizontal,
   Palette,
   Settings2,
   Sun,
@@ -35,14 +35,14 @@ const ITEMS: Record<TabKey, NavItem> = {
   oggi:   { key: 'oggi',   label: 'Oggi',    Icon: LayoutDashboard },
   vasca:  { key: 'vasca',  label: 'Vasca',   Icon: Timer },
   squadra:{ key: 'squadra',label: 'Squadra', Icon: Users },
-  altro:  { key: 'altro',  label: 'Altro',   Icon: MoreHorizontal },
+  altro:  { key: 'altro',  label: 'Piano',   Icon: CalendarDays },
 };
 
 const CONTESTO: Record<TabKey, string> = {
-  oggi:    'Dashboard',
+  oggi:    'Oggi',
   vasca:   'Bordo Vasca',
-  squadra: 'Atleti',
-  altro:   'Altro',
+  squadra: 'Squadra',
+  altro:   'Piano',
 };
 
 const ORDINE: TabKey[] = ['oggi', 'vasca', 'squadra', 'altro'];
@@ -93,14 +93,12 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
         aria-current={active ? 'page' : undefined}
         className={
           mobile
-            ? `flex flex-col items-center justify-center min-w-[70px] h-[52px] px-space-sm rounded-xl transition-colors ${
-                active ? 'bg-primary-container text-on-primary' : 'text-on-surface-variant hover:bg-surface-container'
-              }`
+            ? `ds-nav-item ${active ? 'ds-nav-item-active' : ''}`
             : `sidebar-item ${active ? 'sidebar-item-active' : 'sidebar-item-inactive'}`
         }
       >
-        <item.Icon size={mobile ? 24 : 18} className="shrink-0" />
-        <span className={mobile ? 'font-label-caps text-label-caps mt-0.5' : 'truncate flex-1'}>{item.label}</span>
+        <item.Icon size={mobile ? 22 : 18} className="shrink-0" />
+        <span className={mobile ? '' : 'truncate flex-1'}>{item.label}</span>
         {!mobile && (
           <span className={`text-xs font-semibold tabular-nums shrink-0 ${active ? 'text-primary/60' : 'text-on-surface-variant'}`}>
             {ORDINE.indexOf(key) + 1}
@@ -164,29 +162,26 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
         <button
           type="button"
           onClick={() => vai('oggi')}
-          className="flex items-center gap-space-sm min-w-0 min-h-[44px] rounded-xl px-1 -ml-1 hover:bg-surface-container-low transition-colors"
+          className="flex items-center gap-1.5 min-w-0 min-h-[44px] rounded-xl px-1 -ml-1 hover:bg-surface-container-low transition-colors"
         >
-          <img
-            src="/swim-icon.svg"
-            alt="FINPcoach"
-            className="h-8 w-8 object-contain shrink-0"
-          />
-          <span className="flex flex-col items-start min-w-0">
-            <span className="font-headline-sm text-headline-sm text-primary tracking-tight leading-none">
-              FINPcoach
-            </span>
-            <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider truncate">
-              {CONTESTO[currentTab]}
-            </span>
+          <span className="font-headline-sm text-headline-sm font-bold tracking-tight text-primary shrink-0">
+            FINP<span className="text-on-surface font-normal">coach</span>
+          </span>
+          <span className="text-outline-variant text-xs shrink-0">·</span>
+          <span className="font-headline-sm text-headline-sm font-semibold text-on-surface truncate">
+            {CONTESTO[currentTab]}
           </span>
         </button>
 
         <div className="flex items-center gap-space-sm shrink-0">
           {stagione?.vascaMetri && (
-            <div className="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-full bg-[color-mix(in_srgb,var(--color-secondary-container)_60%,transparent)] text-on-secondary-container whitespace-nowrap">
-              <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-              <span className="font-label-caps text-label-caps uppercase">
-                Vasca attiva{stagione.vascaMetri ? ` · ${stagione.vascaMetri}m` : ''}
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high/90 text-primary whitespace-nowrap">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+              </span>
+              <span className="font-label-caps text-label-caps uppercase text-on-surface">
+                {stagione.vascaMetri}m LIVE
               </span>
             </div>
           )}

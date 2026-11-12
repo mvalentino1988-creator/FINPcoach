@@ -8,18 +8,29 @@ interface Props {
   className?: string;
 }
 
+const TONE: Record<CodiceAllenamentoKey, string> = {
+  A1: 'bg-tertiary-container/30 text-tertiary border-tertiary/30',
+  A2: 'bg-primary-container/30 text-primary border-primary/30',
+  B1: 'bg-secondary-container/40 text-secondary border-secondary/30',
+  B2: 'bg-secondary-container/40 text-secondary border-secondary/30',
+  C1: 'bg-error-container/40 text-error border-error/30',
+  C2: 'bg-error-container/40 text-error border-error/30',
+  C3: 'bg-error-container/40 text-error border-error/30',
+  D: 'bg-tertiary-container/30 text-tertiary border-tertiary/30',
+};
+
 export const BadgeCodice: React.FC<Props> = ({ codice, className = '' }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const info = CODICI_ALLENAMENTO[codice];
   if (!info) return null;
+  const tone = TONE[codice] ?? TONE.A1;
 
   return (
     <>
       <button
         type="button"
         onClick={() => setModalOpen(true)}
-        style={{ backgroundColor: info.containerBg, color: info.textColor }}
-        className={`inline-flex items-center px-3.5 min-h-[44px] rounded-full font-label-caps text-label-caps uppercase tracking-wider transition hover:opacity-90 hover:shadow-md active:scale-[0.97] shadow-sm ${className}`}
+        className={`inline-flex items-center px-3.5 min-h-[44px] rounded-full border font-label-caps text-label-caps uppercase tracking-wider transition hover:opacity-90 hover:shadow-md active:scale-[0.97] shadow-sm ${tone} ${className}`}
         title="Clicca per info fisiologiche sul codice"
         aria-label={`Codice allenamento ${info.codice}: ${info.nome}. Tocca per i dettagli fisiologici.`}
       >
@@ -32,8 +43,7 @@ export const BadgeCodice: React.FC<Props> = ({ codice, className = '' }) => {
             <div className="flex items-start justify-between gap-3 pb-3 border-b border-outline-variant">
               <div className="flex items-center gap-3 min-w-0">
                 <span
-                  style={{ backgroundColor: info.containerBg, color: info.textColor }}
-                  className="px-3 py-1 rounded-full font-label-caps text-label-caps uppercase shrink-0"
+                  className={`px-3 py-1 rounded-full border font-label-caps text-label-caps uppercase shrink-0 ${tone}`}
                 >
                   {info.codice}
                 </span>

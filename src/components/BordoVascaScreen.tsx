@@ -39,7 +39,7 @@ export const BordoVascaScreen: React.FC = () => {
         <div className="flex items-center gap-1.5 min-w-0">
           <Waves size={15} className="text-primary shrink-0" />
           <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider font-bold truncate">
-            Bordo Vasca · Monitoraggio Live
+            Bordo Vasca · Deck Stopwatch
           </span>
         </div>
         <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-secondary-container/60 text-on-secondary-container font-label-caps text-[9px] font-bold uppercase tracking-wider flex-shrink-0">

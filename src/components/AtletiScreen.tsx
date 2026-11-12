@@ -130,6 +130,33 @@ export const AtletiScreen: React.FC = () => {
 
   return (
     <div className="flex flex-1 min-h-0 flex-col gap-3 overflow-hidden">
+      {/* Federal sync pill — stile Stitch Squadra */}
+      <section className="shrink-0 w-full">
+        <div className="flex items-center justify-between gap-2 bg-surface-container-low px-space-md py-space-sm rounded-xl">
+          <div className="flex items-center gap-space-sm min-w-0">
+            <span className="relative flex h-2.5 w-2.5 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-tertiary" />
+            </span>
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-tertiary font-label-caps uppercase tracking-wider font-bold">WPS & FINP Datahub</span>
+                <span className="text-on-surface-variant font-label-caps">· Sincronizzato</span>
+              </div>
+              <p className="text-on-surface-variant font-body-sm text-xs truncate">Database FINP / World Para Swimming attivo</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            aria-label="Ricarica telemetrie squadra"
+            onClick={() => window.location.reload()}
+            className="shrink-0 w-8 h-8 rounded-lg bg-surface-container-high text-primary flex items-center justify-center active:scale-90 transition-transform"
+          >
+            <RefreshCw size={18} />
+          </button>
+        </div>
+      </section>
+
       {/* Team Metrics Micro-Card + Stat Tiles (Stitch: gestione_atleti) */}
       <section className="shrink-0 bg-surface-container-lowest rounded-xl p-3 shadow-sm">
         <div className="flex items-center justify-between gap-2">

@@ -2,11 +2,18 @@
  * FINPcoach — Premium Design System
  * Font importati nel bundle (funzionano offline, anche nella WebView Android).
  */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
 @import '@fontsource/public-sans/400.css';
 @import '@fontsource/public-sans/600.css';
 @import '@fontsource/public-sans/700.css';
+@import '@fontsource/space-grotesk/500.css';
 @import '@fontsource/space-grotesk/600.css';
 @import '@fontsource/space-grotesk/700.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/700.css';
 
 @tailwind base;
 @tailwind components;
@@ -2194,4 +2201,337 @@
 
 .dark [class~="divide-slate-100"] > :not([hidden]) ~ :not([hidden]) {
   border-color: var(--color-outline-variant);
+}
+
+/* ============================================================================
+   STITCH FINPcoach — token override finale
+   Le variabili CSS sovrascrivono i valori legacy mantenendo invariata la logica.
+   ============================================================================ */
+@layer base {
+  :root {
+    font-family: 'Inter', 'Public Sans', system-ui, sans-serif;
+
+    --color-bg: #f8f9ff;
+    --color-bg-rgb: 248 249 255;
+    --color-surface: #f8f9ff;
+    --color-surface-rgb: 248 249 255;
+    --color-surface-bright: #f8f9ff;
+    --color-surface-bright-rgb: 248 249 255;
+    --color-surface-dim: #cbdbf5;
+    --color-surface-dim-rgb: 203 219 245;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-lowest-rgb: 255 255 255;
+    --color-surface-container-low: #eff4ff;
+    --color-surface-container-low-rgb: 239 244 255;
+    --color-surface-container: #e5eeff;
+    --color-surface-container-rgb: 229 238 255;
+    --color-surface-container-high: #dce9ff;
+    --color-surface-container-high-rgb: 220 233 255;
+    --color-surface-container-highest: #d3e4fe;
+    --color-surface-container-highest-rgb: 211 228 254;
+    --color-surface-variant: #d3e4fe;
+    --color-surface-variant-rgb: 211 228 254;
+    --color-background: #f8f9ff;
+    --color-background-rgb: 248 249 255;
+
+    --color-on-surface: #0b1c30;
+    --color-on-surface-rgb: 11 28 48;
+    --color-on-surface-variant: #434751;
+    --color-on-surface-variant-rgb: 67 71 81;
+    --color-on-background: #0b1c30;
+    --color-on-background-rgb: 11 28 48;
+
+    --color-outline: #737782;
+    --color-outline-rgb: 115 119 130;
+    --color-outline-variant: #c3c6d2;
+    --color-outline-variant-rgb: 195 198 210;
+
+    --color-primary: #002859;
+    --color-primary-rgb: 0 40 89;
+    --color-primary-container: #003d82;
+    --color-primary-container-rgb: 0 61 130;
+    --color-on-primary: #ffffff;
+    --color-on-primary-rgb: 255 255 255;
+    --color-on-primary-container: #82aaf6;
+    --color-on-primary-container-rgb: 130 170 246;
+    --color-primary-fixed: #d7e2ff;
+    --color-primary-fixed-rgb: 215 226 255;
+    --color-primary-fixed-dim: #acc7ff;
+    --color-primary-fixed-dim-rgb: 172 199 255;
+    --color-on-primary-fixed: #001a40;
+    --color-on-primary-fixed-rgb: 0 26 64;
+    --color-on-primary-fixed-variant: #11458a;
+    --color-on-primary-fixed-variant-rgb: 17 69 138;
+    --color-primary-bright: #325da4;
+    --color-primary-bright-rgb: 50 93 164;
+
+    --color-secondary: #00687a;
+    --color-secondary-rgb: 0 104 122;
+    --color-secondary-container: #57dffe;
+    --color-secondary-container-rgb: 87 223 254;
+    --color-on-secondary: #ffffff;
+    --color-on-secondary-rgb: 255 255 255;
+    --color-on-secondary-container: #006172;
+    --color-on-secondary-container-rgb: 0 97 114;
+    --color-secondary-fixed: #acedff;
+    --color-secondary-fixed-rgb: 172 237 255;
+    --color-secondary-fixed-dim: #4cd7f6;
+    --color-secondary-fixed-dim-rgb: 76 215 246;
+    --color-on-secondary-fixed: #001f26;
+    --color-on-secondary-fixed-rgb: 0 31 38;
+    --color-on-secondary-fixed-variant: #004e5c;
+    --color-on-secondary-fixed-variant-rgb: 0 78 92;
+
+    --color-tertiary: #002f2a;
+    --color-tertiary-rgb: 0 47 42;
+    --color-tertiary-container: #004741;
+    --color-tertiary-container-rgb: 0 71 65;
+    --color-on-tertiary: #ffffff;
+    --color-on-tertiary-rgb: 255 255 255;
+    --color-on-tertiary-container: #4bbbae;
+    --color-on-tertiary-container-rgb: 75 187 174;
+    --color-tertiary-fixed: #89f5e7;
+    --color-tertiary-fixed-rgb: 137 245 231;
+    --color-tertiary-fixed-dim: #6bd8cb;
+    --color-tertiary-fixed-dim-rgb: 107 216 203;
+    --color-on-tertiary-fixed: #00201d;
+    --color-on-tertiary-fixed-rgb: 0 32 29;
+    --color-on-tertiary-fixed-variant: #005049;
+    --color-on-tertiary-fixed-variant-rgb: 0 80 73;
+
+    --color-error: #ba1a1a;
+    --color-error-rgb: 186 26 26;
+    --color-on-error: #ffffff;
+    --color-on-error-rgb: 255 255 255;
+    --color-error-container: #ffdad6;
+    --color-error-container-rgb: 255 218 214;
+    --color-on-error-container: #93000a;
+    --color-on-error-container-rgb: 147 0 10;
+
+    --color-status-live: #10b981;
+    --color-status-live-rgb: 16 185 129;
+    --color-status-alert: #ef4444;
+    --color-status-alert-rgb: 239 68 68;
+    --color-accent-gold: #f59e0b;
+    --color-accent-gold-rgb: 245 158 11;
+    --color-border-hairline: #e2e7ff;
+    --color-border-hairline-rgb: 226 231 255;
+
+    --color-inverse-surface: #213145;
+    --color-inverse-surface-rgb: 33 49 69;
+    --color-inverse-on-surface: #eaf1ff;
+    --color-inverse-on-surface-rgb: 234 241 255;
+    --color-inverse-primary: #acc7ff;
+    --color-inverse-primary-rgb: 172 199 255;
+  }
+
+  .dark {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+
+    --color-bg: #0c1322;
+    --color-bg-rgb: 12 19 34;
+    --color-surface: #0c1322;
+    --color-surface-rgb: 12 19 34;
+    --color-surface-bright: #32394a;
+    --color-surface-bright-rgb: 50 57 74;
+    --color-surface-dim: #0c1322;
+    --color-surface-dim-rgb: 12 19 34;
+    --color-surface-container-lowest: #070e1d;
+    --color-surface-container-lowest-rgb: 7 14 29;
+    --color-surface-container-low: #151b2b;
+    --color-surface-container-low-rgb: 21 27 43;
+    --color-surface-container: #191f2f;
+    --color-surface-container-rgb: 25 31 47;
+    --color-surface-container-high: #232a3a;
+    --color-surface-container-high-rgb: 35 42 58;
+    --color-surface-container-highest: #2e3545;
+    --color-surface-container-highest-rgb: 46 53 69;
+    --color-surface-variant: #2e3545;
+    --color-surface-variant-rgb: 46 53 69;
+    --color-background: #0c1322;
+    --color-background-rgb: 12 19 34;
+
+    --color-on-surface: #dce2f8;
+    --color-on-surface-rgb: 220 226 248;
+    --color-on-surface-variant: #bcc9cd;
+    --color-on-surface-variant-rgb: 188 201 205;
+    --color-on-background: #dce2f8;
+    --color-on-background-rgb: 220 226 248;
+
+    --color-outline: #869397;
+    --color-outline-rgb: 134 147 151;
+    --color-outline-variant: #3d494c;
+    --color-outline-variant-rgb: 61 73 76;
+
+    --color-primary: #4cd7f6;
+    --color-primary-rgb: 76 215 246;
+    --color-primary-container: #06b6d4;
+    --color-primary-container-rgb: 6 182 212;
+    --color-on-primary: #003640;
+    --color-on-primary-rgb: 0 54 64;
+    --color-on-primary-container: #00424f;
+    --color-on-primary-container-rgb: 0 66 79;
+    --color-primary-fixed: #acedff;
+    --color-primary-fixed-rgb: 172 237 255;
+    --color-primary-fixed-dim: #4cd7f6;
+    --color-primary-fixed-dim-rgb: 76 215 246;
+    --color-on-primary-fixed: #001f26;
+    --color-on-primary-fixed-rgb: 0 31 38;
+    --color-on-primary-fixed-variant: #004e5c;
+    --color-on-primary-fixed-variant-rgb: 0 78 92;
+    --color-primary-bright: #38bdf8;
+    --color-primary-bright-rgb: 56 189 248;
+
+    --color-secondary: #a4c9ff;
+    --color-secondary-rgb: 164 201 255;
+    --color-secondary-container: #0267b8;
+    --color-secondary-container-rgb: 2 103 184;
+    --color-on-secondary: #00315d;
+    --color-on-secondary-rgb: 0 49 93;
+    --color-on-secondary-container: #d6e5ff;
+    --color-on-secondary-container-rgb: 214 229 255;
+    --color-secondary-fixed: #d4e3ff;
+    --color-secondary-fixed-rgb: 212 227 255;
+    --color-secondary-fixed-dim: #a4c9ff;
+    --color-secondary-fixed-dim-rgb: 164 201 255;
+    --color-on-secondary-fixed: #001c39;
+    --color-on-secondary-fixed-rgb: 0 28 57;
+    --color-on-secondary-fixed-variant: #004883;
+    --color-on-secondary-fixed-variant-rgb: 0 72 131;
+
+    --color-tertiary: #45dfa4;
+    --color-tertiary-rgb: 69 223 164;
+    --color-tertiary-container: #00bd85;
+    --color-tertiary-container-rgb: 0 189 133;
+    --color-on-tertiary: #003825;
+    --color-on-tertiary-rgb: 0 56 37;
+    --color-on-tertiary-container: #00452e;
+    --color-on-tertiary-container-rgb: 0 69 46;
+    --color-tertiary-fixed: #68fcbf;
+    --color-tertiary-fixed-rgb: 104 252 191;
+    --color-tertiary-fixed-dim: #45dfa4;
+    --color-tertiary-fixed-dim-rgb: 69 223 164;
+    --color-on-tertiary-fixed: #002114;
+    --color-on-tertiary-fixed-rgb: 0 33 20;
+    --color-on-tertiary-fixed-variant: #005137;
+    --color-on-tertiary-fixed-variant-rgb: 0 81 55;
+
+    --color-error: #ffb4ab;
+    --color-error-rgb: 255 180 171;
+    --color-on-error: #690005;
+    --color-on-error-rgb: 105 0 5;
+    --color-error-container: #93000a;
+    --color-error-container-rgb: 147 0 10;
+    --color-on-error-container: #ffdad6;
+    --color-on-error-container-rgb: 255 218 214;
+
+    --color-status-live: #34d399;
+    --color-status-live-rgb: 52 211 153;
+    --color-status-alert: #f87171;
+    --color-status-alert-rgb: 248 113 113;
+    --color-accent-gold: #fbbf24;
+    --color-accent-gold-rgb: 251 191 36;
+    --color-border-hairline: #232a3a;
+    --color-border-hairline-rgb: 35 42 58;
+
+    --color-inverse-surface: #dce2f8;
+    --color-inverse-surface-rgb: 220 226 248;
+    --color-inverse-on-surface: #2a3041;
+    --color-inverse-on-surface-rgb: 42 48 65;
+    --color-inverse-primary: #00687a;
+    --color-inverse-primary-rgb: 0 104 122;
+  }
+}
+
+@layer components {
+  .ds-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 68px;
+    height: 56px;
+    padding: 0 0.625rem;
+    border-radius: 1rem;
+    color: var(--color-on-surface-variant);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 14px;
+    text-transform: uppercase;
+    transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 120ms ease;
+  }
+
+  .ds-nav-item:active {
+    transform: scale(0.97);
+  }
+
+  .ds-nav-item:not(.ds-nav-item-active):hover {
+    background: var(--color-surface-container);
+    color: var(--color-on-surface);
+  }
+
+  .ds-nav-item-active {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    box-shadow: 0 8px 20px rgba(0, 40, 89, 0.22);
+  }
+
+  .dark .ds-nav-item-active {
+    background: var(--color-primary-container);
+    color: var(--color-on-primary-container);
+    box-shadow: 0 0 18px rgba(6, 182, 212, 0.28), inset 0 0 0 1px rgba(76, 215, 246, 0.35);
+  }
+
+  .ds-glass {
+    background: rgba(248, 249, 255, 0.86);
+    backdrop-filter: blur(20px) saturate(1.35);
+    -webkit-backdrop-filter: blur(20px) saturate(1.35);
+  }
+
+  .dark .ds-glass {
+    background: rgba(7, 14, 29, 0.84);
+  }
+
+  .ds-card,
+  .ds-card-elevated {
+    border-radius: 0.75rem;
+    box-shadow: none;
+  }
+
+  .ds-btn-primary,
+  .ds-btn-blue {
+    border-radius: 0.75rem;
+    background: var(--color-primary-container);
+    color: var(--color-on-primary-container);
+    box-shadow: 0 8px 24px rgba(0, 61, 130, 0.22);
+  }
+
+  .dark .ds-btn-primary,
+  .dark .ds-btn-blue {
+    background: var(--color-primary-container);
+    color: var(--color-on-primary-container);
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.32);
+  }
+
+  .ds-btn-secondary {
+    border-radius: 0.75rem;
+    background: var(--color-surface-container);
+    border-color: color-mix(in srgb, var(--color-outline-variant) 70%, transparent);
+    box-shadow: none;
+  }
+
+  .ds-input,
+  .ds-select {
+    border-radius: 0.75rem;
+    background: var(--color-surface-container-low);
+    border-color: var(--color-outline-variant);
+  }
+
+  .ds-input:focus,
+  .ds-select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 22%, transparent);
+  }
 }
