@@ -92,6 +92,11 @@ export default {
         'zone-c':                    '#f59e0b',
         'zone-tec':                  '#8b5cf6',
 
+        /* ACWR livelli semantici */
+        'acwr-ok':                   '#059669',
+        'acwr-attenzione':           '#d97706',
+        'acwr-critico':              '#dc2626',
+
         /* Outline */
         outline:                     'rgb(var(--color-outline-rgb, 148 163 184) / <alpha-value>)',
         'outline-variant':           'rgb(var(--color-outline-variant-rgb, 226 232 240) / <alpha-value>)',

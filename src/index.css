@@ -173,6 +173,19 @@
     --color-inverse-on-surface-rgb: 238 240 255;
     --color-inverse-primary:       #b5c4ff;
     --color-inverse-primary-rgb: 181 196 255;
+
+    /* Zone colori nuoto */
+    --color-zone-a1: #3b82f6;
+    --color-zone-a2: #0ea5e9;
+    --color-zone-b1: #10b981;
+    --color-zone-b2: #059669;
+    --color-zone-c:  #f59e0b;
+    --color-zone-tec:#8b5cf6;
+
+    /* ACWR livelli */
+    --color-acwr-ok:         #059669;
+    --color-acwr-attenzione: #d97706;
+    --color-acwr-critico:    #dc2626;
   }
 
   .dark {
