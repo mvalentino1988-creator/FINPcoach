@@ -115,8 +115,8 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
       {/* Desktop sidebar */}
       <aside
         aria-label="Menu principale"
-        className="hidden lg:flex flex-col shrink-0 w-[240px] sticky top-0 self-start h-[100dvh] overflow-y-auto border-r border-outline-variant px-3 pb-4"
-        style={{ paddingTop: 'max(1rem, var(--safe-top, 0px))', background: 'var(--color-surface-container-lowest)' }}
+        className="hidden lg:flex flex-col shrink-0 w-[248px] sticky top-0 self-start h-[100dvh] overflow-y-auto border-r border-outline-variant px-3"
+        style={{ paddingTop: 'max(1rem, var(--safe-top, 0px))', paddingBottom: 'max(1rem, var(--safe-bottom, 0px))', background: 'var(--color-surface-container-lowest)' }}
       >
         <button
           type="button"
@@ -157,12 +157,12 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
         className="lg:hidden sticky top-0 z-40 ds-glass border-b border-[color-mix(in_srgb,var(--color-outline-variant)_40%,transparent)] shadow-[0_1px_8px_rgba(0,0,0,0.04)]"
         style={{ paddingTop: 'var(--safe-top, 0px)' }}
       >
-        <div className="mx-auto max-w-[1600px] px-gutter h-16 flex items-center justify-between gap-space-sm">
+        <div className="mx-auto max-w-[1600px] px-gutter h-14 flex items-center justify-between gap-space-sm">
           {/* Brand — stile mockup Stitch: logo + titolo headline-sm + contesto uppercase */}
         <button
           type="button"
           onClick={() => vai('oggi')}
-          className="flex items-center gap-1.5 min-w-0 min-h-[44px] rounded-xl px-1 -ml-1 hover:bg-surface-container-low transition-colors"
+          className="flex items-center gap-1.5 min-w-0 min-h-[48px] rounded-xl px-1 -ml-1 hover:bg-surface-container-low transition-colors"
         >
           <span className="font-headline-sm text-headline-sm font-bold tracking-tight text-primary shrink-0">
             FINP<span className="text-on-surface font-normal">coach</span>
@@ -189,17 +189,17 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
             type="button"
             onClick={() => setAspettoOpen(true)}
             aria-label="Aspetto"
-            className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-surface-container-high text-on-surface border border-[color-mix(in_srgb,var(--color-outline-variant)_40%,transparent)] hover:bg-surface-container-highest transition-all active:scale-95"
+            className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-surface-container-high text-on-surface border border-[color-mix(in_srgb,var(--color-outline-variant)_40%,transparent)] hover:bg-surface-container-highest transition-all active:scale-95"
           >
-            <Palette size={17} />
+            <Palette size={19} />
           </button>
           <button
             type="button"
             onClick={() => setBackupOpen(true)}
             aria-label="Backup e dati"
-            className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-surface-container-high text-on-surface border border-[color-mix(in_srgb,var(--color-outline-variant)_40%,transparent)] hover:bg-surface-container-highest transition-all active:scale-95"
+            className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-surface-container-high text-on-surface border border-[color-mix(in_srgb,var(--color-outline-variant)_40%,transparent)] hover:bg-surface-container-highest transition-all active:scale-95"
           >
-            <CloudDownload size={17} />
+            <CloudDownload size={19} />
           </button>
         </div>
         </div>
@@ -223,7 +223,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
           <div className="bg-surface-container-lowest rounded-2xl p-5 max-w-md w-full shadow-float border border-outline-variant space-y-5 text-on-surface animate-slide-up" onClick={e => e.stopPropagation()} role="dialog" aria-label="Aspetto">
             <div className="flex items-center justify-between">
               <h3 className="font-headline-sm text-headline-sm font-bold">Aspetto</h3>
-              <button type="button" onClick={() => setAspettoOpen(false)} aria-label="Chiudi" className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-surface-container transition">
+              <button type="button" onClick={() => setAspettoOpen(false)} aria-label="Chiudi" className="w-12 h-12 rounded-full flex items-center justify-center hover:bg-surface-container transition">
                 <X size={18} />
               </button>
             </div>
