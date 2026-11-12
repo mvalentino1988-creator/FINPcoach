@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
 import {
   ClipboardList,
   Timer,
@@ -19,7 +19,8 @@ import {
   Bot,
   Waves,
   Clock,
-  Activity
+  Activity,
+  Copy
 } from 'lucide-react';
 import { OCRService } from '../domain/ocrService';
 import { OcrPreviewModal } from './OcrPreviewModal';
@@ -39,6 +40,9 @@ import { OcrWorkoutStandardizer } from '../domain/ocrWorkoutStandardizer';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { PageHeader } from './PageHeader';
 import { Marquee } from './Marquee';
+import { Badge, Button, Card, Modal, ToastProvider, useToast } from './ui';
+import type { SwimZone } from './ui';
+import type { SeriaParsata } from '../domain/parserScheda';
 
 const ParaSwimmingAnalyticsView = lazy(() => import('./ParaSwimmingAnalyticsView').then(m => ({ default: m.ParaSwimmingAnalyticsView })));
 
@@ -394,34 +398,12 @@ export const DatiScreen: React.FC = () => {
 
             {/* DISPLAY SELECTED WORKOUT OR AUTO GENERATED */}
             {!editMode && selectedWorkout ? (
-              <div className="ds-card p-4 space-y-3">
-                <div className="flex items-center justify-between border-b border-outline-variant/60 pb-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedWorkoutId(null)}
-                    className="ds-btn-secondary !min-h-[40px] !px-3 text-xs"
-                  >
-                    <ChevronLeft size={16} />
-                    <span>Indietro</span>
-                  </button>
-                  <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">
-                    {selectedWorkout.data}
-                  </span>
-                </div>
-                <div>
-                  <h3 className="font-headline-sm text-headline-sm text-on-surface">
-                    Allenamento del {selectedWorkout.data}
-                  </h3>
-                  {selectedWorkout.metriTotali != null && (
-                    <p className="font-label-caps text-[10px] text-primary font-bold mt-0.5">
-                      {selectedWorkout.metriTotali.toLocaleString('it-IT')} m · {selectedWorkout.fonte ?? 'manuale'}
-                    </p>
-                  )}
-                </div>
-                <div className="p-3 bg-surface-container-low rounded-xl font-mono text-xs whitespace-pre-wrap leading-relaxed">
-                  {selectedWorkout.testo}
-                </div>
-              </div>
+              <ToastProvider>
+                <SchedaDettaglio
+                  workout={selectedWorkout}
+                  onIndietro={() => setSelectedWorkoutId(null)}
+                />
+              </ToastProvider>
             ) : (
               !editMode && <SchedeVascaScreen />
             )}
@@ -458,18 +440,12 @@ export const DatiScreen: React.FC = () => {
 
       {/* MODAL MODALITÀ NUOVO ALLENAMENTO */}
       {modalitaNuovoModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface-container-lowest rounded-3xl p-6 max-w-sm w-full shadow-float border border-outline-variant/60 space-y-4 text-on-surface animate-fade-in">
-            <div className="flex items-center justify-between">
-              <h3 className="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-primary" />
-                Nuovo Allenamento
-              </h3>
-              <button onClick={() => setModalitaNuovoModal(false)} className="ds-btn-icon" aria-label="Chiudi">
-                <X size={18} />
-              </button>
-            </div>
-
+        <Modal
+          open={modalitaNuovoModal}
+          onClose={() => setModalitaNuovoModal(false)}
+          title="Nuovo Allenamento"
+          size="sm"
+        >
             <div className="space-y-2">
               <button
                 type="button"
@@ -506,8 +482,7 @@ export const DatiScreen: React.FC = () => {
                 </div>
               </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       <OcrPreviewModal
@@ -563,3 +538,126 @@ export const DatiScreen: React.FC = () => {
     </div>
   );
 };
+
+// ------------------------------------------------ Visualizzatore scheda generata
+
+const ORDINE_FASI = ['riscaldamento', 'tecnico', 'tecnica', 'serie', 'principale', 'defaticamento'];
+
+function SchedaDettaglio({ workout, onIndietro }: { workout: CustomWorkout; onIndietro: () => void }) {
+  const { toast } = useToast();
+  const [copiato, setCopiato] = useState(false);
+
+  const serie = useMemo(() => ParserScheda.parseSerie(workout.testo), [workout.testo]);
+
+  const sezioni = useMemo(() => {
+    const map = new Map<string, SeriaParsata[]>();
+    for (const s of serie) {
+      const key = s.sezione?.trim() || 'Allenamento';
+      const list = map.get(key) ?? [];
+      list.push(s);
+      map.set(key, list);
+    }
+    const rank = (k: string) => {
+      const i = ORDINE_FASI.findIndex(f => k.toLowerCase().includes(f));
+      return i === -1 ? ORDINE_FASI.length : i;
+    };
+    return [...map.entries()].sort((a, b) => rank(a[0]) - rank(b[0]));
+  }, [serie]);
+
+  const copia = () => {
+    navigator.clipboard.writeText(workout.testo).then(() => {
+      setCopiato(true);
+      toast({ variant: 'success', title: 'Scheda copiata', message: 'Il testo è negli appunti.' });
+      window.setTimeout(() => setCopiato(false), 2000);
+    });
+  };
+
+  return (
+    <Card padding="md" className="space-y-4">
+      <div className="flex items-center justify-between gap-3 border-b border-outline-variant/60 pb-3">
+        <Button variant="secondary" icon={<ChevronLeft size={16} />} onClick={onIndietro}>
+          Indietro
+        </Button>
+        <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">
+          {workout.data}
+        </span>
+      </div>
+
+      <div>
+        <h3 className="font-headline-sm text-headline-sm text-on-surface">
+          Allenamento del {workout.data}
+        </h3>
+        {workout.metriTotali != null && (
+          <p className="font-label-caps text-[10px] text-primary font-bold mt-0.5">
+            {workout.metriTotali.toLocaleString('it-IT')} m · {workout.fonte ?? 'manuale'}
+          </p>
+        )}
+      </div>
+
+      {serie.length === 0 ? (
+        <div className="p-3 bg-surface-container-low rounded-xl font-mono text-xs whitespace-pre-wrap leading-relaxed">
+          {workout.testo}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {sezioni.map(([nome, items]) => {
+            const metriFase = items.reduce((sum, s) => sum + s.metriTotali, 0);
+            return (
+              <section
+                key={nome}
+                className="rounded-xl border border-outline-variant bg-surface-container-low/60 p-3 space-y-2"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="font-label-caps text-label-caps uppercase tracking-wider text-primary font-bold">
+                    {nome}
+                  </h4>
+                  <span className="font-label-caps text-[10px] text-on-surface-variant tabular-nums">
+                    {metriFase.toLocaleString('it-IT')} m
+                  </span>
+                </div>
+                <div className="space-y-1.5">
+                  {items.map((s, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-3 rounded-lg bg-surface-container-lowest px-3 py-2.5"
+                    >
+                      <Badge zone={s.codice as SwimZone} className="shrink-0">
+                        {s.codice}
+                      </Badge>
+                      <div className="min-w-0 flex-1">
+                        {s.metriTotali > 0 && (
+                          <div className="flex items-baseline gap-2">
+                            <span className="font-headline-sm text-headline-sm font-bold tabular-nums text-on-surface">
+                              {s.ripetizioni}×{s.distanza}m
+                            </span>
+                            <span className="font-label-caps text-label-caps text-primary font-bold tabular-nums">
+                              {s.metriTotali.toLocaleString('it-IT')} m
+                            </span>
+                          </div>
+                        )}
+                        <p className="text-body-sm text-on-surface-variant truncate">
+                          {s.descrizione}
+                          {s.attrezzi.length > 0 ? ` · ${s.attrezzi.join(', ')}` : ''}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="flex gap-2 pt-1">
+        <Button
+          className="flex-1"
+          icon={copiato ? <CheckCircle2 size={18} /> : <Copy size={18} />}
+          onClick={copia}
+        >
+          {copiato ? 'Copiato' : 'Copia scheda'}
+        </Button>
+      </div>
+    </Card>
+  );
+}
