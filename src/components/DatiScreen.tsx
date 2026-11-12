@@ -566,7 +566,7 @@ function SchedaDettaglio({ workout, onIndietro }: { workout: CustomWorkout; onIn
   return (
     <Card padding="md" className="space-y-4">
       <div className="flex items-center justify-between gap-3 border-b border-outline-variant/60 pb-3">
-        <Button variant="secondary" icon={<ChevronLeft size={16} />} onClick={onIndietro}>
+        <Button variant="secondary" icon={<ChevronLeft size={16} />} onClick={onIndietro} className="no-print">
           Indietro
         </Button>
         <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">
@@ -596,7 +596,7 @@ function SchedaDettaglio({ workout, onIndietro }: { workout: CustomWorkout; onIn
             return (
               <section
                 key={nome}
-                className="rounded-xl border border-outline-variant bg-surface-container-low/60 p-3 space-y-2"
+                className="print-phase rounded-xl border border-outline-variant bg-surface-container-low/60 p-3 space-y-2"
               >
                 <div className="flex items-center justify-between gap-2">
                   <h4 className="font-label-caps text-label-caps uppercase tracking-wider text-primary font-bold">
@@ -640,7 +640,7 @@ function SchedaDettaglio({ workout, onIndietro }: { workout: CustomWorkout; onIn
         </div>
       )}
 
-      <div className="flex gap-2 pt-1">
+      <div className="no-print flex gap-2 pt-1">
         <Button
           className="flex-1"
           icon={copiato ? <CheckCircle2 size={18} /> : <Copy size={18} />}

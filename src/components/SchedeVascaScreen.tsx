@@ -430,6 +430,7 @@ export const SchedeVascaScreen: React.FC = () => {
                     max={30000}
                     step={50}
                     value={metriManual}
+                    aria-label="Volume settimanale squadra in metri"
                     onChange={event => {
                       setMetriManual(event.target.value);
                       setScheda(null);

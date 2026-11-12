@@ -36,7 +36,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ label, title, meta, icon
         ) : null}
       </div>
 
-      {right && <div className="relative z-10 shrink-0 flex flex-wrap items-center justify-end gap-1.5 max-[639px]:justify-start">{right}</div>}
+      {right && <div className="no-print relative z-10 shrink-0 flex flex-wrap items-center justify-end gap-1.5 max-[639px]:justify-start">{right}</div>}
     </section>
   );
 };

@@ -234,6 +234,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
               onClick={azzera}
               className="h-8 px-2.5 rounded-lg bg-surface-container text-on-surface-variant hover:text-on-surface font-label-caps text-[10px] font-bold uppercase flex items-center gap-1 transition-colors"
               title="Svuota tutte le corsie"
+              aria-label="Svuota tutte le corsie"
             >
               <Minus size={13} />
               <span className="hidden sm:inline">Svuota</span>
@@ -243,6 +244,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
               onClick={suggerisci}
               className="h-8 px-2.5 rounded-lg bg-primary-fixed text-on-primary-fixed-variant hover:bg-primary-fixed-dim font-label-caps text-[10px] font-bold uppercase flex items-center gap-1 transition-colors"
               title="Composizione suggerita da lavoro e passo 100m"
+              aria-label="Composizione corsie suggerita"
             >
               <Sliders size={13} />
               <span className="hidden sm:inline">Suggerisci</span>
@@ -322,7 +324,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
                             </div>
                           )}
                         </div>
-                        <span className="w-2 h-2 rounded-full bg-secondary shrink-0" title="Presente in vasca" />
+                        <span className="w-2 h-2 rounded-full bg-secondary shrink-0" title="Presente in vasca" aria-hidden="true" />
                         <button
                           type="button"
                           onClick={() => rimuoviAtleta(laneIndex, ath.id)}
