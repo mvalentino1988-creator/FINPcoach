@@ -28,21 +28,21 @@ const variantClass: Record<BadgeVariant, string> = {
   tertiary:  'ds-chip-tertiary',
 };
 
-const zoneColorMap: Record<SwimZone, string> = {
-  A1: '#3b82f6',
-  A2: '#0ea5e9',
-  B1: '#10b981',
-  B2: '#059669',
-  C1: '#f59e0b',
-  C2: '#f59e0b',
-  C3: '#f59e0b',
-  D:  '#8b5cf6',
+const zoneVarMap: Record<SwimZone, string> = {
+  A1: 'var(--color-zone-a1)',
+  A2: 'var(--color-zone-a2)',
+  B1: 'var(--color-zone-b1)',
+  B2: 'var(--color-zone-b2)',
+  C1: 'var(--color-zone-c1)',
+  C2: 'var(--color-zone-c2)',
+  C3: 'var(--color-zone-c)', // alias: non esiste token zone-c3
+  D:  'var(--color-zone-d)',
 };
 
-const acwrColorMap: Record<AcwrLevel, string> = {
-  ok:         '#059669',
-  attenzione: '#d97706',
-  critico:    '#dc2626',
+const acwrVarMap: Record<AcwrLevel, string> = {
+  ok:         'var(--color-acwr-ok)',
+  attenzione: 'var(--color-acwr-attenzione)',
+  critico:    'var(--color-acwr-critico)',
 };
 
 export function Badge({
@@ -57,26 +57,20 @@ export function Badge({
 }: BadgeProps) {
   const acwrLevel = acwr ?? level;
 
-  let baseClass = variantClass[variant];
-  let inlineStyle: React.CSSProperties | undefined;
+  const semanticColor = acwrLevel
+    ? acwrVarMap[acwrLevel]
+    : zone
+      ? zoneVarMap[zone]
+      : null;
 
-  if (acwrLevel) {
-    const color = acwrColorMap[acwrLevel];
-    baseClass = 'ds-chip';
-    inlineStyle = {
-      backgroundColor: `${color}18`,
-      color: color,
-      border: `1px solid ${color}40`,
-    };
-  } else if (zone) {
-    const color = zoneColorMap[zone];
-    baseClass = 'ds-chip';
-    inlineStyle = {
-      backgroundColor: `${color}18`,
-      color: color,
-      border: `1px solid ${color}40`,
-    };
-  }
+  const baseClass = semanticColor ? 'ds-chip' : variantClass[variant];
+  const inlineStyle: React.CSSProperties | undefined = semanticColor
+    ? {
+        backgroundColor: `color-mix(in srgb, ${semanticColor} 10%, transparent)`,
+        color: semanticColor,
+        border: `1px solid color-mix(in srgb, ${semanticColor} 25%, transparent)`,
+      }
+    : undefined;
 
   return (
     <span
