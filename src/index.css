@@ -139,10 +139,12 @@
     --color-success-rgb: 24 115 79;
     --color-success-container:     #d5efdc;
     --color-success-container-rgb: 213 239 220;
+    --color-on-success:            #ffffff;
     --color-on-success-container:  #17452e;
     --color-on-success-container-rgb: 23 69 46;
     --color-warning:               #9b6700;
     --color-warning-rgb: 155 103 0;
+    --color-on-warning:            #ffffff;
     --color-warning-container:     #f5e8bc;
     --color-warning-container-rgb: 245 232 188;
     --color-on-warning-container:  #5b3e00;
@@ -155,6 +157,7 @@
     --color-error-container-rgb: 255 218 214;
     --color-on-error-container:    #93000a;
     --color-on-error-container-rgb: 147 0 10;
+    --color-info:                  #0049cc;
 
     /* Status extra (design Stitch) */
     --color-status-live:           #10b981;
@@ -180,6 +183,9 @@
     --color-zone-b1: #10b981;
     --color-zone-b2: #059669;
     --color-zone-c:  #f59e0b;
+    --color-zone-c1: #f59e0b;
+    --color-zone-c2: #ea580c;
+    --color-zone-d:  #ef4444;
     --color-zone-tec:#8b5cf6;
 
     /* ACWR livelli */
@@ -281,12 +287,14 @@
 
     --color-success:               #82d3a6;
     --color-success-rgb: 130 211 166;
+    --color-on-success:            #00391d;
     --color-success-container:     #244d38;
     --color-success-container-rgb: 36 77 56;
     --color-on-success-container:  #c4f1d2;
     --color-on-success-container-rgb: 196 241 210;
     --color-warning:               #e8c66c;
     --color-warning-rgb: 232 198 108;
+    --color-on-warning:            #3e2e00;
     --color-warning-container:     #534315;
     --color-warning-container-rgb: 83 67 21;
     --color-on-warning-container:  #f4e4ae;
@@ -299,6 +307,7 @@
     --color-error-container-rgb: 147 0 10;
     --color-on-error-container:    #ffdad6;
     --color-on-error-container-rgb: 255 218 214;
+    --color-info:                  #93c5fd;
 
     /* Status extra (design Stitch) */
     --color-status-live:           #10b981;
@@ -316,6 +325,17 @@
     --color-inverse-on-surface-rgb: 41 49 61;
     --color-inverse-primary:       #006875;
     --color-inverse-primary-rgb: 0 104 117;
+
+    /* Zone colori nuoto */
+    --color-zone-a1: #38bdf8;
+    --color-zone-a2: #7dd3fc;
+    --color-zone-b1: #34d399;
+    --color-zone-b2: #10b981;
+    --color-zone-c:  #fbbf24;
+    --color-zone-c1: #fbbf24;
+    --color-zone-c2: #fb923c;
+    --color-zone-d:  #f87171;
+    --color-zone-tec:#a78bfa;
   }
 
   html {
@@ -1840,7 +1860,7 @@
 
   .ds-btn-danger {
     @apply inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5
-           bg-error-container text-on-error-container border border-error/25
+           bg-error-container text-on-error-container border border-error
            font-headline text-xs font-bold hover:brightness-95 active:scale-[0.96]
            transition-all duration-250;
     border-radius: var(--radius-btn);
