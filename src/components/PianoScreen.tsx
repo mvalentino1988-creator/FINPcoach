@@ -15,6 +15,7 @@ import { generaCodiciSeduta } from '../domain/generatoreCodiciSeduta';
 import { CodiciSeduta } from './CodiciSeduta';
 import { ElencoAvvisi } from './ElencoAvvisi';
 import { PageHeader } from './PageHeader';
+import { Badge, Select } from './ui';
 import { normalizzaDurata } from '../domain/parametriSeduta';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import {
@@ -31,7 +32,6 @@ import {
   Lock,
   RefreshCw,
   Sparkles,
-  Star,
   Sliders,
   Timer,
   Trash2,
@@ -45,15 +45,14 @@ import {
 
 const tipoMicroVisual = (tipo: TipoMicrociclo) => {
   switch (tipo) {
-    case 'GARA':
+    case 'ADATTAMENTO':
       return {
-        bar: 'bg-tertiary',
-        chip: 'bg-tertiary-fixed text-on-tertiary-fixed border-tertiary-fixed-dim',
-        accent: 'text-tertiary',
-        dot: 'bg-tertiary-fixed-dim'
+        bar: 'bg-accent-gold',
+        chip: 'bg-warning-container text-on-warning-container border-warning/40',
+        accent: 'text-accent-gold',
+        dot: 'bg-accent-gold'
       };
     case 'CARICO':
-    case 'ADATTAMENTO':
       return {
         bar: 'bg-primary',
         chip: 'bg-primary-fixed text-on-primary-fixed border-primary-fixed-dim',
@@ -61,12 +60,25 @@ const tipoMicroVisual = (tipo: TipoMicrociclo) => {
         dot: 'bg-primary'
       };
     case 'SCARICO':
-    case 'RECUPERO':
       return {
         bar: 'bg-secondary',
         chip: 'bg-secondary-fixed text-on-secondary-fixed border-secondary-fixed-dim',
         accent: 'text-secondary',
         dot: 'bg-secondary-fixed-dim'
+      };
+    case 'RECUPERO':
+      return {
+        bar: 'bg-success',
+        chip: 'bg-success-container text-on-success-container border-success/40',
+        accent: 'text-success',
+        dot: 'bg-success'
+      };
+    case 'GARA':
+      return {
+        bar: 'bg-tertiary',
+        chip: 'bg-tertiary-fixed text-on-tertiary-fixed border-tertiary-fixed-dim',
+        accent: 'text-tertiary',
+        dot: 'bg-tertiary-fixed-dim'
       };
     case 'PAUSA':
     default:
@@ -901,6 +913,45 @@ export const PianoScreen: React.FC = () => {
         {/* CLICKABLE MENU MODE (DEFAULT) */}
         {!espandiTutti && (
           <div className="space-y-4">
+            {/* Selettori periodo + legenda tipi microciclo */}
+            <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
+              <Select
+                label="Macrociclo"
+                value={macroAttivo ? String(macroAttivo.id) : ''}
+                onChange={e => {
+                  const id = parseInt(e.target.value, 10);
+                  if (isNaN(id)) return;
+                  setSelectedMacroId(id);
+                  const firstMeso = meso.find(me => me.macrocicloId === id);
+                  if (firstMeso) setSelectedMesoId(firstMeso.id);
+                }}
+                options={macro.map(ma => ({ value: String(ma.id), label: ma.nome }))}
+              />
+              <Select
+                label="Mesociclo"
+                value={mesoAttivo ? String(mesoAttivo.id) : ''}
+                onChange={e => {
+                  const id = parseInt(e.target.value, 10);
+                  if (!isNaN(id)) setSelectedMesoId(id);
+                }}
+                options={mesoDiMacroAttivo.map(me => ({
+                  value: String(me.id),
+                  label: `${FASE_MESOCICLO_LABEL[me.fase]} · ${formattaData(me.inizio)}`
+                }))}
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-1">
+              {(['ADATTAMENTO', 'CARICO', 'SCARICO', 'RECUPERO', 'GARA', 'PAUSA'] as TipoMicrociclo[]).map(t => {
+                const v = tipoMicroVisual(t);
+                return (
+                  <span key={t} className="inline-flex items-center gap-1.5 font-label-caps text-label-caps uppercase text-on-surface-variant">
+                    <span className={`h-2 w-2 rounded-full ${v.dot}`} />
+                    {TIPO_MICROCICLO_LABEL[t]}
+                  </span>
+                );
+              })}
+            </div>
+
             {/* LIVELLO 1: Menu Cliccabile Macrocicli */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
@@ -1222,10 +1273,14 @@ export const PianoScreen: React.FC = () => {
                               {gareInSettimana.length > 0 && (
                                 <div className="space-y-1.5">
                                   {gareInSettimana.map(g => (
-                                    <div key={g.id} className="flex items-center gap-2 rounded-lg border border-tertiary-fixed-dim bg-tertiary-fixed/60 px-2.5 py-2 text-xs font-bold text-on-tertiary-fixed">
+                                    <div key={g.id} className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-bold ${
+                                      g.prioritaria
+                                        ? 'border-tertiary bg-tertiary-container text-on-tertiary-container shadow-sm'
+                                        : 'border-tertiary-fixed-dim/60 bg-tertiary-fixed/50 text-on-tertiary-fixed'
+                                    }`}>
                                       <Trophy size={14} className="shrink-0 text-tertiary-container" />
                                       <span className="min-w-0 flex-1 truncate">Gara: {g.nome}</span>
-                                      {g.prioritaria && <Star size={13} className="shrink-0 fill-current" />}
+                                      {g.prioritaria && <Badge variant="coral" size="sm" className="shrink-0">A-race</Badge>}
                                     </div>
                                   ))}
                                 </div>
@@ -1342,10 +1397,14 @@ export const PianoScreen: React.FC = () => {
                                   <CodiciSeduta codici={codici} compatto />
 
                                   {gareInSettimana.map(g => (
-                                    <div key={g.id} className="flex items-center gap-2 rounded-lg border border-tertiary-fixed-dim bg-tertiary-fixed/60 px-2.5 py-2 text-xs font-bold text-on-tertiary-fixed">
+                                    <div key={g.id} className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-bold ${
+                                      g.prioritaria
+                                        ? 'border-tertiary bg-tertiary-container text-on-tertiary-container shadow-sm'
+                                        : 'border-tertiary-fixed-dim/60 bg-tertiary-fixed/50 text-on-tertiary-fixed'
+                                    }`}>
                                       <Trophy size={13} className="shrink-0" />
                                       <span className="min-w-0 flex-1 truncate">Gara: {g.nome}</span>
-                                      {g.prioritaria && <Star size={12} className="shrink-0 fill-current" />}
+                                      {g.prioritaria && <Badge variant="coral" size="sm" className="shrink-0">A-race</Badge>}
                                     </div>
                                   ))}
                                 </div>

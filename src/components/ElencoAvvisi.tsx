@@ -1,6 +1,13 @@
 import React from 'react';
 import { Avviso } from '../types';
 import { AlertCircle, AlertTriangle, Info } from 'lucide-react';
+import { Badge } from './ui';
+
+const SEVERITA_BADGE = {
+  ERRORE: { label: 'Errore', variant: 'coral' as const },
+  ATTENZIONE: { label: 'Attenzione', variant: 'tertiary' as const },
+  INFO: { label: 'Info', variant: 'blue' as const },
+};
 
 interface Props {
   avvisi: Avviso[];
@@ -31,12 +38,17 @@ export const ElencoAvvisi: React.FC<Props> = ({ avvisi }) => {
           icon = <AlertTriangle size={15} className="shrink-0" />;
         }
 
+        const sev = SEVERITA_BADGE[a.gravita] ?? SEVERITA_BADGE.INFO;
+
         return (
           <div key={i} className={`flex items-start gap-3 rounded-xl border p-3 shadow-sm ${cls}`}>
             <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${iconCls}`}>
               {icon}
             </span>
-            <div className="font-body-base text-body-base leading-snug text-on-surface min-w-0">{a.messaggio}</div>
+            <div className="min-w-0 flex-1">
+              <Badge variant={sev.variant} size="sm" className="mb-1">{sev.label}</Badge>
+              <div className="font-body-base text-body-base leading-snug text-on-surface">{a.messaggio}</div>
+            </div>
           </div>
         );
       })}
