@@ -14,6 +14,7 @@ export interface TabsProps {
   onChange: (id: string) => void;
   children?: React.ReactNode;
   className?: string;
+  panelClassName?: string;
   ariaLabel?: string;
 }
 
@@ -23,6 +24,7 @@ export function Tabs({
   onChange,
   children,
   className,
+  panelClassName,
   ariaLabel,
 }: TabsProps) {
   const listRef = useRef<HTMLDivElement>(null);
@@ -90,7 +92,7 @@ export function Tabs({
         role="tabpanel"
         id={`panel-${activeId}`}
         aria-labelledby={`tab-${activeId}`}
-        className="pt-4"
+        className={cn('pt-4', panelClassName)}
       >
         {children}
       </div>
