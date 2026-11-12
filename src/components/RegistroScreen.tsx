@@ -19,6 +19,7 @@ import {
   CheckCircle,
   Clock,
   HeartPulse,
+  Minus,
   Plus,
   ShieldAlert,
   Trash2,
@@ -26,6 +27,7 @@ import {
   User,
   Waves
 } from 'lucide-react';
+import { Badge, Button, EmptyState, Input, Progress, Tabs } from './ui';
 
 export const RegistroScreen: React.FC = () => {
   const {
@@ -128,37 +130,27 @@ export const RegistroScreen: React.FC = () => {
 
   if (atleti.length === 0) {
     return (
-      <div className="p-8 text-center ds-card">
-        <div className="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center mx-auto mb-3">
-          <User size={24} className="text-outline" />
-        </div>
-        <h3 className="font-headline-sm text-headline-sm text-on-surface">Nessun atleta registrato</h3>
-        <p className="text-xs text-on-surface-variant mt-1">Aggiungi prima gli atleti per registrare presenze e carico.</p>
-      </div>
+      <EmptyState
+        icon={<User size={40} strokeWidth={1.5} />}
+        title="Nessun atleta registrato"
+        message="Aggiungi prima gli atleti per registrare presenze e carico."
+      />
     );
   }
 
   return (
     <div className="space-y-4">
-      {/* Tab Navigation — segmented dock stile Stitch */}
-      <div className="flex p-1 bg-surface-container-high/80 rounded-xl shadow-sm gap-1 overflow-x-auto ds-hscroll">
-        {([
-          { key: 'seduta', label: 'Registro Seduta' },
-          { key: 'tempi', label: 'Tempi Gara' },
-          { key: 'storico', label: 'Carico ACWR' },
-        ] as { key: 'seduta' | 'tempi' | 'storico'; label: string }[]).map(t => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setSezione(t.key)}
-            className={`flex-1 min-w-[110px] h-11 text-xs font-bold font-headline-sm rounded-lg transition whitespace-nowrap ${
-              sezione === t.key ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {/* Tab Navigation */}
+      <Tabs
+        tabs={[
+          { id: 'seduta', label: 'Registro Seduta' },
+          { id: 'tempi', label: 'Tempi Gara' },
+          { id: 'storico', label: 'Carico ACWR' },
+        ]}
+        activeId={sezione}
+        onChange={(id) => setSezione(id as 'seduta' | 'tempi' | 'storico')}
+        ariaLabel="Sezioni del registro"
+      />
 
       {/* ==================================== SUBTAB SEDUTA ==================================== */}
       {sezione === 'seduta' && (
@@ -169,31 +161,27 @@ export const RegistroScreen: React.FC = () => {
               <span>Registra Presenze e Carico Effettivo</span>
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div>
-                <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Data Allenamento *</label>
-                <input
-                  type="text"
-                  value={dataTesto}
-                  onChange={e => setDataTesto(e.target.value)}
-                  className="ds-input !h-12"
-                />
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Input
+                label="Data Allenamento *"
+                type="text"
+                value={dataTesto}
+                onChange={e => setDataTesto(e.target.value)}
+              />
 
-              <div>
-                <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Durata Seduta (min) *</label>
-                <input
-                  type="number"
-                  value={durata}
-                  onChange={e => setDurata(e.target.value)}
-                  className="ds-input !h-12 font-bold"
-                />
-              </div>
+              <Input
+                label="Durata Seduta (min) *"
+                type="number"
+                value={durata}
+                onChange={e => setDurata(e.target.value)}
+                className="font-bold"
+              />
             </div>
 
             {/* Button open today's poolside card */}
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => {
                 const d = dataParsed ?? todayISO();
                 const mic = micro.find(m => m.inizio <= d && m.fine >= d) ?? micro[0];
@@ -208,11 +196,11 @@ export const RegistroScreen: React.FC = () => {
                   condizioni: condizioniAtleta,
                 }).codici);
               }}
-              className="w-full flex items-center justify-center gap-2.5 p-3 bg-primary-fixed/30 hover:bg-primary-fixed/50 text-on-primary-fixed-variant border border-primary/20 rounded-xl font-headline-sm font-bold text-xs transition active:scale-[0.99]"
+              className="w-full"
+              icon={<Waves size={16} />}
             >
-              <Waves size={16} />
-              <span>Focus codici della seduta</span>
-            </button>
+              Focus codici della seduta
+            </Button>
             {codiciSeduta && (
               <CodiciSeduta codici={codiciSeduta} titolo="Focus della seduta" compatto />
             )}
@@ -238,25 +226,21 @@ export const RegistroScreen: React.FC = () => {
             <div className="divide-y divide-outline-variant/50">
             {atleti.map(a => {
               const r = righe[a.id] ?? { presente: true, metri: '1800', rpe: '6' };
+              const rpeNum = Math.min(10, Math.max(1, parseInt(r.rpe, 10) || 6));
+              const setRpe = (v: number) => {
+                setRighe(prev => ({
+                  ...prev,
+                  [a.id]: { ...r, rpe: String(Math.min(10, Math.max(1, v))) }
+                }));
+              };
               return (
                 <div
                   key={a.id}
-                  className={`py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs transition ${
+                  className={`py-3 flex flex-col gap-2.5 text-xs transition ${
                     r.presente ? '' : 'opacity-60'
                   }`}
                 >
-                  <label className="flex items-center gap-3 cursor-pointer select-none min-w-0">
-                    <input
-                      type="checkbox"
-                      checked={r.presente}
-                      onChange={e => {
-                        setRighe(prev => ({
-                          ...prev,
-                          [a.id]: { ...r, presente: e.target.checked }
-                        }));
-                      }}
-                      className="w-4 h-4 accent-primary rounded shrink-0"
-                    />
+                  <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
                       <span className="font-body-bold text-body-bold text-on-surface text-sm block truncate">
                         {a.cognome} {a.nome}
@@ -265,14 +249,33 @@ export const RegistroScreen: React.FC = () => {
                         Fattore volume: {Math.round(a.fattoreVolume * 100)}%
                       </span>
                     </div>
-                  </label>
+                    <button
+                      type="button"
+                      aria-pressed={r.presente}
+                      onClick={() => {
+                        setRighe(prev => ({
+                          ...prev,
+                          [a.id]: { ...r, presente: !r.presente }
+                        }));
+                      }}
+                      className={`min-h-[48px] px-4 rounded-xl font-headline-sm text-label-lg font-bold transition shrink-0 ${
+                        r.presente
+                          ? 'bg-secondary-container text-on-secondary-container'
+                          : 'bg-error-container text-on-error-container'
+                      }`}
+                    >
+                      {r.presente ? 'Presente' : 'Assente'}
+                    </button>
+                  </div>
 
                   {r.presente ? (
-                    <div className="flex items-center gap-2 sm:gap-3 pl-7 sm:pl-0">
-                      <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5">
                         <input
                           type="number"
                           step="50"
+                          inputMode="numeric"
+                          aria-label={`Metri per ${a.cognome} ${a.nome}`}
                           value={r.metri}
                           onChange={e => {
                             setRighe(prev => ({
@@ -280,30 +283,36 @@ export const RegistroScreen: React.FC = () => {
                               [a.id]: { ...r, metri: e.target.value }
                             }));
                           }}
-                          className="w-24 px-2 h-10 border border-outline-variant/60 bg-surface-container-low rounded-lg text-center font-bold text-xs tabular-nums focus:outline-none focus:border-primary"
+                          className="w-28 px-3 h-12 border border-outline-variant/60 bg-surface-container-low rounded-xl text-center font-headline-sm font-bold text-base tabular-nums focus:outline-none focus:border-primary"
                         />
-                        <span className="text-on-surface-variant text-xs">m</span>
+                        <span className="text-on-surface-variant text-xs font-semibold">m</span>
                       </div>
 
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="number"
-                          min="1"
-                          max="10"
-                          value={r.rpe}
-                          onChange={e => {
-                            setRighe(prev => ({
-                              ...prev,
-                              [a.id]: { ...r, rpe: e.target.value }
-                            }));
-                          }}
-                          className="w-14 px-2 h-10 border border-outline-variant/60 bg-surface-container-low rounded-lg text-center font-bold text-xs text-primary tabular-nums focus:outline-none focus:border-primary"
-                        />
-                        <span className="text-on-surface-variant text-xs">/10</span>
+                      <div className="flex items-center gap-1 ml-auto" role="group" aria-label={`RPE per ${a.cognome} ${a.nome}`}>
+                        <button
+                          type="button"
+                          aria-label="Diminuisci RPE"
+                          onClick={() => setRpe(rpeNum - 1)}
+                          className="w-12 h-12 rounded-xl bg-surface-container text-on-surface-variant hover:text-on-surface flex items-center justify-center transition active:scale-95"
+                        >
+                          <Minus size={18} />
+                        </button>
+                        <div className="w-12 h-12 rounded-xl bg-primary-fixed text-on-primary-fixed flex flex-col items-center justify-center">
+                          <span className="font-stat-timer-mobile text-[20px] leading-none tabular-nums">{rpeNum}</span>
+                          <span className="font-label-caps text-[8px] uppercase">RPE</span>
+                        </div>
+                        <button
+                          type="button"
+                          aria-label="Aumenta RPE"
+                          onClick={() => setRpe(rpeNum + 1)}
+                          className="w-12 h-12 rounded-xl bg-surface-container text-on-surface-variant hover:text-on-surface flex items-center justify-center transition active:scale-95"
+                        >
+                          <Plus size={18} />
+                        </button>
                       </div>
                     </div>
                   ) : (
-                    <span className="pl-7 sm:pl-0 text-xs font-semibold text-error italic">Assente</span>
+                    <span className="text-xs font-semibold text-error italic">Assente</span>
                   )}
                 </div>
               );
@@ -317,13 +326,14 @@ export const RegistroScreen: React.FC = () => {
               </div>
             )}
 
-            <button
+            <Button
               onClick={handleSalvaSeduta}
               disabled={!dataParsed || isNaN(durataInt) || durataInt <= 0}
-              className="w-full mt-2 h-12 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-headline-sm font-bold rounded-xl text-xs transition shadow-card active:scale-[0.99]"
+              className="w-full mt-2"
+              icon={<Check size={16} />}
             >
               {giaRegistrata ? 'Aggiorna Seduta nel Registro' : 'Salva Seduta nel Registro'}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -343,7 +353,7 @@ export const RegistroScreen: React.FC = () => {
                   onClick={() => setAtletaSelId(a.id)}
                   aria-label={`${a.cognome} ${a.nome}`}
                   title={`${a.cognome} ${a.nome}`}
-                  className={`px-3 min-h-[40px] rounded-full font-label-caps text-label-caps transition flex items-center gap-1.5 ${
+                  className={`px-3 min-h-[48px] rounded-full font-label-caps text-label-caps transition flex items-center gap-1.5 ${
                     atletaSel.id === a.id
                       ? 'bg-primary-container text-on-primary-container shadow-sm font-bold'
                       : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
@@ -380,7 +390,7 @@ export const RegistroScreen: React.FC = () => {
                   onClick={() => setAtletaSelId(a.id)}
                   aria-label={`${a.cognome} ${a.nome}`}
                   title={`${a.cognome} ${a.nome}`}
-                  className={`px-3 min-h-[40px] rounded-full font-label-caps text-label-caps transition flex items-center gap-1.5 ${
+                  className={`px-3 min-h-[48px] rounded-full font-label-caps text-label-caps transition flex items-center gap-1.5 ${
                     atletaSel.id === a.id
                       ? 'bg-primary-container text-on-primary-container shadow-sm font-bold'
                       : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
@@ -463,47 +473,40 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
           <span>Nuovo Tempo · {atleta.nome} {atleta.cognome}</span>
         </h3>
 
-        <form onSubmit={handleSubmit} className="space-y-3 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Data *</label>
-              <input
-                type="text"
-                value={dataTesto}
-                onChange={e => setDataTesto(e.target.value)}
-                className="ds-input !h-11"
-              />
-            </div>
-            <div>
-              <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Distanza (m) *</label>
-              <input
-                type="number"
-                value={distanza}
-                onChange={e => setDistanza(e.target.value)}
-                className="ds-input !h-11 font-bold"
-              />
-            </div>
-            <div>
-              <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Tempo (es. 1:02.35) *</label>
-              <input
-                type="text"
-                placeholder="es. 1:02.35"
-                value={tempoTesto}
-                onChange={e => setTempoTesto(e.target.value)}
-                className="ds-input !h-11 font-bold text-base text-primary tabular-nums"
-              />
-            </div>
+            <Input
+              label="Data *"
+              type="text"
+              value={dataTesto}
+              onChange={e => setDataTesto(e.target.value)}
+            />
+            <Input
+              label="Distanza (m) *"
+              type="number"
+              value={distanza}
+              onChange={e => setDistanza(e.target.value)}
+              className="font-bold"
+            />
+            <Input
+              label="Tempo (es. 1:02.35) *"
+              type="text"
+              placeholder="es. 1:02.35"
+              value={tempoTesto}
+              onChange={e => setTempoTesto(e.target.value)}
+              className="font-bold text-base text-primary tabular-nums"
+            />
           </div>
 
           <div>
-            <span className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Stile</span>
+            <span className="ds-label block mb-1">Stile</span>
             <div className="flex flex-wrap gap-1.5">
               {(['STILE_LIBERO', 'DORSO', 'RANA', 'FARFALLA', 'MISTI'] as Stile[]).map(s => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => setStile(s)}
-                  className={`px-2.5 py-1.5 min-h-[36px] rounded-full font-label-caps text-label-caps transition ${
+                  className={`px-3 min-h-[48px] rounded-full font-label-caps text-label-caps transition ${
                     stile === s ? 'bg-primary-container text-on-primary-container shadow-sm font-bold' : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
                   }`}
                 >
@@ -520,7 +523,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
                   key={c}
                   type="button"
                   onClick={() => setContesto(c)}
-                  className={`px-2.5 py-1 min-h-[32px] rounded-md font-label-caps text-label-caps transition capitalize ${
+                  className={`px-3 min-h-[44px] rounded-md font-label-caps text-label-caps transition capitalize ${
                     contesto === c ? 'bg-surface-container-lowest text-primary shadow-sm font-bold' : 'text-on-surface-variant'
                   }`}
                 >
@@ -535,7 +538,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
                   key={v}
                   type="button"
                   onClick={() => setVasca(v)}
-                  className={`px-2.5 py-1 min-h-[32px] rounded-md font-label-caps text-label-caps transition ${
+                  className={`px-3 min-h-[44px] rounded-md font-label-caps text-label-caps transition ${
                     vasca === v ? 'bg-surface-container-lowest text-primary shadow-sm font-bold' : 'text-on-surface-variant'
                   }`}
                 >
@@ -545,21 +548,21 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
             </div>
           </div>
 
-          <input
+          <Input
             type="text"
             placeholder="Note sul tempo (opzionale)"
+            aria-label="Note sul tempo"
             value={note}
             onChange={e => setNote(e.target.value)}
-            className="ds-input !h-11"
           />
 
-          <button
+          <Button
             type="submit"
             disabled={!valido}
-            className="w-full h-12 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary font-headline-sm font-bold rounded-xl text-xs transition shadow-card active:scale-[0.99]"
+            className="w-full"
           >
             Aggiungi Tempo
-          </button>
+          </Button>
         </form>
       </div>
 
@@ -630,7 +633,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
 
                 <button
                   onClick={() => onElimina(t.id)}
-                  className="w-9 h-9 flex items-center justify-center text-on-surface-variant hover:text-error rounded-lg hover:bg-error-container/50 transition shrink-0"
+                  className="w-12 h-12 -m-1.5 flex items-center justify-center text-on-surface-variant hover:text-error rounded-lg hover:bg-error-container/50 transition shrink-0"
                   aria-label="Elimina tempo"
                 >
                   <Trash2 size={15} />
@@ -671,14 +674,10 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
 
   const presentiCount = log.filter(l => l.presente).length;
 
-  // Mappatura livello rischio → pill colorata (stile Stitch)
-  const rischioLower = (acwr.livelloRischio ?? '').toLowerCase();
-  const rischioPill =
-    rischioLower.includes('alto') || rischioLower.includes('elevato')
-      ? 'bg-error/15 text-error'
-      : rischioLower.includes('moderat') || rischioLower.includes('medio') || rischioLower.includes('attenz')
-      ? 'bg-tertiary-fixed-dim/50 text-on-tertiary-fixed-variant'
-      : 'bg-secondary/15 text-secondary';
+  // Livello ACWR → token acwr-* (testo sempre accanto al colore)
+  const acwrLevel: 'ok' | 'attenzione' | 'critico' =
+    acwr.acwrRapporto > 1.5 ? 'critico' : acwr.acwrRapporto > 1.3 ? 'attenzione' : 'ok';
+  const acwrTone = acwrLevel === 'critico' ? 'acwr-critico' : acwrLevel === 'attenzione' ? 'acwr-attenzione' : 'acwr-ok';
 
   // Posizione ago ACWR sulla scala mockup 0.5 → 1.8
   const agoLeft = `${Math.min(98, Math.max(2, ((acwr.acwrRapporto - 0.5) / 1.3) * 100))}%`;
@@ -693,11 +692,19 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
             <span className="font-headline-sm text-headline-sm text-on-surface truncate">ACWR Telemetria</span>
             <span className="font-label-caps text-label-caps text-on-surface-variant hidden sm:inline">(Gabbett Model)</span>
           </div>
-          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-label-caps text-label-caps font-bold whitespace-nowrap ${rischioPill}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${rischioLower.includes('alto') || rischioLower.includes('elevato') ? 'bg-error' : 'bg-secondary'} animate-pulse`} />
+          <Badge acwr={acwrLevel}>
             {acwr.livelloRischio}
-          </span>
+          </Badge>
         </div>
+
+        {/* Barra ACWR a fasce: colore + testo, mai solo colore */}
+        <Progress
+          label={`Rapporto ACWR · ${acwr.acwrRapporto.toFixed(2)}`}
+          value={Math.min(1.8, Math.max(0.5, acwr.acwrRapporto))}
+          max={1.8}
+          tone={acwrTone}
+          valueLabel={acwr.acwrRapporto >= 0.8 && acwr.acwrRapporto <= 1.3 ? 'Sweet Spot' : acwr.livelloRischio}
+        />
 
         {acwr.avvisoInfortunio && (
           <div className="p-3 bg-error-container border border-error/30 rounded-xl text-xs text-on-error-container flex items-start gap-3 font-medium">
@@ -718,25 +725,23 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
               {acwr.acwrRapporto >= 0.8 && acwr.acwrRapporto <= 1.3 ? 'Sweet Spot' : acwr.livelloRischio}
             </span>
           </div>
-          <div className="col-span-7 flex flex-col justify-between h-full space-y-2 pl-1">
-            <div className="flex flex-col">
-              <div className="flex justify-between items-baseline gap-2">
-                <span className="font-label-caps text-[10px] text-on-surface-variant uppercase">Acuto (7gg)</span>
-                <span className="font-headline-sm text-headline-sm text-primary font-bold tabular-nums">{acwr.caricoAcuto} sRPE</span>
-              </div>
-              <div className="w-full h-1.5 bg-surface-container rounded-full overflow-hidden mt-1">
-                <div className="h-full bg-primary-container rounded-full" style={{ width: `${Math.min(100, Math.round((acwr.caricoAcuto / Math.max(1, acwr.caricoAcuto + acwr.caricoCronicoMedio)) * 100))}%` }} />
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <div className="flex justify-between items-baseline gap-2">
-                <span className="font-label-caps text-[10px] text-on-surface-variant uppercase">Cronico (28gg)</span>
-                <span className="font-headline-sm text-headline-sm text-secondary font-bold tabular-nums">{Math.round(acwr.caricoCronicoMedio)} sRPE</span>
-              </div>
-              <div className="w-full h-1.5 bg-surface-container rounded-full overflow-hidden mt-1">
-                <div className="h-full bg-secondary rounded-full" style={{ width: `${Math.min(100, Math.round((acwr.caricoCronicoMedio / Math.max(1, acwr.caricoAcuto + acwr.caricoCronicoMedio)) * 100))}%` }} />
-              </div>
-            </div>
+          <div className="col-span-7 flex flex-col justify-between h-full space-y-2.5 pl-1">
+            <Progress
+              label="Acuto (7gg)"
+              value={acwr.caricoAcuto}
+              max={Math.max(1, acwr.caricoAcuto + acwr.caricoCronicoMedio)}
+              tone="primary"
+              valueLabel={`${acwr.caricoAcuto} sRPE`}
+              trackClassName="h-1.5"
+            />
+            <Progress
+              label="Cronico (28gg)"
+              value={acwr.caricoCronicoMedio}
+              max={Math.max(1, acwr.caricoAcuto + acwr.caricoCronicoMedio)}
+              tone="secondary"
+              valueLabel={`${Math.round(acwr.caricoCronicoMedio)} sRPE`}
+              trackClassName="h-1.5"
+            />
             <div className="flex items-center justify-between text-[10px] text-on-surface-variant pt-0.5">
               <span>Range ottimale: <strong className="text-on-surface font-headline-sm">0.8 – 1.3</strong></span>
               <span className="text-error font-headline-sm font-bold">Alert &gt; 1.5</span>
@@ -747,10 +752,10 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
         {/* Visual Gradient Zone Bar + ago */}
         <div className="space-y-1">
           <div className="relative w-full h-2.5 rounded-full overflow-hidden bg-surface-container flex">
-            <div className="w-[23%] bg-outline-variant/50" title="Sotto-carico (<0.8)" />
-            <div className="w-[38%] bg-secondary" title="Sweet Spot (0.8 - 1.3)" />
-            <div className="w-[15%] bg-tertiary-fixed-dim" title="Attenzione (1.3 - 1.5)" />
-            <div className="w-[24%] bg-error" title="Alto Rischio (>1.5)" />
+            <div className="w-[23%] bg-surface-container-high" title="Sotto-carico (<0.8)" />
+            <div className="w-[38%] bg-acwr-ok" title="Sweet Spot (0.8 - 1.3)" />
+            <div className="w-[15%] bg-acwr-attenzione" title="Attenzione (1.3 - 1.5)" />
+            <div className="w-[24%] bg-acwr-critico" title="Alto Rischio (>1.5)" />
             {/* Needle */}
             <div
               className="absolute top-0 bottom-0 w-1 bg-on-surface rounded-full"

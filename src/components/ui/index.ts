@@ -27,3 +27,6 @@ export type { ToastVariant, ToastInput } from './Toast';
 
 export { Tabs } from './Tabs';
 export type { TabsProps, TabItem } from './Tabs';
+
+export { Progress } from './Progress';
+export type { ProgressProps, ProgressTone } from './Progress';
