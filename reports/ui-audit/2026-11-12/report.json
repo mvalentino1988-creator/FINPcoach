@@ -1,0 +1,1378 @@
+{
+  "url": "http://localhost:3000/",
+  "date": "2026-11-12",
+  "results": [
+    {
+      "screen": "Finestra iniziale",
+      "theme": "light",
+      "screenshot": "finestra-iniziale-light",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "count": 1,
+          "examples": [
+            {
+              "target": "h3",
+              "html": "<h3 class=\"font-label-lg text-label-lg font-bold uppercase tracking-wider\">Note Tecniche Bordo Vasca</h3>"
+            }
+          ]
+        }
+      ],
+      "smallTargets": [],
+      "overflowX": false
+    },
+    {
+      "screen": "OGGI",
+      "theme": "light",
+      "screenshot": "oggi-light",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "count": 1,
+          "examples": [
+            {
+              "target": "h3",
+              "html": "<h3 class=\"font-label-lg text-label-lg font-bold uppercase tracking-wider\">Note Tecniche Bordo Vasca</h3>"
+            }
+          ]
+        }
+      ],
+      "smallTargets": [],
+      "overflowX": false
+    },
+    {
+      "screen": "VASCA",
+      "theme": "light",
+      "screenshot": "vasca-light",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "help": "Elements must have their visible text as part of their accessible name",
+          "count": 5,
+          "examples": [
+            {
+              "target": ".col-span-6",
+              "html": "<button type=\"button\" class=\"col-span-6 h-14 rounded-xl font-headline-sm text-base font-bold flex items-center justify-center gap-2 active:s"
+            },
+            {
+              "target": ".col-span-4",
+              "html": "<button type=\"button\" disabled=\"\" class=\"col-span-4 h-14 roun...\" aria-label=\"Registra Lap per tut...\" title=\"Tocco / Lap generale\">"
+            },
+            {
+              "target": ".ring-2 > .text-left.active\\:scale-\\[0\\.99\\].gap-3",
+              "html": "<button type=\"button\" class=\"flex-1 min-h-0 w-full flex items-center gap-3 px-3.5 py-2 text-left active:scale-[0.99] transition-transform\" a"
+            }
+          ]
+        }
+      ],
+      "smallTargets": [
+        {
+          "tag": "button",
+          "text": "Cronometro",
+          "w": 192,
+          "h": 40
+        },
+        {
+          "tag": "button",
+          "text": "Regia",
+          "w": 192,
+          "h": 40
+        },
+        {
+          "tag": "input",
+          "text": "Ripartenza globale in formato 45 s, 2 m ",
+          "w": 64,
+          "h": 28
+        },
+        {
+          "tag": "select",
+          "text": "Tutti assegnati",
+          "w": 253,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia",
+          "w": 101,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia precedente",
+          "w": 40,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia 1",
+          "w": 82,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia 2",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia 3",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia 4",
+          "w": 87,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia 5",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia 6",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia 7",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia 8",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia successiva",
+          "w": 40,
+          "h": 44
+        },
+        {
+          "tag": "input",
+          "text": "Ripartenza corsia 1",
+          "w": 64,
+          "h": 34
+        },
+        {
+          "tag": "button",
+          "text": "Rimuovi Rossi Marco dalla partenza gener",
+          "w": 366,
+          "h": 32
+        },
+        {
+          "tag": "button",
+          "text": "Aggiungi Marino Lorenzo dalla partenza g",
+          "w": 366,
+          "h": 32
+        },
+        {
+          "tag": "button",
+          "text": "Aggiungi Fontana Luca dalla partenza gen",
+          "w": 366,
+          "h": 32
+        }
+      ],
+      "overflowX": false
+    },
+    {
+      "screen": "SQUADRA",
+      "theme": "light",
+      "screenshot": "squadra-light",
+      "violations": [],
+      "smallTargets": [],
+      "overflowX": false
+    },
+    {
+      "screen": "SQUADRA - finestra Nuovo Atleta",
+      "theme": "light",
+      "screenshot": "squadra-finestra-nuovo-atleta-light",
+      "violations": [],
+      "smallTargets": [
+        {
+          "tag": "input",
+          "text": "",
+          "w": 20,
+          "h": 20
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "w": 20,
+          "h": 20
+        },
+        {
+          "tag": "button",
+          "text": "*",
+          "w": 40,
+          "h": 48
+        },
+        {
+          "tag": "button",
+          "text": "T",
+          "w": 40,
+          "h": 48
+        },
+        {
+          "tag": "button",
+          "text": "A",
+          "w": 40,
+          "h": 48
+        },
+        {
+          "tag": "button",
+          "text": "Y",
+          "w": 40,
+          "h": 48
+        },
+        {
+          "tag": "button",
+          "text": "E",
+          "w": 40,
+          "h": 48
+        },
+        {
+          "tag": "button",
+          "text": "7",
+          "w": 40,
+          "h": 48
+        },
+        {
+          "tag": "button",
+          "text": "9",
+          "w": 40,
+          "h": 48
+        }
+      ],
+      "overflowX": false
+    },
+    {
+      "screen": "PIANO",
+      "theme": "light",
+      "screenshot": "piano-light",
+      "violations": [],
+      "smallTargets": [
+        {
+          "tag": "button",
+          "text": "Parametri",
+          "w": 41,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Date",
+          "w": 39,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Elimina",
+          "w": 41,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Parametri",
+          "w": 187,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Programmazione",
+          "w": 187,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Oggi",
+          "w": 80,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Tutti a vista",
+          "w": 110,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Preparazione generale4 sett.",
+          "w": 254,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Preparazione specifica3 sett.",
+          "w": 257,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Pre-gara3 sett.",
+          "w": 170,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Competitiva2 sett.",
+          "w": 179,
+          "h": 44
+        }
+      ],
+      "overflowX": false
+    },
+    {
+      "screen": "PIANO - finestra Modifica sedute o volume",
+      "theme": "light",
+      "screenshot": "piano-finestra-modifica-sedute-o-volume-light",
+      "violations": [
+        {
+          "id": "label",
+          "impact": "critical",
+          "help": "Form elements must have labels",
+          "count": 5,
+          "examples": [
+            {
+              "target": "input[min=\"0\"]",
+              "html": "<input type=\"number\" min=\"0\" max=\"14\" class=\"ds-input\" value=\"2\" style=\"\">"
+            },
+            {
+              "target": "input[step=\"50\"]",
+              "html": "<input type=\"number\" step=\"50\" class=\"ds-input\" value=\"4752\" style=\"\">"
+            },
+            {
+              "target": "input[type=\"time\"][value=\"\"]:nth-child(1)",
+              "html": "<input type=\"time\" class=\"ds-input\" value=\"\" style=\"\">"
+            }
+          ]
+        }
+      ],
+      "smallTargets": [
+        {
+          "tag": "button",
+          "text": "Parametri",
+          "w": 41,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Date",
+          "w": 39,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Elimina",
+          "w": 41,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Parametri",
+          "w": 187,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Programmazione",
+          "w": 187,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Oggi",
+          "w": 80,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Tutti a vista",
+          "w": 110,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Preparazione generale4 sett.",
+          "w": 254,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Preparazione specifica3 sett.",
+          "w": 257,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Pre-gara3 sett.",
+          "w": 170,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Competitiva2 sett.",
+          "w": 179,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Chiudi",
+          "w": 44,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Annulla",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Salva",
+          "w": 71,
+          "h": 44
+        }
+      ],
+      "overflowX": false
+    },
+    {
+      "screen": "PIANO - finestra Modifica sedute o volume",
+      "theme": "light",
+      "screenshot": "piano-finestra-modifica-sedute-o-volume-light",
+      "violations": [
+        {
+          "id": "label",
+          "impact": "critical",
+          "help": "Form elements must have labels",
+          "count": 5,
+          "examples": [
+            {
+              "target": "input[min=\"0\"]",
+              "html": "<input type=\"number\" min=\"0\" max=\"14\" class=\"ds-input\" value=\"2\" style=\"\">"
+            },
+            {
+              "target": "input[step=\"50\"]",
+              "html": "<input type=\"number\" step=\"50\" class=\"ds-input\" value=\"3600\" style=\"\">"
+            },
+            {
+              "target": "input[type=\"time\"][value=\"\"]:nth-child(1)",
+              "html": "<input type=\"time\" class=\"ds-input\" value=\"\" style=\"\">"
+            }
+          ]
+        }
+      ],
+      "smallTargets": [
+        {
+          "tag": "button",
+          "text": "Parametri",
+          "w": 41,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Date",
+          "w": 39,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Elimina",
+          "w": 41,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Parametri",
+          "w": 187,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Programmazione",
+          "w": 187,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Oggi",
+          "w": 80,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Tutti a vista",
+          "w": 110,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Preparazione generale4 sett.",
+          "w": 254,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Preparazione specifica3 sett.",
+          "w": 257,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Pre-gara3 sett.",
+          "w": 170,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Competitiva2 sett.",
+          "w": 179,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Chiudi",
+          "w": 44,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Annulla",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Salva",
+          "w": 71,
+          "h": 44
+        }
+      ],
+      "overflowX": false
+    },
+    {
+      "screen": "PIANO - finestra Modifica sedute o volume",
+      "theme": "light",
+      "screenshot": "piano-finestra-modifica-sedute-o-volume-light",
+      "violations": [
+        {
+          "id": "label",
+          "impact": "critical",
+          "help": "Form elements must have labels",
+          "count": 5,
+          "examples": [
+            {
+              "target": "input[min=\"0\"]",
+              "html": "<input type=\"number\" min=\"0\" max=\"14\" class=\"ds-input\" value=\"2\" style=\"\">"
+            },
+            {
+              "target": "input[step=\"50\"]",
+              "html": "<input type=\"number\" step=\"50\" class=\"ds-input\" value=\"3600\" style=\"\">"
+            },
+            {
+              "target": "input[type=\"time\"][value=\"\"]:nth-child(1)",
+              "html": "<input type=\"time\" class=\"ds-input\" value=\"\" style=\"\">"
+            }
+          ]
+        }
+      ],
+      "smallTargets": [
+        {
+          "tag": "button",
+          "text": "Parametri",
+          "w": 41,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Date",
+          "w": 39,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Elimina",
+          "w": 41,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Parametri",
+          "w": 187,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Programmazione",
+          "w": 187,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Oggi",
+          "w": 80,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Tutti a vista",
+          "w": 110,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Preparazione generale4 sett.",
+          "w": 254,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Preparazione specifica3 sett.",
+          "w": 257,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Pre-gara3 sett.",
+          "w": 170,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Competitiva2 sett.",
+          "w": 179,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Chiudi",
+          "w": 44,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Annulla",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Salva",
+          "w": 71,
+          "h": 44
+        }
+      ],
+      "overflowX": false
+    },
+    {
+      "screen": "Finestra iniziale",
+      "theme": "dark",
+      "screenshot": "finestra-iniziale-dark",
+      "violations": [],
+      "smallTargets": [],
+      "overflowX": false
+    },
+    {
+      "screen": "OGGI",
+      "theme": "dark",
+      "screenshot": "oggi-dark",
+      "violations": [],
+      "smallTargets": [],
+      "overflowX": false
+    },
+    {
+      "screen": "VASCA",
+      "theme": "dark",
+      "screenshot": "vasca-dark",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "help": "Elements must have their visible text as part of their accessible name",
+          "count": 5,
+          "examples": [
+            {
+              "target": ".col-span-6",
+              "html": "<button type=\"button\" class=\"col-span-6 h-14 rounded-xl font-headline-sm text-base font-bold flex items-center justify-center gap-2 active:s"
+            },
+            {
+              "target": ".col-span-4",
+              "html": "<button type=\"button\" disabled=\"\" class=\"col-span-4 h-14 roun...\" aria-label=\"Registra Lap per tut...\" title=\"Tocco / Lap generale\">"
+            },
+            {
+              "target": ".ring-2 > .text-left.active\\:scale-\\[0\\.99\\].gap-3",
+              "html": "<button type=\"button\" class=\"flex-1 min-h-0 w-full flex items-center gap-3 px-3.5 py-2 text-left active:scale-[0.99] transition-transform\" a"
+            }
+          ]
+        }
+      ],
+      "smallTargets": [
+        {
+          "tag": "button",
+          "text": "Cronometro",
+          "w": 192,
+          "h": 40
+        },
+        {
+          "tag": "button",
+          "text": "Regia",
+          "w": 192,
+          "h": 40
+        },
+        {
+          "tag": "input",
+          "text": "Ripartenza globale in formato 45 s, 2 m ",
+          "w": 64,
+          "h": 28
+        },
+        {
+          "tag": "select",
+          "text": "Tutti assegnati",
+          "w": 253,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia",
+          "w": 101,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia precedente",
+          "w": 40,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia 1",
+          "w": 82,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia 2",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia 3",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia 4",
+          "w": 87,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia 5",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia 6",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia 7",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia 8",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Corsia successiva",
+          "w": 40,
+          "h": 44
+        },
+        {
+          "tag": "input",
+          "text": "Ripartenza corsia 1",
+          "w": 64,
+          "h": 34
+        },
+        {
+          "tag": "button",
+          "text": "Rimuovi Rossi Marco dalla partenza gener",
+          "w": 366,
+          "h": 32
+        },
+        {
+          "tag": "button",
+          "text": "Aggiungi Marino Lorenzo dalla partenza g",
+          "w": 366,
+          "h": 32
+        },
+        {
+          "tag": "button",
+          "text": "Aggiungi Fontana Luca dalla partenza gen",
+          "w": 366,
+          "h": 32
+        }
+      ],
+      "overflowX": false
+    },
+    {
+      "screen": "SQUADRA",
+      "theme": "dark",
+      "screenshot": "squadra-dark",
+      "violations": [],
+      "smallTargets": [],
+      "overflowX": false
+    },
+    {
+      "screen": "SQUADRA - finestra Nuovo Atleta",
+      "theme": "dark",
+      "screenshot": "squadra-finestra-nuovo-atleta-dark",
+      "violations": [],
+      "smallTargets": [
+        {
+          "tag": "input",
+          "text": "",
+          "w": 20,
+          "h": 20
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "w": 20,
+          "h": 20
+        },
+        {
+          "tag": "button",
+          "text": "*",
+          "w": 40,
+          "h": 48
+        },
+        {
+          "tag": "button",
+          "text": "T",
+          "w": 40,
+          "h": 48
+        },
+        {
+          "tag": "button",
+          "text": "A",
+          "w": 40,
+          "h": 48
+        },
+        {
+          "tag": "button",
+          "text": "Y",
+          "w": 40,
+          "h": 48
+        },
+        {
+          "tag": "button",
+          "text": "E",
+          "w": 40,
+          "h": 48
+        },
+        {
+          "tag": "button",
+          "text": "7",
+          "w": 40,
+          "h": 48
+        },
+        {
+          "tag": "button",
+          "text": "9",
+          "w": 40,
+          "h": 48
+        }
+      ],
+      "overflowX": false
+    },
+    {
+      "screen": "PIANO",
+      "theme": "dark",
+      "screenshot": "piano-dark",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "count": 1,
+          "examples": [
+            {
+              "target": ".text-on-primary\\/70",
+              "html": "<span class=\"mt-1 block font-label-caps text-label-caps uppercase text-on-primary/70\">2 sedute · 1800m cad.</span>"
+            }
+          ]
+        }
+      ],
+      "smallTargets": [
+        {
+          "tag": "button",
+          "text": "Parametri",
+          "w": 41,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Date",
+          "w": 39,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Elimina",
+          "w": 41,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Parametri",
+          "w": 187,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Programmazione",
+          "w": 187,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Oggi",
+          "w": 80,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Tutti a vista",
+          "w": 110,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Preparazione generale4 sett.",
+          "w": 254,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Preparazione specifica3 sett.",
+          "w": 257,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Pre-gara3 sett.",
+          "w": 170,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Competitiva2 sett.",
+          "w": 179,
+          "h": 44
+        }
+      ],
+      "overflowX": false
+    },
+    {
+      "screen": "PIANO - finestra Modifica sedute o volume",
+      "theme": "dark",
+      "screenshot": "piano-finestra-modifica-sedute-o-volume-dark",
+      "violations": [
+        {
+          "id": "label",
+          "impact": "critical",
+          "help": "Form elements must have labels",
+          "count": 5,
+          "examples": [
+            {
+              "target": "input[min=\"0\"]",
+              "html": "<input type=\"number\" min=\"0\" max=\"14\" class=\"ds-input\" value=\"2\" style=\"\">"
+            },
+            {
+              "target": "input[step=\"50\"]",
+              "html": "<input type=\"number\" step=\"50\" class=\"ds-input\" value=\"4752\" style=\"\">"
+            },
+            {
+              "target": "input[type=\"time\"][value=\"\"]:nth-child(1)",
+              "html": "<input type=\"time\" class=\"ds-input\" value=\"\" style=\"\">"
+            }
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "count": 1,
+          "examples": [
+            {
+              "target": ".text-on-primary\\/70",
+              "html": "<span class=\"mt-1 block font-label-caps text-label-caps uppercase text-on-primary/70\">2 sedute · 1800m cad.</span>"
+            }
+          ]
+        }
+      ],
+      "smallTargets": [
+        {
+          "tag": "button",
+          "text": "Parametri",
+          "w": 41,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Date",
+          "w": 39,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Elimina",
+          "w": 41,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Parametri",
+          "w": 187,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Programmazione",
+          "w": 187,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Oggi",
+          "w": 80,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Tutti a vista",
+          "w": 110,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Preparazione generale4 sett.",
+          "w": 254,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Preparazione specifica3 sett.",
+          "w": 257,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Pre-gara3 sett.",
+          "w": 170,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Competitiva2 sett.",
+          "w": 179,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Chiudi",
+          "w": 44,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Annulla",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Salva",
+          "w": 71,
+          "h": 44
+        }
+      ],
+      "overflowX": false
+    },
+    {
+      "screen": "PIANO - finestra Modifica sedute o volume",
+      "theme": "dark",
+      "screenshot": "piano-finestra-modifica-sedute-o-volume-dark",
+      "violations": [
+        {
+          "id": "label",
+          "impact": "critical",
+          "help": "Form elements must have labels",
+          "count": 5,
+          "examples": [
+            {
+              "target": "input[min=\"0\"]",
+              "html": "<input type=\"number\" min=\"0\" max=\"14\" class=\"ds-input\" value=\"2\" style=\"\">"
+            },
+            {
+              "target": "input[step=\"50\"]",
+              "html": "<input type=\"number\" step=\"50\" class=\"ds-input\" value=\"3600\" style=\"\">"
+            },
+            {
+              "target": "input[type=\"time\"][value=\"\"]:nth-child(1)",
+              "html": "<input type=\"time\" class=\"ds-input\" value=\"\" style=\"\">"
+            }
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "count": 1,
+          "examples": [
+            {
+              "target": ".text-on-primary\\/70",
+              "html": "<span class=\"mt-1 block font-label-caps text-label-caps uppercase text-on-primary/70\">2 sedute · 1800m cad.</span>"
+            }
+          ]
+        }
+      ],
+      "smallTargets": [
+        {
+          "tag": "button",
+          "text": "Parametri",
+          "w": 41,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Date",
+          "w": 39,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Elimina",
+          "w": 41,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Parametri",
+          "w": 187,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Programmazione",
+          "w": 187,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Oggi",
+          "w": 80,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Tutti a vista",
+          "w": 110,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Preparazione generale4 sett.",
+          "w": 254,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Preparazione specifica3 sett.",
+          "w": 257,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Pre-gara3 sett.",
+          "w": 170,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Competitiva2 sett.",
+          "w": 179,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Chiudi",
+          "w": 44,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Annulla",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Salva",
+          "w": 71,
+          "h": 44
+        }
+      ],
+      "overflowX": false
+    },
+    {
+      "screen": "PIANO - finestra Modifica sedute o volume",
+      "theme": "dark",
+      "screenshot": "piano-finestra-modifica-sedute-o-volume-dark",
+      "violations": [
+        {
+          "id": "label",
+          "impact": "critical",
+          "help": "Form elements must have labels",
+          "count": 5,
+          "examples": [
+            {
+              "target": "input[min=\"0\"]",
+              "html": "<input type=\"number\" min=\"0\" max=\"14\" class=\"ds-input\" value=\"2\" style=\"\">"
+            },
+            {
+              "target": "input[step=\"50\"]",
+              "html": "<input type=\"number\" step=\"50\" class=\"ds-input\" value=\"3600\" style=\"\">"
+            },
+            {
+              "target": "input[type=\"time\"][value=\"\"]:nth-child(1)",
+              "html": "<input type=\"time\" class=\"ds-input\" value=\"\" style=\"\">"
+            }
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "count": 1,
+          "examples": [
+            {
+              "target": ".text-on-primary\\/70",
+              "html": "<span class=\"mt-1 block font-label-caps text-label-caps uppercase text-on-primary/70\">2 sedute · 1800m cad.</span>"
+            }
+          ]
+        }
+      ],
+      "smallTargets": [
+        {
+          "tag": "button",
+          "text": "Parametri",
+          "w": 41,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Date",
+          "w": 39,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Elimina",
+          "w": 41,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Parametri",
+          "w": 187,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Programmazione",
+          "w": 187,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Oggi",
+          "w": 80,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Tutti a vista",
+          "w": 110,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Preparazione generale4 sett.",
+          "w": 254,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Preparazione specifica3 sett.",
+          "w": 257,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Pre-gara3 sett.",
+          "w": 170,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Competitiva2 sett.",
+          "w": 179,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Chiudi",
+          "w": 44,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Annulla",
+          "w": 86,
+          "h": 44
+        },
+        {
+          "tag": "button",
+          "text": "Salva",
+          "w": 71,
+          "h": 44
+        }
+      ],
+      "overflowX": false
+    }
+  ],
+  "consoleIssues": []
+}
