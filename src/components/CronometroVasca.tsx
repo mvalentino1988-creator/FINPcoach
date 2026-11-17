@@ -74,6 +74,7 @@ function loadSession(): VascaSession | null {
 function persistSession(s: VascaSession): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+    window.dispatchEvent(new Event('finp:vasca-session'));
   } catch {
     /* quota o private mode */
   }
@@ -122,8 +123,10 @@ const STATUS_META: Record<AthleteStatus, { label: string; symbol: string; cls: s
   fermo:         { label: 'Fermo',      symbol: '■', cls: 'text-on-surface-variant',        bar: 'bg-outline' },
 };
 
-export const CronometroVasca: React.FC = () => {
+export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true }) => {
   const { atleti, stagione, aggiungiTempo } = useApp();
+  // 'attivo' governa il possesso dell'orientamento (vedi effetto orientamento).
+  void attivo;
   const vascaMetri: 25 | 50 = stagione?.vascaMetri === 25 ? 25 : 50;
 
   const [session, setSession] = useState<VascaSession>(() => loadSession() ?? createSession());

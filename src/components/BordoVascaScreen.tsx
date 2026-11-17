@@ -2,35 +2,33 @@ import React, { useEffect, useState } from 'react';
 import { CronometroVasca } from './CronometroVasca';
 import { RegiaTecnicaCorsie } from './RegiaTecnicaCorsie';
 import { Timer, SlidersHorizontal, Waves } from 'lucide-react';
+import { VASCA_VISTA_EVENT } from '../lib/vascaSessione';
 
 export const BordoVascaScreen: React.FC = () => {
-  const [desktop, setDesktop] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
-  );
   const [vista, setVista] = useState<'cronometro' | 'regia'>(() =>
     typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches ? 'regia' : 'cronometro'
   );
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
-    const onChange = () => setDesktop(mq.matches);
+    const onChange = () => {
+      // Su desktop la Regia e' la vista predefinita.
+      if (mq.matches) setVista('regia');
+    };
     onChange();
     mq.addEventListener('change', onChange);
     return () => mq.removeEventListener('change', onChange);
   }, []);
 
+  // La Regia (o altri componenti) puo' chiedere di tornare al cronometro.
   useEffect(() => {
-    if (desktop) setVista('regia');
-  }, [desktop]);
-
-  // Su PC la regia tecnica è la vista principale; il cronometro non serve.
-  if (desktop) {
-    return (
-      <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
-        <RegiaTecnicaCorsie />
-      </div>
-    );
-  }
+    const onVista = (e: Event) => {
+      const v = (e as CustomEvent<'cronometro' | 'regia'>).detail;
+      if (v === 'cronometro' || v === 'regia') setVista(v);
+    };
+    window.addEventListener(VASCA_VISTA_EVENT, onVista);
+    return () => window.removeEventListener(VASCA_VISTA_EVENT, onVista);
+  }, []);
 
   return (
     <div className="flex flex-1 min-h-0 flex-col gap-1.5 overflow-hidden h-full">
@@ -48,6 +46,8 @@ export const BordoVascaScreen: React.FC = () => {
         </span>
       </div>
 
+      {/* Il toggle e' disponibile a ogni larghezza: su tablet a bordo vasca
+          serve passare al cronometro senza uscire dalla pagina. */}
       <div className="shrink-0 flex items-center p-0.5 rounded-xl bg-surface-container-high shadow-sm">
         <button
           type="button"
@@ -77,10 +77,10 @@ export const BordoVascaScreen: React.FC = () => {
         </button>
       </div>
 
-      {/* Il cronometro resta montato anche in vista Regia: la sessione (e
-          l'orientamento forzato) sopravvivono al cambio vista. */}
+      {/* Entrambe le viste restano montate: la sessione, i timer e le partenze
+          automatiche continuano a funzionare anche con la Regia aperta. */}
       <div className={`flex-1 min-h-0 flex-col ${vista === 'cronometro' ? 'flex' : 'hidden'}`}>
-        <CronometroVasca />
+        <CronometroVasca attivo={vista === 'cronometro'} />
       </div>
       <div className={`flex-1 min-h-0 overflow-hidden flex-col ${vista === 'regia' ? 'flex' : 'hidden'}`}>
         <RegiaTecnicaCorsie />
