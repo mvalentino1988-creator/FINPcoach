@@ -25,6 +25,8 @@ export interface VascaLap {
   t: number;
   /** timestamp epoch reale per i log */
   wall: number;
+  /** Inizio della ripetizione a cui il lap si riferisce (durata = t - start). */
+  start?: number;
 }
 
 export interface VascaAthlete {
@@ -202,7 +204,10 @@ export function startAthlete(s: VascaSession, lane: VascaLane, a: VascaAthlete, 
  * Tap su una tessera atleta.
  *  - in_attesa -> partenza
  *  - in_nuoto / in_ritardo -> registra lap e apre il recupero
- *  - in_ripartenza -> registra un lap di supporto (tempo di viraggio completo)
+ *  - in_ripartenza -> ignorato (evita falsi lap e stop prematuri)
+ * La ripartenza e' una cadenza ancorata: restUntil = max(now, repStart + rip),
+ * cosi' la ripetizione successiva parte sempre da repStart + rip (o subito,
+ * se l'atleta e' in ritardo) senza deriva.
  * ritorna 'ignored' | 'start' | 'lap'
  */
 export function tapAthlete(s: VascaSession, lane: VascaLane, a: VascaAthlete, now: number): 'ignored' | 'start' | 'lap' {
@@ -221,21 +226,17 @@ export function tapAthlete(s: VascaSession, lane: VascaLane, a: VascaAthlete, no
     return 'start';
   }
   if (a.repStart == null && a.restUntil != null) {
-    // In recupero: lap di viraggio completo dall'ultima rep chiusa.
-    if (a.lastRepStart != null) {
-      a.laps.push({ t: now, wall: Date.now() });
-      checkTargetLaps(a);
-    }
-    return 'lap';
+    // In recupero: il tap e' ignorato (niente lap di viraggio né stop prematuri).
+    return 'ignored';
   }
-  // Rep in corso (nuoto o ritardo): chiude la rep e apre il recupero.
+  // Rep in corso (nuoto o ritardo): chiude la rep e apre il recupero ancorato.
   const base = a.repStart ?? now;
-  a.laps.push({ t: now, wall: Date.now() });
+  a.laps.push({ t: now, wall: Date.now(), start: base });
   a.lastRepStart = base;
   checkTargetLaps(a);
-  const rip = effectiveRipartenza(s, lane, a);
+  const ripMs = effectiveRipartenza(s, lane, a) * 1000;
   a.repStart = null;
-  a.restUntil = rip > 0 ? now + rip * 1000 : now;
+  a.restUntil = ripMs > 0 ? Math.max(now, base + ripMs) : now;
   return 'lap';
 }
 
@@ -262,12 +263,12 @@ export function lapGenerale(s: VascaSession, now: number): number {
     for (const a of lane.atleti) {
       if (a.fermo || a.repStart == null) continue;
       const base = a.repStart;
-      a.laps.push({ t: now, wall: Date.now() });
+      a.laps.push({ t: now, wall: Date.now(), start: base });
       a.lastRepStart = base;
       checkTargetLaps(a);
-      const rip = effectiveRipartenza(s, lane, a);
+      const ripMs = effectiveRipartenza(s, lane, a) * 1000;
       a.repStart = null;
-      a.restUntil = rip > 0 ? now + rip * 1000 : now;
+      a.restUntil = ripMs > 0 ? Math.max(now, base + ripMs) : now;
       count++;
     }
   }
@@ -309,12 +310,14 @@ export function currentRepMs(s: VascaSession, lane: VascaLane, a: VascaAthlete, 
   return Math.max(0, now - a.repStart);
 }
 
-/** Durata dell'ultimo lap registrato in ms. */
+/** Durata dell'ultimo lap registrato in ms (t - start; fallback per lap legacy). */
 export function lastLapMs(a: VascaAthlete): number | null {
   if (a.laps.length === 0) return null;
   const idx = a.laps.length - 1;
-  const prev = idx > 0 ? a.laps[idx - 1].t : (a.primoVia ?? a.laps[idx].t);
-  return Math.max(0, a.laps[idx].t - prev);
+  const l = a.laps[idx];
+  if (l.start != null) return Math.max(0, l.t - l.start);
+  const prev = idx > 0 ? a.laps[idx - 1].t : (a.primoVia ?? l.t);
+  return Math.max(0, l.t - prev);
 }
 
 /** Tempo totale atleta: dall'prima partenza all'ultimo evento (o a now). */
@@ -491,13 +494,34 @@ export function buildSummary(s: VascaSession, now: number): AthleteSummary[] {
   for (const lane of s.lanes) {
     for (const a of lane.atleti) {
       const laps = a.laps.map((l, i) => {
-        const prev = i > 0 ? a.laps[i - 1].t : (a.primoVia ?? l.t);
-        return { n: i + 1, dur: Math.max(0, l.t - prev), t: l.t };
+        // durata = t - start (inizio ripetizione); per i lap legacy senza
+        // `start` si usa il vecchio riferimento (lap precedente o primoVia).
+        const fallback = i > 0 ? a.laps[i - 1].t : (a.primoVia ?? l.t);
+        const base = l.start ?? fallback;
+        return { n: i + 1, dur: Math.max(0, l.t - base), t: l.t };
       });
       out.push({ athlete: a, laneNumero: lane.numero, total: totalMs(s, a, now), laps });
     }
   }
   return out;
+}
+
+/**
+ * Migra una sessione caricata da LocalStorage: completa `start` nei lap
+ * vecchi con un fallback prudente (stesso riferimento usato in passato:
+ * lap precedente o primoVia), cosi' le durate non cambiano dopo l'aggiornamento.
+ */
+export function migrateSession(s: VascaSession): VascaSession {
+  for (const lane of s.lanes) {
+    for (const a of lane.atleti) {
+      a.laps.forEach((l, i) => {
+        if (l.start == null) {
+          l.start = i > 0 ? (a.laps[i - 1].t ?? l.t) : (a.primoVia ?? l.t);
+        }
+      });
+    }
+  }
+  return s;
 }
 
 export function summaryText(s: VascaSession, now: number, vascaMetri: number): string {

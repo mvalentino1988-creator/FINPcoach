@@ -10,7 +10,6 @@ import {
   createAthlete,
   sessionNow,
   effectiveRipartenza,
-  refreshSession,
   tapAthlete,
   lapGenerale,
   viaGenerale,
@@ -34,6 +33,8 @@ import {
 import { applyOrientation, releaseOrientation } from '../lib/orientation';
 import { requestKeepScreenOn, releaseKeepScreenOn } from '../lib/wakeLock';
 import { beep, vibrate } from '../lib/beep';
+import { cloneSession, useVascaSession } from '../data/VascaSessionContext';
+import { leggiSessioneVasca, VASCA_SESSION_KEY } from '../lib/vascaSessione';
 import { todayISO } from '../domain/dateUtils';
 import { Atleta } from '../types';
 import {
@@ -63,37 +64,9 @@ import {
   Trash2,
 } from 'lucide-react';
 
-const STORAGE_KEY = 'finp_vasca_session_v1';
 const UNDO_MAX = 40;
 const LONG_PRESS_MS = 450;
 const DOUBLE_TAP_MS = 400;
-
-// ---------------------------------------------------------------------------
-// Persistenza
-// ---------------------------------------------------------------------------
-
-function loadSession(): VascaSession | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const s = JSON.parse(raw) as VascaSession;
-    if (!s || !Array.isArray(s.lanes) || typeof s.stato !== 'string') return null;
-    return s;
-  } catch {
-    return null;
-  }
-}
-
-function persistSession(s: VascaSession): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-    window.dispatchEvent(new Event('finp:vasca-session'));
-  } catch {
-    /* quota o private mode */
-  }
-}
-
-const cloneSession = (s: VascaSession): VascaSession => JSON.parse(JSON.stringify(s)) as VascaSession;
 
 /** Costruisce le corsie della sessione partendo dall'AssegnazioneVasca (Regia).
  *  Solo in stato 'pronta': in corsa la composizione e' congelata. */
@@ -127,22 +100,6 @@ function buildLanesDaAssegnazione(
 }
 
 // ---------------------------------------------------------------------------
-// Audio/eventi
-// ---------------------------------------------------------------------------
-
-function emitEvents(events: { type: string; athleteId: string; laneNumero: number }[]): void {
-  for (const e of events) {
-    if (e.type === 'autoWarn') {
-      beep(660, 120);
-      vibrate([0, 120, 60, 120]);
-    } else if (e.type === 'autoStart') {
-      beep(880, 160);
-      vibrate([0, 140, 60, 140, 60, 300]);
-    }
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Componente
 // ---------------------------------------------------------------------------
 
@@ -172,12 +129,14 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
   // 'attivo' governa il possesso dell'orientamento (vedi effetto orientamento).
   const vascaMetri: 25 | 50 = stagione?.vascaMetri === 25 ? 25 : 50;
 
-  const [session, setSession] = useState<VascaSession>(() => loadSession() ?? createSession());
-  const sessionRef = useRef(session);
-  sessionRef.current = session;
+  // Sessione condivisa a livello app (VascaSessionProvider): il motore
+  // (partenze automatiche, beep, persistenza) resta attivo anche quando
+  // questa vista e' smontata.
+  const { session, sessionRef, setSession, bump, schedulePersist } = useVascaSession();
 
   const [resumeAsk, setResumeAsk] = useState<boolean>(() => {
-    const s = loadSession();
+    if (sessionStorage.getItem('finp_vasca_resume_asked') === '1') return false;
+    const s = leggiSessioneVasca();
     return !!s && (s.stato === 'in_corso' || s.stato === 'ferma');
   });
   const [sheet, setSheet] = useState<SheetKind>(null);
@@ -197,49 +156,11 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
   const bottomBarRef = useRef<HTMLDivElement | null>(null);
   const gridRef = useRef<HTMLDivElement | null>(null);
   const generalTimeRef = useRef<HTMLOutputElement | null>(null);
-  const lastSigRef = useRef('');
-  const warnRef = useRef<Set<string>>(new Set());
   const tapGuardRef = useRef<Map<string, number>>(new Map());
-  const saveTimerRef = useRef<number | null>(null);
   const appliedOrientRef = useRef<{ mode: 'portrait' | 'landscape'; score: number } | null>(null);
   const desktopRef = useRef(false);
-
-  const bump = useCallback(() => setSession(s => ({ ...s })), []);
-
-  // -------------------------------------------------------------------------
-  // Persistenza
-  // -------------------------------------------------------------------------
-
-  const persist = useCallback((s: VascaSession) => {
-    persistSession(s);
-  }, []);
-
-  const schedulePersist = useCallback(() => {
-    if (saveTimerRef.current != null) window.clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = window.setTimeout(() => persist(sessionRef.current), 250);
-  }, [persist]);
-
-  const flushPersist = useCallback(() => {
-    if (saveTimerRef.current != null) {
-      window.clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = null;
-    }
-    persist(sessionRef.current);
-  }, [persist]);
-
-  useEffect(() => {
-    const onHide = () => {
-      if (document.visibilityState === 'hidden') flushPersist();
-    };
-    document.addEventListener('visibilitychange', onHide);
-    window.addEventListener('beforeunload', flushPersist);
-    return () => {
-      document.removeEventListener('visibilitychange', onHide);
-      window.removeEventListener('beforeunload', flushPersist);
-      flushPersist();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const didMountEvalRef = useRef(false);
+  const [ignoredSignals, setIgnoredSignals] = useState<Record<string, number>>({});
 
   // -------------------------------------------------------------------------
   // Wake lock durante la permanenza nella schermata
@@ -341,52 +262,12 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
     next.lanes = built.lanes;
     sessionRef.current = next;
     setSession(next);
-    persist(next);
-  }, [assegnazioneCorrente, atleti, syncNonce, persist]);
-
-  // -------------------------------------------------------------------------
-  // Scheduler: refresh sessione (auto-start, fine recuperi) + transizioni stato
-  // -------------------------------------------------------------------------
-
-  useEffect(() => {
-    const iv = window.setInterval(() => {
-      const s = sessionRef.current;
-      const events = refreshSession(s);
-      emitEvents(events);
-      // Firma degli stati per evitare render inutili.
-      const now = sessionNow(s);
-      let sig = `${s.stato}|`;
-      for (const lane of s.lanes) {
-        for (const a of lane.atleti) {
-          sig += `${a.id}:${athleteStatus(s, lane, a, now)};`;
-        }
-      }
-      if (sig !== lastSigRef.current) {
-        lastSigRef.current = sig;
-        bump();
-        schedulePersist();
-      }
-      // Vibrazione leggera negli ultimi 5 s prima del fine turno (in nuoto/ritardo).
-      for (const lane of s.lanes) {
-        for (const a of lane.atleti) {
-          if (a.repStart == null || a.fermo) continue;
-          const rip = effectiveRipartenza(s, lane, a);
-          if (rip <= 0) continue;
-          const remaining = a.repStart + rip * 1000 - now;
-          const key = `${a.id}:${a.repStart}`;
-          if (remaining <= 5000 && remaining > 0 && !warnRef.current.has(key)) {
-            warnRef.current.add(key);
-            vibrate([0, 50]);
-          }
-          if (remaining <= 0) warnRef.current.delete(key);
-        }
-      }
-    }, 200);
-    return () => window.clearInterval(iv);
-  }, [bump, schedulePersist]);
+  }, [assegnazioneCorrente, atleti, syncNonce, setSession]);
 
   // -------------------------------------------------------------------------
   // Orologio: aggiornamento diretto dei nodi via requestAnimationFrame
+  // (il motore di sessione — refresh, auto-start, beep — vive in
+  // VascaSessionProvider e resta attivo anche a vista smontata)
   // -------------------------------------------------------------------------
 
   useEffect(() => {
@@ -473,10 +354,25 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       return;
     }
 
-    const evaluate = () => {
+    // Sul montaggio si rivaluta anche una sessione gia' avviata (una sola
+    // volta): sceglie l'orientamento per il layout live. In seguito, con una
+    // serie in corso, non si rivaluta mai — si riapplica solo l'orientamento
+    // gia' scelto (ad es. al ritorno dalla Regia).
+    const forceEval = !didMountEvalRef.current;
+    didMountEvalRef.current = true;
+
+    const evaluate = (force = false) => {
       const s = sessionRef.current;
-      // Mai ruotare durante una serie (in_corso o ferma).
-      if (s.stato !== 'pronta') return;
+      const pronta = s.stato === 'pronta';
+      if (!pronta && !force) {
+        // Sessione avviata: riapplica l'orientamento scelto, mai una nuova scelta.
+        const applied = appliedOrientRef.current;
+        if (applied) {
+          applyOrientation(applied.mode);
+          setLayoutOrient(applied.mode);
+        }
+        return;
+      }
       const lanes = s.lanes.filter(l => l.atleti.length > 0);
       if (lanes.length === 0) return;
 
@@ -485,13 +381,15 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
         const v = parseFloat(rootStyle.getPropertyValue(name));
         return Number.isFinite(v) ? v : fb;
       };
-      const headerH = px('--header-h', 60);
-      const dockH = px('--dock-h', 76);
       const safeTop = px('--safe-top', 0);
       const safeBottom = px('--safe-bottom', 8);
       const topH = topBarRef.current?.offsetHeight ?? 52;
       const bottomH = bottomBarRef.current?.offsetHeight ?? 64;
-      const chromeV = headerH + dockH + safeTop + safeBottom + topH + bottomH + 12;
+      // In 'pronta' si conta tutto il chrome dell'app; durante la serie
+      // (fullscreen, header e dock nascosti) solo le barre del cronometro.
+      const chromeV = pronta
+        ? px('--header-h', 60) + px('--dock-h', 76) + safeTop + safeBottom + topH + bottomH + 12
+        : safeTop + safeBottom + topH + bottomH + 8;
 
       const w = window.innerWidth;
       const h = window.innerHeight;
@@ -523,7 +421,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       setLayoutOrient(choice.orientation);
     };
 
-    evaluate();
+    evaluate(forceEval);
     const onResize = () => evaluate();
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
@@ -577,7 +475,11 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       if (!nextLane || !nextA) return;
       const before = nextA.laps.length;
       const res = tapAthlete(next, nextLane, nextA, sessionNow(next));
-      if (res === 'ignored') return;
+      if (res === 'ignored') {
+        // Feedback visivo leggero: tap durante il recupero (o atleta fermo).
+        setIgnoredSignals(m => ({ ...m, [athleteId]: Date.now() }));
+        return;
+      }
       pushUndo(); // snapshot della sessione precedente (ancora in sessionRef)
       sessionRef.current = next;
       setSession(next);
@@ -650,7 +552,6 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
     sessionRef.current = fresh;
     setSession(fresh);
     undoRef.current = [];
-    warnRef.current.clear();
     document.body.classList.remove('vasca-live');
     setSheet(null);
     setSummaryOpen(false);
@@ -1063,6 +964,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
                       : () => handleCardTap(lane.numero, a.id)}
                     onLongPress={() => setSheet({ type: 'athlete', laneNumero: lane.numero, athlete: a })}
                     onToggleStop={() => handleToggleFermo(lane.numero, a.id)}
+                    ignoredSignal={ignoredSignals[a.id] ?? 0}
                   />
                 ))}
                 {lane.atleti.length === 0 && inPronta && (
@@ -1199,6 +1101,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
               <button
                 type="button"
                 onClick={() => {
+                  sessionStorage.setItem('finp_vasca_resume_asked', '1');
                   setResumeAsk(false);
                   const s = sessionRef.current;
                   if (s.stato === 'ferma') resumeGenerale(s);
@@ -1212,7 +1115,8 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
               <button
                 type="button"
                 onClick={() => {
-                  try { localStorage.removeItem(STORAGE_KEY); } catch { /* noop */ }
+                  sessionStorage.setItem('finp_vasca_resume_asked', '1');
+                  try { localStorage.removeItem(VASCA_SESSION_KEY); } catch { /* noop */ }
                   const fresh = createSession();
                   sessionRef.current = fresh;
                   setSession(fresh);
@@ -1372,11 +1276,19 @@ interface AthleteCardProps {
   onTap: () => void;
   onLongPress: () => void;
   onToggleStop: () => void;
+  ignoredSignal?: number;
 }
 
 const AthleteCard: React.FC<AthleteCardProps> = ({
-  session, lane, athlete: a, compact, tileW, now, pronta, registerNode, onTap, onLongPress, onToggleStop,
+  session, lane, athlete: a, compact, tileW, now, pronta, registerNode, onTap, onLongPress, onToggleStop, ignoredSignal,
 }) => {
+  const [ignoredFlash, setIgnoredFlash] = useState(false);
+  useEffect(() => {
+    if (!ignoredSignal) return undefined;
+    setIgnoredFlash(true);
+    const t = window.setTimeout(() => setIgnoredFlash(false), 320);
+    return () => window.clearTimeout(t);
+  }, [ignoredSignal]);
   const status = athleteStatus(session, lane, a, now);
   const meta = STATUS_META[status];
   const personalRip = a.ripartenzaAtleta;
@@ -1448,7 +1360,7 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
         onContextMenu={e => e.preventDefault()}
         className={`relative flex-1 min-h-0 rounded-lg border-l-4 bg-surface-container-lowest px-1.5 flex items-center justify-between gap-1 overflow-hidden active:scale-[0.99] transition ${
           status === 'in_ritardo' ? 'border-warning' : status === 'in_ripartenza' ? 'border-primary' : status === 'in_nuoto' ? 'border-secondary' : 'border-outline-variant'
-        }`}
+        } ${ignoredFlash ? 'ring-2 ring-warning' : ''}`}
       >
         <span className="font-semibold text-on-surface truncate" style={{ fontSize: 11 }}>
           {a.cognome}
@@ -1470,7 +1382,7 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
       onPointerLeave={clearPress}
       onPointerCancel={clearPress}
       onContextMenu={e => e.preventDefault()}
-      className="relative flex-1 min-h-0 rounded-lg bg-surface-container-lowest border border-outline-variant/50 px-1.5 py-1 flex flex-col justify-between overflow-hidden active:scale-[0.99] transition"
+      className={`relative flex-1 min-h-0 rounded-lg bg-surface-container-lowest border border-outline-variant/50 px-1.5 py-1 flex flex-col justify-between overflow-hidden active:scale-[0.99] transition ${ignoredFlash ? 'ring-2 ring-warning' : ''}`}
     >
       {/* 1) Cognome */}
       <div className="flex items-start justify-between gap-1 min-w-0">

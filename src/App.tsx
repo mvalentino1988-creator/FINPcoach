@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { AppProvider } from './data/AppContext';
+import { VascaSessionProvider } from './data/VascaSessionContext';
 import { FirebaseSync } from './data/firebaseSync';
 import { Navbar, TabKey } from './components/Navbar';
 import { LoginScreen } from './components/LoginScreen';
@@ -151,7 +152,9 @@ export const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <AppProvider>
-        <AppContent />
+        <VascaSessionProvider>
+          <AppContent />
+        </VascaSessionProvider>
       </AppProvider>
     </ErrorBoundary>
   );
