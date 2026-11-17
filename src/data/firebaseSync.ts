@@ -52,6 +52,7 @@ export interface SyncData {
   mesocicli: Mesociclo[];
   microcicli: Microciclo[];
   impostazioni: ImpostazioniPiano;
+  assegnazioneVasca?: unknown;
   customWorkouts?: unknown[];
 }
 

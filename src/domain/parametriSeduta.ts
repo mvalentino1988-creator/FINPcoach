@@ -42,14 +42,31 @@ export function normalizzaParametri(
   p: Partial<ParametriSeduta> | null | undefined,
   fallbackVasca = 25
 ): ParametriSeduta {
-  return {
+  const out: ParametriSeduta = {
     vascaMetri: normalizzaVasca(p?.vascaMetri, fallbackVasca),
     durataMin: normalizzaDurata(p?.durataMin),
   };
+  if (typeof p?.numeroCorsie === 'number' && Number.isFinite(p.numeroCorsie)) {
+    out.numeroCorsie = Math.max(1, Math.min(8, Math.round(p.numeroCorsie)));
+  }
+  if (Array.isArray(p?.atletiPresentiIds)) {
+    out.atletiPresentiIds = [...new Set(p.atletiPresentiIds.filter((x): x is number => typeof x === 'number' && Number.isFinite(x)))];
+  }
+  return out;
+}
+
+function arrayUguale(a?: number[], b?: number[]): boolean {
+  if (a == null && b == null) return true;
+  if (a == null || b == null || a.length !== b.length) return false;
+  const sa = new Set(a);
+  return b.every(v => sa.has(v));
 }
 
 export function parametriUguali(a: ParametriSeduta, b: ParametriSeduta): boolean {
-  return a.vascaMetri === b.vascaMetri && a.durataMin === b.durataMin;
+  return a.vascaMetri === b.vascaMetri
+    && a.durataMin === b.durataMin
+    && (a.numeroCorsie ?? null) === (b.numeroCorsie ?? null)
+    && arrayUguale(a.atletiPresentiIds, b.atletiPresentiIds);
 }
 
 export function risolviParametriSeduta(

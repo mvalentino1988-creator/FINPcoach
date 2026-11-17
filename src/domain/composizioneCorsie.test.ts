@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Atleta, Tempo } from '../types';
-import { passoMedioCorsia, profiloCorsiaAtleta, suggerisciComposizioneCorsie, tipoPrevalenteCorsia } from './composizioneCorsie';
+import { ordineAssegnazioneCorsie, passoMedioCorsia, profiloCorsiaAtleta, suggerisciComposizioneCorsie, tipoPrevalenteCorsia } from './composizioneCorsie';
 
 const atleta = (id: number, nome = `A${id}`): Atleta => ({
   id,
@@ -53,5 +53,30 @@ describe('composizioneCorsie', () => {
     const corsie = suggerisciComposizioneCorsie(atleti, []);
     expect(corsie.flat().sort((a, b) => a - b)).toEqual([1, 2, 3]);
     expect(tipoPrevalenteCorsia(corsie[0], new Map())).toBe('N');
+  });
+
+  it('genera N corsie con ordine centro -> bordi', () => {
+    expect(ordineAssegnazioneCorsie(1)).toEqual([0]);
+    expect(ordineAssegnazioneCorsie(4)).toEqual([1, 2, 0, 3]);
+    expect(ordineAssegnazioneCorsie(6)).toEqual([2, 3, 1, 4, 0, 5]);
+    expect(ordineAssegnazioneCorsie(8)).toEqual([3, 4, 2, 5, 1, 6, 0, 7]);
+  });
+
+  it('suggerisce 6 corsie distribuite sui soli presenti', () => {
+    const atleti = Array.from({ length: 12 }, (_, i) => atleta(i + 1));
+    const corsie = suggerisciComposizioneCorsie(atleti, [], 6, [1, 2, 3, 4, 5, 6]);
+    expect(corsie).toHaveLength(6);
+    expect(corsie.flat().sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6]);
+    // Le corsie più centrali (indici 2 e 3) ricevono i primi atleti.
+    expect(corsie[2]).toContain(1);
+    expect(corsie[3]).toContain(2);
+  });
+
+  it('con meno atleti che corsie lascia corsie vuote', () => {
+    const atleti = [atleta(1), atleta(2)];
+    const corsie = suggerisciComposizioneCorsie(atleti, [], 6);
+    expect(corsie).toHaveLength(6);
+    const popolate = corsie.filter(c => c.length > 0);
+    expect(popolate).toHaveLength(2);
   });
 });

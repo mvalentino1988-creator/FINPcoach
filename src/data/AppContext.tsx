@@ -23,7 +23,8 @@ import { Festivita } from '../domain/festivita';
 import { PianoGenerator } from '../domain/pianoGenerator';
 import { PianoValidator } from '../domain/validatori';
 import { todayISO } from '../domain/dateUtils';
-import { conOverride, conParametriGiorno, senzaOverride } from '../domain/parametriSeduta';
+import { conOverride, conParametriGiorno, risolviParametriSeduta, senzaOverride, ParametriRisolti } from '../domain/parametriSeduta';
+import { AssegnazioneVasca, allineaConParametri, normalizzaAssegnazione } from '../domain/assegnazioneVasca';
 import { FINPStorage } from './storage';
 import { FirebaseSync, SyncData } from './firebaseSync';
 
@@ -42,6 +43,11 @@ interface AppContextType {
   impostazioni: ImpostazioniPiano;
   parametriEffettivi: ParametriPiano;
   avvisiPiano: Avviso[];
+
+  // Assegnazione Vasca (Regia) e parametri della seduta di oggi
+  assegnazioneVasca: AssegnazioneVasca | null;
+  salvaAssegnazioneVasca: (a: AssegnazioneVasca | null) => void;
+  parametriOggi: ParametriRisolti;
 
   // Atleti
   aggiungiAtleta: (a: Omit<Atleta, 'id'>) => void;
@@ -106,6 +112,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [impostazioni, setImpostazioni] = useState<ImpostazioniPiano>(() => FINPStorage.getImpostazioni());
   const [layoutScelto, setLayoutSceltoState] = useState<'classica' | 'flottante' | 'azione-centrale'>(() => FINPStorage.getLayoutScelto());
   const [themeMode, setThemeModeState] = useState<'sistema' | 'chiaro' | 'scuro'>(() => FINPStorage.getThemeMode());
+  const [assegnazioneVasca, setAssegnazioneVasca] = useState<AssegnazioneVasca | null>(() => FINPStorage.getAssegnazioneVasca());
 
   const setLayoutScelto = (l: 'classica' | 'flottante' | 'azione-centrale') => {
     setLayoutSceltoState(l);
@@ -182,11 +189,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => { FINPStorage.saveGare(gare); }, [gare]);
   useEffect(() => { FINPStorage.savePiano(macro, meso, micro); }, [macro, meso, micro]);
   useEffect(() => { FINPStorage.saveImpostazioni(impostazioni); }, [impostazioni]);
+  useEffect(() => { FINPStorage.saveAssegnazioneVasca(assegnazioneVasca); }, [assegnazioneVasca]);
 
   const applyingCloud = useRef(false);
   const hydrated = useRef(localStorage.getItem('finp_sync_enabled') !== 'true');
-  const latestRef = useRef({ atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, macro, meso, micro, impostazioni });
-  latestRef.current = { atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, macro, meso, micro, impostazioni };
+  const latestRef = useRef({ atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, macro, meso, micro, impostazioni, assegnazioneVasca });
+  latestRef.current = { atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, macro, meso, micro, impostazioni, assegnazioneVasca };
 
   const buildSyncPayload = (): SyncData => {
     const s = latestRef.current;
@@ -205,6 +213,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       mesocicli: s.meso,
       microcicli: s.micro,
       impostazioni: s.impostazioni,
+      assegnazioneVasca: s.assegnazioneVasca,
       customWorkouts: FINPStorage.getCustomWorkouts()
     };
   };
@@ -223,6 +232,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (cloudData.mesocicli) setMeso(cloudData.mesocicli);
     if (cloudData.microcicli) setMicro(cloudData.microcicli);
     if (cloudData.impostazioni) setImpostazioni(cloudData.impostazioni);
+    if (cloudData.assegnazioneVasca !== undefined) {
+      const norm = normalizzaAssegnazione(cloudData.assegnazioneVasca);
+      if (norm) setAssegnazioneVasca(norm);
+    }
     if (cloudData.customWorkouts) FINPStorage.saveCustomWorkouts(cloudData.customWorkouts as CustomWorkout[]);
     if (cloudData.lastSync) localStorage.setItem('finp_last_sync', cloudData.lastSync);
     setTimeout(() => { applyingCloud.current = false; }, 500);
@@ -267,7 +280,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 2000);
 
     return () => clearTimeout(timeoutId);
-  }, [atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, macro, meso, micro, impostazioni]);
+  }, [atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, macro, meso, micro, impostazioni, assegnazioneVasca]);
 
   // Compute effective planning parameters
   const parametriEffettivi = useMemo<ParametriPiano>(() => {
@@ -285,6 +298,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!stagione || micro.length === 0) return [];
     return PianoValidator.valida(stagione, micro, gare);
   }, [stagione, micro, gare]);
+
+  // Parametri della seduta di oggi (override > giorno della settimana > stagione)
+  const parametriOggi = useMemo<ParametriRisolti>(() => {
+    return risolviParametriSeduta(todayISO(), impostazioni, stagione);
+  }, [impostazioni, stagione]);
+
+  // La Regia e' la sola fonte di corsie/presenze: l'assegnazione segue i
+  // parametri del giorno (numero corsie, presenti, vasca). Solo per la data
+  // di oggi: un'assegnazione di ieri resta intatta finche' la Regia non decide.
+  useEffect(() => {
+    if (!assegnazioneVasca || assegnazioneVasca.data !== todayISO()) return;
+    const tuttiIds = atleti.map(a => a.id);
+    const presentiIds = (parametriOggi.atletiPresentiIds ?? tuttiIds).filter(id => tuttiIds.includes(id));
+    const allineata = allineaConParametri(
+      assegnazioneVasca,
+      parametriOggi.vascaMetri === 50 ? 50 : 25,
+      parametriOggi.numeroCorsie ?? 4,
+      presentiIds
+    );
+    if (JSON.stringify(allineata) !== JSON.stringify(assegnazioneVasca)) {
+      setAssegnazioneVasca(allineata);
+    }
+  }, [assegnazioneVasca, parametriOggi, atleti]);
 
   // Internal helper to regenerate plan
   const rigeneraPianoInterno = (conservaPassato: boolean) => {
@@ -651,6 +687,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         impostazioni,
         parametriEffettivi,
         avvisiPiano,
+        assegnazioneVasca,
+        salvaAssegnazioneVasca: setAssegnazioneVasca,
+        parametriOggi,
         aggiungiAtleta,
         aggiornaAtleta,
         eliminaAtleta,

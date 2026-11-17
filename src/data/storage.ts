@@ -13,6 +13,7 @@ import {
   Stagione,
   Tempo
 } from '../types';
+import { AssegnazioneVasca, normalizzaAssegnazione } from '../domain/assegnazioneVasca';
 import { AutoPianificatore } from '../domain/autoPianificatore';
 import { Festivita } from '../domain/festivita';
 import { todayISO } from '../domain/dateUtils';
@@ -36,7 +37,8 @@ const STORAGE_KEYS = {
   FIRMA_PIANO: 'finp_firma_piano',
   CLASSI_STIMATE: 'finp_classi_stimate',
   CUSTOM_WORKOUTS: 'finpcoach_custom_workouts',
-  IA_CONFIG: 'finp_ia_config'
+  IA_CONFIG: 'finp_ia_config',
+  VASCA_ASSEGNAZIONE: 'finp_vasca_assegnazione_v1'
 };
 
 function load<T>(key: string, defaultValue: T): T {
@@ -210,6 +212,15 @@ export class FINPStorage {
     return load<ImpostazioniPiano>(STORAGE_KEYS.IMPOSTAZIONI, {});
   }
 
+  static getAssegnazioneVasca(): AssegnazioneVasca | null {
+    const raw = load<unknown>(STORAGE_KEYS.VASCA_ASSEGNAZIONE, null);
+    return normalizzaAssegnazione(raw);
+  }
+
+  static saveAssegnazioneVasca(a: AssegnazioneVasca | null) {
+    save(STORAGE_KEYS.VASCA_ASSEGNAZIONE, a);
+  }
+
   static saveImpostazioni(imp: ImpostazioniPiano) {
     save(STORAGE_KEYS.IMPOSTAZIONI, imp);
   }
@@ -274,6 +285,7 @@ export class FINPStorage {
       microcicli: this.getMicrocicli(),
       impostazioni: this.getImpostazioni(),
       customWorkouts: this.getCustomWorkouts(),
+      assegnazioneVasca: this.getAssegnazioneVasca(),
       iaConfig: this.getIAConfig(),
       mode: this.getMode()
     };
@@ -296,6 +308,9 @@ export class FINPStorage {
       if (data.microcicli) save(STORAGE_KEYS.MICROCICLI, data.microcicli);
       if (data.impostazioni) save(STORAGE_KEYS.IMPOSTAZIONI, data.impostazioni);
       if (data.customWorkouts) save(STORAGE_KEYS.CUSTOM_WORKOUTS, data.customWorkouts);
+      if (data.assegnazioneVasca !== undefined) {
+        save(STORAGE_KEYS.VASCA_ASSEGNAZIONE, normalizzaAssegnazione(data.assegnazioneVasca));
+      }
       if (data.iaConfig) save(STORAGE_KEYS.IA_CONFIG, data.iaConfig);
       if (data.mode === 'demo' || data.mode === 'live') this.setMode(data.mode);
       return true;
