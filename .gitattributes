@@ -1,0 +1,5 @@
+# Asset web generati dalla build Vite e sincronizzati in app/src/main/assets/web
+# da scripts/sync-android-assets.mjs. Devono restare nel repo perche' la build
+# Android include gli asset dal repository, ma sono artefatti generati:
+app/src/main/assets/web/** linguist-generated=true
+app/src/main/assets/web/** -diff

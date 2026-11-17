@@ -4,7 +4,9 @@
  * auto-detezione tra scheda di allenamento e gara.
  */
 
-import { createWorker, Worker } from 'tesseract.js';
+/* tesseract.js (~100 kB + worker) viene caricato con import dinamico solo
+   quando serve davvero l'OCR: non entra nel bundle iniziale. */
+import type { Worker } from 'tesseract.js';
 
 export type ModalitaOCR = 'auto' | 'scheda' | 'gara';
 
@@ -23,6 +25,7 @@ export class OCRService {
     if (this.inizializzando) return this.inizializzando;
 
     this.inizializzando = (async () => {
+      const { createWorker } = await import('tesseract.js');
       const worker = await createWorker('ita+eng', 1, {
         workerPath: '/tesseract/worker.min.js',
         corePath: '/tesseract/core',
