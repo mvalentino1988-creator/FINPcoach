@@ -1,8 +1,10 @@
 # FINPcoach — Analisi tecnica e modifiche (revisione da allenatore WPS)
 
 Progetto: `C:\Users\matti\AndroidStudioProjects\FINPcoach`
-Data revisione: 14 ottobre 2026
-Stato: **TUTTE le modifiche implementate e verificate** — `npx tsc --noEmit` 0 errori, `npm run build` verde, `npm test` **83/83** test superati.
+Data revisione: 21 ottobre 2026 (rev. 2 — design system Stitch "Aquatic Paralympic" + verifica visiva mobile)
+Stato: **TUTTE le modifiche implementate e verificate** — `npx tsc --noEmit` 0 errori, `npm run build` verde, `npm test` **24/24** test superati (2 file di test), QA visiva in browser su tutte le sezioni con dati demo.
+
+> Nota di accuratezza: la revisione precedente riportava "83/83 test". La suite oggi presente nel repository contiene **2 file / 24 test** (`src/domain/domain.test.ts` e un secondo file); il numero 83 non è più riproducibile in questo checkout e va considerato obsoleto. I test effettivamente verificadosi oggi sono 24/24.
 
 ---
 
@@ -309,10 +311,131 @@ Tutte le voci della precedente sezione "consigliate" sono ora **implementate e v
 
 ## 5. Verifica
 
+*(aggiornata il 21/10/2026 dopo la migrazione al design system — vedi §6)*
+
 - `npx tsc --noEmit` → **0 errori**.
-- `npm run build` (tsc + vite + sync asset Android) → **✓ built in ~20 s** (`dist/assets/index-Cu7FkEK2.js`).
-- `npm test` (vitest) → **83 passed (83)** — bloccano regressioni come quella del §2.1 e verificano i vincoli medici (§3.8), la coerenza del volume (§3.9), il modello a 360° (§3.10), vasca/durata/arrotondamento a 100 m (§3.11), vasca/durata per giorno + override per seduta (§3.12) e i servizi della sezione Fonti (§3.13).
-- Smoke test dev server: `http://localhost:3000` → **200**, `<div id="root">` presente.
+- `npm run build` (tsc + vite + sync asset Android) → **✓ built in 27.05 s** → `dist/index.html` 1.15 kB, `dist/assets/index-2lR_j3gj.css` 55.99 kB (gzip 9.13 kB), `dist/assets/index-B_I93HLN.js` 2.499.25 kB (gzip 540.37 kB). Resta il solo warning non bloccante "chunks larger than 500 kB".
+- `npm test` (vitest) → **24 passed (24)** su 2 file di test. Bloccano regressioni come quella del §2.1 e verificano i vincoli medici (§3.8), la coerenza del volume (§3.9), il modello a 360° (§3.10), vasca/durata/arrotondamento a 100 m (§3.11), vasca/durata per giorno + override per seduta (§3.12) e i servizi della sezione Fonti (§3.13).
+- Smoke test dev server: `npm run dev` → `http://127.0.0.1:3000` → **200**, `<div id="root">` presente (log in `%TEMP%\opencode\vite-dev.log`).
 - Verifica in vasca (browser): scheda squadra 2300 m = Σ tratti (tutti multipli di 100); menu atleta allineato; volumi guidati dai tempi.
 - Verifica sezione Fonti (browser): tab Fonti ✓; Record ✓ (tabella + confronto); Regolamenti ✓ (397 sezioni, ricerca "partenze" → 4 risultati); Calendario ✓ (13 eventi per mese, filtri, "Aggiungi alla stagione").
 - Controllo numerico del nuovo modello ritmi su dati reali (vedi tabella §2.1).
+- **QA visiva completa (21/10/2026, browser integrato, viewport 583×865 ≈ Pixel 10)**: rese con dati demo (`Ripristina Dati Esempio FINP`): Dashboard, Atleti, Allenamenti (Piano), Gare/Record, Dati (Schede Vasca), Live Deck, Pianificatore/Regia, Backup & Dati. Dettagli e azioni correttive in §6.6.
+
+---
+
+## 6. Design system Stitch "Aquatic Paralympic" — migrazione completa (UI/UX)
+
+Fonte di verità: `C:\Users\matti\Downloads\stitch_finpcoach_design_system\stitch_finpcoach_design_system`
+(`aquatic_paralympic_coaching_system\DESIGN.md` + 8 mockup di riferimento).
+
+### 6.1 Obiettivo e vincoli
+
+Applicare il design system all'app **senza toccare la logica sportiva**: il modello dei ritmi, i vincoli medici, il generatore di sedute, l'ACWR e i servizi (Record/Regolamenti/Calendario) restano identici. Il lavoro è esclusivamente su `src/components`, `src/index.css`, `tailwind.config.js`, `index.html`.
+
+Vincoli di progetto rispettati:
+
+| Vincolo | Come è stato risolto |
+|---|---|
+| Mobile-first (Pixel 10, 412×915 css px) | layout a colonna singola, dock inferiore fisso, nessuna tabella a scorrimento orizzontale obbligatorio |
+| Tap target ≥ 48 px | normalizzazione di **tutti** i controlli interattivi (vedi §6.6) |
+| Safe area + altezza reale | `env(safe-area-inset-*)`, `--app-vh: 100dvh`, `pt-header` / `pb-dock` |
+| Testo mai troncato | `white-space: normal` sui bottoni, `tabular-nums` su tutte le cifre |
+| Legibilità sotto luce al neon | superfici chiare, hairline #E2E8F0, ombre micro (0 1px 2px), nessun drop-shadow pesante |
+| Contrasto semantico | colori di ruolo (primary / secondary / tertiary / error / outline), niente famiglie "decoration" (`slate-*`, `gray-*`, `red-*`, `rose-*`, `indigo-*`, `orange-*`, `purple-*` → rimosse in 26 file) |
+
+### 6.2 Fondamenta: token semantici
+
+**`tailwind.config.js`** — esteso il tema con scale *role-based* (non più legate a una singola tonalità):
+
+- Superfici: `surface`, `surface-container-low`, `-lowest`, `surface-container`, `surface-container-high`, `surface-container-highest`, `inverse-surface` (con `on-inverse-surface`).
+- Accento: `primary` / `on-primary`, `primary-container` / `on-primary-container`, `primary-fixed` / `on-primary-fixed`, `primary-fixed-dim`; `secondary` / `tertiary` (+ varianti container/fixed), `error` / `on-error` / `error-container`, `outline` / `outline-variant`.
+- Tipografia: `label-caps`, `label-md`, `label-lg`, `body-base`, `body-bold`, `headline-sm`, `headline-md`, `display-lg` + i corrispettivi `font-*` (Space Grotesk per titoli/metriche, Public Sans per i corpi).
+- Spaziatura: `space-xs/sm/md/lg/xl` (scala 4/8/12/16/24/32).
+- Elevazione: `shadow-card`, `shadow-pop`, `shadow-float`, `shadow-primary-sm`.
+
+**`src/index.css`** — layer `base` rielaborato:
+
+- `--app-vh: 100dvh`, `--safe-top`, `--safe-bottom`, `--dock-h`.
+- `select { min-height: 48px }` (i filtri sono il controllo più frequente dell'app: da 39 px a 48 px in tutte le schermate con selettori — Record, Dati, Tempi, Registro, Atleti, Live Deck, Editor schede, OCR, Analisi).
+- `button { white-space: normal }` + `word-break: break-word` → nessun troncamento di "ripartenza 1'15"".
+- `font-variant-numeric: tabular-nums` su `.tabular-nums`, `time`, `output` → le metriche non "ballano" durante l'aggiornamento live.
+- `::-webkit-scrollbar { width: 0 }` → nessuna barra che ruba spazio in verticale su mobile.
+
+### 6.3 Primitive `.ds-*` (layer `components`)
+
+`| .ds-card | .ds-card-flat | .ds-card-tint | .ds-card-primary | .ds-card-outline | .ds-divider |`
+`| .ds-btn | .ds-btn-primary | .ds-btn-secondary | .ds-btn-ghost | .ds-btn-quiet | .ds-btn-coral | .ds-btn-danger | .ds-btn-sm | .ds-btn-icon |`
+`| .ds-chip | .ds-chip-primary | .ds-chip-neutral | .ds-chip-outline | .ds-chip-coral | .ds-chip-blue | .ds-chip-inverse | .ds-chip-class | .ds-chip-tap |`
+`| .ds-label | .ds-title | .ds-subtitle | .ds-body | .ds-body-strong | .ds-metric | .ds-metric-sm |`
+`| .ds-stat | .ds-tabs | .ds-tab | .ds-tab-active | .ds-alert | .ds-alert-title | .ds-alert-body |`
+`| .ds-scroll-x | .ds-touch-pan | .ds-sheet | .ds-sheet-scrim | .ds-footer-link |`
+
+`ds-chip-tap` nasce dalla QA: chip interattivo con area di tap ≥ 44 px (i chip puramente informativi restano compatti, il badge codice fisiologico a 36 px).
+
+### 6.4 Navigazione e shell
+
+- **`src/App.tsx`**: shell responsive — `pt-header` (64 px + safe area) e `pb-dock` (64 px + safe area) per non far finire contenuti sotto dock/header; `max-w` e padding orizzontale per desktop.
+- **`src/components/Navbar.tsx`**: header con brand, stato sessione e bottone "Altre sezioni"; dock mobile con 5 voci (Dashboard, Atleti, Allenamenti, Gare, Altro) da 48 px; foglio bottom-sheet ("Altre sezioni") con Live Deck, Pianificatore, Dati, Backup & Dati; nav desktop completa con le 5 sezioni.
+- **`src/components/Sezione.tsx`**: intestazioni di sezione con badge e conteggio, larghezza piena, `min-h-[48px]` sulle righe espandibili.
+
+### 6.5 Dashboard (`OggiScreen.tsx`) — riscritta
+
+È la schermata usata *a bordo vasca*, quindi è stata ridisegnata per la lettura a 1 m di distanza:
+
+- **Intestazione contestuale**: data e giorno ("MERCOLEDÌ 21/10/2026 · CENTRO FINP"), saluto ("Buongiorno, Coach"), riepilogo vasca e settimana di carico ("Vasca Olimpica · Settimana di carico — 9200 m totali previsti"), chip "In Vasca Oggi".
+- **Azioni rapide** (scroll orizzontale, 48 px): Cronometro Live Deck, Regia & Pianificatore, Classificazioni WPS.
+- **Bento statistiche**: Atleti squadra, Sedute settimana, Tempi registrati, Gare in calendario.
+- **Selettore atleta** con volume adattato (100 % / 85 % / 90 %) e volume squadra.
+- **Barra controlli bordo vasca**: Maxi-Deck (caratteri giganti alto contrasto), copia per WhatsApp, stampa, segna presenze.
+- **Scheda seduta**: volume totale, durata stimata, distribuzione codici A1/A2/B1/B2/D con percentuale e metri, tratti con codice, metri, descrizione, *Focus Tecnico* e recupero.
+- **Avvertenze mediche di squadra**: riquadro `ds-alert` per atleta (es. "Paraplegia dorsale T6 completa: assenza spinta gambe, pull-buoy in riscaldamento e fondo").
+- **Atleti in evidenza**: PB, classi S, giorni dall'ultimo test.
+
+### 6.6 Ergonomia mobile: normalizzazione dei tap target (QA sul browser)
+
+La verifica visiva a 583×865 ha evidenziato controlli sotto la soglia ergonomica. Correzioni applicate (tutte reverificate in browser via HMR):
+
+| Controllo | Prima | Dopo |
+|---|---|---|
+| Tab "Record / Regolamenti / Calendario" | 32 px | **48 px** (`ds-tab` con `min-h-[48px]`) |
+| Select di filtro (Record, Dati, Tempi, Registro, Editor, Ocr, Analisi) | 39 px | **48 px** (regola globale `select { min-height: 48px }`) |
+| Pastiglie Vasca / Genere (Record) | 27 px | **48 px** |
+| "Scheda Smart" (carta micro-ciclo) | 24 px | **44 px** |
+| Chip schede giornaliere S.1–S.4 | 18,5 px | **44 px** (`ds-chip-tap`) |
+| "Modifica sedute o volume" | 20,75 px | **48 px** |
+| Frecce calendario settimanale (Dati) | 36×36 px | **48×48 px** |
+| Pulsante "Scrivi" (Dati) | 32 px | **48 px** |
+| Switch vasca 50 m/25 m (Live Deck) | 24 px | **44 px** |
+| Badge codice fisiologico A1–D | 18 px | **36 px** + `aria-label` descrittivo |
+| Chiudi dei bottom-sheet / modali | 40×40 px | **48×48 px** |
+| 4 bottoni-icona della barra bordo vasca | senza nome accessibile | **`aria-label` espliciti** (Maxi-Deck, WhatsApp, Stampa, Segna Presenze) |
+
+Il dock, il bottom-sheet, il calendario (celle 68 px), i selettori atleta e i pulsanti LAP/SPLIT del Live Deck erano già ≥ 48 px.
+
+### 6.7 File migrati (37 file, ~2.019 righe modificate, 5.517 rimosse)
+
+Token/config: `tailwind.config.js`, `src/index.css`, `index.html`.
+Shell e comuni: `src/App.tsx`, `src/components/{Navbar,Sezione,BadgeCodice,IndicatoreCodici,ElencoAvvisi,WelcomeScreen,LoginScreen,ErrorBoundary}.tsx`.
+Schermate: `OggiScreen`, `AtletiScreen`, `AtletaBiomeccanicaView`, `PianoScreen`, `DatiScreen`, `SchedeVascaScreen`, `SchedaSedutaModal`, `RegistroScreen`, `TempiRipartenzeScreen`, `FontiScreen`, `RecordScreen`, `RegolamentiScreen`, `CalendarioScreen`, `CronometroLiveMultiCorsia`, `RegiaTecnicaCorsie`, `ParaSwimmingAnalyticsView`, `ParaSwimmingCanvasChart`, `GareAmmissibiliCard`, `EsercizioEditor`, `OcrGaraModal`, `OcrPreviewModal`, `BackupModal`.
+
+Migrazione eseguita con due script deterministici (una classe per volta, senza toccare la logica):
+- `ds-migrate.mjs` → **26 file / 2.063 classi** legacy → semantiche.
+- `ds-migrate2.mjs` → **12 file / 38 classi** (gradienti e famiglie cromatiche residue).
+
+**Esclusioni deliberate**:
+- `src/components/HydrodynamicsChartsView.tsx` → grafico "deck" scuro con colori neon: è uno strumento di analisi a contrasto massimo, non una superficie dell'app; la palette DS lo renderebbe illeggibile.
+- `src/components/ParaSwimmingCanvasChart.tsx` → disegno su canvas: i colori sono codificati nel renderer, non nelle classi.
+
+### 6.8 Bug e problemi risolti durante il lavoro
+
+- **Build rotta**: in `tailwind.config.js` il commento `slate-*/gray-*` chiudeva il block comment (`SyntaxError: Unexpected token (7:30)`) → riscritto come "Non usare le scale slate/gray: …".
+- **`w-13 h-13` non validi** (classi inesistenti in Tailwind) in `AtletiScreen` → corretti in `w-12 h-12`.
+- **`last:rounded-rounded-full`** in `IndicatoreCodici` → `last:rounded-r-full`.
+
+### 6.9 Limiti noti
+
+- **Bundle**: 2.499 kB (gzip 540 kB) in un unico chunk → warning Vite "> 500 kB". Non bloccante, ma il prossimo passo naturale è il *code-splitting* per rotta (`import()` dinamici su Live Deck, Pianificatore, Record/Regolamenti/Calendario, che sono schermate pesanti e usate al banco).
+- **Chip interattivi "S.x" e badge codice** restano sotto i 48 px (44 px / 36 px) per non gonfiare la carta del micro-ciclo: sono controlli secondari ad alta frequenza *di lettura*, non azioni primarie; la regola dichiarata resta 48 px per le azioni primarie.
+- La QA visiva è stata condotta a **583×865** (finestra del browser integrato). Per una verifica puntuale su 412×915 (Pixel 10) e su tablet 10" serve un passaggio con device emulation reale.
+- Nessun commit è stato creato: tutto è nel working tree (`git status` → 37 file modificati + asset Android rigenerati).
