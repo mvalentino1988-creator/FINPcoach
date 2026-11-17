@@ -3,16 +3,9 @@ import { Atleta, Tempo } from '../types';
 import {
   Activity,
   Award,
-  CheckCircle2,
-  ChevronRight,
   Gavel,
-  ShieldCheck,
   Sliders,
-  Sparkles,
-  Waves,
-  Eye,
-  Flame,
-  FileCheck
+  Flame
 } from 'lucide-react';
 import { formattaTempo } from '../domain/tempoUtils';
 

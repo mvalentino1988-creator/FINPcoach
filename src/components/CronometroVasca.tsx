@@ -757,7 +757,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`,
       gridTemplateRows: `repeat(${rows}, minmax(0,1fr))`,
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [layoutOrient, laneCount]);
 
   const laneCellH = useCallback(

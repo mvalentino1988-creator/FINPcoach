@@ -53,7 +53,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
     setTemplate(GestioneTemplate.getTemplate());
   };
 
-  const modificaEsercizio = (id: string, campo: keyof Esercizio, valore: any) => {
+  const modificaEsercizio = (id: string, campo: keyof Esercizio, valore: Esercizio[keyof Esercizio]) => {
     setEsercizi(esercizi.map(es =>
       es.id === id ? { ...es, [campo]: valore } : es
     ));

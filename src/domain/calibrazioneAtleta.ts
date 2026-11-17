@@ -19,7 +19,7 @@ export interface CalibrazioneAtleta {
   note: string[];
 }
 
-export class CalibrazioneAtleta {
+export class CalibrazioneAtletaService {
   /**
    * Calibra automaticamente i parametri dell'atleta basandosi su:
    * - Tempi registrati

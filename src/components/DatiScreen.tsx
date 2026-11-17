@@ -3,43 +3,31 @@ import {
   ClipboardList,
   Timer,
   CheckCircle2,
-  Edit2,
   Save,
   X,
-  Trash2,
   Calendar,
-  HelpCircle,
   ChevronLeft,
   ChevronRight,
-  Layers,
-  Camera,
-  Loader2,
   RefreshCw,
   Plus,
   Bot,
   Waves,
-  Clock,
   Activity,
   Copy
 } from 'lucide-react';
-import { OCRService } from '../domain/ocrService';
 import { OcrPreviewModal } from './OcrPreviewModal';
 import { RevisioneSchedaModal } from './RevisioneSchedaModal';
 import { SchedeVascaScreen } from './SchedeVascaScreen';
 import { TempiRipartenzeScreen } from './TempiRipartenzeScreen';
 import { RegistroScreen } from './RegistroScreen';
-import { EsercizioEditor } from './EsercizioEditor';
-import { BadgeCodice } from './BadgeCodice';
-import { formattaData, todayISO, parseData, addDays, isBefore, daysBetween, toDateObj, formatDataInput } from '../domain/dateUtils';
+import { formattaData, todayISO, parseData, addDays, toDateObj, formatDataInput } from '../domain/dateUtils';
 import { useApp } from '../data/AppContext';
 import { CodiceAllenamentoKey } from '../types';
 import { ParserScheda } from '../domain/parserScheda';
-import { ParserApprendimento } from '../domain/parserApprendimento';
 import { FINPStorage } from '../data/storage';
 import { OcrWorkoutStandardizer } from '../domain/ocrWorkoutStandardizer';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { PageHeader } from './PageHeader';
-import { Marquee } from './Marquee';
 import { Badge, Button, Card, Modal, Tabs, ToastProvider, useToast } from './ui';
 import type { SwimZone } from './ui';
 import type { SeriaParsata } from '../domain/parserScheda';

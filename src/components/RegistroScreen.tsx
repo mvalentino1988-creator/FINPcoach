@@ -1,29 +1,22 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../data/AppContext';
-import { Atleta, CodiceAllenamentoKey, ContestoTempo, LogSeduta, Stile, Tempo } from '../types';
-import { formattaData, parseData, previousOrSameMonday, todayISO, yearsBetween } from '../domain/dateUtils';
+import { Atleta, Assenza, CodiceAllenamentoKey, ContestoTempo, LogSeduta, Microciclo, Stile, Tempo } from '../types';
+import { formattaData, parseData, todayISO, yearsBetween } from '../domain/dateUtils';
 import { formattaTempo, parseTempo, primatiPersonali } from '../domain/tempoUtils';
 import { VolumeIndividuale } from '../domain/volumeIndividuale';
 import { generaCodiciSeduta } from '../domain/generatoreCodiciSeduta';
-import { calcolaVolumeSessione } from '../domain/volumePrescritto';
-import { risolviParametriSeduta, seduteSettimana } from '../domain/parametriSeduta';
 import { ACWR_DISCLAIMER, CalcoloScienzaNuoto } from '../domain/calcoloCSS';
 import { Riepilogo } from '../domain/riepilogo';
 import { CodiciSeduta } from './CodiciSeduta';
 import {
-  Activity,
   AlertTriangle,
-  Award,
-  Calendar,
   Check,
   CheckCircle,
-  Clock,
   HeartPulse,
   Minus,
   Plus,
   ShieldAlert,
   Trash2,
-  TrendingUp,
   User,
   Waves
 } from 'lucide-react';
@@ -651,8 +644,8 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
 interface SezioneStoricoAtletaProps {
   atleta: Atleta;
   log: LogSeduta[];
-  micro: any[];
-  assenze: any[];
+  micro: Microciclo[];
+  assenze: Assenza[];
 }
 
 const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({

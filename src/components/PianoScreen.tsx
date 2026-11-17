@@ -91,7 +91,21 @@ const tipoMicroVisual = (tipo: TipoMicrociclo) => {
   }
 };
 
-const NuovaStagioneForm: React.FC<any> = ({
+interface NuovaStagioneFormProps {
+  inizioStagione: string;
+  setInizioStagione: (v: string) => void;
+  fineStagione: string;
+  setFineStagione: (v: string) => void;
+  nomeStagione: string;
+  setNomeStagione: (v: string) => void;
+  inizioParsed: string | null;
+  fineEffettiva: string | null;
+  nomeAuto: string;
+  nomeEffettivo: string;
+  creaStagione: (nome: string, inizio: string, fine: string) => void;
+}
+
+const NuovaStagioneForm: React.FC<NuovaStagioneFormProps> = ({
   inizioStagione, setInizioStagione, fineStagione, setFineStagione, nomeStagione, setNomeStagione, inizioParsed, fineEffettiva, nomeAuto, nomeEffettivo, creaStagione
 }) => {
   return (
@@ -182,7 +196,7 @@ const NuovaStagioneForm: React.FC<any> = ({
             type="button"
             onClick={() => {
               const ini = parseData(inizioStagione);
-              const fin = parseData(fineStagione) || parseData(fineEffettiva);
+              const fin = parseData(fineStagione) || (fineEffettiva ? parseData(fineEffettiva) : null);
               if (ini && fin) {
                 creaStagione(nomeEffettivo || 'Stagione Agonistica', ini, fin);
               }

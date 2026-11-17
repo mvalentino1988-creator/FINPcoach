@@ -1,5 +1,5 @@
 import { Stile } from '../types';
-import { AthleticPerformance, BiomechanicsEngine, EliteClusterPoint, LivelloGeografico } from './biomechanicsEngine';
+import { AthleticPerformance, BiomechanicsEngine } from './biomechanicsEngine';
 
 export class ParaSwimmingViewModel {
   private static STORAGE_PERFORMANCES = 'finp_para_performances';

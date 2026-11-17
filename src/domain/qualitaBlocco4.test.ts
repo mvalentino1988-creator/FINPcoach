@@ -38,7 +38,7 @@ describe('ACWR — soglie unificate 0.8/1.3/1.5', () => {
     const r = CalcoloScienzaNuoto.calcolaACWR(2000, [1000, 1000, 1000, 1000]);
     expect(r.acwrRapporto).toBe(2);
     expect(r.livelloRischio).toBe('elevato');
-    expect(r.livelloRischio).not.toMatch(/[⚠️✅⚡🔵]/);
+    expect(['⚠️', '✅', '⚡', '🔵'].some(e => r.livelloRischio.includes(e))).toBe(false);
     expect(r.avvisoInfortunio).toContain('2.00');
   });
 

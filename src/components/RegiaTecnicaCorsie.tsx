@@ -21,12 +21,8 @@ import { IndicatoreCodici } from './IndicatoreCodici';
 import { FINPStorage } from '../data/storage';
 import { ParserScheda } from '../domain/parserScheda';
 import { formattaData, todayISO } from '../domain/dateUtils';
-import { formattaTempo } from '../domain/tempoUtils';
 import {
-  etichettaTipoLavoro,
-  passoMedioCorsia,
   profiloCorsiaAtleta,
-  tipoPrevalenteCorsia,
   type TipoLavoroCorsia,
 } from '../domain/composizioneCorsie';
 import { generaCodiciSeduta } from '../domain/generatoreCodiciSeduta';

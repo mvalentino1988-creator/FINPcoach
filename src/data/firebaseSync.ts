@@ -286,14 +286,12 @@ export class FirebaseSync {
           
           if (cloudTime > localTime) {
             // Cloud è più recente, usa i dati cloud
-            console.log('Conflict resolved: cloud data is newer');
             this.state.lastSync = cloudData.lastSync;
             localStorage.setItem('finp_last_sync', cloudData.lastSync);
             this.state.status = 'synced';
             return cloudData;
           } else {
             // Locale è più recente o uguale, mantieni locale
-            console.log('Conflict resolved: local data is newer or equal');
             this.state.status = 'synced';
             return localData;
           }

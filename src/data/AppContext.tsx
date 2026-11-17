@@ -134,7 +134,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (bridge && typeof bridge.getSystemIsDark === 'function') {
           return bridge.getSystemIsDark();
         }
-      } catch (e) {}
+      } catch { /* bridge non disponibile */ }
       return null;
     };
 
@@ -666,7 +666,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const salvaSeduta = (data: string, items: Omit<LogSeduta, 'id'>[]) => {
     // Delete existing logs for this date
-    let filtered = log.filter(l => l.data !== data);
+    const filtered = log.filter(l => l.data !== data);
     let nextId = filtered.length > 0 ? Math.max(...filtered.map(it => it.id)) + 1 : 1;
     const newItems = items.map(item => ({ ...item, id: nextId++ }));
     setLog([...newItems, ...filtered]);

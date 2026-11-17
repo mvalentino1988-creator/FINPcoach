@@ -62,7 +62,7 @@ export class OcrGaraParser {
       const riga = righe[i].trim();
       if (!riga) continue;
 
-      const matchData = riga.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+      const matchData = riga.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
       if (matchData) {
         const giorno = matchData[1].padStart(2, '0');
         const mese = matchData[2].padStart(2, '0');

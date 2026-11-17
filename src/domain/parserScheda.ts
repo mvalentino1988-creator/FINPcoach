@@ -44,7 +44,7 @@ export class ParserScheda {
       const trimRiga = riga.trim();
       if (!trimRiga) continue;
 
-      const senzaElenco = trimRiga.replace(/^([-*•]|\d+[\.\)])\s+/, '').trim();
+      const senzaElenco = trimRiga.replace(/^([-*•]|\d+[.)])\s+/, '').trim();
 
       // Separa etichetta (es. "Riscaldamento 400m")
       const { etichetta, contenuto } = this.estraiEtichetta(senzaElenco);

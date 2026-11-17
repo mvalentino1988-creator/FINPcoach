@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CodiceAllenamentoKey } from '../types';
 import { CODICI_ALLENAMENTO } from '../domain/codici';
-import { Info, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface Props {
   codice: CodiceAllenamentoKey;

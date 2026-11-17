@@ -34,7 +34,7 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
 
   if (!isOpen) return null;
 
-  const handleAggiornaRiga = (id: string, campo: keyof TempoEstrattoOcr, valore: any) => {
+  const handleAggiornaRiga = (id: string, campo: keyof TempoEstrattoOcr, valore: TempoEstrattoOcr[keyof TempoEstrattoOcr]) => {
     setRighe(righe.map(r => r.id === id ? { ...r, [campo]: valore } : r));
   };
 

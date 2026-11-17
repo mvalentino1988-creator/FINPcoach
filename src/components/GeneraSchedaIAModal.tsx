@@ -17,8 +17,8 @@ import {
   costruisciPromptScheda,
   estraiRisposta,
   rispostaToTesto,
-  urlProviderWeb,
 } from '../domain/iaEsterna';
+import type { ProviderWebIA } from '../domain/iaEsterna';
 import { Bot, Copy, ExternalLink, Eye, EyeOff, Loader2, Settings, Sparkles, Trash2, X } from 'lucide-react';
 
 interface Props {
@@ -237,7 +237,7 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <select
                   value={config.providerWeb}
-                  onChange={(e) => setConfig({ ...config, providerWeb: e.target.value as any })}
+                  onChange={(e) => setConfig({ ...config, providerWeb: e.target.value as ProviderWebIA })}
                   className="ds-select flex-1"
                 >
                   <option value="chatgpt">ChatGPT</option>

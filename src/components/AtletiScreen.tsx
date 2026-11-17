@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { useApp } from '../data/AppContext';
-import { Atleta, CodiceAllenamentoKey, CondizioneMedica, Assenza, Tempo, StimaClassiFINP, LogSeduta } from '../types';
+import { Atleta, CodiceAllenamentoKey, CondizioneMedica, Assenza, Tempo, StimaClassiFINP, LogSeduta, Mesociclo, Microciclo, ParametriPiano, Stagione, ImpostazioniPiano, Stile, ContestoTempo } from '../types';
 import { formattaData, parseData, todayISO, yearsBetween, isBefore } from '../domain/dateUtils';
 import { AtletaValidator } from '../domain/validatori';
 import { ClassiSportive } from '../domain/classiSportive';
 import { FINPSpecialistAI } from '../domain/finpAnalisiMedica';
 import { VolumeIndividuale } from '../domain/volumeIndividuale';
 import { generaCodiciSeduta } from '../domain/generatoreCodiciSeduta';
-import { calcolaVolumeSessione } from '../domain/volumePrescritto';
-import { risolviParametriSeduta, seduteSettimana } from '../domain/parametriSeduta';
 import { CalcoloRitmiRipartenze } from '../domain/calcoloRitmiRipartenze';
 import { formattaTempo, parseTempo } from '../domain/tempoUtils';
 import { ElencoAvvisi } from './ElencoAvvisi';
@@ -665,8 +663,8 @@ interface ModalDettaglioProps {
   assenze: Assenza[];
   tempi: Tempo[];
   log: LogSeduta[];
-  meso: any[];
-  micro: any[];
+  meso: Mesociclo[];
+  micro: Microciclo[];
   onChiudi: () => void;
   onAggiornaAtleta: (a: Atleta) => void;
   onEliminaAtleta: (id: number) => void;
@@ -676,9 +674,9 @@ interface ModalDettaglioProps {
   onEliminaAssenza: (id: number) => void;
   onAggiungiTempo: (t: Omit<Tempo, 'id'>) => void;
   onEliminaTempo: (id: number) => void;
-  parametriEffettivi: any;
-  stagione: any;
-  impostazioni: any;
+  parametriEffettivi: ParametriPiano;
+  stagione: Stagione | null;
+  impostazioni: ImpostazioniPiano;
 }
 
 const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
@@ -724,8 +722,8 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
   const assenzaValida = dalParsed != null && alParsed != null && !isBefore(alParsed, dalParsed);
 
   const generaCodici = () => {
-    const microCorrente = micro.find((m: any) => !isBefore(oggi, m.inizio) && !isBefore(m.fine, oggi)) ?? micro[0];
-    const mesoCorrente = microCorrente ? meso.find((me: any) => me.id === microCorrente.mesocicloId) : null;
+    const microCorrente = micro.find(m => !isBefore(oggi, m.inizio) && !isBefore(m.fine, oggi)) ?? micro[0];
+    const mesoCorrente = microCorrente ? meso.find(me => me.id === microCorrente.mesocicloId) : null;
 
     setCodiciProposti(generaCodiciSeduta({
       fase: mesoCorrente?.fase ?? 'PREPARAZIONE_SPECIFICA',
@@ -967,7 +965,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                 defaultAperto={true}
               >
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {micro.filter((m: any) => !isBefore(m.fine, oggi)).slice(0, 4).map((m: any) => {
+                  {micro.filter(m => !isBefore(m.fine, oggi)).slice(0, 4).map(m => {
                     const v = VolumeIndividuale.settimana(m, atleta, assenze);
                     return (
                       <div key={m.id} className="p-2.5 bg-surface-container-low rounded-lg text-center shadow-sm">
@@ -1206,10 +1204,10 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
   onEliminaTempo
 }) => {
   const [dataTesto, setDataTesto] = useState(formattaData(todayISO()));
-  const [stile, setStile] = useState<any>('STILE_LIBERO');
+  const [stile, setStile] = useState<Stile>('STILE_LIBERO');
   const [distanza, setDistanza] = useState('100');
   const [tempoTesto, setTempoTesto] = useState('');
-  const [contesto, setContesto] = useState<any>('GARA');
+  const [contesto, setContesto] = useState<ContestoTempo>('GARA');
   const [note, setNote] = useState('');
 
   const dataParsed = parseData(dataTesto);
@@ -1270,7 +1268,7 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
             <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
               <Select
                 value={stile}
-                onChange={e => setStile(e.target.value)}
+                onChange={e => setStile(e.target.value as Stile)}
                 aria-label="Stile"
                 options={[
                   { value: 'STILE_LIBERO', label: 'Stile libero' },
@@ -1282,7 +1280,7 @@ const ModalTempiAtleta: React.FC<ModalTempiAtletaProps> = ({
               />
               <Select
                 value={contesto}
-                onChange={e => setContesto(e.target.value)}
+                onChange={e => setContesto(e.target.value as ContestoTempo)}
                 aria-label="Contesto"
                 options={[
                   { value: 'GARA', label: 'Gara ufficiale' },

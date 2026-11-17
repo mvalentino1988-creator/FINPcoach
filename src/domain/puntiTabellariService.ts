@@ -5,6 +5,7 @@
  */
 
 import { formattaTempo } from './tempoUtils';
+import { RecordService } from './recordService';
 
 export interface PuntiTabellariResult {
   punti: number;
@@ -81,9 +82,6 @@ export class PuntiTabellariService {
     classeS: number,
     genere: 'M' | 'F'
   ): PuntiTabellariResult | null {
-    // Importazione dinamica per evitare circular dependency
-    const { RecordService } = require('./recordService');
-
     // Ottieni il record del mondo per la classe
     const recordWR = RecordService.recordInternazionale(
       vascaMetri,
@@ -93,11 +91,12 @@ export class PuntiTabellariService {
       'WR'
     );
 
-    if (!recordWR || !recordWR.tempoCentesimi) {
+    const recordCentesimi = recordWR ? RecordService.tempoCentesimi(recordWR.tm) : null;
+    if (recordCentesimi == null) {
       return null;
     }
 
-    return this.calcolaPunti(tempoAtletaCentesimi, recordWR.tempoCentesimi);
+    return this.calcolaPunti(tempoAtletaCentesimi, recordCentesimi);
   }
 
   /**

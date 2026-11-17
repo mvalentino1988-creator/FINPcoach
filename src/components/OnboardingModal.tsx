@@ -41,15 +41,15 @@ export const OnboardingModal: React.FC<Props> = ({ onComplete }) => {
             Tema Grafico
           </label>
           <div className="grid grid-cols-3 gap-2">
-            {[
+            {([
               { id: 'sistema', label: 'Sistema', icon: <Monitor size={20} /> },
               { id: 'chiaro',  label: 'Chiaro',  icon: <Sun size={20} /> },
               { id: 'scuro',   label: 'Scuro',   icon: <Moon size={20} /> },
-            ].map(item => (
+            ] as const).map(item => (
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setSelectedTheme(item.id as any)}
+                onClick={() => setSelectedTheme(item.id)}
                 className={`flex flex-col items-center justify-center gap-2.5 p-4 rounded-xl border font-label-caps text-label-caps uppercase tracking-wider transition-all ${
                   selectedTheme === item.id
                     ? 'border-primary/40 bg-primary-fixed text-on-primary-fixed-variant shadow-sm'

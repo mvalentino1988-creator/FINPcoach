@@ -28,12 +28,8 @@ import { VolumeIndividuale } from '../domain/volumeIndividuale';
 import {
   AlertTriangle,
   ArrowUpRight,
-  Bot,
   Calendar,
-  Check,
-  ChevronRight,
   ClipboardList,
-  Copy,
   Gauge,
   RefreshCw,
   SlidersHorizontal,

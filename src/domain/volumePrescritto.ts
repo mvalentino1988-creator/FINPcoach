@@ -25,7 +25,7 @@ import {
   Tempo,
 } from '../types';
 import { addDays, previousOrSameMonday, todayISO } from './dateUtils';
-import { CalibrazioneAtleta } from './calibrazioneAtleta';
+import { CalibrazioneAtletaService } from './calibrazioneAtleta';
 import { CalcoloScienzaNuoto, livelloACWR } from './calcoloCSS';
 import { normalizzaDurata, normalizzaVasca } from './parametriSeduta';
 import { VolumeIndividuale } from './volumeIndividuale';
@@ -118,7 +118,7 @@ function passoAtleta(
   condizioni: CondizioneMedica[],
   logSedute: LogSeduta[]
 ): { passo: number; fattore: number; note: string[] } {
-  const calib = CalibrazioneAtleta.calibra(atleta || ATLETA_DEFAULT, tempi, condizioni, logSedute);
+  const calib = CalibrazioneAtletaService.calibra(atleta || ATLETA_DEFAULT, tempi, condizioni, logSedute);
   return {
     passo: calib.passo100mCentesimi || PASSO_DEFAULT_CENTESIMI,
     fattore: calib.fattoreCorrezione ?? 1,
@@ -168,7 +168,7 @@ export function calcolaVolumeSessione(input: VolumeSessioneInput): VolumeSession
   const durataTotale = settimana.reduce((s, x) => s + normalizzaDurata(x.parametri.durataMin), 0) || parametri.durataMin;
   const quota = Math.min(1, normalizzaDurata(parametri.durataMin) / durataTotale);
 
-  let metriSettimanaSquadra = input.micro?.volumeTargetMetri
+  const metriSettimanaSquadra = input.micro?.volumeTargetMetri
     || input.volumeSettimanaFallback
     || 1800 * seduteSquadra;
 

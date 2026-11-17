@@ -7,7 +7,7 @@ import { ParaSwimmingViewModel } from '../domain/paraSwimmingViewModel';
 import { ParaSwimmingCanvasChart } from './ParaSwimmingCanvasChart';
 import { HydrodynamicsChartsView } from './HydrodynamicsChartsView';
 import { Sezione } from './Sezione';
-import { Activity, Plus, RefreshCw, Flame, Award, Globe, User } from 'lucide-react';
+import { Activity, Plus, RefreshCw, Flame, Award } from 'lucide-react';
 
 export const ParaSwimmingAnalyticsView: React.FC = () => {
   const { atleti } = useApp();

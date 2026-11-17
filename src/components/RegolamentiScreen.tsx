@@ -6,7 +6,6 @@ import {
   SezioneCapitolo
 } from '../domain/regolamentiService';
 import {
-  BookOpen,
   Search,
   ChevronDown,
   ChevronRight,

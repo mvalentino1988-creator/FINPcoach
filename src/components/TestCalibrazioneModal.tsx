@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Timer, X, Check, Award, Sparkles } from 'lucide-react';
+import { X, Check, Award, Sparkles } from 'lucide-react';
 import { Atleta, Tempo, Stile } from '../types';
-import { todayISO, formattaData } from '../domain/dateUtils';
+import { todayISO } from '../domain/dateUtils';
 import { parseTempo, formattaTempo } from '../domain/tempoUtils';
 
 interface Props {

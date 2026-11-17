@@ -43,6 +43,7 @@ export function Modal({
       document.addEventListener('keydown', handleEscape);
       return () => document.removeEventListener('keydown', handleEscape);
     }
+    return undefined;
   }, [open, handleEscape]);
 
   if (!open) return null;

@@ -1,6 +1,5 @@
 import { Atleta, CondizioneMedica, DayOfWeekNum, LogSeduta, ParametriPiano, Stagione } from '../types';
 import {
-  addDays,
   addWeeks,
   getDayOfWeek,
   isAfter,

@@ -4,7 +4,6 @@ import { RecordService, RecordFINP, CATEGORIE_ITA } from '../domain/recordServic
 import { formattaTempo } from '../domain/tempoUtils';
 import { formattaData } from '../domain/dateUtils';
 import {
-  Trophy,
   Medal,
   Globe,
   User,

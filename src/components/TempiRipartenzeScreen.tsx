@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useApp } from '../data/AppContext';
-import { ContestoTempo, Stile, Tempo } from '../types';
+import { ContestoTempo, Stile } from '../types';
 import { formattaData, parseData, todayISO } from '../domain/dateUtils';
 import { formattaTempo, parseTempo, primatiPersonali, convertiVasca, calcolaPuntiWPS } from '../domain/tempoUtils';
 import { CalcoloRitmiRipartenze } from '../domain/calcoloRitmiRipartenze';
@@ -13,22 +13,14 @@ import { OcrGaraModal } from './OcrGaraModal';
 import { Sezione } from './Sezione';
 import { TestCalibrazioneModal } from './TestCalibrazioneModal';
 import {
-  AlertTriangle,
   Award,
-  Check,
   Clock,
-  FileText,
   Flame,
-  Info,
-  Plus,
   Timer,
   Trash2,
-  Upload,
   User,
   Camera,
   Loader2,
-  X,
-  Bot,
   Sparkles,
   ArrowRightLeft
 } from 'lucide-react';

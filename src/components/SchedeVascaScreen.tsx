@@ -6,11 +6,9 @@ import { VolumeIndividuale } from '../domain/volumeIndividuale';
 import { generaCodiciSeduta } from '../domain/generatoreCodiciSeduta';
 import { CodiciSeduta } from './CodiciSeduta';
 import {
-  Calendar,
   Check,
   Copy,
   Sparkles,
-  Timer,
   User,
   Users,
   Waves,

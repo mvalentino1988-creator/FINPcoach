@@ -14,9 +14,7 @@ import {
   Tempo
 } from '../types';
 import { AssegnazioneVasca, normalizzaAssegnazione } from '../domain/assegnazioneVasca';
-import { AutoPianificatore } from '../domain/autoPianificatore';
 import { Festivita } from '../domain/festivita';
-import { todayISO } from '../domain/dateUtils';
 import { IA_CONFIG_DEFAULT, IAConfig } from '../domain/iaEsterna';
 import { BACKUP_VERSIONE, validaBackup } from './backupValidate';
 
