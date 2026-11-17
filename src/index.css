@@ -2658,3 +2658,23 @@
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 22%, transparent);
   }
 }
+
+/* ============================================================================
+   VASCA LIVE — al VIA il cronometro va in fullscreen: header e dock nav
+   vengono nascosti finché la sessione non viene azzerata o si esce.
+   ============================================================================ */
+body.vasca-live > header,
+body.vasca-live nav[aria-label="Navigazione principale"],
+body.vasca-live aside {
+  display: none !important;
+}
+
+body.vasca-live .app-main {
+  padding-bottom: 0.5rem !important;
+}
+
+@media (min-width: 1024px) {
+  body.vasca-live aside {
+    display: flex !important;
+  }
+}

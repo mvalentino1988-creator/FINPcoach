@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.Color
 import android.net.Uri
@@ -74,6 +75,7 @@ class MainActivity : ComponentActivity() {
             // Ponte minimale verso la web app: la pagina carica solo risorse dell'app
             // (le navigazioni esterne vengono aperte nel browser), quindi l'esposizione è limitata.
             addJavascriptInterface(AndroidBridge(), "AndroidBridge")
+            addJavascriptInterface(NativeOrientationBridge(), "NativeOrientation")
 
             webViewClient = BundledAppWebViewClient()
             webChromeClient = object : WebChromeClient() {
@@ -164,8 +166,28 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        // Alla chiusura dell'app si torna sempre all'orientamento di sistema.
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         webView.destroy()
         super.onDestroy()
+    }
+
+    /**
+     * Bridge usato dalla schermata Vasca per forzare l'orientamento mentre è
+     * aperta ("portrait" | "landscape" | "system"). configChanges nel manifest
+     * evita che la rotazione ricrei Activity e WebView.
+     */
+    private inner class NativeOrientationBridge {
+        @JavascriptInterface
+        fun setOrientation(mode: String) {
+            runOnUiThread {
+                requestedOrientation = when (mode) {
+                    "portrait" -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                    "landscape" -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                    else -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                }
+            }
+        }
     }
 
     /** Funzioni native richiamabili dalla web app (window.AndroidBridge). */

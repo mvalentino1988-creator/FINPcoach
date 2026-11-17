@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CronometroLiveMultiCorsia } from './CronometroLiveMultiCorsia';
+import { CronometroVasca } from './CronometroVasca';
 import { RegiaTecnicaCorsie } from './RegiaTecnicaCorsie';
 import { Timer, SlidersHorizontal, Waves } from 'lucide-react';
 
@@ -23,7 +23,7 @@ export const BordoVascaScreen: React.FC = () => {
     if (desktop) setVista('regia');
   }, [desktop]);
 
-  // Su PC il cronometro multi-corsia non serve: Vasca mostra direttamente la regia tecnica.
+  // Su PC la regia tecnica è la vista principale; il cronometro non serve.
   if (desktop) {
     return (
       <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
@@ -77,8 +77,13 @@ export const BordoVascaScreen: React.FC = () => {
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-        {vista === 'cronometro' ? <CronometroLiveMultiCorsia /> : <RegiaTecnicaCorsie />}
+      {/* Il cronometro resta montato anche in vista Regia: la sessione (e
+          l'orientamento forzato) sopravvivono al cambio vista. */}
+      <div className={`flex-1 min-h-0 flex-col ${vista === 'cronometro' ? 'flex' : 'hidden'}`}>
+        <CronometroVasca />
+      </div>
+      <div className={`flex-1 min-h-0 overflow-hidden flex-col ${vista === 'regia' ? 'flex' : 'hidden'}`}>
+        <RegiaTecnicaCorsie />
       </div>
     </div>
   );
