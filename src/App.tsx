@@ -9,7 +9,7 @@ import { BordoVascaScreen } from './components/BordoVascaScreen';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { OnboardingModal } from './components/OnboardingModal';
-import { FINPStorage } from './data/storage';
+import { FINPStorage, STORAGE_ERROR_EVENT, getUltimoErroreSalvataggio } from './data/storage';
 import { useLayoutMetrics } from './hooks/useLayoutMetrics';
 import { pushBackHandler } from './lib/backHandler';
 import { Waves } from 'lucide-react';
@@ -61,6 +61,22 @@ export const AppContent: React.FC = () => {
     return m;
   });
   const layout = useLayoutMetrics();
+  const [saveError, setSaveError] = useState<string | null>(() => getUltimoErroreSalvataggio());
+  const [saveErrorHidden, setSaveErrorHidden] = useState(false);
+
+  useEffect(() => {
+    const onErr = (e: Event) => {
+      setSaveError((e as CustomEvent<string>).detail ?? getUltimoErroreSalvataggio());
+      setSaveErrorHidden(false);
+    };
+    const onClear = () => setSaveErrorHidden(true);
+    window.addEventListener(STORAGE_ERROR_EVENT, onErr);
+    window.addEventListener(`${STORAGE_ERROR_EVENT}:cleared`, onClear);
+    return () => {
+      window.removeEventListener(STORAGE_ERROR_EVENT, onErr);
+      window.removeEventListener(`${STORAGE_ERROR_EVENT}:cleared`, onClear);
+    };
+  }, []);
 
   useEffect(() => {
     sessionStorage.setItem('finp_active_tab', tab);
@@ -127,6 +143,23 @@ export const AppContent: React.FC = () => {
   return (
     <div className={`app-shell ${fixed ? 'app-shell-fixed' : ''}`}>
       {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
+
+      {saveError && !saveErrorHidden && (
+        <div
+          role="alert"
+          className="fixed top-0 inset-x-0 z-[80] flex items-center gap-2 px-4 py-2 bg-error-container text-on-error-container text-xs font-semibold"
+        >
+          <span className="flex-1">{saveError} — i dati potrebbero non essere salvati. Verifica lo spazio disponibile.</span>
+          <button
+            type="button"
+            aria-label="Chiudi avviso salvataggio"
+            onClick={() => setSaveErrorHidden(true)}
+            className="min-w-11 min-h-11 flex items-center justify-center"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       <Navbar currentTab={tab} onTabChange={setTab} layout={layout} />
 

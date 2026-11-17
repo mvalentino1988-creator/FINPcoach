@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FINPStorage } from '../data/storage';
+import { cifraBackup, decifraBackup, eBackupCifrato } from '../lib/backupCrypto';
 import { FirebaseSync, SyncStatus } from '../data/firebaseSync';
 import { isFirebaseConfigured } from '../data/firebaseConfig';
 import { LoginScreen } from './LoginScreen';
@@ -19,6 +20,15 @@ export const BackupModal: React.FC<Props> = (props) => (
 const BackupModalContent: React.FC<Props> = ({ onClose }) => {
   const { toast } = useToast();
   const [pendingImport, setPendingImport] = useState<string | null>(null);
+  const [pendingCipher, setPendingCipher] = useState<{ content: string; name: string } | null>(null);
+  const [importErrors, setImportErrors] = useState<string[] | null>(null);
+  const [encPass, setEncPass] = useState('');
+  const [encPass2, setEncPass2] = useState('');
+  const [encPassErr, setEncPassErr] = useState<string | null>(null);
+  const [decPass, setDecPass] = useState('');
+  const [decPassErr, setDecPassErr] = useState<string | null>(null);
+  const [encModalOpen, setEncModalOpen] = useState(false);
+  const [ultimoBackup, setUltimoBackup] = useState<string | null>(() => FINPStorage.getUltimoBackup());
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Firebase sync state
@@ -117,28 +127,55 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
     }
   };
 
+  const salvaFile = (fileName: string, content: string, mime: string, msg: string) => {
+    const bridge = (window as unknown as { AndroidBridge?: { exportTextFile?: (n: string, c: string) => boolean } }).AndroidBridge;
+    if (bridge?.exportTextFile?.(fileName, content)) {
+      toast({ variant: 'success', title: 'Backup esportato', message: msg });
+      return;
+    }
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({ variant: 'success', title: 'Backup esportato', message: msg });
+  };
+
   const handleDownload = () => {
     try {
       const json = FINPStorage.exportBackup();
       const dateStr = new Date().toISOString().slice(0, 10);
-      const fileName = `FINPcoach_backup_${dateStr}.json`;
-      const bridge = (window as unknown as { AndroidBridge?: { exportTextFile?: (n: string, c: string) => boolean } }).AndroidBridge;
-      if (bridge?.exportTextFile?.(fileName, json)) {
-        toast({ variant: 'success', title: 'Backup esportato', message: 'Backup salvato in Download!' });
-        return;
-      }
-      const blob = new Blob([json], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast({ variant: 'success', title: 'Backup esportato', message: 'Backup scaricato con successo!' });
+      salvaFile(`FINPcoach_backup_${dateStr}.json`, json, 'application/json', 'Backup scaricato con successo!');
+      FINPStorage.segnaBackup();
+      setUltimoBackup(FINPStorage.getUltimoBackup());
     } catch {
       toast({ variant: 'error', title: 'Errore export', message: 'Errore durante la generazione del backup.' });
+    }
+  };
+
+  const handleDownloadCifrato = async () => {
+    if (!encPass || encPass.length < 8) {
+      setEncPassErr('La password deve avere almeno 8 caratteri.');
+      return;
+    }
+    if (encPass !== encPass2) {
+      setEncPassErr('Le due password non coincidono.');
+      return;
+    }
+    try {
+      const json = FINPStorage.exportBackup();
+      const cifrato = await cifraBackup(json, encPass);
+      const dateStr = new Date().toISOString().slice(0, 10);
+      salvaFile(`FINPcoach_backup_${dateStr}.finpbackup`, cifrato, 'application/json', 'Backup cifrato esportato. Senza la password i dati non sono recuperabili.');
+      FINPStorage.segnaBackup();
+      setUltimoBackup(FINPStorage.getUltimoBackup());
+      setEncPass(''); setEncPass2(''); setEncPassErr(null);
+    } catch {
+      toast({ variant: 'error', title: 'Errore export', message: 'Impossibile cifrare il backup.' });
     }
   };
 
@@ -150,6 +187,12 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
     reader.onload = (event) => {
       try {
         const content = event.target?.result as string;
+        if (eBackupCifrato(content, file.name)) {
+          setDecPass('');
+          setDecPassErr(null);
+          setPendingCipher({ content, name: file.name });
+          return;
+        }
         // Conferma in modal prima di sovrascrivere i dati esistenti
         setPendingImport(content);
       } catch {
@@ -160,19 +203,32 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
     e.target.value = '';
   };
 
+  const confermaDecifra = async () => {
+    if (!pendingCipher) return;
+    try {
+      const json = await decifraBackup(pendingCipher.content, decPass);
+      setPendingCipher(null);
+      setDecPass('');
+      setPendingImport(json);
+    } catch (err) {
+      setDecPassErr(err instanceof Error ? err.message : 'Decifratura fallita.');
+    }
+  };
+
   const confermaImport = () => {
     if (pendingImport == null) return;
     const content = pendingImport;
     setPendingImport(null);
     try {
-      const ok = FINPStorage.importBackup(content);
-      if (ok) {
-        toast({ variant: 'success', title: 'Import completato', message: 'Dati importati con successo! Ricarico…' });
+      const r = FINPStorage.importBackup(content);
+      if (r.ok) {
+        const warn = r.warnings.length > 0 ? ` (${r.warnings.length} avvisi)` : '';
+        toast({ variant: 'success', title: 'Import completato', message: `Dati importati con successo${warn}! Ricarico…` });
         setTimeout(() => {
           window.location.reload();
         }, 1000);
       } else {
-        toast({ variant: 'error', title: 'Backup non valido', message: 'Formato del file di backup non valido.' });
+        setImportErrors(r.errors);
       }
     } catch {
       toast({ variant: 'error', title: 'Import fallito', message: 'Impossibile leggere il file selezionato.' });
@@ -356,6 +412,11 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
           </div>
 
           <div className="space-y-2.5 pt-1">
+            {ultimoBackup && (
+              <p className="text-xs text-on-surface-variant px-1">
+                Ultimo backup esportato: <strong className="text-on-surface">{new Date(ultimoBackup).toLocaleString('it-IT')}</strong>
+              </p>
+            )}
             {/* Download Backup */}
             <button
               onClick={handleDownload}
@@ -371,12 +432,27 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
               <span className="ds-chip-blue shrink-0">Scarica</span>
             </button>
 
+            {/* Download Backup cifrato */}
+            <button
+              onClick={() => { setEncPass(''); setEncPass2(''); setEncPassErr(null); setEncModalOpen(true); }}
+              className="w-full flex items-center justify-between gap-3 p-3.5 rounded-xl border border-outline-variant bg-surface-container-low hover:border-primary/40 hover:bg-surface-container transition group text-left"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <ShieldCheck size={17} className="text-primary shrink-0 group-hover:scale-110 transition" />
+                <div className="min-w-0">
+                  <div className="font-bold text-on-surface text-sm">Backup cifrato con password</div>
+                  <div className="text-xs text-on-surface-variant font-normal">File .finpbackup cifrato (AES-GCM). Senza password i dati non sono recuperabili.</div>
+                </div>
+              </div>
+              <span className="ds-chip-blue shrink-0">Cifra</span>
+            </button>
+
             {/* Import Backup */}
             <input
               type="file"
               ref={fileInputRef}
               onChange={handleFileChange}
-              accept=".json"
+              accept=".json,.finpbackup"
               className="hidden"
             />
             <button
@@ -458,6 +534,106 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
             L'importazione <strong className="text-on-surface">sovrascriverà tutti i dati attuali</strong> (atleti,
             stagione, piano, tempi, registro). Esporta un backup se vuoi conservare i dati correnti.
           </p>
+        </div>
+      </Modal>
+
+      {/* Password per backup cifrato (export) */}
+      <Modal
+        open={encModalOpen}
+        onClose={() => setEncModalOpen(false)}
+        title="Backup cifrato"
+        size="sm"
+        footer={
+          <div className="flex gap-2">
+            <Button variant="secondary" className="flex-1" onClick={() => setEncModalOpen(false)}>
+              Annulla
+            </Button>
+            <Button variant="primary" className="flex-1" onClick={() => void handleDownloadCifrato()}>
+              Esporta cifrato
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-3 text-sm">
+          <p className="text-on-surface-variant">
+            Il file <code>.finpbackup</code> sarà cifrato con AES-GCM. <strong className="text-on-surface">Se dimentichi la password i dati non sono più recuperabili.</strong>
+          </p>
+          <label className="block">
+            <span className="text-xs font-bold text-on-surface-variant uppercase">Password</span>
+            <input
+              type="password"
+              autoComplete="new-password"
+              value={encPass}
+              onChange={e => setEncPass(e.target.value)}
+              className="mt-1 w-full h-11 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-on-surface"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs font-bold text-on-surface-variant uppercase">Conferma password</span>
+            <input
+              type="password"
+              autoComplete="new-password"
+              value={encPass2}
+              onChange={e => setEncPass2(e.target.value)}
+              className="mt-1 w-full h-11 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-on-surface"
+            />
+          </label>
+          {encPassErr && <p className="text-error text-xs font-semibold">{encPassErr}</p>}
+        </div>
+      </Modal>
+
+      {/* Password per backup cifrato (import) */}
+      <Modal
+        open={pendingCipher != null}
+        onClose={() => setPendingCipher(null)}
+        title="Backup cifrato"
+        size="sm"
+        footer={
+          <div className="flex gap-2">
+            <Button variant="secondary" className="flex-1" onClick={() => setPendingCipher(null)}>
+              Annulla
+            </Button>
+            <Button variant="primary" className="flex-1" onClick={() => void confermaDecifra()}>
+              Decifra e importa
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-3 text-sm">
+          <p className="text-on-surface-variant">
+            Inserisci la password del file <strong className="text-on-surface">{pendingCipher?.name}</strong>.
+          </p>
+          <label className="block">
+            <span className="text-xs font-bold text-on-surface-variant uppercase">Password</span>
+            <input
+              type="password"
+              autoComplete="off"
+              value={decPass}
+              onChange={e => setDecPass(e.target.value)}
+              className="mt-1 w-full h-11 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-on-surface"
+            />
+          </label>
+          {decPassErr && <p className="text-error text-xs font-semibold">{decPassErr}</p>}
+        </div>
+      </Modal>
+
+      {/* Errori di importazione */}
+      <Modal
+        open={importErrors != null}
+        onClose={() => setImportErrors(null)}
+        title="Import non riuscito"
+        size="sm"
+        footer={
+          <Button variant="secondary" className="w-full" onClick={() => setImportErrors(null)}>
+            Chiudi
+          </Button>
+        }
+      >
+        <div className="text-sm">
+          <p className="text-on-surface-variant mb-2">Il backup non è stato importato. Problemi trovati:</p>
+          <ul className="list-disc pl-5 space-y-1 text-on-surface max-h-48 overflow-y-auto">
+            {(importErrors ?? []).map((e, i) => <li key={i}>{e}</li>)}
+          </ul>
         </div>
       </Modal>
     </div>

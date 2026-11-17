@@ -26,6 +26,7 @@ import { risolviParametriSeduta, seduteSettimana } from '../domain/parametriSedu
 import { calcolaVolumeSessione, type SedutaSettimana } from '../domain/volumePrescritto';
 import { VolumeIndividuale } from '../domain/volumeIndividuale';
 import {
+  AlertTriangle,
   ArrowUpRight,
   Bot,
   Calendar,
@@ -266,6 +267,16 @@ const OggiContent: React.FC = () => {
   const statusLabel = chiusuraOggi ? 'Impianto Chiuso' : garaOggi ? 'Gara Ufficiale' : isGiornoAllenamento ? 'Allenamento Odierno' : 'Giorno di Riposo';
   const microLabel = microCorrente ? TIPO_MICROCICLO_LABEL[microCorrente.tipo] : 'Programmato';
 
+  // Promemoria backup: i dati sono solo locali (allowBackup=false), quindi
+  // disinstallare l'app li cancella. Avviso se mai esportato o oltre la soglia.
+  const backupReminder = useMemo(() => {
+    const raw = FINPStorage.getUltimoBackup();
+    const giorni = raw ? Math.floor((Date.now() - new Date(raw).getTime()) / 86400000) : null;
+    const configurata = Number(localStorage.getItem('finp_backup_reminder_days'));
+    const soglia = Number.isFinite(configurata) && configurata > 0 ? configurata : 14;
+    return { giorni, soglia, scaduto: giorni == null || giorni > soglia };
+  }, []);
+
   const noteTecniche = useMemo(
     () => condizioni
       .filter(c => c.attiva)
@@ -301,6 +312,23 @@ const OggiContent: React.FC = () => {
           <span className="font-label-caps tracking-wide">Sync FINP</span>
         </div>
       </div>
+
+      {/* Promemoria backup scaduto (dati solo locali) */}
+      {backupReminder.scaduto && (
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new Event('finp:open-backup'))}
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-warning/10 border border-warning/30 text-on-surface text-left active:bg-warning/20 transition-colors"
+        >
+          <AlertTriangle size={16} className="text-warning shrink-0" />
+          <span className="text-xs font-semibold flex-1">
+            {backupReminder.giorni == null
+              ? 'Nessun backup esportato: i dati sono solo su questo dispositivo.'
+              : `Backup vecchio di ${backupReminder.giorni} giorni: esportane uno per sicurezza.`}
+          </span>
+          <span className="text-xs font-bold text-primary shrink-0">Esporta →</span>
+        </button>
+      )}
 
       {/* Hero card: periodizzazione, metriche e azioni operative */}
       <section className="relative overflow-hidden rounded-xl bg-surface-container p-space-md">

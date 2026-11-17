@@ -4,8 +4,16 @@ import { App } from './App';
 import './index.css';
 import { FINPStorage } from './data/storage';
 import { caricaDatiStatici } from './data/staticData';
+import { runMigrations } from './data/migrations';
 
 async function avvia() {
+  /* Migrazioni dello schema di persistenza: idempotenti, mai bloccanti. */
+  try {
+    runMigrations(localStorage);
+  } catch {
+    /* storage non disponibile (es. modalità privata): l'app prosegue */
+  }
+
   /* Hook di sviluppo: permette agli strumenti di test end-to-end (script
      scripts/ui-shots.mjs) di preparare un ambiente deterministico - ad esempio
      caricare il dataset demo - senza toccare i dati reali dell'allenatore.

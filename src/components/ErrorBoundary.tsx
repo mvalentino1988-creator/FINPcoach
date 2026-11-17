@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, Download, RefreshCw } from 'lucide-react';
+import { FINPStorage } from '../data/storage';
 
 interface Props {
   children: ReactNode;
@@ -23,6 +24,24 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error("Errore non catturato in FINPcoach:", error, errorInfo);
   }
 
+  /** Scarica un backup JSON dei dati correnti prima di un eventuale reset. */
+  private esportaDatiEmergenza = () => {
+    try {
+      const json = FINPStorage.exportBackup();
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `FINPcoach_emergenza_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      /* se anche l'export fallisce non c'è molto da fare */
+    }
+  };
+
   public render() {
     if (this.state.hasError) {
       return (
@@ -44,6 +63,14 @@ export class ErrorBoundary extends Component<Props, State> {
               )}
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={this.esportaDatiEmergenza}
+                className="ds-btn-secondary flex-1"
+              >
+                <Download size={16} />
+                <span>Esporta dati di emergenza</span>
+              </button>
               <button
                 type="button"
                 onClick={() => {

@@ -67,6 +67,12 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
   };
 
   useEffect(() => {
+    const onOpenBackup = () => setBackupOpen(true);
+    window.addEventListener('finp:open-backup', onOpenBackup);
+    return () => window.removeEventListener('finp:open-backup', onOpenBackup);
+  }, []);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (!window.matchMedia('(min-width: 1024px)').matches) return;

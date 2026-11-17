@@ -18,6 +18,7 @@ import { AutoPianificatore } from '../domain/autoPianificatore';
 import { Festivita } from '../domain/festivita';
 import { todayISO } from '../domain/dateUtils';
 import { IA_CONFIG_DEFAULT, IAConfig } from '../domain/iaEsterna';
+import { BACKUP_VERSIONE, validaBackup } from './backupValidate';
 
 const MODE_KEY = 'finp_mode';
 
@@ -38,8 +39,27 @@ const STORAGE_KEYS = {
   CLASSI_STIMATE: 'finp_classi_stimate',
   CUSTOM_WORKOUTS: 'finpcoach_custom_workouts',
   IA_CONFIG: 'finp_ia_config',
-  VASCA_ASSEGNAZIONE: 'finp_vasca_assegnazione_v1'
+  VASCA_ASSEGNAZIONE: 'finp_vasca_assegnazione_v1',
+  ULTIMO_BACKUP: 'finp_ultimo_backup'
 };
+
+export const STORAGE_ERROR_EVENT = 'finp:storage-error';
+let ultimoErroreSalvataggio: string | null = null;
+
+/** Ultimo errore di scrittura LocalStorage (quota piena, modalità privata). */
+export function getUltimoErroreSalvataggio(): string | null {
+  return ultimoErroreSalvataggio;
+}
+
+function notificaErroreSalvataggio(key: string, e: unknown): void {
+  ultimoErroreSalvataggio = `Impossibile salvare ${key}: ${e instanceof Error ? e.message : String(e)}`;
+  try {
+    window.dispatchEvent(new CustomEvent(STORAGE_ERROR_EVENT, { detail: ultimoErroreSalvataggio }));
+  } catch {
+    /* window non disponibile (test node) */
+  }
+  console.error('Storage save error:', e);
+}
 
 function load<T>(key: string, defaultValue: T): T {
   try {
@@ -54,8 +74,19 @@ function load<T>(key: string, defaultValue: T): T {
 function save<T>(key: string, value: T): void {
   try {
     localStorage.setItem(key, JSON.stringify(value));
+    if (ultimoErroreSalvataggio) {
+      // Una scrittura riuscita dopo un errore: l'avviso può essere chiuso.
+      ultimoErroreSalvataggio = null;
+      try {
+        window.dispatchEvent(new Event(`${STORAGE_ERROR_EVENT}:cleared`));
+      } catch {
+        /* noop */
+      }
+    }
   } catch (e) {
-    console.error('Storage save error:', e);
+    // Non inghiottire: quota piena o storage non disponibile.
+    // L'errore è esposto via getUltimoErroreSalvataggio() e STORAGE_ERROR_EVENT.
+    notificaErroreSalvataggio(key, e);
   }
 }
 
@@ -268,9 +299,22 @@ export class FINPStorage {
     save('finp_theme_mode', mode);
   }
 
+  // ---------------- Backup: export / import validato e atomico ----------------
+
+  /** Marca l'istante dell'ultimo backup esportato (promemoria in UI). */
+  static segnaBackup(): void {
+    save(STORAGE_KEYS.ULTIMO_BACKUP, new Date().toISOString());
+  }
+
+  static getUltimoBackup(): string | null {
+    return load<string | null>(STORAGE_KEYS.ULTIMO_BACKUP, null);
+  }
+
   static exportBackup(): string {
+    // NOTA: iaConfig/apiKey NON è mai incluso nel backup (contiene segreti
+    // locali). I backup cifrati usano lo stesso formato.
     const data = {
-      version: '1.0',
+      version: BACKUP_VERSIONE,
       timestamp: new Date().toISOString(),
       atleti: this.getAtleti(),
       condizioni: this.getCondizioni(),
@@ -286,38 +330,79 @@ export class FINPStorage {
       impostazioni: this.getImpostazioni(),
       customWorkouts: this.getCustomWorkouts(),
       assegnazioneVasca: this.getAssegnazioneVasca(),
-      iaConfig: this.getIAConfig(),
       mode: this.getMode()
     };
     return JSON.stringify(data, null, 2);
   }
 
-  static importBackup(jsonString: string): boolean {
-    try {
-      const data = JSON.parse(jsonString);
-      if (data.atleti) save(STORAGE_KEYS.ATLETI, data.atleti);
-      if (data.condizioni) save(STORAGE_KEYS.CONDIZIONI, data.condizioni);
-      if (data.assenze) save(STORAGE_KEYS.ASSENZE, data.assenze);
-      if (data.tempi) save(STORAGE_KEYS.TEMPI, data.tempi);
-      if (data.logSedute) save(STORAGE_KEYS.LOG_SEDUTE, data.logSedute);
-      if (data.stagione) save(STORAGE_KEYS.STAGIONE, data.stagione);
-      if (data.chiusure) save(STORAGE_KEYS.CHIUSURE, data.chiusure);
-      if (data.gare) save(STORAGE_KEYS.GARE, data.gare);
-      if (data.macrocicli) save(STORAGE_KEYS.MACROCICLI, data.macrocicli);
-      if (data.mesocicli) save(STORAGE_KEYS.MESOCICLI, data.mesocicli);
-      if (data.microcicli) save(STORAGE_KEYS.MICROCICLI, data.microcicli);
-      if (data.impostazioni) save(STORAGE_KEYS.IMPOSTAZIONI, data.impostazioni);
-      if (data.customWorkouts) save(STORAGE_KEYS.CUSTOM_WORKOUTS, data.customWorkouts);
-      if (data.assegnazioneVasca !== undefined) {
-        save(STORAGE_KEYS.VASCA_ASSEGNAZIONE, normalizzaAssegnazione(data.assegnazioneVasca));
-      }
-      if (data.iaConfig) save(STORAGE_KEYS.IA_CONFIG, data.iaConfig);
-      if (data.mode === 'demo' || data.mode === 'live') this.setMode(data.mode);
-      return true;
-    } catch (e) {
-      console.error('Import error:', e);
-      return false;
+  /**
+   * Importazione atomica e validata:
+   *  1. parse + controllo versione (versioni future rifiutate);
+   *  2. validazione tipizzata di ogni sezione (errori bloccanti);
+   *  3. snapshot dei dati correnti, scrittura di tutto in memoria;
+   *  4. scrittura su storage solo se tutto valido, altrimenti ripristino.
+   * Ritorna { ok, errors, warnings }.
+   */
+  static importBackup(jsonString: string): { ok: boolean; errors: string[]; warnings: string[] } {
+    const risultato = validaBackup(jsonString);
+    if (!risultato.ok || !risultato.data) {
+      return { ok: false, errors: risultato.errors, warnings: risultato.warnings };
     }
+
+    // Snapshot di tutte le chiavi che l'importazione può toccare.
+    const chiavi = [
+      STORAGE_KEYS.ATLETI, STORAGE_KEYS.CONDIZIONI, STORAGE_KEYS.ASSENZE,
+      STORAGE_KEYS.TEMPI, STORAGE_KEYS.LOG_SEDUTE, STORAGE_KEYS.STAGIONE,
+      STORAGE_KEYS.CHIUSURE, STORAGE_KEYS.GARE, STORAGE_KEYS.MACROCICLI,
+      STORAGE_KEYS.MESOCICLI, STORAGE_KEYS.MICROCICLI, STORAGE_KEYS.IMPOSTAZIONI,
+      STORAGE_KEYS.CUSTOM_WORKOUTS, STORAGE_KEYS.VASCA_ASSEGNAZIONE, MODE_KEY,
+    ];
+    const snapshot = new Map<string, string | null>();
+    for (const k of chiavi) {
+      try { snapshot.set(k, localStorage.getItem(k)); } catch { snapshot.set(k, null); }
+    }
+
+    try {
+      this.applicaDatiBackup(risultato.data);
+      return { ok: true, errors: [], warnings: risultato.warnings };
+    } catch (e) {
+      // Ripristino: nessun dato parziale deve restare.
+      for (const [k, v] of snapshot) {
+        try {
+          if (v == null) localStorage.removeItem(k);
+          else localStorage.setItem(k, v);
+        } catch { /* storage non disponibile */ }
+      }
+      return {
+        ok: false,
+        errors: [`Scrittura fallita (ripristino eseguito): ${e instanceof Error ? e.message : String(e)}`],
+        warnings: risultato.warnings,
+      };
+    }
+  }
+
+  private static applicaDatiBackup(d: Record<string, unknown>): void {
+    const put = <T,>(key: string, v: T | undefined) => {
+      if (v !== undefined) save(key, v);
+    };
+    put(STORAGE_KEYS.ATLETI, d.atleti as Atleta[] | undefined);
+    put(STORAGE_KEYS.CONDIZIONI, d.condizioni as CondizioneMedica[] | undefined);
+    put(STORAGE_KEYS.ASSENZE, d.assenze as Assenza[] | undefined);
+    put(STORAGE_KEYS.TEMPI, d.tempi as Tempo[] | undefined);
+    put(STORAGE_KEYS.LOG_SEDUTE, d.logSedute as LogSeduta[] | undefined);
+    put(STORAGE_KEYS.STAGIONE, d.stagione as Stagione | null | undefined);
+    put(STORAGE_KEYS.CHIUSURE, d.chiusure as Chiusura[] | undefined);
+    put(STORAGE_KEYS.GARE, d.gare as Gara[] | undefined);
+    put(STORAGE_KEYS.MACROCICLI, d.macrocicli as Macrociclo[] | undefined);
+    put(STORAGE_KEYS.MESOCICLI, d.mesocicli as Mesociclo[] | undefined);
+    put(STORAGE_KEYS.MICROCICLI, d.microcicli as Microciclo[] | undefined);
+    put(STORAGE_KEYS.IMPOSTAZIONI, d.impostazioni as ImpostazioniPiano | undefined);
+    put(STORAGE_KEYS.CUSTOM_WORKOUTS, d.customWorkouts as CustomWorkout[] | undefined);
+    if (d.assegnazioneVasca !== undefined) {
+      save(STORAGE_KEYS.VASCA_ASSEGNAZIONE, normalizzaAssegnazione(d.assegnazioneVasca));
+    }
+    // iaConfig NON viene mai importato: contiene segreti locali.
+    if (d.mode === 'demo' || d.mode === 'live') this.setMode(d.mode);
   }
 
   static resetToDefault(): void {
