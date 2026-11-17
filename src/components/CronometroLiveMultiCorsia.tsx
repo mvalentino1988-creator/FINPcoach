@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../data/AppContext';
 import { todayISO } from '../domain/dateUtils';
 import { requestKeepScreenOn, releaseKeepScreenOn } from '../lib/wakeLock';
-import { CheckCircle2, Flag, Pause, Play, RotateCcw, Save, Plus, Maximize2, Minimize2, Clock, X, Settings2 } from 'lucide-react';
+import { CheckCircle2, Flag, Pause, Play, RotateCcw, Save, Plus, Maximize2, Minimize2, Clock, X } from 'lucide-react';
 import { Modal } from './ui/Modal';
 
 interface Split {
@@ -219,7 +219,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     setIsRunning(true);
     setIsFullscreen(true);
     localStorage.setItem('finp_stopwatch_running', 'true');
-    navigator.vibrate?.(80);
+    try { navigator.vibrate?.(80); } catch {}
   };
 
   const resetMaster = () => {
@@ -323,7 +323,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
         };
       })
     );
-    navigator.vibrate?.(50);
+    try { navigator.vibrate?.(50); } catch {}
   };
 
   const addLane = () => {
@@ -380,9 +380,9 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
   const content = (
     <div className="flex flex-col h-full w-full gap-1 overflow-hidden select-none bg-surface">
       {/* ============================================================
-          CRONOMETRO GENERALE IN ALTO (Layout a due righe pulito)
+          CRONOMETRO GENERALE IN ALTO (Layout a due righe spazioso)
           ============================================================ */}
-      <section className="shrink-0 rounded-lg bg-surface-container-low text-on-surface px-2.5 py-2 shadow-xs border border-outline-variant/30 flex flex-col gap-2">
+      <section className="shrink-0 rounded-xl bg-surface-container-low text-on-surface px-3 py-2 shadow-xs border border-outline-variant/30 flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <span className={`w-2.5 h-2.5 rounded-full inline-block shrink-0 ${isRunning ? 'bg-tertiary animate-ping' : 'bg-on-surface-variant/40'}`} />
@@ -422,7 +422,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
             <button
               type="button"
               onClick={toggleMaster}
-              className="flex-1 min-h-[48px] rounded-xl bg-primary text-on-primary font-headline-sm text-base font-bold flex items-center justify-center gap-2 active:scale-95 transition shadow-sm whitespace-nowrap"
+              className="flex-1 min-h-[50px] rounded-xl bg-primary text-on-primary font-headline-sm text-base font-bold flex items-center justify-center gap-2 active:scale-95 transition shadow-sm whitespace-nowrap"
               aria-label="Avvia cronometro generale"
             >
               <Play size={22} />
@@ -433,7 +433,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
               <button
                 type="button"
                 onClick={handleGeneralLap}
-                className="flex-1 min-h-[48px] rounded-xl bg-secondary text-on-secondary font-headline-sm text-sm font-bold flex items-center justify-center gap-2 active:scale-95 transition shadow-sm whitespace-nowrap"
+                className="flex-1 min-h-[50px] rounded-xl bg-secondary text-on-secondary font-headline-sm text-sm font-bold flex items-center justify-center gap-2 active:scale-95 transition shadow-sm whitespace-nowrap"
                 aria-label="Lap generale"
               >
                 <Flag size={20} />
@@ -442,7 +442,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
               <button
                 type="button"
                 onClick={toggleMaster}
-                className="flex-1 min-h-[48px] rounded-xl bg-surface-container-high text-on-surface font-headline-sm text-sm font-bold flex items-center justify-center gap-2 active:scale-95 transition whitespace-nowrap border border-outline-variant/60 shadow-sm"
+                className="flex-1 min-h-[50px] rounded-xl bg-surface-container-high text-on-surface font-headline-sm text-sm font-bold flex items-center justify-center gap-2 active:scale-95 transition whitespace-nowrap border border-outline-variant/60 shadow-sm"
                 aria-label="Pausa cronometro"
               >
                 <Pause size={20} />
@@ -457,9 +457,9 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
           RIPARTENZA COMUNE & GESTIONE
           ============================================================ */}
       {!isRunning && (
-        <section className="shrink-0 flex items-center justify-between gap-2 bg-surface-container-lowest px-2 py-0.5 rounded-lg border border-outline-variant/30 text-xs animate-fade-in">
-          <div className="flex items-center gap-1 min-w-0">
-            <span className="font-label-caps text-[9px] uppercase font-bold text-on-surface-variant whitespace-nowrap">
+        <section className="shrink-0 flex items-center justify-between gap-2 bg-surface-container-lowest px-2.5 py-1 rounded-lg border border-outline-variant/30 text-xs animate-fade-in">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="font-label-caps text-[10px] uppercase font-bold text-on-surface-variant whitespace-nowrap">
               Rip. Comune:
             </span>
             <button
@@ -474,9 +474,9 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                   },
                 })
               }
-              className="h-6 px-2 bg-surface-container border border-outline-variant/50 rounded text-[11px] font-bold text-primary flex items-center gap-1 whitespace-nowrap"
+              className="h-8 px-3 bg-surface-container border border-outline-variant/50 rounded-lg text-xs font-bold text-primary flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition"
             >
-              <Clock size={11} />
+              <Clock size={13} />
               <span>{formatRipartenza(globalRipartenzaSecondi)}</span>
             </button>
           </div>
@@ -488,7 +488,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                 value={selectedAthleteId}
                 onChange={e => setSelectedAthleteId(e.target.value ? Number(e.target.value) : '')}
                 disabled={availableAthletes.length === 0}
-                className="max-w-[8rem] h-6 px-1 rounded bg-surface-container border border-outline-variant text-[10px] font-semibold text-on-surface truncate disabled:opacity-65 whitespace-nowrap"
+                className="max-w-[8rem] h-8 px-1.5 rounded-lg bg-surface-container border border-outline-variant text-[11px] font-semibold text-on-surface truncate disabled:opacity-65 whitespace-nowrap"
               >
                 {availableAthletes.length === 0 ? (
                   <option value="">Tutti in vasca</option>
@@ -505,18 +505,18 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                   type="button"
                   onClick={() => addAthleteToLane(displayLanes[0].id)}
                   disabled={availableAthletes.length === 0}
-                  className="h-6 px-1.5 rounded bg-primary text-on-primary font-label-caps text-[9px] font-bold uppercase flex items-center gap-0.5 active:scale-95 transition disabled:opacity-45 whitespace-nowrap"
+                  className="h-8 px-2 rounded-lg bg-primary text-on-primary font-label-caps text-[10px] font-bold uppercase flex items-center gap-0.5 active:scale-95 transition disabled:opacity-45 whitespace-nowrap"
                 >
-                  <Plus size={11} /> Atleta
+                  <Plus size={12} /> Atleta
                 </button>
               )}
               {lanes.length < MAX_LANES && (
                 <button
                   type="button"
                   onClick={addLane}
-                  className="h-6 px-1.5 rounded bg-surface-container-high text-on-surface font-label-caps text-[9px] font-bold uppercase flex items-center gap-0.5 active:scale-95 transition whitespace-nowrap"
+                  className="h-8 px-2 rounded-lg bg-surface-container-high text-on-surface font-label-caps text-[10px] font-bold uppercase flex items-center gap-0.5 active:scale-95 transition whitespace-nowrap"
                 >
-                  <Plus size={11} /> Corsia
+                  <Plus size={12} /> Corsia
                 </button>
               )}
             </div>
@@ -525,35 +525,35 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
       )}
 
       {salvatoFeedback && (
-        <div role="status" className="shrink-0 flex items-center justify-center gap-1.5 rounded-lg bg-success-container text-on-success-container px-2.5 py-0.5 text-xs font-bold whitespace-nowrap">
-          <CheckCircle2 size={13} /> {salvatoFeedback}
+        <div role="status" className="shrink-0 flex items-center justify-center gap-1.5 rounded-lg bg-success-container text-on-success-container px-2.5 py-1 text-xs font-bold whitespace-nowrap">
+          <CheckCircle2 size={14} /> {salvatoFeedback}
         </div>
       )}
 
       {/* ============================================================
-          MATRICE CORSIE E CASELLE ATLETI (Griglia a 4 colonne per corsia: zero troncamenti, cognomi interi leggibili)
+          MATRICE CORSIE E CASELLE ATLETI (Griglia a 4 colonne per cognomi estesi ben leggibili e mai troncati)
           ============================================================ */}
-      <div className="flex-1 min-h-0 flex flex-col gap-0.5 overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col gap-1 overflow-hidden">
         {displayLanes.map(lane => {
           const athleteCount = lane.athletes.length;
           return (
             <div
               key={lane.id}
-              className="flex-1 min-h-0 flex flex-col rounded-lg bg-surface-container-lowest border border-outline-variant/40 p-0.5 shadow-xs"
+              className="flex-1 min-h-0 flex flex-col rounded-lg bg-surface-container-lowest border border-outline-variant/40 p-1 shadow-xs"
             >
               {/* Intestazione corsia + ripartenza corsia */}
               <div className="shrink-0 flex items-center justify-between pb-0.5 px-1 border-b border-surface-container-highest/50">
-                <div className="flex items-center gap-1 min-w-0">
-                  <span className="w-4 h-4 rounded bg-primary text-on-primary font-headline-sm text-[10px] font-bold flex items-center justify-center shrink-0">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="w-5 h-5 rounded bg-primary text-on-primary font-headline-sm text-[11px] font-bold flex items-center justify-center shrink-0">
                     {lane.laneNumber}
                   </span>
-                  <span className="font-headline-sm text-[10px] font-bold text-on-surface uppercase whitespace-nowrap truncate">
-                    C{lane.laneNumber} ({athleteCount})
+                  <span className="font-headline-sm text-[11px] font-bold text-on-surface uppercase whitespace-nowrap truncate">
+                    Corsia {lane.laneNumber} ({athleteCount})
                   </span>
                 </div>
                 {!isRunning && (
                   <div className="flex items-center gap-1 shrink-0">
-                    <span className="font-label-caps text-[8px] uppercase text-on-surface-variant whitespace-nowrap">Rip:</span>
+                    <span className="font-label-caps text-[9px] uppercase text-on-surface-variant whitespace-nowrap">Rip:</span>
                     <button
                       type="button"
                       disabled={sessionStarted}
@@ -566,16 +566,16 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                           },
                         })
                       }
-                      className="h-5 px-1.5 bg-surface-container border border-outline-variant/50 rounded text-[9px] font-bold text-primary flex items-center gap-0.5 whitespace-nowrap disabled:opacity-65"
+                      className="h-6 px-2 bg-surface-container border border-outline-variant/50 rounded text-[10px] font-bold text-primary flex items-center gap-1 whitespace-nowrap disabled:opacity-65 active:scale-95 transition"
                     >
-                      <Clock size={10} />
+                      <Clock size={11} />
                       <span>{formatRipartenza(lane.ripartenzaSecondi)}</span>
                     </button>
                     {!sessionStarted && availableAthletes.length > 0 && athleteCount < MAX_ATHLETES_PER_LANE && (
                       <button
                         type="button"
                         onClick={() => addAthleteToLane(lane.id)}
-                        className="h-4 px-1 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-[9px] font-bold whitespace-nowrap"
+                        className="h-5 px-1.5 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-[10px] font-bold whitespace-nowrap"
                       >
                         +
                       </button>
@@ -584,7 +584,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                 )}
               </div>
 
-              {/* Caselle atleti (griglia a 4 colonne per dare ampio respiro a cognomi lunghi come Esposito, Marchetti, Ruggiero senza troncamenti) */}
+              {/* Caselle atleti (griglia a 4 colonne per garantire ampiezza sufficiente ai cognomi lunghi) */}
               <div
                 className="flex-1 min-h-0 grid grid-cols-4 gap-1 pt-0.5 overflow-hidden"
               >
@@ -617,9 +617,9 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
                         }`}
                         title={isRunning ? "Clicca per fermare / lap" : "Clicca per dettagli e ripartenza"}
                       >
-                        {/* Cognome centrato e non troncato (griglia a 4 colonne dà spazio sufficiente) */}
+                        {/* Cognome centrato e integro (ampiezza a 4 colonne) */}
                         <span
-                          className={`font-headline-sm text-[11px] font-bold text-center leading-none whitespace-nowrap overflow-hidden text-ellipsis max-w-full px-0.5 transition-opacity ${
+                          className={`font-headline-sm text-xs font-bold text-center leading-none whitespace-nowrap overflow-hidden text-ellipsis max-w-full px-0.5 transition-opacity ${
                             isTimeActive ? 'opacity-40 text-on-surface' : 'opacity-100 text-on-surface'
                           }`}
                         >
@@ -628,17 +628,17 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
 
                         {isTimeActive ? (
                           <div className="flex flex-col items-center justify-center mt-1 leading-none w-full">
-                            <span className="font-stat-timer-mobile text-sm font-bold tabular-nums text-primary whitespace-nowrap">
+                            <span className="font-stat-timer-mobile text-xs sm:text-sm font-bold tabular-nums text-primary whitespace-nowrap">
                               {athleteTimer}
                             </span>
                             {recentSplits.map(s => (
-                              <span key={s.lap} className="font-label-caps text-[9px] text-on-surface-variant whitespace-nowrap mt-0.5">
+                              <span key={s.lap} className="font-label-caps text-[8px] text-on-surface-variant whitespace-nowrap mt-0.5">
                                 L{s.lap}: {s.time}
                               </span>
                             ))}
                           </div>
                         ) : (
-                          <span className="font-label-caps text-[10px] text-on-surface-variant mt-1 whitespace-nowrap">
+                          <span className="font-label-caps text-[9px] text-on-surface-variant mt-1 whitespace-nowrap">
                             {formatRipartenza(athlete.ripartenzaCustomSec ?? lane.ripartenzaSecondi)}
                           </span>
                         )}
