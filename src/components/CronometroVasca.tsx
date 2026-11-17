@@ -35,6 +35,18 @@ import { applyOrientation, releaseOrientation } from '../lib/orientation';
 import { requestKeepScreenOn, releaseKeepScreenOn } from '../lib/wakeLock';
 import { beep, vibrate } from '../lib/beep';
 import { todayISO } from '../domain/dateUtils';
+import { Atleta } from '../types';
+import {
+  AssegnazioneVasca,
+  RIPARTENZA_GENERALE_DEFAULT,
+  assegnaAtleta,
+  atletiAssegnati,
+  impostaIntervalloCorsia,
+  impostaRipartenzaAtleta,
+  impostaRipartenzaCorsia,
+  impostaRipartenzaGenerale,
+  rimuoviDaCorsia,
+} from '../domain/assegnazioneVasca';
 import {
   Flag,
   OctagonX,
@@ -47,6 +59,7 @@ import {
   Copy,
   Timer,
   ChevronDown,
+  RefreshCw,
   Trash2,
 } from 'lucide-react';
 
@@ -81,6 +94,37 @@ function persistSession(s: VascaSession): void {
 }
 
 const cloneSession = (s: VascaSession): VascaSession => JSON.parse(JSON.stringify(s)) as VascaSession;
+
+/** Costruisce le corsie della sessione partendo dall'AssegnazioneVasca (Regia).
+ *  Solo in stato 'pronta': in corsa la composizione e' congelata. */
+function buildLanesDaAssegnazione(
+  a: AssegnazioneVasca | null,
+  atleti: Atleta[],
+  prevAthletes: Map<number, { id: string; targetLaps: number | null }>
+): { ripGenerale: number; lanes: VascaLane[] } {
+  if (!a) return { ripGenerale: RIPARTENZA_GENERALE_DEFAULT, lanes: [] };
+  const perId = new Map(atleti.map(x => [x.id, x]));
+  const lanes = a.corsie.map(c => {
+    const lane = createLane(c.numero);
+    lane.ripartenzaCorsia = c.ripartenzaCorsia;
+    lane.intervalloPartenza = c.intervalloPartenza;
+    lane.atleti = c.atletiIds
+      .map(id => perId.get(id))
+      .filter((x): x is Atleta => !!x)
+      .map(x => {
+        const created = createAthlete(x.id, x.cognome || x.nome);
+        const prev = prevAthletes.get(x.id);
+        if (prev) {
+          created.id = prev.id;
+          created.targetLaps = prev.targetLaps;
+        }
+        created.ripartenzaAtleta = a.ripartenzeAtleta[x.id] ?? null;
+        return created;
+      });
+    return lane;
+  });
+  return { ripGenerale: a.ripartenzaGenerale, lanes };
+}
 
 // ---------------------------------------------------------------------------
 // Audio/eventi
@@ -124,9 +168,8 @@ const STATUS_META: Record<AthleteStatus, { label: string; symbol: string; cls: s
 };
 
 export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true }) => {
-  const { atleti, stagione, aggiungiTempo } = useApp();
+  const { atleti, stagione, aggiungiTempo, assegnazioneVasca, salvaAssegnazioneVasca, parametriOggi, impostaOverrideSeduta } = useApp();
   // 'attivo' governa il possesso dell'orientamento (vedi effetto orientamento).
-  void attivo;
   const vascaMetri: 25 | 50 = stagione?.vascaMetri === 25 ? 25 : 50;
 
   const [session, setSession] = useState<VascaSession>(() => loadSession() ?? createSession());
@@ -244,6 +287,62 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
     const t = window.setTimeout(() => setUndoPulse(0), 5000);
     return () => window.clearTimeout(t);
   }, [undoPulse]);
+
+  // -------------------------------------------------------------------------
+  // Assegnazione Vasca (Regia): in stato 'pronta' la composizione delle corsie
+  // segue l'assegnazione persistita; in corsa e' congelata nella sessione.
+  // -------------------------------------------------------------------------
+
+  const oggi = todayISO();
+  const assegnazioneCorrente = assegnazioneVasca && assegnazioneVasca.data === oggi ? assegnazioneVasca : null;
+  const [syncNonce, setSyncNonce] = useState(0);
+  const lastSyncSigRef = useRef('');
+
+  const presentiIds = useMemo(() => {
+    const tutti = atleti.map(x => x.id);
+    const validi = new Set(tutti);
+    const base = parametriOggi.atletiPresentiIds ?? tutti;
+    return base.filter(id => validi.has(id));
+  }, [parametriOggi.atletiPresentiIds, atleti]);
+  const presentiSet = useMemo(() => new Set(presentiIds), [presentiIds]);
+
+  const updateAssegnazione = useCallback(
+    (fn: (a: AssegnazioneVasca) => AssegnazioneVasca | null) => {
+      const cur = assegnazioneCorrente;
+      if (!cur) return;
+      const next = fn(cur);
+      if (next && next !== cur) salvaAssegnazioneVasca(next);
+    },
+    [assegnazioneCorrente, salvaAssegnazioneVasca],
+  );
+
+  // Sincronizza le corsie della sessione con la Regia (solo in 'pronta').
+  useEffect(() => {
+    const s = sessionRef.current;
+    if (s.stato !== 'pronta') {
+      lastSyncSigRef.current = '';
+      return;
+    }
+    const prevAthletes = new Map<number, { id: string; targetLaps: number | null }>();
+    for (const l of s.lanes) {
+      for (const at of l.atleti) {
+        if (at.atletaId != null) prevAthletes.set(at.atletaId, { id: at.id, targetLaps: at.targetLaps });
+      }
+    }
+    const built = buildLanesDaAssegnazione(assegnazioneCorrente, atleti, prevAthletes);
+    const sig = JSON.stringify({
+      g: built.ripGenerale,
+      l: built.lanes.map(l => [l.numero, l.ripartenzaCorsia, l.intervalloPartenza, l.atleti.map(x => x.atletaId)]),
+    });
+    if (sig === lastSyncSigRef.current) return;
+    lastSyncSigRef.current = sig;
+    const next = cloneSession(s);
+    next.ripartenzaGenerale = built.ripGenerale;
+    next.lanes = built.lanes;
+    sessionRef.current = next;
+    setSession(next);
+    persist(next);
+  }, [assegnazioneCorrente, atleti, syncNonce, persist]);
 
   // -------------------------------------------------------------------------
   // Scheduler: refresh sessione (auto-start, fine recuperi) + transizioni stato
@@ -367,7 +466,12 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
 
   useEffect(() => {
     desktopRef.current = window.matchMedia('(min-width: 1024px)').matches;
-    if (desktopRef.current) return;
+    // Con la Regia aperta (o il cronometro nascosto) l'orientamento torna al
+    // sistema; alla riattivazione si rivaluta e si riapplica.
+    if (!attivo || desktopRef.current) {
+      if (!attivo) releaseOrientation();
+      return;
+    }
 
     const evaluate = () => {
       const s = sessionRef.current;
@@ -428,7 +532,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       window.removeEventListener('orientationchange', onResize);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lanesSignature, session.stato]);
+  }, [lanesSignature, session.stato, attivo]);
 
   // -------------------------------------------------------------------------
   // Azioni
@@ -607,11 +711,22 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
 
   const assignedIds = useMemo(() => {
     const set = new Set<number>();
-    for (const l of session.lanes) for (const a of l.atleti) if (a.atletaId != null) set.add(a.atletaId);
+    if (session.stato === 'pronta' && assegnazioneCorrente) {
+      for (const id of atletiAssegnati(assegnazioneCorrente)) set.add(id);
+    } else {
+      for (const l of session.lanes) for (const a of l.atleti) if (a.atletaId != null) set.add(a.atletaId);
+    }
+    // Gli atleti non presenti non sono assegnabili dal picker.
+    for (const a of atleti) if (!presentiSet.has(a.id)) set.add(a.id);
     return set;
-  }, [session.lanes]);
+  }, [session.lanes, session.stato, assegnazioneCorrente, atleti, presentiSet]);
 
   const addLane = useCallback(() => {
+    if (sessionRef.current.stato === 'pronta') {
+      const n = Math.min(8, (assegnazioneCorrente?.numeroCorsie ?? 4) + 1);
+      impostaOverrideSeduta(oggi, { ...parametriOggi, numeroCorsie: n });
+      return;
+    }
     mutate(s => {
       if (s.lanes.length >= MAX_LANES) return;
       const used = new Set(s.lanes.map(l => l.numero));
@@ -619,40 +734,60 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       while (used.has(n)) n++;
       s.lanes.push(createLane(n));
     });
-  }, [mutate]);
+  }, [mutate, assegnazioneCorrente, parametriOggi, impostaOverrideSeduta, oggi]);
 
   const removeLane = useCallback(
     (lane: VascaLane) => {
+      if (sessionRef.current.stato === 'pronta') {
+        // Si puo' rimuovere solo l'ultima corsia (le corsie sono 1..N continue);
+        // per le altre si usa la Regia.
+        const n = assegnazioneCorrente?.numeroCorsie ?? 0;
+        if (lane.numero === n && n > 1) {
+          impostaOverrideSeduta(oggi, { ...parametriOggi, numeroCorsie: n - 1 });
+        }
+        return;
+      }
       mutate(s => {
         s.lanes = s.lanes.filter(l => l.numero !== lane.numero);
       });
     },
-    [mutate],
+    [mutate, assegnazioneCorrente, parametriOggi, impostaOverrideSeduta, oggi],
   );
 
   const addAthleteToLane = useCallback(
     (laneNumero: number, atleta: { id: number; nome: string; cognome: string }) => {
-      mutate(s => {
-        const lane = s.lanes.find(l => l.numero === laneNumero);
-        if (!lane || lane.atleti.length >= MAX_ATHLETES_PER_LANE) return;
-        lane.atleti.push(createAthlete(atleta.id, atleta.cognome || atleta.nome));
-      });
+      if (sessionRef.current.stato === 'pronta') {
+        updateAssegnazione(a => assegnaAtleta(a, atleta.id, laneNumero));
+      } else {
+        mutate(s => {
+          const lane = s.lanes.find(l => l.numero === laneNumero);
+          if (!lane || lane.atleti.length >= MAX_ATHLETES_PER_LANE) return;
+          lane.atleti.push(createAthlete(atleta.id, atleta.cognome || atleta.nome));
+        });
+      }
       setSheet(null);
     },
-    [mutate],
+    [mutate, updateAssegnazione],
   );
 
   const removeAthlete = useCallback(
     (laneNumero: number, athleteId: string) => {
-      mutate(s => {
-        const lane = s.lanes.find(l => l.numero === laneNumero);
-        if (!lane) return;
-        lane.atleti = lane.atleti.filter(a => a.id !== athleteId);
-        if (lane.pendingAuto?.athleteId === athleteId) lane.pendingAuto = null;
-      });
+      if (sessionRef.current.stato === 'pronta') {
+        const at = sessionRef.current.lanes
+          .find(l => l.numero === laneNumero)
+          ?.atleti.find(x => x.id === athleteId);
+        if (at?.atletaId != null) updateAssegnazione(a => rimuoviDaCorsia(a, at.atletaId as number));
+      } else {
+        mutate(s => {
+          const lane = s.lanes.find(l => l.numero === laneNumero);
+          if (!lane) return;
+          lane.atleti = lane.atleti.filter(a => a.id !== athleteId);
+          if (lane.pendingAuto?.athleteId === athleteId) lane.pendingAuto = null;
+        });
+      }
       setSheet(null);
     },
-    [mutate],
+    [mutate, updateAssegnazione],
   );
 
   // -------------------------------------------------------------------------
@@ -836,6 +971,19 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
         </button>
 
         <div className="flex-1" />
+
+        {/* Ricarica composizione dalla Regia (solo in setup) */}
+        {inPronta && (
+          <button
+            type="button"
+            onClick={() => setSyncNonce(n => n + 1)}
+            aria-label="Ricarica composizione dalla Regia"
+            title="Ricarica composizione dalla Regia"
+            className="h-11 w-11 rounded-xl bg-surface-container-high text-on-surface-variant flex items-center justify-center active:scale-95 transition"
+          >
+            <RefreshCw size={16} />
+          </button>
+        )}
 
         {/* Fine sessione */}
         <button
@@ -1113,27 +1261,40 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
           onAddAthlete={addAthleteToLane}
           onRemoveAthlete={removeAthlete}
           onSetLaneRip={(lane, v) =>
-            withOverrideCheck('lane', lane, cur => {
-              const l = cur.lanes.find(x => x.numero === lane.numero);
-              if (l) l.ripartenzaCorsia = v;
-            })
+            inPronta
+              ? updateAssegnazione(a => impostaRipartenzaCorsia(a, lane.numero, v))
+              : withOverrideCheck('lane', lane, cur => {
+                  const l = cur.lanes.find(x => x.numero === lane.numero);
+                  if (l) l.ripartenzaCorsia = v;
+                })
           }
           onSetLaneIntervallo={(lane, v) =>
-            mutate(cur => {
-              const l = cur.lanes.find(x => x.numero === lane.numero);
-              if (l) l.intervalloPartenza = v;
-            })
+            inPronta
+              ? updateAssegnazione(a => impostaIntervalloCorsia(a, lane.numero, v))
+              : mutate(cur => {
+                  const l = cur.lanes.find(x => x.numero === lane.numero);
+                  if (l) l.intervalloPartenza = v;
+                })
           }
           onSetGlobalRip={(v) =>
-            withOverrideCheck('global', undefined, cur => { cur.ripartenzaGenerale = v; })
+            inPronta
+              ? updateAssegnazione(a => impostaRipartenzaGenerale(a, v))
+              : withOverrideCheck('global', undefined, cur => { cur.ripartenzaGenerale = v; })
           }
-          onSetAthleteRip={(laneNumero, athleteId, v) =>
+          onSetAthleteRip={(laneNumero, athleteId, v) => {
+            if (inPronta) {
+              const at = sessionRef.current.lanes
+                .find(l => l.numero === laneNumero)
+                ?.atleti.find(x => x.id === athleteId);
+              if (at?.atletaId != null) updateAssegnazione(a => impostaRipartenzaAtleta(a, at.atletaId as number, v));
+              return;
+            }
             mutate(cur => {
               const l = cur.lanes.find(x => x.numero === laneNumero);
               const a = l?.atleti.find(x => x.id === athleteId);
               if (a) a.ripartenzaAtleta = v;
-            })
-          }
+            });
+          }}
           onSetTargetLaps={(laneNumero, athleteId, v) =>
             mutate(cur => {
               const l = cur.lanes.find(x => x.numero === laneNumero);
