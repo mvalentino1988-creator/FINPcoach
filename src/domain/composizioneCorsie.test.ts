@@ -79,4 +79,18 @@ describe('composizioneCorsie', () => {
     const popolate = corsie.filter(c => c.length > 0);
     expect(popolate).toHaveLength(2);
   });
+
+  it('bilancia 3 corsie e 2 corsie con tutti i presenti', () => {
+    const atleti = Array.from({ length: 9 }, (_, i) => atleta(i + 1));
+    const tre = suggerisciComposizioneCorsie(atleti, [], 3, atleti.map(a => a.id));
+    expect(tre).toHaveLength(3);
+    expect(tre.flat().sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    // 9 atleti su 3 corsie -> 3 per corsia.
+    expect(tre.every(c => c.length === 3)).toBe(true);
+
+    const due = suggerisciComposizioneCorsie(atleti.slice(0, 4), [], 2);
+    expect(due).toHaveLength(2);
+    expect(due.flat().sort((a, b) => a - b)).toEqual([1, 2, 3, 4]);
+    expect(Math.max(...due.map(c => c.length)) - Math.min(...due.map(c => c.length))).toBeLessThanOrEqual(1);
+  });
 });

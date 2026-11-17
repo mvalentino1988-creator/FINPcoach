@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { VascaSession } from '../domain/cronometroVasca';
+import { VascaSession, migrateSession } from '../domain/cronometroVasca';
 
 export const VASCA_SESSION_KEY = 'finp_vasca_session_v1';
 export const VASCA_SESSION_EVENT = 'finp:vasca-session';
@@ -11,7 +11,7 @@ export function leggiSessioneVasca(): VascaSession | null {
     if (!raw) return null;
     const s = JSON.parse(raw) as VascaSession;
     if (!s || !Array.isArray(s.lanes) || typeof s.stato !== 'string') return null;
-    return s;
+    return migrateSession(s);
   } catch {
     return null;
   }
