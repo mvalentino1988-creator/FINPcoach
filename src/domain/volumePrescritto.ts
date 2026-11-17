@@ -26,7 +26,7 @@ import {
 } from '../types';
 import { addDays, previousOrSameMonday, todayISO } from './dateUtils';
 import { CalibrazioneAtleta } from './calibrazioneAtleta';
-import { CalcoloScienzaNuoto } from './calcoloCSS';
+import { CalcoloScienzaNuoto, livelloACWR } from './calcoloCSS';
 import { normalizzaDurata, normalizzaVasca } from './parametriSeduta';
 import { VolumeIndividuale } from './volumeIndividuale';
 
@@ -199,10 +199,11 @@ export function calcolaVolumeSessione(input: VolumeSessioneInput): VolumeSession
   const carichi = carichiSettimanali(input.logSedute || [], input.atleta?.id ?? null);
   if (carichi.some((c) => c > 0)) {
     const acwr = CalcoloScienzaNuoto.calcolaACWR(metriSettimana, carichi);
-    if (acwr.acwrRapporto > 1.45) {
+    const livelloAcwr = livelloACWR(acwr.acwrRapporto);
+    if (livelloAcwr === 'elevato') {
       fattoreCarico = 0.85;
       if (acwr.avvisoInfortunio) avvertenze.push(acwr.avvisoInfortunio);
-    } else if (acwr.acwrRapporto > 1.25) {
+    } else if (livelloAcwr === 'attenzione') {
       fattoreCarico = 0.93;
       if (acwr.avvisoInfortunio) note.push(acwr.avvisoInfortunio);
     }

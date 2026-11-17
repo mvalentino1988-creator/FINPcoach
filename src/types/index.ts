@@ -306,11 +306,14 @@ export interface RisultatoCSS {
   spiegazioneMetodologica: string;
 }
 
+/** Livelli ACWR (soglie unificate: vedi ACWR_SOTTO_CARICO / ACWR_ATTENZIONE in calcoloCSS). */
+export type LivelloACWR = 'sotto-allenamento' | 'ottimale' | 'attenzione' | 'elevato';
+
 export interface RisultatoACWR {
   caricoAcuto: number;
   caricoCronicoMedio: number;
   acwrRapporto: number;
-  livelloRischio: string;
+  livelloRischio: LivelloACWR;
   avvisoInfortunio: string | null;
   avvisoSpalla?: string | null; // Alert specifico per sovraccarico scapolo-omerale
 }

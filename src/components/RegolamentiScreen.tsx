@@ -15,7 +15,8 @@ import {
   X,
   Scale,
   BadgeCheck,
-  SearchX
+  SearchX,
+  AlertTriangle
 } from 'lucide-react';
 import { EmptyState } from './ui';
 
@@ -215,6 +216,14 @@ export const RegolamentiScreen: React.FC = () => {
             Cerca una parola oppure scegli una fonte e apri il capitolo · snapshot {meta.aggiornato}
           </p>
         </div>
+      </div>
+
+      <div className="rounded-xl bg-tertiary-fixed border border-tertiary-fixed-dim p-3 text-xs text-on-tertiary-fixed leading-relaxed flex items-start gap-2">
+        <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+        <span>
+          Testi snapshot aggiornati al {meta.aggiornato}: potrebbero non essere aggiornati.
+          In caso di gara o contestazione fa sempre fede il regolamento ufficiale aggiornato.
+        </span>
       </div>
 
       {/* Search (campo ben visibile, 48px) */}

@@ -7,7 +7,7 @@ import { VolumeIndividuale } from '../domain/volumeIndividuale';
 import { generaCodiciSeduta } from '../domain/generatoreCodiciSeduta';
 import { calcolaVolumeSessione } from '../domain/volumePrescritto';
 import { risolviParametriSeduta, seduteSettimana } from '../domain/parametriSeduta';
-import { CalcoloScienzaNuoto } from '../domain/calcoloCSS';
+import { ACWR_DISCLAIMER, CalcoloScienzaNuoto } from '../domain/calcoloCSS';
 import { Riepilogo } from '../domain/riepilogo';
 import { CodiciSeduta } from './CodiciSeduta';
 import {
@@ -674,9 +674,18 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
 
   const presentiCount = log.filter(l => l.presente).length;
 
-  // Livello ACWR → token acwr-* (testo sempre accanto al colore)
+  // Livello ACWR (enum dominio) → token acwr-* e etichetta italiana
+  const LIVELLO_ACWR_LABEL: Record<string, string> = {
+    'sotto-allenamento': 'Sotto-allenamento',
+    'ottimale': 'Ottimale',
+    'attenzione': 'Attenzione',
+    'elevato': 'Rischio elevato',
+  };
   const acwrLevel: 'ok' | 'attenzione' | 'critico' =
-    acwr.acwrRapporto > 1.5 ? 'critico' : acwr.acwrRapporto > 1.3 ? 'attenzione' : 'ok';
+    acwr.livelloRischio === 'elevato' ? 'critico'
+    : acwr.livelloRischio === 'attenzione' ? 'attenzione'
+    : 'ok';
+  const acwrLabel = LIVELLO_ACWR_LABEL[acwr.livelloRischio] ?? acwr.livelloRischio;
   const acwrTone = acwrLevel === 'critico' ? 'acwr-critico' : acwrLevel === 'attenzione' ? 'acwr-attenzione' : 'acwr-ok';
 
   // Posizione ago ACWR sulla scala mockup 0.5 → 1.8
@@ -693,7 +702,7 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
             <span className="font-label-caps text-label-caps text-on-surface-variant hidden sm:inline">(Gabbett Model)</span>
           </div>
           <Badge acwr={acwrLevel}>
-            {acwr.livelloRischio}
+            {acwrLabel}
           </Badge>
         </div>
 
@@ -703,7 +712,7 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
           value={Math.min(1.8, Math.max(0.5, acwr.acwrRapporto))}
           max={1.8}
           tone={acwrTone}
-          valueLabel={acwr.acwrRapporto >= 0.8 && acwr.acwrRapporto <= 1.3 ? 'Sweet Spot' : acwr.livelloRischio}
+          valueLabel={acwr.acwrRapporto >= 0.8 && acwr.acwrRapporto <= 1.3 ? 'Sweet Spot' : acwrLabel}
         />
 
         {acwr.avvisoInfortunio && (
@@ -712,6 +721,10 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
             <p>{acwr.avvisoInfortunio}</p>
           </div>
         )}
+
+        <p className="text-[12px] text-on-surface-variant leading-snug">
+          {ACWR_DISCLAIMER} Soglie: ottimale 0.8–1.3 · attenzione 1.3–1.5 · elevato &gt;1.5.
+        </p>
 
         {/* Gauge & KPI strip */}
         <div className="grid grid-cols-12 gap-2 items-center bg-surface-container-low p-2.5 rounded-lg">
@@ -722,7 +735,7 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
             </span>
             <span className="font-headline-sm text-[11px] text-secondary font-bold flex items-center gap-1">
               <Check size={12} />
-              {acwr.acwrRapporto >= 0.8 && acwr.acwrRapporto <= 1.3 ? 'Sweet Spot' : acwr.livelloRischio}
+              {acwr.acwrRapporto >= 0.8 && acwr.acwrRapporto <= 1.3 ? 'Sweet Spot' : acwrLabel}
             </span>
           </div>
           <div className="col-span-7 flex flex-col justify-between h-full space-y-2.5 pl-1">

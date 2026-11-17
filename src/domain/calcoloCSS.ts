@@ -1,5 +1,31 @@
-import { RisultatoACWR, RisultatoCSS } from '../types';
+import { LivelloACWR, RisultatoACWR, RisultatoCSS } from '../types';
 import { formattaTempo } from './tempoUtils';
+
+/**
+ * Soglie ACWR (Acute:Chronic Workload Ratio) — UNICA fonte di verita' per
+ * dominio, UI e documentazione. Modello Gabbett rivisto per il nuoto:
+ *  - acuto = carico della settimana corrente (sRPE)
+ *  - cronico = media dei carichi delle ultime 4 settimane (almeno 1.0)
+ *  - < 0.8            : sotto-allenamento (volume ridotto)
+ *  - 0.8 - 1.3        : ottimale (sweet spot)
+ *  - > 1.3 - 1.5      : attenzione (incremento significativo)
+ *  - > 1.5            : elevato (rischio, microciclo di scarico)
+ * L'ACWR e' un indicatore di monitoraggio del carico, NON una previsione
+ * di infortunio.
+ */
+export const ACWR_SOTTO_CARICO = 0.8;
+export const ACWR_ATTENZIONE = 1.3;
+export const ACWR_ELEVATO = 1.5;
+
+export const ACWR_DISCLAIMER =
+  "L'ACWR e' un indicatore di monitoraggio del carico di allenamento, non una previsione di infortunio.";
+
+export function livelloACWR(rapporto: number): LivelloACWR {
+  if (rapporto < ACWR_SOTTO_CARICO) return 'sotto-allenamento';
+  if (rapporto <= ACWR_ATTENZIONE) return 'ottimale';
+  if (rapporto <= ACWR_ELEVATO) return 'attenzione';
+  return 'elevato';
+}
 
 export class CalcoloScienzaNuoto {
   /**
@@ -74,27 +100,21 @@ export class CalcoloScienzaNuoto {
     const rapporto = caricoSettimanaCorrente / cronicoMedio;
     const rapportoFormatted = rapporto.toFixed(2);
 
-    let livello: string;
+    const livello = livelloACWR(rapporto);
     let avviso: string | null = null;
     let avvisoSpalla: string | null = null;
 
-    if (rapporto > 1.45) {
-      livello = 'Rischio Elevato ⚠️';
+    if (livello === 'elevato') {
       avviso = `Rapporto carico ACWR = ${rapportoFormatted}. Aumento del carico troppo brusco rispetto alle ultime 4 settimane. Rischio infortunio/spalla alto: consigliato microciclo di scarico.`;
-    } else if (rapporto > 1.25) {
-      livello = 'Attenzione ⚡';
+    } else if (livello === 'attenzione') {
       avviso = `Rapporto carico ACWR = ${rapportoFormatted}. Incremento del carico significativo, monitorare il recupero dell'atleta.`;
-    } else if (rapporto >= 0.8 && rapporto <= 1.25) {
-      livello = 'Ottimale ✅';
-      avviso = null;
-    } else {
-      livello = 'Sotto-allenamento 🔵';
+    } else if (livello === 'sotto-allenamento') {
       avviso = `Rapporto carico ACWR = ${rapportoFormatted}. Volume significativamente ridotto rispetto alla media abituale.`;
     }
 
     // Alert specifico per spalla in caso di asimmetria propulsiva
     if (asimmetriaPropulsiva && rapporto > 1.15) {
-      avvisoSpalla = `⚠️ ATLETA CON ASIMMETRIA PROPULSIVA: Carico sulla spalla dominante superiore al 15% rispetto alla media. Rischio sovraccarico scapolo-omerale elevato. Considerare serie compensatorie o riduzione volume unilateralmente.`;
+      avvisoSpalla = `ATLETA CON ASIMMETRIA PROPULSIVA: Carico sulla spalla dominante superiore al 15% rispetto alla media. Rischio sovraccarico scapolo-omerale elevato. Considerare serie compensatorie o riduzione volume unilateralmente.`;
     }
 
     return {

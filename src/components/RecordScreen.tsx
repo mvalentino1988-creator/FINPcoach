@@ -14,7 +14,8 @@ import {
   CalendarDays,
   TrendingUp,
   TrendingDown,
-  BadgeCheck
+  BadgeCheck,
+  AlertTriangle
 } from 'lucide-react';
 import { Modal, Select, Table } from './ui';
 
@@ -181,6 +182,14 @@ export const RecordScreen: React.FC = () => {
             {meta.fonte} · aggiornati al {meta.aggiornato}
           </p>
         </div>
+      </div>
+
+      <div className="rounded-xl bg-tertiary-fixed border border-tertiary-fixed-dim p-3 text-xs text-on-tertiary-fixed leading-relaxed flex items-start gap-2">
+        <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+        <span>
+          Dati snapshot aggiornati al {meta.aggiornato}: potrebbero non essere aggiornati.
+          Prima di gare o classificazioni verifica sempre la fonte ufficiale FINP.
+        </span>
       </div>
 
       {/* Quick Filters Bar (ergonomic deckside taps) */}

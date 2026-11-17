@@ -86,6 +86,9 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
   const distInt = parseInt(distanza, 10);
   const centesimi = parseTempo(tempoTesto);
   const formValido = dataParsed != null && !isNaN(distInt) && distInt >= 25 && centesimi != null;
+  const erroreData = dataTesto.trim() !== '' && dataParsed == null ? 'Data non valida (usa GG/MM/AAAA o AAAA-MM-GG)' : null;
+  const erroreDistanza = distanza.trim() !== '' && (isNaN(distInt) || distInt < 25 || distInt > 1500) ? 'Distanza non valida (usa 25–1500 m)' : null;
+  const erroreTempo = tempoTesto.trim() !== '' && centesimi == null ? 'Tempo non valido (usa mm:ss.cc, es. 1:04.20)' : null;
 
   const tempiAtleta = useMemo(() => {
     return atletaSel ? tempi.filter(t => t.atletaId === atletaSel.id) : [];
@@ -384,7 +387,9 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
                 value={dataTesto}
                 onChange={e => setDataTesto(e.target.value)}
                 className="ds-input !h-11"
+                aria-invalid={!!erroreData}
               />
+              {erroreData && <p className="text-[12px] text-error mt-1">{erroreData}</p>}
             </div>
 
             <div>
@@ -394,7 +399,9 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
                 value={distanza}
                 onChange={e => setDistanza(e.target.value)}
                 className="ds-input !h-11 font-bold"
+                aria-invalid={!!erroreDistanza}
               />
+              {erroreDistanza && <p className="text-[12px] text-error mt-1">{erroreDistanza}</p>}
             </div>
 
             <div>
@@ -405,7 +412,9 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
                 value={tempoTesto}
                 onChange={e => setTempoTesto(e.target.value)}
                 className="ds-input !h-11 font-bold text-base text-primary tabular-nums"
+                aria-invalid={!!erroreTempo}
               />
+              {erroreTempo && <p className="text-[12px] text-error mt-1">{erroreTempo}</p>}
             </div>
           </div>
 

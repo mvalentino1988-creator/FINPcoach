@@ -1,8 +1,13 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useApp } from '../data/AppContext';
-import { CalendarioService, EventoCalendario } from '../domain/calendarioService';
+import {
+  CalendarioService,
+  EventoCalendario,
+  aggiungiEventoManuale,
+  importaCalendarioJson,
+} from '../domain/calendarioService';
 import { todayISO } from '../domain/dateUtils';
-import { CalendarDays, MapPin, Info, Plus, Check, Trash2, Star, ExternalLink, Waves } from 'lucide-react';
+import { CalendarDays, MapPin, Info, Plus, Check, Trash2, Star, ExternalLink, Waves, AlertTriangle, Upload, X } from 'lucide-react';
 import { Badge, EmptyState } from './ui';
 
 const DISCIPLINA_COLORE: Record<string, string> = {
@@ -16,11 +21,18 @@ export const CalendarioScreen: React.FC = () => {
   const meta = CalendarioService.meta();
   const oggi = todayISO();
   const [soloProssimi, setSoloProssimi] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ titolo: '', dal: '', al: '', luogo: '', regione: '', disciplina: 'Nuoto', prioritaria: false });
+  const [msg, setMsg] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const aggiornamento = useMemo(() => CalendarioService.statoAggiornamento(oggi), [oggi, refreshKey]);
 
   const eventi = useMemo(() => {
     const lista = CalendarioService.eventi();
     return soloProssimi ? lista.filter(e => e.al >= oggi) : lista;
-  }, [soloProssimi, oggi]);
+  }, [soloProssimi, oggi, refreshKey]);
 
   const gruppi = useMemo(() => {
     const mappa = new Map<string, EventoCalendario[]>();
@@ -52,6 +64,50 @@ export const CalendarioScreen: React.FC = () => {
     if (gara && window.confirm(`Rimuovere "${evento.titolo}" dalla stagione?`)) eliminaGara(gara.id);
   };
 
+  const submitManuale = () => {
+    if (!form.titolo.trim() || !form.dal || !form.al) {
+      setMsg('Compila almeno titolo, data inizio e data fine.');
+      return;
+    }
+    if (form.al < form.dal) {
+      setMsg('La data fine non puo\' essere precedente alla data inizio.');
+      return;
+    }
+    const confermato = window.confirm(
+      `Aggiungere l'evento manuale?\n\n${form.titolo}\n${form.dal} → ${form.al}${form.luogo ? ` — ${form.luogo}` : ''}`
+    );
+    if (!confermato) return;
+    const ev = aggiungiEventoManuale({
+      titolo: form.titolo.trim(),
+      dal: form.dal,
+      al: form.al,
+      luogo: form.luogo.trim(),
+      regione: form.regione.trim(),
+      tipologia: 'Evento manuale',
+      disciplina: form.disciplina,
+      prioritaria: form.prioritaria,
+    });
+    if (ev) {
+      setMsg(`Evento "${ev.titolo}" aggiunto al calendario.`);
+      setForm({ titolo: '', dal: '', al: '', luogo: '', regione: '', disciplina: 'Nuoto', prioritaria: false });
+      setShowForm(false);
+      setRefreshKey(k => k + 1);
+    } else {
+      setMsg('Dati evento non validi.');
+    }
+  };
+
+  const suFileImport = async (file: File) => {
+    const testo = await file.text();
+    const esito = importaCalendarioJson(testo);
+    if (esito.ok) {
+      setMsg(`Importati ${esito.aggiunti} eventi nel calendario.`);
+      setRefreshKey(k => k + 1);
+    } else {
+      setMsg(`Importazione rifiutata: ${esito.errori.slice(0, 3).join(' · ')}`);
+    }
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-3">
@@ -67,6 +123,63 @@ export const CalendarioScreen: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {!aggiornamento.aggiornato && aggiornamento.motivo && (
+        <div className="rounded-xl bg-tertiary-fixed border border-tertiary-fixed-dim p-3 text-xs text-on-tertiary-fixed leading-relaxed flex items-start gap-2">
+          <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+          <span>{aggiornamento.motivo}</span>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="button" onClick={() => { setShowForm(v => !v); setMsg(null); }} className="ds-btn-secondary !min-h-[44px] !px-3 text-xs" aria-expanded={showForm}>
+          <Plus size={15} />Aggiungi evento
+        </button>
+        <button type="button" onClick={() => fileRef.current?.click()} className="ds-btn-secondary !min-h-[44px] !px-3 text-xs">
+          <Upload size={15} />Importa calendario JSON
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".json,application/json"
+          className="hidden"
+          aria-label="Importa file calendario JSON"
+          onChange={e => { const f = e.target.files?.[0]; if (f) void suFileImport(f); e.target.value = ''; }}
+        />
+      </div>
+
+      {showForm && (
+        <div className="rounded-xl bg-surface-container-lowest border border-outline-variant p-3 space-y-2 shadow-card">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-bold text-on-surface">Nuovo evento</span>
+            <button type="button" onClick={() => setShowForm(false)} className="ds-btn-icon !w-9 !h-9" aria-label="Chiudi form evento"><X size={16} /></button>
+          </div>
+          <input className="ds-input !min-h-[44px]" placeholder="Titolo gara / evento" value={form.titolo} onChange={e => setForm({ ...form, titolo: e.target.value })} />
+          <div className="grid grid-cols-2 gap-2">
+            <label className="text-xs text-on-surface-variant">Dal<input type="date" className="ds-input !min-h-[44px] mt-1" value={form.dal} onChange={e => setForm({ ...form, dal: e.target.value })} /></label>
+            <label className="text-xs text-on-surface-variant">Al<input type="date" className="ds-input !min-h-[44px] mt-1" value={form.al} onChange={e => setForm({ ...form, al: e.target.value })} /></label>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <input className="ds-input !min-h-[44px]" placeholder="Luogo" value={form.luogo} onChange={e => setForm({ ...form, luogo: e.target.value })} />
+            <input className="ds-input !min-h-[44px]" placeholder="Regione" value={form.regione} onChange={e => setForm({ ...form, regione: e.target.value })} />
+          </div>
+          <select className="ds-select !min-h-[44px]" value={form.disciplina} onChange={e => setForm({ ...form, disciplina: e.target.value })}>
+            <option>Nuoto</option><option>Fondo</option><option>Pallanuoto</option><option>Altro</option>
+          </select>
+          <label className="flex items-center gap-2 text-sm text-on-surface min-h-[44px]">
+            <input type="checkbox" checked={form.prioritaria} onChange={e => setForm({ ...form, prioritaria: e.target.checked })} className="w-5 h-5 accent-primary" />
+            Gara prioritaria (A-Race)
+          </label>
+          <button type="button" onClick={submitManuale} className="ds-btn-primary w-full !min-h-[48px]">Salva evento</button>
+        </div>
+      )}
+
+      {msg && (
+        <div className="rounded-xl bg-surface-container border border-outline-variant p-3 text-xs text-on-surface flex items-start gap-2" role="status">
+          <Info size={14} className="mt-0.5 shrink-0" />
+          <span>{msg}</span>
+        </div>
+      )}
 
       <div className="rounded-xl bg-surface-container-lowest border border-outline-variant p-3 shadow-card">
         <label className="flex items-center gap-3 min-h-[48px] text-sm font-semibold text-on-surface cursor-pointer select-none">
