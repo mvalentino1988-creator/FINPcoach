@@ -2018,10 +2018,10 @@
     overflow-wrap: break-word;
   }
 
-  body [class*="text-[8px]"],
-  body [class*="text-[9px]"],
-  body [class*="text-[10px]"],
-  body [class*="text-[11px]"] {
+  body [class*="text-[12px]"],
+  body [class*="text-[12px]"],
+  body [class*="text-[12px]"],
+  body [class*="text-[12px]"] {
     font-size: 12px !important;
     line-height: 1.3;
   }

@@ -46,7 +46,7 @@ export const FontiScreen: React.FC = () => {
         </div>
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-container/60 text-on-secondary-container shadow-sm shrink-0">
           <Database size={13} />
-          <span className="font-label-caps text-[10px] tracking-tight">Snapshot offline</span>
+          <span className="font-label-caps text-[12px] tracking-tight">Snapshot offline</span>
         </div>
       </div>
 
@@ -69,7 +69,7 @@ export const FontiScreen: React.FC = () => {
           aria-label="Verifica aggiornamenti"
         >
           <RefreshCw size={16} className={checking ? 'animate-spin' : ''} />
-          <span className="hidden md:inline font-label-caps text-[10px] font-bold uppercase tracking-wide">
+          <span className="hidden md:inline font-label-caps text-[12px] font-bold uppercase tracking-wide">
             {checking ? 'Controllo…' : 'Verifica'}
           </span>
         </button>

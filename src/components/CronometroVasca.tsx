@@ -889,7 +889,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
           type="button"
           onClick={handleFine}
           disabled={inPronta}
-          className="h-11 px-2.5 rounded-xl bg-surface-container-high text-on-surface text-[11px] font-bold uppercase tracking-wide flex items-center gap-1 active:scale-95 transition disabled:opacity-45 whitespace-nowrap"
+          className="h-11 px-2.5 rounded-xl bg-surface-container-high text-on-surface text-[12px] font-bold uppercase tracking-wide flex items-center gap-1 active:scale-95 transition disabled:opacity-45 whitespace-nowrap"
         >
           <Flag size={14} /> Fine
         </button>
@@ -905,7 +905,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       </div>
 
       {orientNotice && (
-        <div className="shrink-0 mx-1.5 mb-1 px-2.5 py-1 rounded-lg bg-warning-container text-on-warning-container text-[11px] font-semibold text-center">
+        <div className="shrink-0 mx-1.5 mb-1 px-2.5 py-1 rounded-lg bg-warning-container text-on-warning-container text-[12px] font-semibold text-center">
           Ruota il telefono per più spazio
         </div>
       )}
@@ -935,7 +935,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
                 <span className="font-label-caps text-label-caps font-bold uppercase tracking-wider truncate">
                   C{lane.numero}
                 </span>
-                <span className="flex items-center gap-1 text-[10px] font-bold text-primary whitespace-nowrap">
+                <span className="flex items-center gap-1 text-[12px] font-bold text-primary whitespace-nowrap">
                   {formatRipartenza(lane.ripartenzaCorsia ?? session.ripartenzaGenerale)}
                   {lane.intervalloPartenza != null && (
                     <span className="text-on-surface-variant">·↻{lane.intervalloPartenza}s</span>
@@ -969,13 +969,13 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
                   <button
                     type="button"
                     onClick={() => setSheet({ type: 'picker', lane })}
-                    className="flex-1 min-h-[44px] rounded-lg border border-dashed border-outline-variant text-on-surface-variant text-[11px] font-bold uppercase tracking-wide flex items-center justify-center gap-1 active:scale-[0.98] transition"
+                    className="flex-1 min-h-[44px] rounded-lg border border-dashed border-outline-variant text-on-surface-variant text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-1 active:scale-[0.98] transition"
                   >
                     <Plus size={13} /> Aggiungi atleta
                   </button>
                 )}
                 {lane.atleti.length === 0 && !inPronta && (
-                  <div className="flex-1 flex items-center justify-center text-[10px] text-on-surface-variant font-semibold uppercase">
+                  <div className="flex-1 flex items-center justify-center text-[12px] text-on-surface-variant font-semibold uppercase">
                     Corsia vuota
                   </div>
                 )}
@@ -985,7 +985,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
                 <button
                   type="button"
                   onClick={() => setSheet({ type: 'picker', lane })}
-                  className="shrink-0 h-8 mx-1 mb-1 rounded-lg bg-surface-container text-on-surface text-[10px] font-bold uppercase tracking-wide flex items-center justify-center gap-1 active:scale-[0.98] transition"
+                  className="shrink-0 h-8 mx-1 mb-1 rounded-lg bg-surface-container text-on-surface text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-1 active:scale-[0.98] transition"
                 >
                   <Plus size={12} /> Atleta
                 </button>
@@ -1340,7 +1340,7 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
       }}
       className="absolute top-0 right-0 w-12 h-12 flex items-start justify-end pt-0.5 pr-0.5 z-10"
     >
-      <span className="w-6 h-6 rounded-md bg-surface-container-highest/90 text-on-surface-variant flex items-center justify-center text-[10px] font-black border border-outline-variant/50">
+      <span className="w-6 h-6 rounded-md bg-surface-container-highest/90 text-on-surface-variant flex items-center justify-center text-[12px] font-black border border-outline-variant/50">
         ■
       </span>
     </button>
@@ -1402,10 +1402,10 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
       {/* 3) Lap + 4) stato + countdown */}
       <div className="flex flex-col gap-0.5">
         <div className="flex items-center justify-between gap-1">
-          <span className="text-[9px] font-bold uppercase tracking-wide text-on-surface-variant">
+          <span className="text-[12px] font-bold uppercase tracking-wide text-on-surface-variant">
             Giro {a.laps.length}
           </span>
-          <span className={`text-[10px] font-bold flex items-center gap-0.5 ${meta.cls}`}>
+          <span className={`text-[12px] font-bold flex items-center gap-0.5 ${meta.cls}`}>
             <span aria-hidden>{meta.symbol}</span> {meta.label}
             {a.autoLate && (
               <span className="text-warning" title="Partenza automatica recuperata dopo sospensione" aria-label="partenza recuperata"> ↺</span>
@@ -1419,9 +1419,9 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
             style={{ width: '0%' }}
           />
         </div>
-        <span ref={registerNode(a.id, 'sub')} className="text-[9px] font-semibold text-on-surface-variant tabular-nums truncate" />
+        <span ref={registerNode(a.id, 'sub')} className="text-[12px] font-semibold text-on-surface-variant tabular-nums truncate" />
         {personalRip != null && personalRip !== inherited && (
-          <span className="text-[8px] font-bold uppercase tracking-wide text-tertiary">rip. {formatRipartenza(personalRip)}</span>
+          <span className="text-[12px] font-bold uppercase tracking-wide text-tertiary">rip. {formatRipartenza(personalRip)}</span>
         )}
       </div>
     </div>
@@ -1475,7 +1475,7 @@ const PresetRow: React.FC<{ values: readonly number[]; current: number | null; o
       <button
         type="button"
         onClick={() => onPick(null)}
-        className={`h-9 px-2.5 rounded-lg text-[11px] font-bold ${current == null ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface'}`}
+        className={`h-9 px-2.5 rounded-lg text-[12px] font-bold ${current == null ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface'}`}
       >
         Auto
       </button>
@@ -1485,7 +1485,7 @@ const PresetRow: React.FC<{ values: readonly number[]; current: number | null; o
         key={v}
         type="button"
         onClick={() => onPick(v)}
-        className={`h-9 px-2.5 rounded-lg text-[11px] font-bold tabular-nums ${current === v ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface'}`}
+        className={`h-9 px-2.5 rounded-lg text-[12px] font-bold tabular-nums ${current === v ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface'}`}
       >
         {formatRipartenza(v)}
       </button>
@@ -1566,7 +1566,7 @@ const LaneSheet: React.FC<SheetHostProps & { lane: VascaLane }> = ({
   return (
   <div>
     <SheetHeader title={`Corsia ${lane.numero}`} onClose={onClose} />
-    <p className="text-[11px] font-bold uppercase tracking-wide text-on-surface-variant mb-1">Ripartenza tra giri</p>
+    <p className="text-[12px] font-bold uppercase tracking-wide text-on-surface-variant mb-1">Ripartenza tra giri</p>
     <PresetRow values={RIPARTENZA_PRESETS} current={lane.ripartenzaCorsia} onPick={v => onSetLaneRip(lane, v)} allowNull />
     <div className="mt-2 mb-1">
       <Stepper
@@ -1577,7 +1577,7 @@ const LaneSheet: React.FC<SheetHostProps & { lane: VascaLane }> = ({
         format={formatRipartenza}
       />
     </div>
-    <p className="text-[11px] font-bold uppercase tracking-wide text-on-surface-variant mb-1 mt-4">Intervallo di partenza</p>
+    <p className="text-[12px] font-bold uppercase tracking-wide text-on-surface-variant mb-1 mt-4">Intervallo di partenza</p>
     <PresetRow values={INTERVALLO_PRESETS} current={lane.intervalloPartenza} onPick={v => onSetLaneIntervallo(lane, v)} allowNull />
     <div className="mt-2">
       <Stepper
@@ -1633,7 +1633,7 @@ const AthleteSheet: React.FC<SheetHostProps & { laneNumero: number; athlete: Vas
   return (
     <div>
       <SheetHeader title={athlete.cognome} onClose={onClose} />
-      <p className="text-[11px] font-bold uppercase tracking-wide text-on-surface-variant mb-1">Ripartenza personale</p>
+      <p className="text-[12px] font-bold uppercase tracking-wide text-on-surface-variant mb-1">Ripartenza personale</p>
       <PresetRow
         values={RIPARTENZA_PRESETS}
         current={athlete.ripartenzaAtleta}
@@ -1659,7 +1659,7 @@ const AthleteSheet: React.FC<SheetHostProps & { laneNumero: number; athlete: Vas
         </button>
       )}
 
-      <p className="text-[11px] font-bold uppercase tracking-wide text-on-surface-variant mb-1 mt-4">Lap target (auto-stop)</p>
+      <p className="text-[12px] font-bold uppercase tracking-wide text-on-surface-variant mb-1 mt-4">Lap target (auto-stop)</p>
       <div className="flex items-center gap-2">
         <button type="button" onClick={() => onSetTargetLaps(laneNumero, athlete.id, athlete.targetLaps == null ? 1 : Math.max(1, athlete.targetLaps - 1))} className="w-11 h-11 rounded-lg bg-surface-container font-black">−</button>
         <span className="w-14 text-center font-stat-timer text-sm font-bold">{athlete.targetLaps ?? '—'}</span>
@@ -1669,7 +1669,7 @@ const AthleteSheet: React.FC<SheetHostProps & { laneNumero: number; athlete: Vas
         )}
       </div>
 
-      <p className="text-[11px] font-bold uppercase tracking-wide text-on-surface-variant mb-1 mt-4">Correggi ultimo lap</p>
+      <p className="text-[12px] font-bold uppercase tracking-wide text-on-surface-variant mb-1 mt-4">Correggi ultimo lap</p>
       <div className="flex flex-wrap gap-1.5">
         <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, -5000)} className="h-10 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">−5s</button>
         <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, -1000)} className="h-10 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">−1s</button>
@@ -1736,7 +1736,7 @@ const SummaryOverlay: React.FC<{
                     {item.total != null ? formatMs(item.total) : '—'}
                   </span>
                 </div>
-                <div className="text-[11px] text-on-surface-variant mt-0.5">
+                <div className="text-[12px] text-on-surface-variant mt-0.5">
                   {a.laps.length} ripetizioni
                   {item.laps.length > 0 && (
                     <span className="block mt-0.5 tabular-nums">

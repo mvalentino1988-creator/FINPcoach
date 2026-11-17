@@ -352,7 +352,7 @@ ${righe}
       {/* Banner sessione in corso: composizione in sola lettura */}
       {bloccata && (
         <div className="shrink-0 flex items-center justify-between gap-2 rounded-xl bg-warning-container/60 border border-warning/40 px-3 py-2">
-          <span className="font-label-caps text-[11px] font-bold text-on-warning-container uppercase tracking-wide">
+          <span className="font-label-caps text-[12px] font-bold text-on-warning-container uppercase tracking-wide">
             Sessione in corso — composizione in sola lettura
           </span>
           <button
@@ -368,7 +368,7 @@ ${righe}
       {/* Offerta di riuso della composizione di ieri */}
       {precedente && !bloccata && (
         <div className="shrink-0 flex items-center justify-between gap-2 rounded-xl bg-primary-fixed/50 border border-primary/30 px-3 py-2">
-          <span className="font-label-caps text-[11px] font-bold text-on-primary-fixed-variant uppercase tracking-wide">
+          <span className="font-label-caps text-[12px] font-bold text-on-primary-fixed-variant uppercase tracking-wide">
             Composizione del {formattaData(precedente.data)} disponibile
           </span>
           <div className="flex items-center gap-1.5 shrink-0">
@@ -416,7 +416,7 @@ ${righe}
             <Plus size={15} />
           </button>
         </div>
-        <span className="font-label-caps text-[10px] uppercase text-on-surface-variant font-bold">corsie</span>
+        <span className="font-label-caps text-[12px] uppercase text-on-surface-variant font-bold">corsie</span>
 
         <button
           type="button"
@@ -446,7 +446,7 @@ ${righe}
         >
           <span className="flex items-center gap-1.5 min-w-0">
             <Waves size={15} className="text-primary shrink-0" />
-            <span className="font-label-caps text-[10px] uppercase text-on-surface-variant font-bold truncate">
+            <span className="font-label-caps text-[12px] uppercase text-on-surface-variant font-bold truncate">
               Intensità{sedutaOggi ? ` · ${sedutaOggi.volume >= 1000 ? `${(sedutaOggi.volume / 1000).toFixed(1).replace('.', ',')} km` : `${sedutaOggi.volume} m`}` : ''}
               {codiciFocus.length > 0 ? ` · ${codiciFocus.join('+')}` : ''}
             </span>
@@ -463,7 +463,7 @@ ${righe}
               />
             )}
             <div className="flex items-center justify-between gap-2 rounded-lg bg-primary/5 border border-primary/15 px-3 py-1.5">
-              <span className="font-label-caps text-[9px] font-bold uppercase tracking-wider text-primary">Focus codici</span>
+              <span className="font-label-caps text-[12px] font-bold uppercase tracking-wider text-primary">Focus codici</span>
               <span className="font-headline-sm text-headline-sm text-primary font-bold">{codiciFocus.join(' + ')}</span>
             </div>
           </div>
@@ -474,11 +474,11 @@ ${righe}
       <section className="shrink-0 rounded-xl bg-surface-container-low px-3 py-2 shadow-sm border border-outline-variant/30">
         <div className="flex items-center gap-2 pb-1.5">
           <UserCheck size={15} className="text-primary shrink-0" />
-          <span className="font-label-caps text-[10px] uppercase text-on-surface-variant font-bold">
+          <span className="font-label-caps text-[12px] uppercase text-on-surface-variant font-bold">
             Non assegnati · {nonAssegnati.length}
           </span>
           {ricerca && (
-            <span className="ml-auto font-label-caps text-[9px] text-on-surface-variant">
+            <span className="ml-auto font-label-caps text-[12px] text-on-surface-variant">
               {nonAssegnati.length} risultati
             </span>
           )}
@@ -487,7 +487,7 @@ ${righe}
           const tuttiPresentiAssegnati = atletiNonAssegnati(corrente, atleti).length === 0;
           if (tuttiPresentiAssegnati && !ricerca) {
             return (
-              <div className="py-1.5 font-label-caps text-[11px] text-on-surface-variant">
+              <div className="py-1.5 font-label-caps text-[12px] text-on-surface-variant">
                 Tutti assegnati
               </div>
             );
@@ -501,7 +501,7 @@ ${righe}
                   value={ricerca}
                   onChange={e => setRicerca(e.target.value)}
                   placeholder="Cerca atleta…"
-                  className="w-full h-9 pl-8 pr-3 rounded-lg bg-surface-container-lowest border border-outline-variant/60 text-[13px] text-on-surface placeholder:text-on-surface-variant/70 focus:outline-none focus:border-primary/50"
+                  className="w-full h-9 pl-8 pr-3 rounded-lg bg-surface-container-lowest border border-outline-variant/60 text-[13px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary/50"
                 />
               </div>
               <div className="flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto app-fixed-scroll">
@@ -535,7 +535,7 @@ ${righe}
                   </button>
                 ))}
                 {nonAssegnati.length === 0 && ricerca && (
-                  <span className="font-label-caps text-[11px] text-on-surface-variant py-2">Nessun risultato</span>
+                  <span className="font-label-caps text-[12px] text-on-surface-variant py-2">Nessun risultato</span>
                 )}
               </div>
             </>
@@ -551,7 +551,7 @@ ${righe}
               className="w-full flex items-center justify-between gap-2 min-h-[36px]"
               aria-expanded={nonPresentiAperto}
             >
-              <span className="flex items-center gap-1.5 font-label-caps text-[10px] uppercase text-on-surface-variant font-bold">
+              <span className="flex items-center gap-1.5 font-label-caps text-[12px] uppercase text-on-surface-variant font-bold">
                 <UserX size={13} /> Non presenti · {nonPresenti.length}
               </span>
               {nonPresentiAperto ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -598,10 +598,10 @@ ${righe}
                 <div className="p-2 pl-3 flex flex-col gap-1.5 min-h-0">
                   {/* Intestazione corsia */}
                   <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-                    <span className={`w-6 h-6 rounded-md ${accent.chip} text-[11px] font-bold flex items-center justify-center shrink-0`}>
+                    <span className={`w-6 h-6 rounded-md ${accent.chip} text-[12px] font-bold flex items-center justify-center shrink-0`}>
                       {c.numero}
                     </span>
-                    <span className="font-label-caps text-[9px] text-on-surface-variant font-bold uppercase truncate">
+                    <span className="font-label-caps text-[12px] text-on-surface-variant font-bold uppercase truncate">
                       {c.atletiIds.length} atleti
                     </span>
                     <div className="ml-auto flex items-center gap-0.5">
@@ -610,17 +610,17 @@ ${righe}
                         type="button"
                         disabled={bloccata}
                         onClick={() => update(a => impostaRipartenzaCorsia(a, c.numero, secondi5(Math.max(5, (c.ripartenzaCorsia ?? corrente.ripartenzaGenerale) - 5))))}
-                        className="w-7 h-7 rounded-md bg-surface-container text-on-surface text-[11px] font-bold disabled:opacity-40"
+                        className="w-7 h-7 rounded-md bg-surface-container text-on-surface text-[12px] font-bold disabled:opacity-40"
                         aria-label="Diminuisci ripartenza corsia"
                       >−</button>
-                      <span className="px-1 font-label-caps text-[9px] font-bold text-on-surface min-w-[2.2ch] text-center" title="Ripartenza corsia (multipli di 5 s)">
+                      <span className="px-1 font-label-caps text-[12px] font-bold text-on-surface min-w-[2.2ch] text-center" title="Ripartenza corsia (multipli di 5 s)">
                         {c.ripartenzaCorsia != null ? `${c.ripartenzaCorsia}s` : '—'}
                       </span>
                       <button
                         type="button"
                         disabled={bloccata}
                         onClick={() => update(a => impostaRipartenzaCorsia(a, c.numero, secondi5(Math.min(600, (c.ripartenzaCorsia ?? corrente.ripartenzaGenerale) + 5))))}
-                        className="w-7 h-7 rounded-md bg-surface-container text-on-surface text-[11px] font-bold disabled:opacity-40"
+                        className="w-7 h-7 rounded-md bg-surface-container text-on-surface text-[12px] font-bold disabled:opacity-40"
                         aria-label="Aumenta ripartenza corsia"
                       >+</button>
                       {c.ripartenzaCorsia != null && (
@@ -628,7 +628,7 @@ ${righe}
                           type="button"
                           disabled={bloccata}
                           onClick={() => update(a => impostaRipartenzaCorsia(a, c.numero, null))}
-                          className="w-6 h-7 rounded-md text-on-surface-variant text-[10px] font-bold"
+                          className="w-6 h-7 rounded-md text-on-surface-variant text-[12px] font-bold"
                           aria-label="Ripartenza corsia ereditata"
                           title="Torna alla ripartenza ereditata"
                         >×</button>
@@ -667,7 +667,7 @@ ${righe}
 
                   {/* Atleti in corsia */}
                   {c.atletiIds.length === 0 ? (
-                    <div className="rounded-lg bg-surface-container/50 border border-dashed border-outline-variant/50 px-2 py-2 text-center font-label-caps text-[9px] text-on-surface-variant uppercase">
+                    <div className="rounded-lg bg-surface-container/50 border border-dashed border-outline-variant/50 px-2 py-2 text-center font-label-caps text-[12px] text-on-surface-variant uppercase">
                       {selezionato != null && !c.bloccata ? 'Tocca per assegnare' : 'Vuota'}
                     </div>
                   ) : (
@@ -698,14 +698,14 @@ ${righe}
                               selezionato === id ? 'border-primary ring-2 ring-primary/30' : 'border-outline-variant/30'
                             }`}
                           >
-                            <span className="w-4 h-4 rounded bg-surface-container-high text-on-surface-variant text-[9px] font-bold flex items-center justify-center shrink-0">
+                            <span className="w-4 h-4 rounded bg-surface-container-high text-on-surface-variant text-[12px] font-bold flex items-center justify-center shrink-0">
                               {idx + 1}
                             </span>
-                            <span className="font-body-bold text-[11px] text-on-surface truncate min-w-0 flex-1">
+                            <span className="font-body-bold text-[12px] text-on-surface truncate min-w-0 flex-1">
                               {a.cognome}
                             </span>
                             {mostraPersonale && (
-                              <span className="px-1 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-[8px] font-bold shrink-0" title="Ripartenza personale">
+                              <span className="px-1 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-[12px] font-bold shrink-0" title="Ripartenza personale">
                                 {personale}s
                               </span>
                             )}
@@ -728,7 +728,7 @@ ${righe}
                     </div>
                   )}
                   {piena && (
-                    <span className="font-label-caps text-[8px] text-warning font-bold uppercase">Corsia piena</span>
+                    <span className="font-label-caps text-[12px] text-warning font-bold uppercase">Corsia piena</span>
                   )}
                 </div>
               </div>
@@ -790,7 +790,7 @@ ${righe}
                 <h3 className="font-headline-sm text-[18px] font-bold text-on-surface">
                   {sheetAtletaObj.cognome} {sheetAtletaObj.nome}
                 </h3>
-                <p className="font-label-caps text-[10px] uppercase text-on-surface-variant">
+                <p className="font-label-caps text-[12px] uppercase text-on-surface-variant">
                   {sheetCorsia ? `Corsia ${sheetCorsia.numero} · ${sheetCorsia.atletiIds.indexOf(sheetAtletaObj.id) + 1}º di partenza` : 'Non assegnato'}
                   {!presentiSet.has(sheetAtletaObj.id) ? ' · non presente' : ''}
                 </p>
@@ -807,7 +807,7 @@ ${righe}
 
             {/* Sposta in corsia */}
             <div className="mt-4">
-              <p className="font-label-caps text-[10px] uppercase text-on-surface-variant font-bold mb-1.5">Sposta in corsia</p>
+              <p className="font-label-caps text-[12px] uppercase text-on-surface-variant font-bold mb-1.5">Sposta in corsia</p>
               <div className="grid grid-cols-4 gap-1.5">
                 {corrente.corsie.map(c => {
                   const disabilitata = bloccata || c.bloccata || (!presentiSet.has(sheetAtletaObj.id))
@@ -839,7 +839,7 @@ ${righe}
               <>
                 {/* Ordine di partenza */}
                 <div className="mt-4">
-                  <p className="font-label-caps text-[10px] uppercase text-on-surface-variant font-bold mb-1.5">Ordine di partenza</p>
+                  <p className="font-label-caps text-[12px] uppercase text-on-surface-variant font-bold mb-1.5">Ordine di partenza</p>
                   <div className="flex gap-1.5">
                     <button
                       type="button"
@@ -862,7 +862,7 @@ ${righe}
 
                 {/* Ripartenza personale */}
                 <div className="mt-4">
-                  <p className="font-label-caps text-[10px] uppercase text-on-surface-variant font-bold mb-1.5">
+                  <p className="font-label-caps text-[12px] uppercase text-on-surface-variant font-bold mb-1.5">
                     Ripartenza personale {(() => {
                       const ereditata = ripartenzaEreditata(corrente, sheetCorsia.numero, sheetAtletaObj.id);
                       return <span className="normal-case font-normal">(ereditata {formattaSecondi(ereditata)})</span>;
@@ -952,7 +952,7 @@ const BadgeClasse: React.FC<{ tipo: 'S' | 'SB' | 'SM'; n: number | null | undefi
     : tipo === 'SB' ? 'bg-secondary-fixed text-on-secondary-fixed-variant'
     : 'bg-tertiary-fixed text-on-tertiary-fixed-variant';
   return (
-    <span className={`px-1 rounded font-label-caps text-[8px] font-bold leading-[14px] ${cls}`}>
+    <span className={`px-1 rounded font-label-caps text-[12px] font-bold leading-[14px] ${cls}`}>
       {tipo}
       {n}
     </span>

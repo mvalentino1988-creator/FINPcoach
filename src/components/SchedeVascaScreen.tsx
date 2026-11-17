@@ -408,7 +408,7 @@ export const SchedeVascaScreen: React.FC = () => {
                   }}
                   className="ds-input !h-11 font-bold"
                 />
-                <p className="mt-1 font-label-caps text-[10px] text-on-surface-variant normal-case tracking-normal">
+                <p className="mt-1 font-label-caps text-[12px] text-on-surface-variant normal-case tracking-normal">
                   {volumeManuale === null
                     ? `Consigliati ${volumeSessione.toLocaleString('it-IT')} m`
                     : `Consigliati ${volumeSessione.toLocaleString('it-IT')} m · proposta ${volumeManuale.toLocaleString('it-IT')} m`}
@@ -421,7 +421,7 @@ export const SchedeVascaScreen: React.FC = () => {
                 </span>
                 {atletaSel ? (
                   <div className="px-3 min-h-[44px] bg-surface-container-low border border-outline-variant/60 rounded-xl font-stat-timer-mobile text-[18px] text-primary-container flex items-center tabular-nums">
-                    {volumeSettimanaAtleta.toLocaleString('it-IT')} <span className="font-label-caps text-[10px] ml-1">m</span>
+                    {volumeSettimanaAtleta.toLocaleString('it-IT')} <span className="font-label-caps text-[12px] ml-1">m</span>
                   </div>
                 ) : (
                   <input
@@ -494,7 +494,7 @@ export const SchedeVascaScreen: React.FC = () => {
                 {formattaData(scheda.data)} · {scheda.fase.replaceAll('_', ' ').toLowerCase()}
               </p>
               <p className="font-stat-timer-mobile text-[28px] leading-none text-on-surface tabular-nums mt-1">
-                {scheda.volume.toLocaleString('it-IT')} <span className="font-label-caps text-[11px] text-on-surface-variant">m</span>
+                {scheda.volume.toLocaleString('it-IT')} <span className="font-label-caps text-[12px] text-on-surface-variant">m</span>
               </p>
             </div>
             <div className="flex flex-wrap gap-2">

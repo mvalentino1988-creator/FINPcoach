@@ -149,7 +149,7 @@ const NuovaStagioneForm: React.FC<any> = ({
 
           <div className="space-y-1.5">
             <label className="block font-label-caps text-label-caps uppercase text-on-surface-variant">
-              Data fine <span className="text-on-surface-variant/70">(opzionale)</span>
+              Data fine <span className="text-on-surface-variant">(opzionale)</span>
             </label>
             <input
               type="text"

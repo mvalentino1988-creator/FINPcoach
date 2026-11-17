@@ -94,7 +94,7 @@ export const GareAmmissibiliCard: React.FC<Props> = ({ atleta }) => {
         </details>
       )}
 
-      <p className="text-[11px] leading-relaxed text-on-surface-variant">
+      <p className="text-[12px] leading-relaxed text-on-surface-variant">
         Fonte: {FONTE_PROGRAMMA.fonte}, {FONTE_PROGRAMMA.riferimento} (versione{' '}
         {FONTE_PROGRAMMA.versione}). Solo gare individuali: verifica sempre il regolamento della
         singola manifestazione.

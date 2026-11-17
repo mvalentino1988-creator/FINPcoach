@@ -374,7 +374,7 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
                 {FirebaseSync.getCurrentUser() && (
                   <button
                     onClick={handleLogout}
-                    className="ds-btn-danger !min-h-[32px] !px-2.5 !py-1 text-[11px] shrink-0"
+                    className="ds-btn-danger !min-h-[32px] !px-2.5 !py-1 text-[12px] shrink-0"
                   >
                     <LogOut size={12} />
                     Logout

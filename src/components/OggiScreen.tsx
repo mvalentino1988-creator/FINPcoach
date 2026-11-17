@@ -355,7 +355,7 @@ const OggiContent: React.FC = () => {
               <span className="truncate">Volume</span>
             </div>
             <div className="mt-1 font-headline-sm text-primary font-bold truncate">
-              {formattaMetri(volumeSessione)}<span className="text-on-surface-variant text-[11px] font-normal ml-0.5">m</span>
+              {formattaMetri(volumeSessione)}<span className="text-on-surface-variant text-[12px] font-normal ml-0.5">m</span>
             </div>
           </div>
           <div className="bg-surface-container-low rounded-lg p-2.5 flex flex-col justify-between min-w-0">
@@ -364,7 +364,7 @@ const OggiContent: React.FC = () => {
               <span className="truncate">Carico sett.</span>
             </div>
             <div className="mt-1 font-headline-sm text-secondary font-bold truncate">
-              {formattaMetri(volumeSvoltoSettimana)}<span className="text-on-surface-variant text-[11px] font-normal ml-0.5">m</span>
+              {formattaMetri(volumeSvoltoSettimana)}<span className="text-on-surface-variant text-[12px] font-normal ml-0.5">m</span>
             </div>
           </div>
           <div className="bg-surface-container-low rounded-lg p-2.5 flex flex-col justify-between min-w-0">
@@ -373,7 +373,7 @@ const OggiContent: React.FC = () => {
               <span className="truncate">Presenze</span>
             </div>
             <div className="mt-1 font-headline-sm text-tertiary font-bold truncate">
-              {presentiOggi}<span className="text-on-surface-variant text-[11px] font-normal ml-0.5">/{atleti.length}</span>
+              {presentiOggi}<span className="text-on-surface-variant text-[12px] font-normal ml-0.5">/{atleti.length}</span>
             </div>
           </div>
         </div>
@@ -425,7 +425,7 @@ const OggiContent: React.FC = () => {
                   </div>
                   <div className="min-w-0 flex flex-col">
                     <span className="text-on-surface font-label-caps font-semibold truncate">{CODICE_LABEL[codice]}</span>
-                    <span className="text-on-surface-variant font-body-sm truncate text-[11px]">{info?.ambito ?? info?.nome}</span>
+                    <span className="text-on-surface-variant font-body-sm truncate text-[12px]">{info?.ambito ?? info?.nome}</span>
                   </div>
                 </div>
               );

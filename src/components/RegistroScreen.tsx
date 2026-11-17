@@ -245,7 +245,7 @@ export const RegistroScreen: React.FC = () => {
                       <span className="font-body-bold text-body-bold text-on-surface text-sm block truncate">
                         {a.cognome} {a.nome}
                       </span>
-                      <span className="font-label-caps text-[10px] text-on-surface-variant font-medium normal-case tracking-normal">
+                      <span className="font-label-caps text-[12px] text-on-surface-variant font-medium normal-case tracking-normal">
                         Fattore volume: {Math.round(a.fattoreVolume * 100)}%
                       </span>
                     </div>
@@ -299,7 +299,7 @@ export const RegistroScreen: React.FC = () => {
                         </button>
                         <div className="w-12 h-12 rounded-xl bg-primary-fixed text-on-primary-fixed flex flex-col items-center justify-center">
                           <span className="font-stat-timer-mobile text-[20px] leading-none tabular-nums">{rpeNum}</span>
-                          <span className="font-label-caps text-[8px] uppercase">RPE</span>
+                          <span className="font-label-caps text-[12px] uppercase">RPE</span>
                         </div>
                         <button
                           type="button"
@@ -586,7 +586,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
                   <span className="font-body-bold text-body-bold text-on-surface block truncate">
                     {p.stile.replace('_', ' ')} {p.distanzaMetri} m (vasca {p.vascaMetri}m)
                   </span>
-                  <span className="font-label-caps text-[10px] text-on-surface-variant">{formattaData(p.data)}</span>
+                  <span className="font-label-caps text-[12px] text-on-surface-variant">{formattaData(p.data)}</span>
                 </div>
                 <span className="font-stat-timer-mobile text-[18px] text-primary-container tabular-nums leading-none shrink-0">
                   {formattaTempo(p.centesimi)}
@@ -625,7 +625,7 @@ const SezioneTempiAtleta: React.FC<SezioneTempiAtletaProps> = ({
                       {formattaTempo(t.centesimi)}
                     </span>
                   </div>
-                  <div className="font-label-caps text-[10px] text-on-surface-variant mt-1 normal-case tracking-normal">
+                  <div className="font-label-caps text-[12px] text-on-surface-variant mt-1 normal-case tracking-normal">
                     {formattaData(t.data)} · {t.contesto.toLowerCase()} · vasca {t.vascaMetri}m
                     {t.note && ` · ${t.note}`}
                   </div>
@@ -729,11 +729,11 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
         {/* Gauge & KPI strip */}
         <div className="grid grid-cols-12 gap-2 items-center bg-surface-container-low p-2.5 rounded-lg">
           <div className="col-span-5 flex flex-col items-center justify-center bg-surface-container-lowest p-2 rounded-lg shadow-sm">
-            <span className="font-label-caps text-[10px] text-on-surface-variant tracking-wider uppercase">Rapporto ACWR</span>
+            <span className="font-label-caps text-[12px] text-on-surface-variant tracking-wider uppercase">Rapporto ACWR</span>
             <span className="font-stat-timer-mobile text-stat-timer-mobile text-primary tracking-tight tabular-nums">
               {acwr.acwrRapporto.toFixed(2)}
             </span>
-            <span className="font-headline-sm text-[11px] text-secondary font-bold flex items-center gap-1">
+            <span className="font-headline-sm text-[12px] text-secondary font-bold flex items-center gap-1">
               <Check size={12} />
               {acwr.acwrRapporto >= 0.8 && acwr.acwrRapporto <= 1.3 ? 'Sweet Spot' : acwrLabel}
             </span>
@@ -755,7 +755,7 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
               valueLabel={`${Math.round(acwr.caricoCronicoMedio)} sRPE`}
               trackClassName="h-1.5"
             />
-            <div className="flex items-center justify-between text-[10px] text-on-surface-variant pt-0.5">
+            <div className="flex items-center justify-between text-[12px] text-on-surface-variant pt-0.5">
               <span>Range ottimale: <strong className="text-on-surface font-headline-sm">0.8 – 1.3</strong></span>
               <span className="text-error font-headline-sm font-bold">Alert &gt; 1.5</span>
             </div>
@@ -775,7 +775,7 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
               style={{ left: agoLeft, transform: 'translateX(-50%)' }}
             />
           </div>
-          <div className="relative w-full flex justify-between px-0.5 font-label-caps text-[9px] text-on-surface-variant">
+          <div className="relative w-full flex justify-between px-0.5 font-label-caps text-[12px] text-on-surface-variant">
             <span>0.5</span>
             <span className="text-secondary font-bold">0.8</span>
             <span className="text-secondary font-bold">1.3</span>
@@ -785,7 +785,7 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
         </div>
 
         {/* Attendance metrics strip */}
-        <div className="flex items-center justify-between text-[10px] font-label-caps text-on-surface-variant bg-surface-container-low px-2.5 py-1.5 rounded-lg">
+        <div className="flex items-center justify-between text-[12px] font-label-caps text-on-surface-variant bg-surface-container-low px-2.5 py-1.5 rounded-lg">
           <span className="flex items-center gap-1.5">
             <CheckCircle size={12} className="text-secondary" />
             Presenze: <strong className="text-on-surface font-headline-sm">{presentiCount}</strong> su {log.length}
@@ -813,7 +813,7 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
                 <span className="font-body-bold text-body-bold text-on-surface block text-sm">
                   Settimana del {formattaData(s.lunedi)}
                 </span>
-                <span className="font-label-caps text-[10px] text-on-surface-variant normal-case tracking-normal">
+                <span className="font-label-caps text-[12px] text-on-surface-variant normal-case tracking-normal">
                   {s.sedute} sedute · <strong className="text-on-surface">{s.metri.toLocaleString('it-IT')} m</strong>
                   {s.metriPrevisti != null && ` (previsti ${s.metriPrevisti.toLocaleString('it-IT')} m)`}
                   {s.assenze > 0 && ` · ${s.assenze} assenze`}
@@ -822,14 +822,14 @@ const SezioneStoricoAtleta: React.FC<SezioneStoricoAtletaProps> = ({
 
               <div className="text-left sm:text-right shrink-0">
                 {s.rpeMedio != null && (
-                  <span className="block font-label-caps text-[10px] text-on-surface-variant uppercase">
+                  <span className="block font-label-caps text-[12px] text-on-surface-variant uppercase">
                     RPE medio: <strong className="text-on-surface font-headline-sm">{s.rpeMedio.toFixed(1)}</strong>
                   </span>
                 )}
                 <span className="font-stat-timer-mobile text-[18px] text-primary-container tabular-nums leading-none">
                   {s.caricoSrpe.toLocaleString('it-IT')}
                 </span>
-                <span className="font-label-caps text-[9px] text-on-surface-variant ml-1">sRPE</span>
+                <span className="font-label-caps text-[12px] text-on-surface-variant ml-1">sRPE</span>
               </div>
             </div>
           ))

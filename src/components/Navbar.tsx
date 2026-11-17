@@ -51,6 +51,9 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
   const { themeMode, setThemeMode, stagione } = useApp();
   const [backupOpen, setBackupOpen] = useState(false);
   const [aspettoOpen, setAspettoOpen] = useState(false);
+  const [feedbackOn, setFeedbackOn] = useState(() => {
+    try { return localStorage.getItem('finp_feedback') !== 'off'; } catch { return true; }
+  });
 
   useEffect(() => {
     if (!aspettoOpen && !backupOpen) return undefined;
@@ -256,6 +259,24 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
                 ))}
               </div>
               <p className="text-xs text-on-surface-variant">«Sistema» segue automaticamente il tema del dispositivo.</p>
+            </div>
+
+            <div className="space-y-2.5">
+              <span className="block font-label-caps text-label-caps uppercase tracking-wider text-primary">Feedback</span>
+              <label className="flex items-center gap-3 min-h-[48px] text-sm font-semibold text-on-surface cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={feedbackOn}
+                  onChange={e => {
+                    const on = e.target.checked;
+                    setFeedbackOn(on);
+                    try { localStorage.setItem('finp_feedback', on ? 'on' : 'off'); } catch { /* noop */ }
+                  }}
+                  className="w-5 h-5 rounded border-outline-variant accent-primary"
+                />
+                Suoni e vibrazioni (ripartenze, allarmi)
+              </label>
+              <p className="text-xs text-on-surface-variant">Disattiva per non ricevere beep e vibrazioni del cronometro.</p>
             </div>
 
             <button type="button" onClick={() => setAspettoOpen(false)} className="w-full ds-btn-primary py-3 rounded-xl justify-center">

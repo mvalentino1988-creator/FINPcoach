@@ -273,7 +273,7 @@ export const DatiScreen: React.FC = () => {
                     <h3 className="font-headline-sm text-headline-sm text-on-surface">
                       {calendarioData}
                     </h3>
-                    <span className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wide">Settimana</span>
+                    <span className="font-label-caps text-[12px] text-on-surface-variant uppercase tracking-wide">Settimana</span>
                   </div>
                   <button
                     type="button"
@@ -290,7 +290,7 @@ export const DatiScreen: React.FC = () => {
 
                 <div className="grid grid-cols-7 gap-1">
                   {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(g => (
-                    <div key={g} className="text-center font-label-caps text-[10px] text-on-surface-variant uppercase">
+                    <div key={g} className="text-center font-label-caps text-[12px] text-on-surface-variant uppercase">
                       {g}
                     </div>
                   ))}
@@ -579,7 +579,7 @@ function SchedaDettaglio({ workout, onIndietro }: { workout: CustomWorkout; onIn
           Allenamento del {workout.data}
         </h3>
         {workout.metriTotali != null && (
-          <p className="font-label-caps text-[10px] text-primary font-bold mt-0.5">
+          <p className="font-label-caps text-[12px] text-primary font-bold mt-0.5">
             {workout.metriTotali.toLocaleString('it-IT')} m · {workout.fonte ?? 'manuale'}
           </p>
         )}
@@ -602,7 +602,7 @@ function SchedaDettaglio({ workout, onIndietro }: { workout: CustomWorkout; onIn
                   <h4 className="font-label-caps text-label-caps uppercase tracking-wider text-primary font-bold">
                     {nome}
                   </h4>
-                  <span className="font-label-caps text-[10px] text-on-surface-variant tabular-nums">
+                  <span className="font-label-caps text-[12px] text-on-surface-variant tabular-nums">
                     {metriFase.toLocaleString('it-IT')} m
                   </span>
                 </div>

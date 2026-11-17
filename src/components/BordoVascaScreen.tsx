@@ -40,7 +40,7 @@ export const BordoVascaScreen: React.FC = () => {
             Bordo Vasca · Deck Stopwatch
           </span>
         </div>
-        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-secondary-container/60 text-on-secondary-container font-label-caps text-[9px] font-bold uppercase tracking-wider flex-shrink-0">
+        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-secondary-container/60 text-on-secondary-container font-label-caps text-[12px] font-bold uppercase tracking-wider flex-shrink-0">
           <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
           Live
         </span>

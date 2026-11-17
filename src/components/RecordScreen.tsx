@@ -146,7 +146,7 @@ export const RecordScreen: React.FC = () => {
 
   const renderTempo = (r: RecordFINP | null, tone: 'primary' | 'secondary' | 'tertiary' | 'plain') => {
     if (!r) {
-      return <span className="font-label-caps text-[10px] text-on-surface-variant italic">non disponibile</span>;
+      return <span className="font-label-caps text-[12px] text-on-surface-variant italic">non disponibile</span>;
     }
     const toneClass =
       tone === 'primary' ? 'text-primary'
@@ -166,7 +166,7 @@ export const RecordScreen: React.FC = () => {
   };
 
   const sottoRecord = (r: RecordFINP | null, fallback: string, tone: 'primary' | 'tertiary' | 'secondary') => (
-    <span className={`font-label-caps text-[9px] truncate ${tone === 'tertiary' ? 'text-tertiary' : tone === 'secondary' ? 'text-secondary' : 'text-primary'}`}>
+    <span className={`font-label-caps text-[12px] truncate ${tone === 'tertiary' ? 'text-tertiary' : tone === 'secondary' ? 'text-secondary' : 'text-primary'}`}>
       {r?.d ? `${r.d}` : fallback}
     </span>
   );
@@ -208,7 +208,7 @@ export const RecordScreen: React.FC = () => {
             options={generi.map(g => ({ value: g, label: g === 'M' ? 'M' : g === 'F' ? 'F' : 'Mista' }))}
           />
           <div className="flex items-center gap-1.5 bg-surface-container px-2.5 py-1 min-h-[48px] rounded-lg min-w-0">
-            <span className="font-label-caps text-[10px] text-on-surface-variant shrink-0">CLASSE:</span>
+            <span className="font-label-caps text-[12px] text-on-surface-variant shrink-0">CLASSE:</span>
             <select
               value={classeEffettiva}
               onChange={e => setClasse(e.target.value)}
@@ -256,7 +256,7 @@ export const RecordScreen: React.FC = () => {
               {genereEffettivo === 'M' ? 'Maschile' : genereEffettivo === 'F' ? 'Femminile' : 'Mista'} · Vasca {vasca}m
             </span>
           </div>
-          <span className="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-caps text-[10px] font-bold whitespace-nowrap">
+          <span className="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-caps text-[12px] font-bold whitespace-nowrap">
             WPS APPROVED
           </span>
         </div>
@@ -265,7 +265,7 @@ export const RecordScreen: React.FC = () => {
         <div className="grid grid-cols-3 gap-2 bg-surface-container-low p-2 rounded-lg text-center">
           {/* Mondiale */}
           <div className="flex flex-col min-w-0">
-            <span className="font-label-caps text-[10px] text-on-surface-variant flex items-center justify-center gap-1">
+            <span className="font-label-caps text-[12px] text-on-surface-variant flex items-center justify-center gap-1">
               {TIPO_ICON.WR} WORLD RECORD
             </span>
             <span className="mt-1 flex justify-center">{renderTempo(recordWr, 'plain')}</span>
@@ -273,7 +273,7 @@ export const RecordScreen: React.FC = () => {
           </div>
           {/* Italiano in evidenza */}
           <div className="flex flex-col bg-surface-container-lowest rounded-md p-1 shadow-sm min-w-0">
-            <span className="font-label-caps text-[10px] text-tertiary font-bold flex items-center justify-center gap-1">
+            <span className="font-label-caps text-[12px] text-tertiary font-bold flex items-center justify-center gap-1">
               {TIPO_ICON.ITA} REC. {itaInEvidenza?.cat.toUpperCase() ?? 'ITALIA'}
             </span>
             <span className="mt-1 flex justify-center">{renderTempo(itaInEvidenza?.record ?? null, 'tertiary')}</span>
@@ -281,7 +281,7 @@ export const RecordScreen: React.FC = () => {
           </div>
           {/* Europeo */}
           <div className="flex flex-col min-w-0">
-            <span className="font-label-caps text-[10px] text-on-surface-variant flex items-center justify-center gap-1">
+            <span className="font-label-caps text-[12px] text-on-surface-variant flex items-center justify-center gap-1">
               {TIPO_ICON.EUR} EUROPEO
             </span>
             <span className="mt-1 flex justify-center">{renderTempo(recordEur, 'secondary')}</span>
@@ -302,10 +302,10 @@ export const RecordScreen: React.FC = () => {
                     {atletaSel.nome} {atletaSel.cognome}
                   </span>
                   {atletaSel.classeS != null && (
-                    <span className="font-label-caps text-[9px] px-1 py-0.2 rounded bg-primary text-on-primary shrink-0">S{atletaSel.classeS}</span>
+                    <span className="font-label-caps text-[12px] px-1 py-0.2 rounded bg-primary text-on-primary shrink-0">S{atletaSel.classeS}</span>
                   )}
                 </div>
-                <span className="font-label-caps text-[10px] text-on-surface-variant mt-0.5 truncate">
+                <span className="font-label-caps text-[12px] text-on-surface-variant mt-0.5 truncate">
                   {migliorTempo
                     ? `PB: ${formattaTempo(migliorTempo.centesimi)} · ${formattaData(migliorTempo.data)}`
                     : 'Nessun tempo gara registrato'}
@@ -317,7 +317,7 @@ export const RecordScreen: React.FC = () => {
                 <span className="font-headline-sm text-headline-sm text-secondary font-bold tabular-nums">
                   {formattaTempo(migliorTempo.centesimi)}
                 </span>
-                <span className="font-label-caps text-[9px] px-1.5 py-0.5 rounded-full bg-secondary-fixed-dim text-on-secondary-fixed">
+                <span className="font-label-caps text-[12px] px-1.5 py-0.5 rounded-full bg-secondary-fixed-dim text-on-secondary-fixed">
                   Confronto attivo
                 </span>
               </div>
@@ -389,7 +389,7 @@ export const RecordScreen: React.FC = () => {
             <>
               <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <span className="font-label-caps text-[10px] text-on-primary/80 uppercase block">Miglior tempo di gara</span>
+                  <span className="font-label-caps text-[12px] text-on-primary/80 uppercase block">Miglior tempo di gara</span>
                   <span className="text-xs font-semibold">{formattaData(migliorTempo.data)}</span>
                 </div>
                 <span className="font-stat-timer-mobile text-[26px] leading-none tabular-nums shrink-0">
@@ -421,12 +421,12 @@ export const RecordScreen: React.FC = () => {
                           <span className="tabular-nums">
                             {segno}{formattaTempo(Math.abs(confronto.deltaCentesimi))}
                           </span>
-                          <span className="text-[10px] text-on-surface-variant font-semibold">
+                          <span className="text-[12px] text-on-surface-variant font-semibold">
                             ({confronto.percentuale.toFixed(1)}%)
                           </span>
                         </div>
                         {confronto.puntiWPS != null && (
-                          <span className="font-label-caps text-[9px] px-1.5 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-bold">
+                          <span className="font-label-caps text-[12px] px-1.5 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-bold">
                             {confronto.puntiWPS} Punti WPS
                           </span>
                         )}
@@ -477,17 +477,17 @@ export const RecordScreen: React.FC = () => {
             <dl className="space-y-3 border-t border-outline-variant/60 pt-3 text-sm">
               <div className="flex items-start gap-2">
                 <User size={16} className="mt-0.5 shrink-0 text-primary" />
-                <div><dt className="font-label-caps text-[10px] text-on-surface-variant uppercase">Detentore</dt><dd className="font-semibold">{recordInfo.d ?? 'Non indicato'}</dd></div>
+                <div><dt className="font-label-caps text-[12px] text-on-surface-variant uppercase">Detentore</dt><dd className="font-semibold">{recordInfo.d ?? 'Non indicato'}</dd></div>
               </div>
               <div className="flex items-start gap-2">
                 <MapPin size={16} className="mt-0.5 shrink-0 text-primary" />
-                <div><dt className="font-label-caps text-[10px] text-on-surface-variant uppercase">Luogo</dt><dd className="font-semibold">{recordInfo.l ?? 'Non indicato'}</dd></div>
+                <div><dt className="font-label-caps text-[12px] text-on-surface-variant uppercase">Luogo</dt><dd className="font-semibold">{recordInfo.l ?? 'Non indicato'}</dd></div>
               </div>
               <div className="flex items-start gap-2">
                 <CalendarDays size={16} className="mt-0.5 shrink-0 text-primary" />
-                <div><dt className="font-label-caps text-[10px] text-on-surface-variant uppercase">Data</dt><dd className="font-semibold">{recordInfo.dt ?? 'Non indicata'}</dd></div>
+                <div><dt className="font-label-caps text-[12px] text-on-surface-variant uppercase">Data</dt><dd className="font-semibold">{recordInfo.dt ?? 'Non indicata'}</dd></div>
               </div>
-              {recordInfo.m && <div><dt className="font-label-caps text-[10px] text-on-surface-variant uppercase">Manifestazione</dt><dd className="font-semibold">{recordInfo.m}</dd></div>}
+              {recordInfo.m && <div><dt className="font-label-caps text-[12px] text-on-surface-variant uppercase">Manifestazione</dt><dd className="font-semibold">{recordInfo.m}</dd></div>}
             </dl>
           </div>
         </Modal>

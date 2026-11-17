@@ -77,7 +77,7 @@ export function Badge({
       className={cn(
         'ds-chip',
         baseClass,
-        size === 'sm' && 'text-[10px] px-1.5 py-0.5',
+        size === 'sm' && 'text-[12px] px-1.5 py-0.5',
         className
       )}
       style={inlineStyle}

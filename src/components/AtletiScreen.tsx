@@ -322,7 +322,7 @@ const AtletiScreenContent: React.FC = () => {
                     <BadgeCheck size={14} className="text-primary shrink-0" />
                   )}
                 </div>
-                <p className="font-label-caps text-[10px] text-on-surface-variant mt-0.5 truncate">
+                <p className="font-label-caps text-[12px] text-on-surface-variant mt-0.5 truncate">
                   {eta != null ? `${eta} anni · ` : ''}{a.stato === 'UFFICIALE' ? 'Squadra Nazionale' : 'In attesa di revisione'}
                 </p>
                 <div className="flex flex-wrap items-center gap-1 mt-1.5">
@@ -336,7 +336,7 @@ const AtletiScreenContent: React.FC = () => {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <div className="flex flex-col items-end">
-                  <span className="font-label-caps text-[8px] text-on-surface-variant uppercase leading-none">Miglior</span>
+                  <span className="font-label-caps text-[12px] text-on-surface-variant uppercase leading-none">Miglior</span>
                   <span className={`font-headline-sm text-[15px] font-bold tabular-nums leading-tight mt-0.5 ${haTempi ? 'text-primary' : 'text-on-surface-variant'}`}>
                     {migliorTempo}
                   </span>

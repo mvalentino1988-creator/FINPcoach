@@ -155,7 +155,7 @@ export const RegolamentiScreen: React.FC = () => {
             </span>
             <span className="flex-1 min-w-0">
               <span className="block font-body-bold text-body-bold text-on-surface text-[13px] leading-snug">{sezione.titolo}</span>
-              {!aperta && <span className="block font-label-caps text-[10px] text-on-surface-variant mt-0.5 normal-case tracking-normal font-medium">{anteprima(sezione.testo)}</span>}
+              {!aperta && <span className="block font-label-caps text-[12px] text-on-surface-variant mt-0.5 normal-case tracking-normal font-medium">{anteprima(sezione.testo)}</span>}
             </span>
           </button>
         )}
@@ -192,7 +192,7 @@ export const RegolamentiScreen: React.FC = () => {
             </span>
           )}
           <span className="flex-1 min-w-0 font-body-bold text-body-bold text-on-surface text-sm leading-snug">{cap.titolo}</span>
-          <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-caps text-[9px] font-bold uppercase">
+          <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-caps text-[12px] font-bold uppercase">
             {cap.sezioni.length} {cap.sezioni.length === 1 ? 'art.' : 'articoli'}
           </span>
         </button>
@@ -312,7 +312,7 @@ export const RegolamentiScreen: React.FC = () => {
                 <h4 className="font-body-bold text-body-bold text-on-surface text-sm leading-snug">
                   {evidenzia(r.sezione.titolo, query)}
                 </h4>
-                <span className="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-caps text-[9px] font-bold uppercase shrink-0">
+                <span className="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-caps text-[12px] font-bold uppercase shrink-0">
                   {r.fonte}
                 </span>
               </div>
@@ -352,7 +352,7 @@ export const RegolamentiScreen: React.FC = () => {
                 <h3 className="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2 min-w-0">
                   <Scale size={15} className="text-primary shrink-0" />
                   <span className="truncate">{doc.titolo}</span>
-                  <span className="font-label-caps text-[10px] font-semibold text-on-surface-variant shrink-0">
+                  <span className="font-label-caps text-[12px] font-semibold text-on-surface-variant shrink-0">
                     {capitoli.length} capitoli
                   </span>
                 </h3>

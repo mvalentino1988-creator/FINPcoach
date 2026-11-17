@@ -198,7 +198,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
           <User size={18} />
         </div>
         <div className="flex-1 min-w-0">
-          <span className="font-label-caps text-[10px] text-on-surface-variant uppercase block">Atleta attivo</span>
+          <span className="font-label-caps text-[12px] text-on-surface-variant uppercase block">Atleta attivo</span>
           <select
             value={atletaSel.id}
             onChange={(e) => setAtletaSelId(Number(e.target.value))}
@@ -257,16 +257,16 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-surface-container-low p-2 rounded-lg flex flex-col min-w-0">
-              <span className="font-label-caps text-[10px] text-on-surface-variant uppercase">Passo 100m (B1)</span>
+              <span className="font-label-caps text-[12px] text-on-surface-variant uppercase">Passo 100m (B1)</span>
               <span className="font-stat-timer-mobile text-[24px] text-primary tracking-tight tabular-nums mt-0.5">
                 {cssResult.passo100mFormatted}
               </span>
-              <span className="font-label-caps text-[10px] text-secondary font-bold truncate">{cssResult.spiegazioneMetodologica}</span>
+              <span className="font-label-caps text-[12px] text-secondary font-bold truncate">{cssResult.spiegazioneMetodologica}</span>
             </div>
             <div className="bg-gradient-to-br from-surface-container to-surface-container-high p-2 rounded-lg flex flex-col justify-center">
-              <span className="font-label-caps text-[10px] text-on-surface-variant uppercase font-bold">Soglia aerobica</span>
+              <span className="font-label-caps text-[12px] text-on-surface-variant uppercase font-bold">Soglia aerobica</span>
               <span className="font-headline-sm text-headline-sm text-on-surface font-bold mt-0.5">Velocità Critica</span>
-              <span className="font-label-caps text-[10px] text-on-surface-variant">Usata per i ritmi A1–D</span>
+              <span className="font-label-caps text-[12px] text-on-surface-variant">Usata per i ritmi A1–D</span>
             </div>
           </div>
         </div>
@@ -301,7 +301,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
                     <span className="font-stat-timer-mobile text-[15px] text-on-surface tabular-nums leading-none">{r.passo100mFormatted}</span>
                   </div>
                   <div className="pt-1.5 border-t border-outline-variant/60 flex items-center justify-between">
-                    <span className="font-label-caps text-[9px] text-on-surface-variant uppercase">Ripartenza</span>
+                    <span className="font-label-caps text-[12px] text-on-surface-variant uppercase">Ripartenza</span>
                     <span className="font-headline-sm text-headline-sm text-primary font-bold tabular-nums">{r.ripartenzaFormatted}</span>
                   </div>
                 </div>
@@ -326,7 +326,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
                   <span className="font-body-bold text-body-bold text-on-surface block truncate">
                     {p.stile.replace('_', ' ')} {p.distanzaMetri} m ({p.vascaMetri}m)
                   </span>
-                  <span className="font-label-caps text-[10px] text-on-surface-variant">{formattaData(p.data)}</span>
+                  <span className="font-label-caps text-[12px] text-on-surface-variant">{formattaData(p.data)}</span>
                 </div>
                 <span className="font-stat-timer-mobile text-[18px] text-primary-container tabular-nums leading-none shrink-0">
                   {formattaTempo(p.centesimi)}
@@ -502,12 +502,12 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
                         {formattaTempo(t.centesimi)}
                       </span>
                       {puntiWps != null && (
-                        <span className="font-label-caps text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed uppercase">
+                        <span className="font-label-caps text-[12px] font-bold px-1.5 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed uppercase">
                           {puntiWps} WPS
                         </span>
                       )}
                     </div>
-                    <div className="font-label-caps text-[10px] text-on-surface-variant mt-1 flex items-center gap-1.5 flex-wrap normal-case tracking-normal">
+                    <div className="font-label-caps text-[12px] text-on-surface-variant mt-1 flex items-center gap-1.5 flex-wrap normal-case tracking-normal">
                       <span>{formattaData(t.data)} · {t.contesto.toLowerCase()} · vasca {t.vascaMetri}m</span>
                       <span>•</span>
                       <span className="text-primary font-semibold flex items-center gap-0.5" title={`Tempo convertito vasca da ${vascaDest}m`}>

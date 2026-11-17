@@ -152,7 +152,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
                 >
                   <div className="flex-1 min-w-0">
                     <div className="font-body-bold text-body-bold text-on-surface text-sm truncate">{tmpl.nome}</div>
-                    <div className="font-label-caps text-[10px] text-on-surface-variant normal-case tracking-normal truncate">{GestioneTemplate.formattaEsercizio(tmpl)}</div>
+                    <div className="font-label-caps text-[12px] text-on-surface-variant normal-case tracking-normal truncate">{GestioneTemplate.formattaEsercizio(tmpl)}</div>
                   </div>
                   <button
                     type="button"
@@ -188,7 +188,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
             <div key={es.id} className="p-3 bg-surface-container-low rounded-xl border border-outline-variant/50 space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="font-label-caps text-label-caps text-on-surface-variant uppercase flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-md bg-primary-fixed text-on-primary-fixed flex items-center justify-center text-[10px] font-bold">{idx + 1}</span>
+                  <span className="w-5 h-5 rounded-md bg-primary-fixed text-on-primary-fixed flex items-center justify-center text-[12px] font-bold">{idx + 1}</span>
                   Esercizio {idx + 1}
                 </span>
                 <div className="flex gap-0.5">
@@ -303,7 +303,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
                       key={att}
                       type="button"
                       onClick={() => toggleAttrezzo(es.id, att)}
-                      className={`px-2.5 py-1 min-h-[32px] rounded-full font-label-caps text-[10px] font-bold transition ${
+                      className={`px-2.5 py-1 min-h-[32px] rounded-full font-label-caps text-[12px] font-bold transition ${
                         es.attrezzi.includes(att)
                           ? 'bg-primary-container text-on-primary-container shadow-sm'
                           : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
@@ -350,7 +350,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
             <span className="font-label-caps text-label-caps text-on-surface-variant uppercase flex items-center gap-1.5">
               <Clock size={12} /> Preview
             </span>
-            <span className="font-stat-timer-mobile text-[18px] text-primary tabular-nums leading-none">{metriTotali.toLocaleString('it-IT')} <span className="font-label-caps text-[10px]">m</span></span>
+            <span className="font-stat-timer-mobile text-[18px] text-primary tabular-nums leading-none">{metriTotali.toLocaleString('it-IT')} <span className="font-label-caps text-[12px]">m</span></span>
           </div>
           <pre className="text-xs text-on-surface-variant whitespace-pre-wrap font-mono leading-relaxed">
             {testoGenerato}

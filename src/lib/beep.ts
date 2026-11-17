@@ -5,6 +5,15 @@
 
 let ctx: AudioContext | null = null;
 
+/** Feedback acustico/tattile attivo? Disattivabile dalle impostazioni (Aspetto). */
+export function feedbackAttivo(): boolean {
+  try {
+    return localStorage.getItem('finp_feedback') !== 'off';
+  } catch {
+    return true;
+  }
+}
+
 function getCtx(): AudioContext | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -22,6 +31,7 @@ function getCtx(): AudioContext | null {
 
 /** Suono breve (default ~140ms, 880Hz). Chiamare dopo un gesto utente. */
 export function beep(freq = 880, durMs = 140, gain = 0.08): void {
+  if (!feedbackAttivo()) return;
   const ac = getCtx();
   if (!ac) return;
   try {
@@ -42,6 +52,7 @@ export function beep(freq = 880, durMs = 140, gain = 0.08): void {
 }
 
 export function vibrate(pattern: number | number[] = [0, 120, 60, 120]): void {
+  if (!feedbackAttivo()) return;
   try {
     navigator.vibrate?.(pattern);
   } catch {
