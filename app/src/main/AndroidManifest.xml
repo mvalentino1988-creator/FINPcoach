@@ -11,13 +11,12 @@
     <!-- Vibrazione (navigator.vibrate) per le ripartenze del cronometro a bordo vasca -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
-    <!-- Per OCR da immagini -->
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
+    <!--
+        Nessun permesso media/foto: l'OCR e il backup usano <input type="file">
+        che apre il selettore di sistema (Photo Picker/SAF) senza permessi runtime.
+        CAMERA/READ_MEDIA_IMAGES non servono: non c'e' getUserMedia ne' cattura
+        diretta dalla fotocamera.
+    -->
 
     <application
         android:name=".NuotoParalimpicoApp"

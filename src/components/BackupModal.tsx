@@ -57,6 +57,24 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
     }
 
     if (!syncEnabled) {
+      // Consenso esplicito prima della prima attivazione (dati sanitari!)
+      if (localStorage.getItem('finp_sync_consent') !== 'true') {
+        const ok = confirm(
+          'SINCRONIZZAZIONE CLOUD — CONSENSO\n\n' +
+          'Se attivi la sincronizzazione, i seguenti dati verranno inviati ' +
+          'ai server Firebase (Google) associati al tuo account:\n\n' +
+          '• anagrafica degli atleti (nome, classe, note)\n' +
+          '• condizioni mediche, assenze e note sanitarie\n' +
+          '• tempi di gara, registri delle sedute, piani di allenamento\n' +
+          '• calendario gare e impostazioni\n\n' +
+          'Questi dati includono informazioni sanitarie. ' +
+          'Se NON sei sicuro o non vuoi inviare i dati sanitari in cloud, ' +
+          'usa solo i backup locali cifrati.\n\n' +
+          'Premi OK per acconsentire e continuare, Annulla per rinunciare.'
+        );
+        if (!ok) return;
+        localStorage.setItem('finp_sync_consent', 'true');
+      }
       // Enable sync
       setSyncEnabled(true);
       localStorage.setItem('finp_sync_enabled', 'true');

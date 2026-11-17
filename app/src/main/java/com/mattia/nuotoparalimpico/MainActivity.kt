@@ -55,6 +55,11 @@ class MainActivity : ComponentActivity() {
         // alla web app come variabili CSS (--safe-top / --safe-bottom).
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+        // DevTools della WebView solo negli APK debuggable (mai in release).
+        WebView.setWebContentsDebuggingEnabled(
+            (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        )
+
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             @Suppress("DEPRECATION")
             window.statusBarColor = Color.TRANSPARENT
@@ -69,7 +74,11 @@ class MainActivity : ComponentActivity() {
             )
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
-            settings.allowFileAccess = true
+            // La pagina carica solo risorse bundle (asset host): nessun file:// o content://
+            // deve essere raggiungibile dalla web app. contentAccess resta attivo perche'
+            // il file chooser (<input type="file"> per backup e OCR immagini) restituisce
+            // URI content:// che la pagina deve poter leggere.
+            settings.allowFileAccess = false
             settings.allowContentAccess = true
 
             // Ponte minimale verso la web app: la pagina carica solo risorse dell'app
@@ -180,6 +189,7 @@ class MainActivity : ComponentActivity() {
     private inner class NativeOrientationBridge {
         @JavascriptInterface
         fun setOrientation(mode: String) {
+            if (!isTrustedPage()) return
             runOnUiThread {
                 requestedOrientation = when (mode) {
                     "portrait" -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
@@ -190,15 +200,27 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * I bridge JS esposti (AndroidBridge, NativeOrientation) devono rispondere solo
+     * quando la pagina corrente e' l'app bundle servita dall'asset host. Se la WebView
+     * mostrasse mai un'altra origine, le chiamate vengono ignorate.
+     */
+    private fun isTrustedPage(): Boolean {
+        val host = webView.url?.let { Uri.parse(it).host }
+        return host == ASSET_HOST || host == REMOTE_HOST
+    }
+
     /** Funzioni native richiamabili dalla web app (window.AndroidBridge). */
     private inner class AndroidBridge {
         @JavascriptInterface
         fun setSystemBarsDark(dark: Boolean) {
+            if (!isTrustedPage()) return
             runOnUiThread { applySystemBarsAppearance(dark) }
         }
 
         @JavascriptInterface
         fun setKeepScreenOn(keepOn: Boolean) {
+            if (!isTrustedPage()) return
             runOnUiThread {
                 if (keepOn) {
                     window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -211,6 +233,7 @@ class MainActivity : ComponentActivity() {
         /** Salva un file di testo nella cartella Download (usato dall'export backup JSON). */
         @JavascriptInterface
         fun exportTextFile(fileName: String, content: String): Boolean {
+            if (!isTrustedPage()) return false
             return try {
                 val safeName = fileName.replace(Regex("[^A-Za-z0-9._ -]"), "_")
                 val values = ContentValues().apply {
@@ -236,6 +259,7 @@ class MainActivity : ComponentActivity() {
         /** Apre la stampa nativa Android della pagina corrente (il WebView non supporta window.print). */
         @JavascriptInterface
         fun printPage() {
+            if (!isTrustedPage()) return
             runOnUiThread {
                 try {
                     val pm = getSystemService(Context.PRINT_SERVICE) as PrintManager
@@ -252,6 +276,7 @@ class MainActivity : ComponentActivity() {
 
         @JavascriptInterface
         fun getSystemIsDark(): Boolean {
+            if (!isTrustedPage()) return true
             return (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         }
     }

@@ -1,23 +1,6 @@
-import {
-  initializeApp,
-  getApps
-} from 'firebase/app';
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc,
-  onSnapshot
-} from 'firebase/firestore';
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup
-} from 'firebase/auth';
+/* Il SDK Firebase (~700 kB) viene caricato con import dinamico SOLO quando la
+   sincronizzazione è configurata E attivata dall'utente: in modalità offline
+   o senza credenziali il bundle non viene mai scaricato ne' eseguito. */
 import firebaseConfig, { isFirebaseConfigured } from './firebaseConfig';
 import {
   Atleta,
@@ -68,10 +51,36 @@ export interface SyncState {
 /**
  * FirebaseSync - Gestisce la sincronizzazione con Firebase Firestore
  */
+/* I tipi delle funzioni Firebase sono deliberatamente laschi: il modulo e'
+   caricato con import dinamico e le firme non servono al di fuori di questa
+   classe (i consumatori usano solo metodi statici di FirebaseSync). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FbFn = any;
+type FirebaseSdk = {
+  app: any;
+  db: any;
+  auth: any;
+  fns: {
+    initializeApp: FbFn;
+    getApps: FbFn;
+    getFirestore: FbFn;
+    doc: FbFn;
+    setDoc: FbFn;
+    getDoc: FbFn;
+    onSnapshot: FbFn;
+    getAuth: FbFn;
+    signInWithEmailAndPassword: FbFn;
+    createUserWithEmailAndPassword: FbFn;
+    signOut: FbFn;
+    onAuthStateChanged: FbFn;
+    GoogleAuthProvider: FbFn;
+    signInWithPopup: FbFn;
+  };
+};
+
 export class FirebaseSync {
-  private static app: any = null;
-  private static db: any = null;
-  private static auth: any = null;
+  private static sdk: FirebaseSdk | null = null;
+  private static sdkPromise: Promise<FirebaseSdk | null> | null = null;
   private static unsubscribe: any = null;
   private static listeners: Set<(data: SyncData) => void> = new Set();
   private static state: SyncState = {
@@ -81,48 +90,75 @@ export class FirebaseSync {
     userId: null
   };
 
-  /**
-   * Inizializza Firebase (singleton)
-   */
-  private static initialize(): boolean {
-    if (this.app) return true;
+  /** Inizializza Firebase (singleton) con SDK caricato lazy. */
+  private static async init(): Promise<FirebaseSdk | null> {
+    if (this.sdk) return this.sdk;
+    if (this.sdkPromise) return this.sdkPromise;
 
-    /* Senza chiavi configurate (tipico in sviluppo e per chi non usa il
-       cloud) non si inizializza nulla: evita l'errore auth/invalid-api-key
-       a ogni avvio e non tocca il SDK. */
     if (!isFirebaseConfigured()) {
       this.state.status = 'disconnected';
-      return false;
+      return null;
     }
 
-    try {
-      if (getApps().length === 0) {
-        this.app = initializeApp(firebaseConfig);
-      } else {
-        this.app = getApps()[0];
+    this.sdkPromise = (async () => {
+      try {
+        const [appMod, fsMod, authMod] = await Promise.all([
+          import('firebase/app'),
+          import('firebase/firestore'),
+          import('firebase/auth'),
+        ]);
+        const fns: FirebaseSdk['fns'] = {
+          initializeApp: appMod.initializeApp,
+          getApps: appMod.getApps,
+          getFirestore: fsMod.getFirestore,
+          doc: fsMod.doc,
+          setDoc: fsMod.setDoc,
+          getDoc: fsMod.getDoc,
+          onSnapshot: fsMod.onSnapshot,
+          getAuth: authMod.getAuth,
+          signInWithEmailAndPassword: authMod.signInWithEmailAndPassword,
+          createUserWithEmailAndPassword: authMod.createUserWithEmailAndPassword,
+          signOut: authMod.signOut,
+          onAuthStateChanged: authMod.onAuthStateChanged,
+          GoogleAuthProvider: authMod.GoogleAuthProvider,
+          signInWithPopup: authMod.signInWithPopup,
+        };
+        const app = appMod.getApps().length === 0
+          ? appMod.initializeApp(firebaseConfig)
+          : appMod.getApps()[0];
+        this.sdk = {
+          app,
+          db: fsMod.getFirestore(app),
+          auth: authMod.getAuth(app),
+          fns,
+        };
+        return this.sdk;
+      } catch (error) {
+        console.error('Firebase initialization error:', error);
+        this.state.status = 'error';
+        this.state.error = 'Errore inizializzazione Firebase';
+        return null;
       }
-      this.db = getFirestore(this.app);
-      this.auth = getAuth(this.app);
-      return true;
-    } catch (error) {
-      console.error('Firebase initialization error:', error);
-      this.state.status = 'error';
-      this.state.error = 'Errore inizializzazione Firebase';
-      return false;
-    }
+    })();
+
+    return this.sdkPromise;
   }
+
+  private static get db(): any { return this.sdk?.db ?? null; }
+  private static get auth(): any { return this.sdk?.auth ?? null; }
 
   /**
    * Login con email e password
    */
   static async login(email: string, password: string): Promise<{ success: boolean; error?: string }> {
-    if (!this.initialize()) {
+    const sdk = await this.init();
+    if (!sdk) {
       return { success: false, error: 'Firebase non configurato' };
     }
 
     try {
       this.state.status = 'connecting';
-      const userCredential = await signInWithEmailAndPassword(this.auth!, email, password);
+      const userCredential = await sdk.fns.signInWithEmailAndPassword(this.auth!, email, password);
       this.state.userId = userCredential.user.uid;
       this.state.status = 'synced';
       return { success: true };
@@ -138,13 +174,14 @@ export class FirebaseSync {
    * Registrazione nuovo account con email e password
    */
   static async register(email: string, password: string): Promise<{ success: boolean; error?: string }> {
-    if (!this.initialize()) {
+    const sdk = await this.init();
+    if (!sdk) {
       return { success: false, error: 'Firebase non configurato' };
     }
 
     try {
       this.state.status = 'connecting';
-      const userCredential = await createUserWithEmailAndPassword(this.auth!, email, password);
+      const userCredential = await sdk.fns.createUserWithEmailAndPassword(this.auth!, email, password);
       this.state.userId = userCredential.user.uid;
       this.state.status = 'synced';
       return { success: true };
@@ -160,14 +197,15 @@ export class FirebaseSync {
    * Login con Google
    */
   static async loginWithGoogle(): Promise<{ success: boolean; error?: string }> {
-    if (!this.initialize()) {
+    const sdk = await this.init();
+    if (!sdk) {
       return { success: false, error: 'Firebase non configurato' };
     }
 
     try {
       this.state.status = 'connecting';
-      const provider = new GoogleAuthProvider();
-      const userCredential = await signInWithPopup(this.auth!, provider);
+      const provider = new sdk.fns.GoogleAuthProvider();
+      const userCredential = await sdk.fns.signInWithPopup(this.auth!, provider);
       this.state.userId = userCredential.user.uid;
       this.state.status = 'synced';
       return { success: true };
@@ -184,7 +222,7 @@ export class FirebaseSync {
    */
   static async logout(): Promise<void> {
     if (this.auth) {
-      await firebaseSignOut(this.auth);
+      if (this.sdk) await this.sdk.fns.signOut(this.auth);
     }
     if (this.unsubscribe) {
       this.unsubscribe();
@@ -209,17 +247,19 @@ export class FirebaseSync {
    * Iscriviti ai cambiamenti dello stato di autenticazione
    */
   static onAuthStateChange(callback: (user: any) => void): () => void {
-    try {
-      if (!this.initialize() || !this.auth) {
-        callback(null);
-        return () => {};
+    let innerUnsub: (() => void) | null = null;
+    let cancelled = false;
+    void this.init().then((sdk) => {
+      if (cancelled || !sdk || !this.auth) {
+        if (!sdk) callback(null);
+        return;
       }
-      return onAuthStateChanged(this.auth, callback);
-    } catch (e) {
-      console.error('Auth state change error:', e);
-      callback(null);
-      return () => {};
-    }
+      innerUnsub = sdk.fns.onAuthStateChanged(this.auth, callback);
+    }).catch(() => callback(null));
+    return () => {
+      cancelled = true;
+      innerUnsub?.();
+    };
   }
 
   /**
@@ -233,8 +273,8 @@ export class FirebaseSync {
 
     try {
       this.state.status = 'syncing';
-      const docRef = doc(this.db, 'users', userId);
-      const docSnap = await getDoc(docRef);
+      const docRef = this.sdk!.fns.doc(this.db, 'users', userId);
+      const docSnap = await this.sdk!.fns.getDoc(docRef);
 
       if (docSnap.exists()) {
         const cloudData = docSnap.data() as SyncData;
@@ -290,7 +330,7 @@ export class FirebaseSync {
 
     try {
       this.state.status = 'syncing';
-      const docRef = doc(this.db, 'users', userId);
+      const docRef = this.sdk!.fns.doc(this.db, 'users', userId);
       
       const dataWithTimestamp: SyncData = JSON.parse(JSON.stringify({
         ...data,
@@ -298,7 +338,7 @@ export class FirebaseSync {
         lastSync: new Date().toISOString()
       }));
 
-      await setDoc(docRef, dataWithTimestamp);
+      await this.sdk!.fns.setDoc(docRef, dataWithTimestamp);
       this.state.lastSync = dataWithTimestamp.lastSync;
       localStorage.setItem('finp_last_sync', dataWithTimestamp.lastSync);
       this.state.status = 'synced';
@@ -315,33 +355,33 @@ export class FirebaseSync {
    * Iscriviti ai cambiamenti real-time dei dati dal cloud
    */
   static subscribeToUpdates(callback: (data: SyncData | null) => void): () => void {
-    const userId = this.getCurrentUser()?.uid;
-    if (!userId || !this.db) {
-      return () => {};
-    }
-
-    if (this.unsubscribe) {
-      this.unsubscribe();
-    }
-
-    const docRef = doc(this.db, 'users', userId);
-    this.unsubscribe = onSnapshot(
-      docRef,
-      (doc: any) => {
-        if (doc.exists()) {
-          callback(doc.data() as SyncData);
-        } else {
-          callback(null);
+    let innerUnsub: (() => void) | null = null;
+    let cancelled = false;
+    void this.init().then((sdk) => {
+      const userId = this.getCurrentUser()?.uid;
+      if (cancelled || !sdk || !userId) return;
+      if (this.unsubscribe) this.unsubscribe();
+      const docRef = sdk.fns.doc(sdk.db, 'users', userId);
+      this.unsubscribe = sdk.fns.onSnapshot(
+        docRef,
+        (doc: any) => {
+          if (doc.exists()) {
+            callback(doc.data() as SyncData);
+          } else {
+            callback(null);
+          }
+        },
+        (error: any) => {
+          console.error('Subscribe error:', error);
+          this.state.status = 'error';
+          this.state.error = 'Errore sincronizzazione real-time';
         }
-      },
-      (error: any) => {
-        console.error('Subscribe error:', error);
-        this.state.status = 'error';
-        this.state.error = 'Errore sincronizzazione real-time';
-      }
-    );
-
+      );
+      innerUnsub = this.unsubscribe;
+    });
     return () => {
+      cancelled = true;
+      innerUnsub?.();
       if (this.unsubscribe) {
         this.unsubscribe();
         this.unsubscribe = null;

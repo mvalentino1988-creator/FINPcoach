@@ -19,7 +19,7 @@ import {
   rispostaToTesto,
   urlProviderWeb,
 } from '../domain/iaEsterna';
-import { Bot, Copy, ExternalLink, Loader2, Settings, Sparkles, X } from 'lucide-react';
+import { Bot, Copy, ExternalLink, Eye, EyeOff, Loader2, Settings, Sparkles, Trash2, X } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -52,6 +52,7 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
 }) => {
   const [config, setConfig] = useState<IAConfig>(() => FINPStorage.getIAConfig());
   const [mostraConfig, setMostraConfig] = useState(false);
+  const [mostraApiKey, setMostraApiKey] = useState(false);
   const [caricamento, setCaricamento] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
   const [testoIA, setTestoIA] = useState('');
@@ -198,13 +199,41 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
                   className="ds-input !h-11"
                 />
               </div>
-              <input
-                type="password"
-                value={config.apiKey}
-                onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
-                placeholder="API key"
-                className="ds-input"
-              />
+              <div className="relative">
+                <input
+                  type={mostraApiKey ? 'text' : 'password'}
+                  value={config.apiKey}
+                  onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
+                  placeholder="API key"
+                  autoComplete="off"
+                  className="ds-input pr-24"
+                  aria-label="API key dell'endpoint IA"
+                />
+                <div className="absolute inset-y-0 right-1 flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setMostraApiKey(!mostraApiKey)}
+                    className="ds-btn-icon !w-9 !h-9"
+                    aria-label={mostraApiKey ? 'Nascondi API key' : 'Mostra API key'}
+                  >
+                    {mostraApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                  {config.apiKey && (
+                    <button
+                      type="button"
+                      onClick={() => setConfig({ ...config, apiKey: '' })}
+                      className="ds-btn-icon !w-9 !h-9 text-coral"
+                      title="Rimuovi chiave"
+                      aria-label="Rimuovi chiave API"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+              </div>
+              <p className="ds-label">
+                La chiave è salvata solo su questo dispositivo: non viene mai inclusa nei backup, negli export o nei log.
+              </p>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <select
                   value={config.providerWeb}

@@ -244,7 +244,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     let unsubSnap: (() => void) | undefined;
     const unsubAuth = FirebaseSync.onAuthStateChange(async (user) => {
-      const syncEnabled = localStorage.getItem('finp_sync_enabled') === 'true';
+      const syncEnabled = localStorage.getItem('finp_sync_enabled') === 'true'
+        && localStorage.getItem('finp_sync_consent') === 'true';
       if (!syncEnabled || !user) {
         hydrated.current = true;
         return;
@@ -272,6 +273,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     if (!hydrated.current || applyingCloud.current) return;
     if (localStorage.getItem('finp_sync_enabled') !== 'true') return;
+    if (localStorage.getItem('finp_sync_consent') !== 'true') return;
     if (!FirebaseSync.getCurrentUser()) return;
 
     const timeoutId = setTimeout(() => {
