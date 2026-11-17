@@ -50,6 +50,10 @@ export const AltroScreen: React.FC = () => {
           {sezione === 'fonti' && <FontiScreen />}
         </Suspense>
       </div>
+
+      <p className="text-[12px] text-on-surface-variant text-center pb-1 shrink-0">
+        FINPcoach v{__APP_VERSION__} · build {__APP_BUILD_DATE__}
+      </p>
     </div>
   );
 };

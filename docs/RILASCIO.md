@@ -1,0 +1,67 @@
+# Procedura di rilascio FINPcoach (Android)
+
+## Versioni
+
+- **Fonte unica**: `package.json` → campo `version` (es. `0.2.0`).
+- **versionName** in `app/build.gradle.kts` deve essere allineato manualmente
+  a quel valore a ogni rilascio.
+- **versionCode** in `app/build.gradle.kts` va incrementato di 1 a ogni
+  upload (obbligatorio per il Play Store).
+- La versione e la data di build sono visibili in app in **Altro → piè di
+  pagina** (`v{__APP_VERSION__} · build {__APP_BUILD_DATE__}`, iniettate da
+  `vite.config.ts`).
+
+## Build di sviluppo (debug)
+
+```bash
+npm ci
+npm run build            # produce dist/ e sincronizza app/src/main/assets/web
+cd app && ./gradlew assembleDebug
+```
+
+L'APK debug è firmato automaticamente dal debug keystore. La WebView ha
+`setWebContentsDebuggingEnabled` attivo solo se l'APK è debuggable.
+
+## Build di release
+
+```bash
+cd app && ./gradlew assembleRelease
+```
+
+### Firma
+
+Il progetto non include un keystore nel repository (corretto: le chiavi non
+vanno mai in git). Per firmare un release:
+
+1. Genera un keystore una tantum (fuori dal repo):
+   `keytool -genkey -v -keystore ~/finpcoach-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias finpcoach`
+2. Configura `signingConfigs.release` in `app/build.gradle.kts` leggendo
+   credenziali da variabili d'ambiente o `keystore.properties` NON versionato:
+   ```properties
+   storeFile=/percorso/finpcoach-release.jks
+   storePassword=...
+   keyAlias=finpcoach
+   keyPassword=...
+   ```
+3. `assembleRelease` con `isMinifyEnabled = true` e `shrinkResources = true`
+   solo dopo aver verificato che l'app funzioni: le classi del bridge
+   `@JavascriptInterface` (`AndroidBridge`, `NativeOrientationBridge`) non
+   sono referenziate dal codice Java (sono chiamate via JS), quindi se un
+   giorno si attiva R8 occorre aggiungere in `proguard-rules.pro`:
+   ```
+   -keepclassmembers class com.mattia.nuotoparalimpico.MainActivity* {
+       @android.webkit.JavascriptInterface <methods>;
+   }
+   ```
+   Allo stato attuale `isMinifyEnabled = false`: la WebView carica solo
+   asset bundled, il codice nativo è piccolo, il rischio non giustifica R8.
+
+## Ciclo di vita verificato
+
+- `configChanges="orientation|screenSize|..."` nel manifest: la rotazione
+  non ricrea Activity/WebView.
+- `onSaveInstanceState`/`restoreState`: la WebView riprende la pagina.
+- Il cronometro vive in `VascaSessionProvider` (React, localStorage):
+  sopravvive a cambio tab, sfondo e riavvio.
+- `allowBackup=false`: i dati non escono dal dispositivo via backup Android;
+  usare l'export JSON cifrato dell'app.
