@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../data/AppContext';
 import { todayISO } from '../domain/dateUtils';
 import { requestKeepScreenOn, releaseKeepScreenOn } from '../lib/wakeLock';
-import { CheckCircle2, ChevronLeft, ChevronRight, Flag, Gauge, LayoutGrid, Pause, Play, Plus, RotateCcw, Save } from 'lucide-react';
+import { CheckCircle2, Flag, Pause, Play, RotateCcw, Save, Plus, Maximize2, Minimize2, Clock, X, Settings2 } from 'lucide-react';
+import { Modal } from './ui/Modal';
 
 interface Split {
   lap: number;
@@ -15,9 +16,11 @@ interface AthleteInLane {
   id: string;
   atletaId: number;
   atletaNome: string;
+  cognome: string;
   classe: string;
   startedAtMs: number | null;
   nextStartAtMs: number | null;
+  ripartenzaCustomSec?: number | null;
   splitList: Split[];
 }
 
@@ -25,36 +28,36 @@ interface LaneState {
   id: number;
   laneNumber: number;
   ripartenzaSecondi: number;
-  ripartenzaText?: string;
   athletes: AthleteInLane[];
 }
 
-const MAX_LANES = 8;
-const MAX_ATHLETES_PER_LANE = 6;
+const MAX_LANES = 6;
+const MAX_ATHLETES_PER_LANE = 12;
 
-const initialsOf = (fullName: string): string =>
-  fullName
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map(word => word[0]?.toUpperCase() ?? '')
-    .join('') || '?';
+const RIPARTENZA_PRESETS = [
+  { label: '30s', seconds: 30 },
+  { label: '45s', seconds: 45 },
+  { label: '1:00', seconds: 60 },
+  { label: '1:15', seconds: 75 },
+  { label: '1:30', seconds: 90 },
+  { label: '2:00', seconds: 120 },
+  { label: '2:30', seconds: 150 },
+  { label: '3:00', seconds: 180 },
+];
 
-// Notazione: 45 s · 1:30 · 2:00
 const formatRipartenza = (totalSec: number): string => {
   const mins = Math.floor(totalSec / 60);
   const secs = totalSec % 60;
-  if (totalSec < 60) return `${totalSec} s`;
+  if (totalSec < 60) return `${totalSec}s`;
   return `${mins}:${String(secs).padStart(2, '0')}`;
 };
 
-// Accetta "45 s", "5 s", "2 m", "1:30", "1.30"/"1,30" e secondi puri ("90").
 const parseRipartenza = (raw: string): number | null => {
   const t = raw.trim().toLowerCase().replace(/\s+/g, '');
   if (!t) return null;
-  let m = t.match(/^(\d+)m$/);
+  let m = t.match(/^(\d+)m\s*(\d+)?s?$/);
   if (m) {
-    const v = Number(m[1]) * 60;
+    const v = Number(m[1]) * 60 + (m[2] ? Number(m[2]) : 0);
     return v <= 7200 ? v : null;
   }
   m = t.match(/^(\d+)s$/);
@@ -86,9 +89,11 @@ const createAthlete = (athlete: { id: number; nome: string; cognome: string; cla
   id,
   atletaId: athlete.id,
   atletaNome: `${athlete.cognome} ${athlete.nome}`,
+  cognome: athlete.cognome || athlete.nome,
   classe: athlete.classeS != null ? `S${athlete.classeS}` : 'S?',
   startedAtMs: null,
   nextStartAtMs: null,
+  ripartenzaCustomSec: null,
   splitList: [],
 });
 
@@ -96,7 +101,7 @@ const createInitialLanes = (
   athletes: { id: number; nome: string; cognome: string; classeS?: number }[],
   defaultRipartenza: number = 90
 ): LaneState[] => {
-  const laneCount = Math.min(MAX_LANES, Math.max(1, athletes.length));
+  const laneCount = MAX_LANES;
   const lanes = Array.from({ length: laneCount }, (_, index) => ({
     id: index + 1,
     laneNumber: index + 1,
@@ -104,60 +109,11 @@ const createInitialLanes = (
     athletes: [] as AthleteInLane[],
   }));
 
-  athletes.slice(0, MAX_LANES * MAX_ATHLETES_PER_LANE).forEach((athlete, index) => {
-    lanes[index % laneCount].athletes.push(createAthlete(athlete, `ath-${athlete.id}`));
+  athletes.forEach((athlete, index) => {
+    lanes[index % laneCount].athletes.push(createAthlete(athlete, `ath-${athlete.id}-${index}`));
   });
 
   return lanes;
-};
-
-const getFirstAthletesIds = (laneList: LaneState[]): Set<string> => {
-  const ids = new Set<string>();
-  laneList.forEach(lane => {
-    if (lane.athletes.length > 0) {
-      ids.add(lane.athletes[0].id);
-    }
-  });
-  return ids;
-};
-
-// Stato corsia per chip di navigazione
-const laneStatusOf = (lane: LaneState, sessionStarted: boolean, masterTime: number): 'LIBERA' | 'IN ATTESA' | 'IN ACQUA' | 'PAUSA' => {
-  if (lane.athletes.length === 0) return 'LIBERA';
-  if (!sessionStarted) return 'IN ATTESA';
-  const hasActive = lane.athletes.some(
-    a => a.startedAtMs !== null && !(a.nextStartAtMs !== null && masterTime < a.nextStartAtMs)
-  );
-  if (hasActive) return 'IN ACQUA';
-  const hasStarted = lane.athletes.some(a => a.startedAtMs !== null);
-  return hasStarted ? 'PAUSA' : 'IN ATTESA';
-};
-
-const LANE_DOT: Record<string, string> = {
-  'IN ACQUA': 'bg-secondary',
-  'PAUSA': 'bg-tertiary',
-  'IN ATTESA': 'bg-on-surface-variant/50',
-  'LIBERA': 'bg-outline',
-};
-
-const LANE_STATUS_LABEL: Record<string, string> = {
-  'IN ACQUA': 'In acqua',
-  'PAUSA': 'Pausa',
-  'IN ATTESA': 'In attesa',
-  'LIBERA': 'Libera',
-};
-
-const ATHLETE_STATUS_STYLE: Record<string, string> = {
-  'AL VIA': 'bg-primary text-on-primary',
-  'IN ATTESA': 'bg-surface-container-high text-on-surface-variant',
-  'PAUSA': 'bg-tertiary-fixed text-on-tertiary-fixed-variant',
-  'IN ACQUA': 'bg-secondary-container text-on-secondary-container',
-};
-
-const ACTION_STYLE: Record<string, string> = {
-  LAP: 'bg-primary text-on-primary',
-  VIA: 'bg-tertiary text-on-tertiary',
-  PAUSA: 'bg-tertiary-container text-on-tertiary',
 };
 
 export const CronometroLiveMultiCorsia: React.FC = () => {
@@ -166,25 +122,29 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
   const [masterTime, setMasterTime] = useState(0);
   const [sessionStarted, setSessionStarted] = useState(false);
   const [lanes, setLanes] = useState<LaneState[]>(() => createInitialLanes(atleti));
-  const [selectedStartAthleteIds, setSelectedStartAthleteIds] = useState<Set<string>>(() => {
-    const initial = createInitialLanes(atleti);
-    return getFirstAthletesIds(initial);
-  });
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Modali
+  const [selectedAthleteModal, setSelectedAthleteModal] = useState<{ laneId: number; athlete: AthleteInLane } | null>(null);
+  const [ripartenzaPicker, setRipartenzaPicker] = useState<{
+    title: string;
+    currentSeconds: number;
+    onSelect: (seconds: number) => void;
+  } | null>(null);
+
   const timerRef = useRef<number | null>(null);
   const startTimeRef = useRef(0);
   const savedTimeRef = useRef(0);
   const idRef = useRef(0);
   const [vascaMetri] = useState<25 | 50>(() => (stagione?.vascaMetri === 25 ? 25 : 50));
-  const [ripartenzaText, setRipartenzeText] = useState(() => formatRipartenza(90));
-  const [ripartenzaSecondi, setRipartenzaSecondi] = useState(90);
+  const [globalRipartenzaSecondi, setGlobalRipartenzaSecondi] = useState(90);
   const [salvatoFeedback, setSalvatoFeedback] = useState<string | null>(null);
   const [selectedAthleteId, setSelectedAthleteId] = useState<number | ''>('');
-  const [activeLaneId, setActiveLaneId] = useState<number | null>(null);
 
-  // Mantieni lo schermo acceso quando il cronometro è attivo
   useEffect(() => {
     if (isRunning) {
       requestKeepScreenOn();
+      setIsFullscreen(true);
     } else {
       releaseKeepScreenOn();
     }
@@ -200,92 +160,11 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     () => new Set(lanes.flatMap(lane => lane.athletes.map(athlete => athlete.atletaId))),
     [lanes],
   );
+
   const availableAthletes = useMemo(
     () => atleti.filter(athlete => !assignedAthleteIds.has(athlete.id)),
     [atleti, assignedAthleteIds],
   );
-  const assignedCount = assignedAthleteIds.size;
-
-  // Le corsie vuote non occupano spazio: restano solo quelle con atleti.
-  // Se non ce n'è nessuna se ne mostra una sola come slot di lavoro.
-  const visibleLanes = useMemo(() => {
-    const nonEmpty = lanes.filter(lane => lane.athletes.length > 0);
-    if (nonEmpty.length > 0) return nonEmpty;
-    const firstEmpty = lanes.find(lane => lane.athletes.length === 0);
-    return firstEmpty ? [firstEmpty] : [];
-  }, [lanes]);
-  const displayIndexById = useMemo(
-    () => new Map(visibleLanes.map((lane, index) => [lane.id, index + 1] as const)),
-    [visibleLanes],
-  );
-
-  // Corsia attiva: se quella salvata non esiste più, si prende la prima
-  const activeLane = useMemo(() => {
-    if (visibleLanes.length === 0) return null;
-    return visibleLanes.find(l => l.id === activeLaneId) ?? visibleLanes[0];
-  }, [visibleLanes, activeLaneId]);
-
-  const prevLane = () => {
-    if (!activeLane) return;
-    const idx = visibleLanes.findIndex(l => l.id === activeLane.id);
-    const prev = visibleLanes[(idx - 1 + visibleLanes.length) % visibleLanes.length];
-    setActiveLaneId(prev.id);
-  };
-  const nextLane = () => {
-    if (!activeLane) return;
-    const idx = visibleLanes.findIndex(l => l.id === activeLane.id);
-    const next = visibleLanes[(idx + 1) % visibleLanes.length];
-    setActiveLaneId(next.id);
-  };
-
-  // Prossimo atleta al via / in attesa di ripartenza (chip "Prossimo al via")
-  const nextAthlete = useMemo(() => {
-    const now = masterTime;
-    let best: { name: string; etaMs: number | null } | null = null;
-    for (const lane of lanes) {
-      for (const athlete of lane.athletes) {
-        if (athlete.startedAtMs === null) {
-          return { name: athlete.atletaNome, etaMs: null };
-        }
-        if (athlete.nextStartAtMs !== null && athlete.nextStartAtMs > now) {
-          const eta = athlete.nextStartAtMs - now;
-          if (best === null || best.etaMs === null || eta < best.etaMs) {
-            best = { name: athlete.atletaNome, etaMs: eta };
-          }
-        }
-      }
-    }
-    return best;
-  }, [lanes, masterTime]);
-
-  // Ultimi 3 split registrati (feed live in coda)
-  const latestSplits = useMemo(() => {
-    const items: {
-      key: string;
-      laneIndex: number;
-      name: string;
-      time: string;
-      lap: number;
-      recordedAtMs: number;
-    }[] = [];
-    lanes.forEach(lane => {
-      const laneIndex = displayIndexById.get(lane.id) ?? 0;
-      lane.athletes.forEach(athlete => {
-        const split = athlete.splitList[0];
-        if (split) {
-          items.push({
-            key: athlete.id,
-            laneIndex,
-            name: athlete.atletaNome,
-            time: split.time,
-            lap: split.lap,
-            recordedAtMs: split.recordedAtMs,
-          });
-        }
-      });
-    });
-    return items.sort((a, b) => b.recordedAtMs - a.recordedAtMs).slice(0, 3);
-  }, [lanes, displayIndexById]);
 
   useEffect(() => {
     if (selectedAthleteId === '' || !availableAthletes.some(athlete => athlete.id === selectedAthleteId)) {
@@ -311,7 +190,7 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     };
   }, [isRunning]);
 
-  const getCurrentTime = () => isRunning ? performance.now() - startTimeRef.current : masterTime;
+  const getCurrentTime = () => (isRunning ? performance.now() - startTimeRef.current : masterTime);
 
   const toggleMaster = () => {
     if (isRunning) {
@@ -324,18 +203,21 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     }
 
     if (!sessionStarted) {
-      const selectedIds = selectedStartAthleteIds;
-      setLanes(current => current.map(lane => ({
-        ...lane,
-        athletes: lane.athletes.map(athlete => selectedIds.has(athlete.id)
-          ? { ...athlete, startedAtMs: 0, nextStartAtMs: null }
-          : athlete),
-      })));
-      setSelectedStartAthleteIds(new Set());
+      setLanes(current =>
+        current.map(lane => ({
+          ...lane,
+          athletes: lane.athletes.map(athlete => ({
+            ...athlete,
+            startedAtMs: 0,
+            nextStartAtMs: null,
+          })),
+        }))
+      );
       setSessionStarted(true);
     }
 
     setIsRunning(true);
+    setIsFullscreen(true);
     localStorage.setItem('finp_stopwatch_running', 'true');
     navigator.vibrate?.(80);
   };
@@ -345,10 +227,11 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     setMasterTime(0);
     savedTimeRef.current = 0;
     setSessionStarted(false);
+    setIsFullscreen(false);
     localStorage.setItem('finp_stopwatch_running', 'false');
     releaseKeepScreenOn();
-    setLanes(current => {
-      const reset = current.map(lane => ({
+    setLanes(current =>
+      current.map(lane => ({
         ...lane,
         athletes: lane.athletes.map(athlete => ({
           ...athlete,
@@ -356,106 +239,102 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
           nextStartAtMs: null,
           splitList: [],
         })),
-      }));
-      // Di default tutti gli atleti primi in corsia vengono ripristinati per il via generale
-      setSelectedStartAthleteIds(getFirstAthletesIds(reset));
-      return reset;
-    });
+      }))
+    );
   };
 
-  const handleAthletePress = (laneId: number, athleteId: string) => {
-    if (!isRunning) return;
+  const handleAthletePress = (laneId: number, athlete: AthleteInLane) => {
+    if (!isRunning) {
+      setSelectedAthleteModal({ laneId, athlete });
+      return;
+    }
+
     const currentTime = getCurrentTime();
+    setLanes(current =>
+      current.map(lane => {
+        if (lane.id !== laneId) return lane;
+        return {
+          ...lane,
+          athletes: lane.athletes.map(ath => {
+            if (ath.id !== athlete.id) return ath;
 
-    setLanes(current => current.map(lane => {
-      if (lane.id !== laneId) return lane;
-      const effectiveRipartenza = lane.ripartenzaSecondi ?? ripartenzaSecondi;
+            if (ath.startedAtMs === null) {
+              return { ...ath, startedAtMs: currentTime, nextStartAtMs: null };
+            }
 
-      return {
-        ...lane,
-        athletes: lane.athletes.map(athlete => {
-          if (athlete.id !== athleteId) return athlete;
+            const segmentStart = ath.nextStartAtMs ?? ath.startedAtMs;
+            if (currentTime < segmentStart) return ath;
 
-          if (athlete.startedAtMs === null) {
-            return { ...athlete, startedAtMs: currentTime, nextStartAtMs: null };
-          }
+            const split = {
+              lap: ath.splitList.length + 1,
+              time: formatMs(currentTime - segmentStart),
+              timestampMs: currentTime - segmentStart,
+              recordedAtMs: currentTime,
+            };
+            const effectiveRipartenza = ath.ripartenzaCustomSec ?? lane.ripartenzaSecondi ?? globalRipartenzaSecondi;
+            const scheduledStart = segmentStart + effectiveRipartenza * 1000;
+            const nextStartAtMs = Math.max(scheduledStart, currentTime);
 
-          const segmentStart = athlete.nextStartAtMs ?? athlete.startedAtMs;
-          if (currentTime < segmentStart) return athlete;
-
-          const split = {
-            lap: athlete.splitList.length + 1,
-            time: formatMs(currentTime - segmentStart),
-            timestampMs: currentTime - segmentStart,
-            recordedAtMs: currentTime,
-          };
-          const scheduledStart = segmentStart + effectiveRipartenza * 1000;
-          const nextStartAtMs = Math.max(scheduledStart, currentTime);
-
-          return {
-            ...athlete,
-            startedAtMs: nextStartAtMs,
-            nextStartAtMs,
-            splitList: [split, ...athlete.splitList],
-          };
-        }),
-      };
-    }));
+            return {
+              ...ath,
+              startedAtMs: nextStartAtMs,
+              nextStartAtMs,
+              splitList: [split, ...ath.splitList],
+            };
+          }),
+        };
+      })
+    );
   };
 
   const handleGeneralLap = () => {
     if (!isRunning) return;
     const currentTime = getCurrentTime();
 
-    setLanes(current => current.map(lane => {
-      const effectiveRipartenza = lane.ripartenzaSecondi ?? ripartenzaSecondi;
-      return {
-        ...lane,
-        athletes: lane.athletes.map(athlete => {
-          if (athlete.startedAtMs === null) {
-            return { ...athlete, startedAtMs: currentTime, nextStartAtMs: null };
-          }
-          const segmentStart = athlete.nextStartAtMs ?? athlete.startedAtMs;
-          if (currentTime < segmentStart) return athlete;
+    setLanes(current =>
+      current.map(lane => {
+        const laneRipartenza = lane.ripartenzaSecondi ?? globalRipartenzaSecondi;
+        return {
+          ...lane,
+          athletes: lane.athletes.map(athlete => {
+            if (athlete.startedAtMs === null) {
+              return { ...athlete, startedAtMs: currentTime, nextStartAtMs: null };
+            }
+            const segmentStart = athlete.nextStartAtMs ?? athlete.startedAtMs;
+            if (currentTime < segmentStart) return athlete;
 
-          const split = {
-            lap: athlete.splitList.length + 1,
-            time: formatMs(currentTime - segmentStart),
-            timestampMs: currentTime - segmentStart,
-            recordedAtMs: currentTime,
-          };
-          const scheduledStart = segmentStart + effectiveRipartenza * 1000;
-          const nextStartAtMs = Math.max(scheduledStart, currentTime);
+            const split = {
+              lap: athlete.splitList.length + 1,
+              time: formatMs(currentTime - segmentStart),
+              timestampMs: currentTime - segmentStart,
+              recordedAtMs: currentTime,
+            };
+            const effectiveRipartenza = athlete.ripartenzaCustomSec ?? laneRipartenza;
+            const scheduledStart = segmentStart + effectiveRipartenza * 1000;
+            const nextStartAtMs = Math.max(scheduledStart, currentTime);
 
-          return {
-            ...athlete,
-            startedAtMs: nextStartAtMs,
-            nextStartAtMs,
-            splitList: [split, ...athlete.splitList],
-          };
-        }),
-      };
-    }));
+            return {
+              ...athlete,
+              startedAtMs: nextStartAtMs,
+              nextStartAtMs,
+              splitList: [split, ...athlete.splitList],
+            };
+          }),
+        };
+      })
+    );
     navigator.vibrate?.(50);
-  };
-
-  const toggleInitialStart = (athleteId: string) => {
-    setSelectedStartAthleteIds(current => {
-      const next = new Set(current);
-      if (next.has(athleteId)) next.delete(athleteId);
-      else next.add(athleteId);
-      return next;
-    });
   };
 
   const addLane = () => {
     if (lanes.length >= MAX_LANES) return;
     setLanes(current => {
       const usedNumbers = new Set(current.map(lane => lane.laneNumber));
-      const laneNumber = Array.from({ length: MAX_LANES }, (_, index) => index + 1)
-        .find(number => !usedNumbers.has(number)) ?? current.length + 1;
+      const laneNumber =
+        Array.from({ length: MAX_LANES }, (_, index) => index + 1).find(number => !usedNumbers.has(number)) ??
+        current.length + 1;
       const id = Math.max(0, ...current.map(lane => lane.id)) + 1;
-      return [...current, { id, laneNumber, ripartenzaSecondi, athletes: [] }];
+      return [...current, { id, laneNumber, ripartenzaSecondi: globalRipartenzaSecondi, athletes: [] }];
     });
   };
 
@@ -464,493 +343,476 @@ export const CronometroLiveMultiCorsia: React.FC = () => {
     const athlete = availableAthletes.find(item => item.id === selectedAthleteId);
     if (!athlete) return;
 
-    setLanes(current => current.map(lane => {
-      if (lane.id !== laneId || lane.athletes.length >= MAX_ATHLETES_PER_LANE) return lane;
-      idRef.current += 1;
-      const newAth = createAthlete(athlete, `ath-${athlete.id}-${idRef.current}`);
-      if (!sessionStarted && lane.athletes.length === 0) {
-        setSelectedStartAthleteIds(prev => new Set(prev).add(newAth.id));
-      }
-      return {
-        ...lane,
-        athletes: [...lane.athletes, newAth],
-      };
-    }));
+    setLanes(current =>
+      current.map(lane => {
+        if (lane.id !== laneId || lane.athletes.length >= MAX_ATHLETES_PER_LANE) return lane;
+        idRef.current += 1;
+        const newAth = createAthlete(athlete, `ath-${athlete.id}-${idRef.current}`);
+        if (sessionStarted) {
+          newAth.startedAtMs = masterTime;
+        }
+        return {
+          ...lane,
+          athletes: [...lane.athletes, newAth],
+        };
+      })
+    );
   };
 
-  const moveAthleteToLane = (sourceLaneId: number, athleteId: string, destinationLaneId: number) => {
-    setLanes(current => {
-      const source = current.find(lane => lane.id === sourceLaneId);
-      const destination = current.find(lane => lane.id === destinationLaneId);
-      const athlete = source?.athletes.find(item => item.id === athleteId);
-      if (!source || !destination || !athlete || destination.athletes.length >= MAX_ATHLETES_PER_LANE) {
-        return current;
-      }
-
-      return current.map(lane => {
-        if (lane.id === sourceLaneId) {
-          return { ...lane, athletes: lane.athletes.filter(item => item.id !== athleteId) };
-        }
-        if (lane.id === destinationLaneId) {
-          return { ...lane, athletes: [...lane.athletes, athlete] };
-        }
-        return lane;
-      });
-    });
-  };
-
-  const handleSalvaNelRegistro = (athlete: AthleteInLane) => {
-    const last = athlete.splitList[0];
-    if (!last) return;
-
+  const handleSalvaNelRegistro = (athlete: AthleteInLane, split: Split) => {
     aggiungiTempo({
       atletaId: athlete.atletaId,
       data: todayISO(),
       stile: 'STILE_LIBERO',
       distanzaMetri: vascaMetri,
-      centesimi: Math.round(last.timestampMs / 10),
+      centesimi: Math.round(split.timestampMs / 10),
       contesto: 'ALLENAMENTO',
       vascaMetri,
-      note: `Split Cronometro: Lap ${last.lap} (${last.time})`,
+      note: `Split Cronometro: Lap ${split.lap} (${split.time})`,
     });
 
-    setSalvatoFeedback(`Tempo registrato per ${athlete.atletaNome}`);
-    window.setTimeout(() => setSalvatoFeedback(null), 3000);
+    setSalvatoFeedback(`Salvato: ${athlete.cognome} (L${split.lap})`);
+    window.setTimeout(() => setSalvatoFeedback(null), 2500);
   };
 
-  const activeLaneIndex = activeLane ? visibleLanes.findIndex(l => l.id === activeLane.id) : -1;
-  const activeLaneStatus = activeLane ? laneStatusOf(activeLane, sessionStarted, masterTime) : 'LIBERA';
+  const displayLanes = lanes.filter(l => l.athletes.length > 0);
 
-  return (
-    <div className="flex flex-col h-full gap-2 overflow-hidden select-none">
+  const content = (
+    <div className="flex flex-col h-full w-full gap-1 overflow-hidden select-none bg-surface">
       {/* ============================================================
-          CONSOLE MASTER — cronometro grande, alto contrasto
+          CRONOMETRO GENERALE IN ALTO (Layout a due righe pulito)
           ============================================================ */}
-      <section className="shrink-0 rounded-xl bg-surface-container-low text-on-surface px-space-md py-space-md shadow-[0_0_24px_rgba(6,182,212,0.18)] relative overflow-hidden border border-outline-variant/40 flex flex-col gap-2.5">
-        <div className="absolute -top-12 -right-12 w-36 h-36 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
-        <div className="relative flex items-center justify-between gap-2">
+      <section className="shrink-0 rounded-lg bg-surface-container-low text-on-surface px-2.5 py-2 shadow-xs border border-outline-variant/30 flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <span className={`w-2.5 h-2.5 rounded-full inline-block shrink-0 ${isRunning ? 'bg-tertiary animate-ping' : 'bg-on-surface-variant/40'}`} />
-            <span className="font-label-caps text-[11px] text-primary font-bold tracking-wider uppercase truncate">
-              {isRunning ? 'Bordo Vasca Live' : sessionStarted ? 'Sessione in pausa' : 'Pronto'}
-            </span>
+            <output
+              aria-label="Tempo generale"
+              className="font-stat-timer-mobile text-3xl sm:text-4xl font-bold tracking-tight tabular-nums text-primary leading-none whitespace-nowrap"
+            >
+              {formatMs(masterTime)}
+            </output>
           </div>
-          {!sessionStarted ? (
-            <label className="flex items-center gap-2 rounded-xl bg-surface-container text-on-surface border border-outline-variant/60 px-3 py-1.5 flex-shrink-0">
-              <span className="font-label-caps text-[10px] uppercase text-on-surface-variant tracking-wider">Cadenza</span>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={ripartenzaText}
-                placeholder="45 s / 1.30"
-                aria-label="Ripartenza globale in formato 45 s, 2 m o 1.30"
-                onChange={event => {
-                  const text = event.target.value;
-                  setRipartenzeText(text);
-                  const parsed = parseRipartenza(text);
-                  if (parsed !== null) {
-                    setRipartenzaSecondi(parsed);
-                    setLanes(curr => curr.map(l => ({ ...l, ripartenzaSecondi: parsed })));
-                  }
-                }}
-                onBlur={() => {
-                  const parsed = parseRipartenza(ripartenzaText);
-                  const finalVal = parsed === null || parsed < 5 ? 90 : parsed;
-                  setRipartenzeText(formatRipartenza(finalVal));
-                  setRipartenzaSecondi(finalVal);
-                  setLanes(curr => curr.map(l => ({ ...l, ripartenzaSecondi: finalVal })));
-                }}
-                className="w-16 bg-transparent text-on-surface font-headline-sm text-lg font-bold text-center focus:outline-none tabular-nums"
-              />
-            </label>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={resetMaster}
+              aria-label="Azzera cronometro"
+              className="w-10 h-10 rounded-xl bg-error-container/60 hover:bg-error-container text-error flex items-center justify-center active:scale-95 transition whitespace-nowrap"
+              title="Azzera"
+            >
+              <RotateCcw size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsFullscreen(f => !f)}
+              aria-label="Schermo intero"
+              className="w-10 h-10 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center active:scale-95 transition whitespace-nowrap"
+              title={isFullscreen ? "Esci da schermo intero" : "Schermo intero"}
+            >
+              {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Pulsanti di controllo principali */}
+        <div className="flex items-center gap-2 w-full">
+          {!isRunning ? (
+            <button
+              type="button"
+              onClick={toggleMaster}
+              className="flex-1 min-h-[48px] rounded-xl bg-primary text-on-primary font-headline-sm text-base font-bold flex items-center justify-center gap-2 active:scale-95 transition shadow-sm whitespace-nowrap"
+              aria-label="Avvia cronometro generale"
+            >
+              <Play size={22} />
+              <span>{sessionStarted ? 'RIPRENDI' : 'VIA GENERALE'}</span>
+            </button>
           ) : (
-            <span className="font-label-caps text-[11px] bg-surface-container-high text-tertiary px-2.5 py-1 rounded-lg font-semibold flex-shrink-0 shadow-[0_0_12px_rgba(69,223,164,0.18)]">
-              Rip: {formatRipartenza(ripartenzaSecondi)}
-            </span>
+            <>
+              <button
+                type="button"
+                onClick={handleGeneralLap}
+                className="flex-1 min-h-[48px] rounded-xl bg-secondary text-on-secondary font-headline-sm text-sm font-bold flex items-center justify-center gap-2 active:scale-95 transition shadow-sm whitespace-nowrap"
+                aria-label="Lap generale"
+              >
+                <Flag size={20} />
+                <span>LAP GENERALE</span>
+              </button>
+              <button
+                type="button"
+                onClick={toggleMaster}
+                className="flex-1 min-h-[48px] rounded-xl bg-surface-container-high text-on-surface font-headline-sm text-sm font-bold flex items-center justify-center gap-2 active:scale-95 transition whitespace-nowrap border border-outline-variant/60 shadow-sm"
+                aria-label="Pausa cronometro"
+              >
+                <Pause size={20} />
+                <span>PAUSA / STOP</span>
+              </button>
+            </>
           )}
-        </div>
-
-        <div className="relative flex items-end justify-between gap-3">
-          <output
-            aria-label="Tempo squadra"
-            className="font-stat-timer-mobile text-primary font-bold tracking-tight tabular-nums leading-none drop-shadow-[0_0_22px_rgba(76,215,246,0.45)]"
-          >
-            {formatMs(masterTime)}
-          </output>
-          {nextAthlete && (
-            <div className="flex items-center gap-2.5 bg-surface-container-high/80 border border-outline-variant/60 rounded-2xl px-3.5 py-2 min-w-0">
-              <div className="flex flex-col items-end min-w-0">
-                <span className="font-label-caps text-[10px] uppercase text-on-surface-variant">Prossimo al via</span>
-                <span className="font-headline-sm text-base font-bold text-on-surface leading-tight truncate max-w-[10rem]">
-                  {nextAthlete.name}
-                </span>
-              </div>
-              {nextAthlete.etaMs !== null && (
-                <div className="flex flex-col items-center justify-center bg-primary-container text-on-primary-container px-3 py-1.5 rounded-xl shadow-[0_0_16px_rgba(6,182,212,0.28)] leading-none flex-shrink-0">
-                  <span className="font-stat-timer-mobile text-xl font-bold leading-none tabular-nums">
-                    {Math.max(0, Math.ceil(nextAthlete.etaMs / 1000))}s
-                  </span>
-                  <span className="font-label-caps text-[9px] uppercase tracking-wider mt-0.5">Countdown</span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="relative grid grid-cols-12 gap-2">
-          <button
-            type="button"
-            onClick={toggleMaster}
-            className={`col-span-6 h-14 rounded-xl font-headline-sm text-base font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform select-none ${
-              isRunning ? 'bg-surface-container-high text-on-surface' : 'bg-primary text-on-primary'
-            }`}
-            aria-label={isRunning ? 'Pausa sessione' : sessionStarted ? 'Riprendi sessione' : 'Avvia sessione e atleti selezionati'}
-          >
-            {isRunning ? <Pause size={22} /> : <Play size={22} />}
-            <span>{isRunning ? 'PAUSA' : sessionStarted ? 'RIPRENDI' : 'VIA GENERALE'}</span>
-          </button>
-          <button
-            type="button"
-            onClick={handleGeneralLap}
-            disabled={!isRunning}
-            className={`col-span-4 h-14 rounded-xl bg-secondary text-on-secondary font-headline-sm text-base font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform select-none shadow-[0_0_18px_rgba(164,201,255,0.22)] ${
-              !isRunning ? 'opacity-40 cursor-not-allowed' : ''
-            }`}
-            aria-label="Registra Lap per tutti gli atleti attivi"
-            title="Tocco / Lap generale"
-          >
-            <Flag size={20} />
-            <span>TOCCO / LAP</span>
-          </button>
-          <button
-            type="button"
-            onClick={resetMaster}
-            aria-label="Azzera sessione"
-            className="col-span-2 h-14 rounded-xl bg-error-container/60 hover:bg-error-container text-error flex flex-col items-center justify-center active:scale-[0.98] transition-transform"
-            title="Azzera sessione"
-          >
-            <RotateCcw size={20} />
-            <span className="font-label-caps text-[10px] uppercase leading-none mt-1">Azzera</span>
-          </button>
         </div>
       </section>
 
-      {!sessionStarted && (
-        <section
-          className="shrink-0 rounded-2xl bg-surface-container-lowest p-3 shadow-sm border border-outline-variant/50 flex flex-col gap-2"
-          aria-label="Configurazione corsie e atleti"
-        >
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <LayoutGrid size={17} className="text-primary shrink-0" />
-              <span className="font-headline-sm text-sm uppercase font-bold text-on-surface tracking-wide truncate">
-                Matrice Corsie in Vasca
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <span className="px-2 py-1 rounded-lg bg-surface-container font-label-caps text-[10px] font-bold text-on-surface">
-                {assignedCount} atleti
-              </span>
-              <span className="px-2 py-1 rounded-lg bg-surface-container font-label-caps text-[10px] font-bold text-on-surface-variant">
-                {visibleLanes.length}/{MAX_LANES} corsie
-              </span>
-              {selectedStartAthleteIds.size > 0 && (
-                <span className="px-2 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-caps text-[10px] font-bold uppercase">
-                  {selectedStartAthleteIds.size} al via
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="sr-only" htmlFor="athlete-to-assign">Atleta da assegnare</label>
-            <select
-              id="athlete-to-assign"
-              value={selectedAthleteId}
-              onChange={event => setSelectedAthleteId(event.target.value ? Number(event.target.value) : '')}
-              disabled={availableAthletes.length === 0}
-              className="flex-1 min-w-0 min-h-11 px-3 rounded-xl bg-surface-container-low border border-outline-variant text-sm font-semibold text-on-surface disabled:opacity-60"
-            >
-              {availableAthletes.length === 0
-                ? <option value="">Tutti assegnati</option>
-                : availableAthletes.map(athlete => (
-                  <option key={athlete.id} value={athlete.id}>{athlete.cognome} {athlete.nome}</option>
-                ))}
-            </select>
+      {/* ============================================================
+          RIPARTENZA COMUNE & GESTIONE
+          ============================================================ */}
+      {!isRunning && (
+        <section className="shrink-0 flex items-center justify-between gap-2 bg-surface-container-lowest px-2 py-0.5 rounded-lg border border-outline-variant/30 text-xs animate-fade-in">
+          <div className="flex items-center gap-1 min-w-0">
+            <span className="font-label-caps text-[9px] uppercase font-bold text-on-surface-variant whitespace-nowrap">
+              Rip. Comune:
+            </span>
             <button
               type="button"
-              onClick={addLane}
-              disabled={lanes.length >= MAX_LANES}
-              className="h-11 px-4 rounded-xl bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-xs font-bold uppercase tracking-wide flex items-center gap-1.5 active:scale-95 transition-transform disabled:opacity-45"
+              onClick={() =>
+                setRipartenzaPicker({
+                  title: 'Ripartenza Comune Globale',
+                  currentSeconds: globalRipartenzaSecondi,
+                  onSelect: (sec) => {
+                    setGlobalRipartenzaSecondi(sec);
+                    setLanes(curr => curr.map(l => ({ ...l, ripartenzaSecondi: sec })));
+                  },
+                })
+              }
+              className="h-6 px-2 bg-surface-container border border-outline-variant/50 rounded text-[11px] font-bold text-primary flex items-center gap-1 whitespace-nowrap"
             >
-              <Plus size={16} /> Corsia
+              <Clock size={11} />
+              <span>{formatRipartenza(globalRipartenzaSecondi)}</span>
             </button>
           </div>
+
+          {!sessionStarted && (
+            <div className="flex items-center gap-1 min-w-0">
+              <select
+                aria-label="Atleta da assegnare"
+                value={selectedAthleteId}
+                onChange={e => setSelectedAthleteId(e.target.value ? Number(e.target.value) : '')}
+                disabled={availableAthletes.length === 0}
+                className="max-w-[8rem] h-6 px-1 rounded bg-surface-container border border-outline-variant text-[10px] font-semibold text-on-surface truncate disabled:opacity-65 whitespace-nowrap"
+              >
+                {availableAthletes.length === 0 ? (
+                  <option value="">Tutti in vasca</option>
+                ) : (
+                  availableAthletes.map(a => (
+                    <option key={a.id} value={a.id}>
+                      {a.cognome} {a.nome}
+                    </option>
+                  ))
+                )}
+              </select>
+              {displayLanes.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => addAthleteToLane(displayLanes[0].id)}
+                  disabled={availableAthletes.length === 0}
+                  className="h-6 px-1.5 rounded bg-primary text-on-primary font-label-caps text-[9px] font-bold uppercase flex items-center gap-0.5 active:scale-95 transition disabled:opacity-45 whitespace-nowrap"
+                >
+                  <Plus size={11} /> Atleta
+                </button>
+              )}
+              {lanes.length < MAX_LANES && (
+                <button
+                  type="button"
+                  onClick={addLane}
+                  className="h-6 px-1.5 rounded bg-surface-container-high text-on-surface font-label-caps text-[9px] font-bold uppercase flex items-center gap-0.5 active:scale-95 transition whitespace-nowrap"
+                >
+                  <Plus size={11} /> Corsia
+                </button>
+              )}
+            </div>
+          )}
         </section>
       )}
 
       {salvatoFeedback && (
-        <div role="status" className="shrink-0 flex items-center justify-center gap-2 rounded-xl bg-success-container text-on-success-container px-3 py-2 font-headline-sm text-sm font-bold">
-          <CheckCircle2 size={18} /> {salvatoFeedback}
+        <div role="status" className="shrink-0 flex items-center justify-center gap-1.5 rounded-lg bg-success-container text-on-success-container px-2.5 py-0.5 text-xs font-bold whitespace-nowrap">
+          <CheckCircle2 size={13} /> {salvatoFeedback}
         </div>
       )}
 
       {/* ============================================================
-          NAVIGAZIONE CORSE — una corsia alla volta, focus totale
+          MATRICE CORSIE E CASELLE ATLETI (Griglia a 4 colonne per corsia: zero troncamenti, cognomi interi leggibili)
           ============================================================ */}
-      {activeLane && (
-        <>
-          <div className="shrink-0 flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={prevLane}
-              disabled={visibleLanes.length < 2}
-              aria-label="Corsia precedente"
-              className="w-10 h-10 rounded-xl bg-surface-container-lowest shadow-sm border border-outline-variant/50 flex items-center justify-center text-on-surface disabled:opacity-40 active:scale-95 transition"
+      <div className="flex-1 min-h-0 flex flex-col gap-0.5 overflow-hidden">
+        {displayLanes.map(lane => {
+          const athleteCount = lane.athletes.length;
+          return (
+            <div
+              key={lane.id}
+              className="flex-1 min-h-0 flex flex-col rounded-lg bg-surface-container-lowest border border-outline-variant/40 p-0.5 shadow-xs"
             >
-              <ChevronLeft size={20} />
-            </button>
-            <div className="flex-1 flex items-center justify-center gap-1.5 flex-wrap">
-              {visibleLanes.map((lane, idx) => {
-                const status = laneStatusOf(lane, sessionStarted, masterTime);
-                const isActive = lane.id === activeLane.id;
-                return (
-                  <button
-                    key={lane.id}
-                    type="button"
-                    onClick={() => setActiveLaneId(lane.id)}
-                    className={`flex items-center gap-1.5 px-2.5 h-9 rounded-xl font-headline-sm text-[13px] font-bold whitespace-nowrap transition active:scale-[0.97] ${
-                      isActive
-                        ? 'bg-primary text-on-primary shadow-sm'
-                        : 'bg-surface-container-lowest text-on-surface border border-outline-variant/50'
-                    }`}
-                  >
-                    <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-on-primary' : LANE_DOT[status]}`} />
-                    Corsia {displayIndexById.get(lane.id) ?? idx + 1}
-                  </button>
-                );
-              })}
-            </div>
-            <button
-              type="button"
-              onClick={nextLane}
-              disabled={visibleLanes.length < 2}
-              aria-label="Corsia successiva"
-              className="w-10 h-10 rounded-xl bg-surface-container-lowest shadow-sm border border-outline-variant/50 flex items-center justify-center text-on-surface disabled:opacity-40 active:scale-95 transition"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
-
-          {/* Corsia attiva a tutta larghezza */}
-          <article className="flex-1 min-h-0 flex flex-col rounded-2xl bg-surface-container-lowest shadow-card border border-outline-variant/40 overflow-hidden">
-            <header className="shrink-0 flex items-center gap-2.5 px-3.5 py-2.5 border-b border-surface-container-highest/60">
-              <span className="w-9 h-9 rounded-xl bg-primary text-on-primary font-headline-sm text-lg font-bold flex items-center justify-center shadow-sm">
-                {activeLaneIndex + 1}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-headline-sm text-base font-bold text-on-surface">Corsia {activeLaneIndex + 1}</span>
-                  <span className={`px-2 py-0.5 rounded-full font-label-caps text-[10px] font-bold uppercase tracking-wide ${
-                    activeLaneStatus === 'IN ACQUA'
-                      ? 'bg-secondary-container text-on-secondary-container'
-                      : activeLaneStatus === 'PAUSA'
-                        ? 'bg-tertiary-fixed text-on-tertiary-fixed-variant'
-                        : 'bg-surface-container-high text-on-surface-variant'
-                  }`}>
-                    {LANE_STATUS_LABEL[activeLaneStatus]}
+              {/* Intestazione corsia + ripartenza corsia */}
+              <div className="shrink-0 flex items-center justify-between pb-0.5 px-1 border-b border-surface-container-highest/50">
+                <div className="flex items-center gap-1 min-w-0">
+                  <span className="w-4 h-4 rounded bg-primary text-on-primary font-headline-sm text-[10px] font-bold flex items-center justify-center shrink-0">
+                    {lane.laneNumber}
+                  </span>
+                  <span className="font-headline-sm text-[10px] font-bold text-on-surface uppercase whitespace-nowrap truncate">
+                    C{lane.laneNumber} ({athleteCount})
                   </span>
                 </div>
-                <span className="font-label-caps text-[10px] text-on-surface-variant">
-                  {activeLane.athletes.length} {activeLane.athletes.length === 1 ? 'atleta' : 'atleti'}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <span className="font-label-caps text-[10px] uppercase text-on-surface-variant">Rip</span>
-                {!sessionStarted ? (
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    defaultValue={formatRipartenza(activeLane.ripartenzaSecondi ?? ripartenzaSecondi)}
-                    key={`${activeLane.id}-${activeLane.ripartenzaSecondi}`}
-                    aria-label={`Ripartenza corsia ${activeLaneIndex + 1}`}
-                    onBlur={e => {
-                      const parsed = parseRipartenza(e.target.value);
-                      const finalVal = parsed === null || parsed < 5 ? 90 : parsed;
-                      setLanes(curr => curr.map(l => (l.id === activeLane.id ? { ...l, ripartenzaSecondi: finalVal } : l)));
-                      e.target.value = formatRipartenza(finalVal);
-                    }}
-                    className="w-16 bg-surface-container-lowest border border-outline-variant rounded-lg px-2 py-1.5 text-sm font-bold text-primary text-center focus:outline-none focus:ring-2 focus:ring-primary/30 tabular-nums"
-                  />
-                ) : (
-                  <span className="text-sm font-bold text-primary tabular-nums">
-                    {formatRipartenza(activeLane.ripartenzaSecondi ?? ripartenzaSecondi)}
-                  </span>
-                )}
-              </div>
-              {!sessionStarted && activeLane.athletes.length < MAX_ATHLETES_PER_LANE && availableAthletes.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => addAthleteToLane(activeLane.id)}
-                  className="h-10 px-3.5 rounded-xl bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-xs font-bold uppercase tracking-wide flex items-center gap-1.5 active:scale-95 transition-transform"
-                  aria-label="Aggiungi atleta alla corsia"
-                >
-                  <Plus size={16} /> Aggiungi
-                </button>
-              )}
-            </header>
-
-            {/* Atleti della corsia — card grandi, tempo leggibile a distanza */}
-            <div className="flex-1 min-h-0 flex flex-col gap-2 p-2.5 overflow-hidden">
-              {activeLane.athletes.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center gap-2 text-on-surface-variant">
-                  <LayoutGrid size={28} className="opacity-40" />
-                  <p className="text-sm font-semibold">Corsia vuota</p>
-                  <p className="text-xs opacity-70">Scegli un atleta sopra e premi «Aggiungi»</p>
-                </div>
-              ) : (
-                activeLane.athletes.map((athlete, athleteIdx) => {
-                  const now = masterTime;
-                  const waitingUntil = athlete.nextStartAtMs !== null && now < athlete.nextStartAtMs ? athlete.nextStartAtMs : null;
-                  const segmentStart = athlete.nextStartAtMs ?? athlete.startedAtMs;
-                  const elapsed = athlete.startedAtMs === null || segmentStart === null || waitingUntil !== null
-                    ? 0
-                    : Math.max(0, now - segmentStart);
-                  const isSelectedForStart = selectedStartAthleteIds.has(athlete.id);
-                  const action = athlete.startedAtMs === null
-                    ? 'VIA'
-                    : waitingUntil !== null
-                      ? 'PAUSA'
-                      : 'LAP';
-                  const isDisabled = sessionStarted && (!isRunning || waitingUntil !== null);
-                  const ariaLabel = !sessionStarted
-                    ? `${isSelectedForStart ? 'Rimuovi' : 'Aggiungi'} ${athlete.atletaNome} dalla partenza generale`
-                    : `${action === 'VIA' ? 'Avvia' : action === 'LAP' ? 'Lap' : 'Attesa'} per ${athlete.atletaNome}`;
-                  const athleteStatus = !sessionStarted
-                    ? (isSelectedForStart ? 'AL VIA' : 'IN ATTESA')
-                    : athlete.startedAtMs === null
-                      ? 'IN ATTESA'
-                      : waitingUntil !== null
-                        ? 'PAUSA'
-                        : 'IN ACQUA';
-                  const statusSubline = !sessionStarted
-                    ? (isSelectedForStart ? 'Partenza generale' : 'Su invito')
-                    : athlete.startedAtMs === null
-                      ? 'In attesa via'
-                      : waitingUntil !== null
-                        ? `tra ${formatMs(waitingUntil - now)} · ult. ${athlete.splitList[0]?.time ?? '--'}`
-                        : athlete.splitList.length > 0
-                          ? `Lap ${athlete.splitList[0].lap}: ${athlete.splitList[0].time}`
-                          : 'In vasca';
-                  const bigTime = !sessionStarted || athlete.startedAtMs === null
-                    ? null
-                    : waitingUntil !== null
-                      ? formatMs(waitingUntil - now)
-                      : formatMs(elapsed);
-
-                  return (
-                    <div
-                      key={athlete.id}
-                      className={`flex-1 min-h-0 flex flex-col rounded-2xl transition ${
-                        !sessionStarted && isSelectedForStart ? 'ring-2 ring-primary bg-primary-fixed/30' : 'bg-surface-container-low'
-                      }`}
+                {!isRunning && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="font-label-caps text-[8px] uppercase text-on-surface-variant whitespace-nowrap">Rip:</span>
+                    <button
+                      type="button"
+                      disabled={sessionStarted}
+                      onClick={() =>
+                        setRipartenzaPicker({
+                          title: `Ripartenza Corsia ${lane.laneNumber}`,
+                          currentSeconds: lane.ripartenzaSecondi,
+                          onSelect: (sec) => {
+                            setLanes(curr => curr.map(l => (l.id === lane.id ? { ...l, ripartenzaSecondi: sec } : l)));
+                          },
+                        })
+                      }
+                      className="h-5 px-1.5 bg-surface-container border border-outline-variant/50 rounded text-[9px] font-bold text-primary flex items-center gap-0.5 whitespace-nowrap disabled:opacity-65"
                     >
+                      <Clock size={10} />
+                      <span>{formatRipartenza(lane.ripartenzaSecondi)}</span>
+                    </button>
+                    {!sessionStarted && availableAthletes.length > 0 && athleteCount < MAX_ATHLETES_PER_LANE && (
                       <button
                         type="button"
-                        className="flex-1 min-h-0 w-full flex items-center gap-3 px-3.5 py-2 text-left active:scale-[0.99] transition-transform"
-                        onClick={() => (sessionStarted ? handleAthletePress(activeLane.id, athlete.id) : toggleInitialStart(athlete.id))}
-                        disabled={isDisabled}
-                        aria-label={ariaLabel}
-                        aria-pressed={!sessionStarted ? isSelectedForStart : undefined}
+                        onClick={() => addAthleteToLane(lane.id)}
+                        className="h-4 px-1 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-[9px] font-bold whitespace-nowrap"
                       >
-                        <span className="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface font-headline-sm text-sm font-bold flex items-center justify-center shrink-0">
-                          {athleteIdx + 1}
+                        +
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Caselle atleti (griglia a 4 colonne per dare ampio respiro a cognomi lunghi come Esposito, Marchetti, Ruggiero senza troncamenti) */}
+              <div
+                className="flex-1 min-h-0 grid grid-cols-4 gap-1 pt-0.5 overflow-hidden"
+              >
+                {athleteCount === 0 ? (
+                  <div className="col-span-full flex items-center justify-center text-[10px] text-on-surface-variant/60 italic whitespace-nowrap">
+                    Corsia vuota
+                  </div>
+                ) : (
+                  lane.athletes.map(athlete => {
+                    const now = masterTime;
+                    const waitingUntil = athlete.nextStartAtMs !== null && now < athlete.nextStartAtMs ? athlete.nextStartAtMs : null;
+                    const segmentStart = athlete.nextStartAtMs ?? athlete.startedAtMs;
+                    const elapsed = athlete.startedAtMs === null || segmentStart === null || waitingUntil !== null
+                      ? 0
+                      : Math.max(0, now - segmentStart);
+
+                    const isTimeActive = sessionStarted && athlete.startedAtMs !== null;
+                    const athleteTimer = waitingUntil !== null ? formatMs(waitingUntil - now) : formatMs(elapsed);
+                    const recentSplits = athlete.splitList.slice(0, 1);
+
+                    return (
+                      <button
+                        key={athlete.id}
+                        type="button"
+                        onClick={() => handleAthletePress(lane.id, athlete)}
+                        className={`flex-1 min-h-0 flex flex-col items-center justify-center p-1 rounded-lg border transition active:scale-[0.98] ${
+                          isTimeActive
+                            ? 'bg-secondary-container/40 border-secondary/50 text-on-secondary-container'
+                            : 'bg-surface-container-low border-outline-variant/50 text-on-surface hover:bg-surface-container'
+                        }`}
+                        title={isRunning ? "Clicca per fermare / lap" : "Clicca per dettagli e ripartenza"}
+                      >
+                        {/* Cognome centrato e non troncato (griglia a 4 colonne dà spazio sufficiente) */}
+                        <span
+                          className={`font-headline-sm text-[11px] font-bold text-center leading-none whitespace-nowrap overflow-hidden text-ellipsis max-w-full px-0.5 transition-opacity ${
+                            isTimeActive ? 'opacity-40 text-on-surface' : 'opacity-100 text-on-surface'
+                          }`}
+                        >
+                          {athlete.cognome}
                         </span>
-                        <span className="w-12 h-12 rounded-full bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center font-headline-sm text-xl font-bold shrink-0 shadow-inner">
-                          {initialsOf(athlete.atletaNome)}
-                        </span>
-                        <span className="flex-1 min-w-0 flex flex-col gap-1">
-                          <span className="font-headline-sm text-lg font-bold text-on-surface leading-tight truncate">
-                            {athlete.atletaNome}
-                          </span>
-                          <span className="flex items-center gap-2 min-w-0">
-                            <span className={`px-2 py-0.5 rounded-full font-label-caps text-[10px] font-bold uppercase tracking-wide shrink-0 ${ATHLETE_STATUS_STYLE[athleteStatus]}`}>
-                              {athleteStatus === 'AL VIA' ? 'Al via' : athleteStatus === 'IN ATTESA' ? 'In attesa' : athleteStatus === 'PAUSA' ? 'Pausa' : 'In acqua'}
+
+                        {isTimeActive ? (
+                          <div className="flex flex-col items-center justify-center mt-1 leading-none w-full">
+                            <span className="font-stat-timer-mobile text-sm font-bold tabular-nums text-primary whitespace-nowrap">
+                              {athleteTimer}
                             </span>
-                            <span className="font-label-caps text-xs text-on-surface-variant truncate">
-                              {statusSubline}
-                            </span>
-                          </span>
-                        </span>
-                        {sessionStarted && (
-                          <span className="flex flex-col items-end gap-1 shrink-0">
-                            {bigTime !== null && (
-                              <span className={`font-stat-timer-mobile text-4xl font-bold tabular-nums leading-none ${
-                                waitingUntil !== null ? 'text-tertiary' : 'text-on-surface'
-                              }`}>
-                                {bigTime}
+                            {recentSplits.map(s => (
+                              <span key={s.lap} className="font-label-caps text-[9px] text-on-surface-variant whitespace-nowrap mt-0.5">
+                                L{s.lap}: {s.time}
                               </span>
-                            )}
-                            <span className={`font-label-caps text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-xl ${ACTION_STYLE[action]}`}>
-                              {action}
-                            </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="font-label-caps text-[10px] text-on-surface-variant mt-1 whitespace-nowrap">
+                            {formatRipartenza(athlete.ripartenzaCustomSec ?? lane.ripartenzaSecondi)}
                           </span>
                         )}
                       </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
-                      {/* Salvataggio ultimo split quando il master è fermo */}
-                      {!isRunning && athlete.splitList.length > 0 && (
-                        <div className="shrink-0 flex items-center justify-between px-3.5 pb-2.5">
-                          <span className="text-xs font-semibold text-on-surface-variant">
-                            Ultimo split: Lap {athlete.splitList[0].lap} · {athlete.splitList[0].time}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleSalvaNelRegistro(athlete)}
-                            className="h-9 px-3 rounded-lg bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-[11px] font-bold uppercase tracking-wide inline-flex items-center gap-1.5 active:scale-95 transition-transform"
-                          >
-                            <Save size={13} /> Salva
-                          </button>
-                        </div>
-                      )}
+      {/* ============================================================
+          MODALE POPUP SELEZIONE RIPARTENZA
+          ============================================================ */}
+      <Modal
+        open={ripartenzaPicker !== null}
+        onClose={() => setRipartenzaPicker(null)}
+        title={ripartenzaPicker?.title ?? 'Imposta Ripartenza'}
+        size="sm"
+      >
+        {ripartenzaPicker && (
+          <div className="flex flex-col gap-4 py-2">
+            <p className="text-xs text-on-surface-variant whitespace-nowrap">Seleziona una cadenza rapida o inserisci un valore:</p>
+            <div className="grid grid-cols-4 gap-2">
+              {RIPARTENZA_PRESETS.map(preset => (
+                <button
+                  key={preset.seconds}
+                  type="button"
+                  onClick={() => {
+                    ripartenzaPicker.onSelect(preset.seconds);
+                    setRipartenzaPicker(null);
+                  }}
+                  className={`h-11 rounded-xl font-headline-sm text-xs font-bold flex items-center justify-center transition active:scale-95 whitespace-nowrap ${
+                    ripartenzaPicker.currentSeconds === preset.seconds
+                      ? 'bg-primary text-on-primary shadow-sm'
+                      : 'bg-surface-container text-on-surface border border-outline-variant hover:bg-surface-container-high'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 pt-2 border-t border-outline-variant">
+              <span className="text-xs font-bold text-on-surface-variant whitespace-nowrap">Personalizzata:</span>
+              <input
+                type="text"
+                placeholder="es. 50s o 1:10"
+                className="flex-1 bg-surface border border-outline-variant rounded-xl px-3 py-2 text-sm font-bold text-primary text-center tabular-nums whitespace-nowrap"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const val = parseRipartenza((e.target as HTMLInputElement).value);
+                    if (val !== null) {
+                      ripartenzaPicker.onSelect(val);
+                      setRipartenzaPicker(null);
+                    }
+                  }
+                }}
+                id="custom-rip-input"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const input = document.getElementById('custom-rip-input') as HTMLInputElement;
+                  if (input) {
+                    const val = parseRipartenza(input.value);
+                    if (val !== null) {
+                      ripartenzaPicker.onSelect(val);
+                      setRipartenzaPicker(null);
+                    }
+                  }
+                }}
+                className="px-4 py-2 rounded-xl bg-primary text-on-primary font-label-caps text-xs font-bold uppercase whitespace-nowrap"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* ============================================================
+          MODALE DETTAGLI ATLETA A CRONOMETRO FERMO
+          ============================================================ */}
+      <Modal
+        open={selectedAthleteModal !== null}
+        onClose={() => setSelectedAthleteModal(null)}
+        title={selectedAthleteModal ? `${selectedAthleteModal.athlete.atletaNome} (${selectedAthleteModal.athlete.classe})` : ''}
+        size="md"
+      >
+        {selectedAthleteModal && (
+          <div className="flex flex-col gap-4 py-2">
+            <div className="flex items-center justify-between gap-3 bg-surface-container-low p-3 rounded-xl border border-outline-variant">
+              <span className="text-sm font-semibold text-on-surface whitespace-nowrap">Ripartenza individuale:</span>
+              <button
+                type="button"
+                onClick={() => {
+                  const laneId = selectedAthleteModal.laneId;
+                  const athlete = selectedAthleteModal.athlete;
+                  const currentSec = athlete.ripartenzaCustomSec ?? lanes.find(l => l.id === laneId)?.ripartenzaSecondi ?? globalRipartenzaSecondi;
+                  setSelectedAthleteModal(null);
+                  setRipartenzaPicker({
+                    title: `Ripartenza ${athlete.cognome}`,
+                    currentSeconds: currentSec,
+                    onSelect: (sec) => {
+                      setLanes(curr =>
+                        curr.map(l =>
+                          l.id === laneId
+                            ? {
+                                ...l,
+                                athletes: l.athletes.map(a =>
+                                  a.id === athlete.id ? { ...a, ripartenzaCustomSec: sec } : a
+                                ),
+                              }
+                            : l
+                        )
+                      );
+                    },
+                  });
+                }}
+                className="h-9 px-3.5 bg-surface border border-outline-variant rounded-xl text-xs font-bold text-primary flex items-center gap-1.5 whitespace-nowrap"
+              >
+                <Clock size={15} />
+                <span>{formatRipartenza(selectedAthleteModal.athlete.ripartenzaCustomSec ?? lanes.find(l => l.id === selectedAthleteModal.laneId)?.ripartenzaSecondi ?? globalRipartenzaSecondi)}</span>
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-bold text-on-surface uppercase tracking-wide whitespace-nowrap">
+                Tutti i tempi registrati ({selectedAthleteModal.athlete.splitList.length})
+              </h3>
+              {selectedAthleteModal.athlete.splitList.length === 0 ? (
+                <p className="text-xs text-on-surface-variant italic py-3 text-center whitespace-nowrap">Nessun tempo registrato</p>
+              ) : (
+                <div className="max-h-60 overflow-y-auto flex flex-col gap-1.5 pr-1">
+                  {selectedAthleteModal.athlete.splitList.map(split => (
+                    <div
+                      key={split.lap}
+                      className="flex items-center justify-between bg-surface-container px-3 py-2 rounded-xl border border-outline-variant/50"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-primary-container text-on-primary-container text-xs font-bold flex items-center justify-center shrink-0">
+                          {split.lap}
+                        </span>
+                        <span className="font-stat-timer-mobile text-base font-bold tabular-nums text-on-surface whitespace-nowrap">
+                          {split.time}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleSalvaNelRegistro(selectedAthleteModal.athlete, split)}
+                        className="h-8 px-3 rounded-lg bg-primary text-on-primary font-label-caps text-[10px] font-bold uppercase flex items-center gap-1 active:scale-95 transition whitespace-nowrap"
+                      >
+                        <Save size={13} /> Salva
+                      </button>
                     </div>
-                  );
-                })
+                  ))}
+                </div>
               )}
             </div>
-          </article>
-        </>
-      )}
-
-      {/* Feed ultimi split — sempre leggibile, in fondo */}
-      {latestSplits.length > 0 && (
-        <section
-          className="shrink-0 rounded-2xl bg-surface-container-lowest p-2.5 shadow-sm border border-outline-variant/40"
-          aria-label="Ultimi split registrati"
-        >
-          <div className="flex items-center gap-2 px-1 pb-1.5">
-            <Gauge size={15} className="text-primary" />
-            <span className="font-label-caps text-[11px] uppercase font-bold text-on-surface-variant tracking-wider">
-              Ultimi Split
-            </span>
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            {latestSplits.map(split => (
-              <div
-                key={split.key}
-                className="rounded-xl bg-secondary-container/50 px-2.5 py-2 flex flex-col leading-tight min-w-0 border border-secondary/30"
-              >
-                <div className="flex items-center justify-between gap-1">
-                  <span className="font-bold text-on-secondary-container text-sm truncate">
-                    C{split.laneIndex} · {split.name}
-                  </span>
-                  <span className="text-on-secondary-container/70 font-bold text-[10px] flex-shrink-0">L{split.lap}</span>
-                </div>
-                <span className="text-on-secondary-container font-bold text-lg tabular-nums mt-0.5">{split.time}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+        )}
+      </Modal>
     </div>
   );
+
+  if (isFullscreen) {
+    return (
+      <div className="fixed inset-0 z-50 bg-surface flex flex-col pt-16 pb-safe-bottom px-2 overflow-hidden">
+        {content}
+      </div>
+    );
+  }
+
+  return content;
 };

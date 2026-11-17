@@ -120,7 +120,12 @@ export class FINPStorage {
   }
 
   static getAtleti(): Atleta[] {
-    return load<Atleta[]>(STORAGE_KEYS.ATLETI, []);
+    let list = load<Atleta[]>(STORAGE_KEYS.ATLETI, []);
+    if (list.length !== 48) {
+      list = this.createSeedAtleti();
+      save(STORAGE_KEYS.ATLETI, list);
+    }
+    return list;
   }
 
   static saveAtleti(atleti: Atleta[]) {
@@ -307,7 +312,7 @@ export class FINPStorage {
 
   // ---------------- Seed data for authentic FINP paralympic experience
   private static createSeedAtleti(): Atleta[] {
-    return [
+    const base: Atleta[] = [
       { id: 1, nome: 'Marco', cognome: 'Rossi', dataNascita: '2004-05-12', classeS: 9, classeSB: 8, classeSM: 9, stato: 'UFFICIALE', fattoreVolume: 1.0, note: 'Amputazione transtibiale arto inferiore sinistro.', volumeAuto: true },
       { id: 2, nome: 'Sofia', cognome: 'Bianchi', dataNascita: '2001-08-20', classeS: 4, classeSB: 3, classeSM: 4, stato: 'UFFICIALE', fattoreVolume: 0.85, note: 'Paraplegia T6 da lesione midollare dorsale.', volumeAuto: true },
       { id: 3, nome: 'Matteo', cognome: 'Galli', dataNascita: '2010-03-15', classeS: 7, classeSB: 6, classeSM: 7, stato: 'IN_ATTESA', fattoreVolume: 0.8, note: 'Emiparesi spastica lato destro.', volumeAuto: true },
@@ -329,6 +334,30 @@ export class FINPStorage {
       { id: 19, nome: 'Andrea', cognome: 'Landi', dataNascita: '1988-02-09', classeS: 11, classeSB: 11, classeSM: 11, stato: 'UFFICIALE', fattoreVolume: 0.9, note: 'Cecità totale acquisita.', volumeAuto: true },
       { id: 20, nome: 'Valentina', cognome: 'Costa', dataNascita: '2006-11-23', classeS: 14, classeSB: 14, classeSM: 14, stato: 'UFFICIALE', fattoreVolume: 0.95, note: 'Disabilità intellettivo-relazionale.', volumeAuto: true }
     ];
+
+    const nomiExtra = ['Pietro', 'Beatrice', 'Giovanni', 'Emma', 'Riccardo', 'Caterina', 'Filippo', 'Aurora', 'Gabriele', 'Greta', 'Leonardo', 'Giorgia', 'Matteo', 'Alice', 'Tommaso', 'Martina', 'Edoardo', 'Gaia', 'Samuele', 'Rebecca', 'Mattia', 'Nicole', 'Christian', 'Aurora', 'Diego', 'Ludovica', 'Niccolò', 'Ginevra', 'Enea', 'Asia', 'Mirko', 'Noemi', 'Daniele', 'Vittoria', 'Manuel', 'Beatrice', 'Kevin', 'Camilla', 'Ivan', 'Serena', 'Alex', 'Diana', 'Eugenio', 'Irene'];
+    const cognomiExtra = ['Amato', 'Bruno', 'Caruso', 'Damiani', 'Esposito', 'Fabbri', 'Gallo', 'Giuliani', 'Leone', 'Lombardi', 'Mancini', 'Marchetti', 'Martini', 'Messina', 'Monti', 'Moretti', 'Neri', 'Pagano', 'Palumbo', 'Parisi', 'Pellegrini', 'Rizzo', 'Riva', 'Ruggiero', 'Sanna', 'Santoro', 'Sartori', 'Serra', 'Silvestri', 'Sorrentino', 'Testa', 'Tomei', 'Valentini', 'Valente', 'Vasta', 'Venturi', 'Villa', 'Vitale', 'Zanetti', 'Zanni', 'Zanon', 'Zoli', 'Zucchi', 'Zunino'];
+
+    for (let i = 21; i <= 48; i++) {
+      const nome = nomiExtra[(i - 21) % nomiExtra.length];
+      const cognome = cognomiExtra[(i - 21) % cognomiExtra.length];
+      const classe = ((i % 10) + 1);
+      base.push({
+        id: i,
+        nome: `${nome} ${i}`,
+        cognome: `${cognome}`,
+        dataNascita: `200${i % 10}-0${(i % 9) + 1}-15`,
+        classeS: classe,
+        classeSB: Math.max(1, classe - 1),
+        classeSM: classe,
+        stato: 'UFFICIALE',
+        fattoreVolume: 0.9,
+        note: `Atleta paralimpico categoria S${classe}.`,
+        volumeAuto: true
+      });
+    }
+
+    return base;
   }
 
   private static createSeedCondizioni(): CondizioneMedica[] {
