@@ -139,6 +139,40 @@ describe('cronometroVasca — partenza automatica', () => {
     expect(a2.primoVia).toBe(10_000);
   });
 
+  it('motore sospeso oltre un intervallo: mantiene il tempo teorico e marca "partenza recuperata"', () => {
+    const s = createSession(60);
+    const lane = createLane(1);
+    lane.intervalloPartenza = 10;
+    const a1 = createAthlete(1, 'Primo');
+    const a2 = createAthlete(2, 'Secondo');
+    lane.atleti.push(a1, a2);
+    s.lanes.push(lane);
+    viaGenerale(s, 0);
+    // Il motore non gira per 25 s (oltre un intervallo di 10 s).
+    refreshSession(s, 25_000);
+    expect(a2.repStart).toBe(10_000); // tempo teorico, non 25_000
+    expect(a2.autoLate).toBe(true);
+    // Il tempo mostrato parte dal teorico: a 25 s mostra gia' 15 s di turno.
+    expect(athleteStatus(s, lane, a2, 25_000)).toBe('in_nuoto');
+    // Al lap successivo il flag si azzera.
+    tapAthlete(s, lane, a2, 30_000);
+    expect(a2.autoLate).toBe(false);
+  });
+
+  it('ritardo entro un intervallo: parte dal tempo teorico senza flag', () => {
+    const s = createSession(60);
+    const lane = createLane(1);
+    lane.intervalloPartenza = 10;
+    const a1 = createAthlete(1, 'Primo');
+    const a2 = createAthlete(2, 'Secondo');
+    lane.atleti.push(a1, a2);
+    s.lanes.push(lane);
+    viaGenerale(s, 0);
+    refreshSession(s, 12_000); // 2 s di ritardo < 10 s di intervallo
+    expect(a2.repStart).toBe(10_000);
+    expect(a2.autoLate).toBe(false);
+  });
+
   it('il tap manuale ha precedenza e riancora la catena', () => {
     const s = createSession(60);
     const lane = createLane(1);
@@ -205,43 +239,39 @@ describe('cronometroVasca — migrazione e riepilogo', () => {
 });
 
 describe('cronometroVasca — scelta orientamento (411x923)', () => {
-  const base: OrientInput = {
-    corsie: 6,
-    maxAtleti: 8,
+  // Schermo 411x923, cognome min 90 px, chrome live (barre + safe area).
+  const base: Omit<OrientInput, 'corsie' | 'maxAtleti'> = {
     minTileW: 90,
     shortSide: 411,
     longSide: 923,
-    chromeV: 150,
+    chromeV: 110,
   };
 
-  it('6x8 su telefono: sceglie l\'orientamento con score maggiore', () => {
-    const r = chooseOrientation(base, null, 0);
-    const sim = simulateOrientations(base);
-    const best = sim.portrait.score >= sim.landscape.score ? 'portrait' : 'landscape';
-    expect(r.orientation).toBe(best);
+  it.each([
+    [3, 2, 'landscape'],
+    [3, 4, 'landscape'],
+    [6, 4, 'landscape'],
+    [6, 8, 'portrait'],
+    [4, 6, 'portrait'],
+  ] as const)('%i corsie x %i atleti -> %s', (corsie, maxAtleti, atteso) => {
+    const r = chooseOrientation({ ...base, corsie, maxAtleti }, null, 0);
+    expect(r.orientation).toBe(atteso);
     expect(r.score).toBeGreaterThan(0);
   });
 
-  it('3x4 e 2x2 producono una scelta deterministica e valida', () => {
-    for (const [corsie, maxAtleti] of [[3, 4], [2, 2]] as const) {
-      const inp = { ...base, corsie, maxAtleti };
-      const r = chooseOrientation(inp, null, 0);
-      expect(['portrait', 'landscape']).toContain(r.orientation);
-      expect(r.score).toBeGreaterThan(0);
-      const sim = simulateOrientations(inp);
-      expect(r.score).toBeCloseTo(
-        r.orientation === 'portrait' ? sim.portrait.score : sim.landscape.score,
-        5
-      );
+  it('la scelta coincide sempre con il candidato di score maggiore', () => {
+    for (const corsie of [2, 3, 4, 6]) {
+      for (const maxAtleti of [2, 4, 8]) {
+        const inp = { ...base, corsie, maxAtleti };
+        const r = chooseOrientation(inp, null, 0);
+        const sim = simulateOrientations(inp);
+        const best = sim.portrait.score >= sim.landscape.score ? 'portrait' : 'landscape';
+        // Fuori dalla fascia di parita' (<10%) deve vincere il miglior score;
+        // in parita' vale la regola corsie>=4 -> orizzontale.
+        const diff = Math.abs(sim.portrait.score - sim.landscape.score) / Math.max(sim.portrait.score, sim.landscape.score, 0.0001);
+        const expected = diff < 0.1 ? (corsie >= 4 ? 'landscape' : 'portrait') : best;
+        expect(r.orientation).toBe(expected);
+      }
     }
-  });
-
-  it('con chrome live (poco chromeV) 6x8 può preferire orizzontale', () => {
-    // Schermo live fullscreen: solo barre cronometro + safe area.
-    const live: OrientInput = { ...base, chromeV: 110 };
-    const r = chooseOrientation(live, null, 0);
-    const sim = simulateOrientations(live);
-    const best = sim.portrait.score >= sim.landscape.score ? 'portrait' : 'landscape';
-    expect(r.orientation).toBe(best);
   });
 });

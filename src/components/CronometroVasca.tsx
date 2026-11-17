@@ -385,11 +385,9 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       const safeBottom = px('--safe-bottom', 8);
       const topH = topBarRef.current?.offsetHeight ?? 52;
       const bottomH = bottomBarRef.current?.offsetHeight ?? 64;
-      // In 'pronta' si conta tutto il chrome dell'app; durante la serie
-      // (fullscreen, header e dock nascosti) solo le barre del cronometro.
-      const chromeV = pronta
-        ? px('--header-h', 60) + px('--dock-h', 76) + safeTop + safeBottom + topH + bottomH + 12
-        : safeTop + safeBottom + topH + bottomH + 8;
+      // La scelta serve al layout live (fullscreen): si usa sempre il chrome
+      // della serie — solo le barre del cronometro e la safe area.
+      const chromeV = safeTop + safeBottom + topH + bottomH + 8;
 
       const w = window.innerWidth;
       const h = window.innerHeight;
@@ -1409,6 +1407,9 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
           </span>
           <span className={`text-[10px] font-bold flex items-center gap-0.5 ${meta.cls}`}>
             <span aria-hidden>{meta.symbol}</span> {meta.label}
+            {a.autoLate && (
+              <span className="text-warning" title="Partenza automatica recuperata dopo sospensione" aria-label="partenza recuperata"> ↺</span>
+            )}
           </span>
         </div>
         <div className="h-1 rounded-full bg-surface-container-highest overflow-hidden">

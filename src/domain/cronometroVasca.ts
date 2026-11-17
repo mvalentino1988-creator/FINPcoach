@@ -49,6 +49,9 @@ export interface VascaAthlete {
   /** Timestamp di partenza dell'atleta precedente della corsia (catena automatica). */
   autoAnchorT: number | null;
   autoWarned: boolean;
+  /** Partenza automatica avvenuta in ritardo perché il motore non girava
+   *  (WebView sospesa): la rep è partita dal tempo teorico `due`. */
+  autoLate?: boolean;
 }
 
 export interface VascaLane {
@@ -154,8 +157,11 @@ export function refreshSession(s: VascaSession, now = sessionNow(s)): VascaEvent
         events.push({ type: 'autoWarn', athleteId: a.id, laneNumero: lane.numero });
       }
       if (now >= due) {
-        // Partenza reale: se molto in ritardo (es. app chiusa) si riallinea a now.
-        a.repStart = now - due > lane.intervalloPartenza * 1000 ? now : due;
+        // Partenza reale: si conserva sempre il tempo teorico `due` (nessuna
+        // deriva). Se il ritardo supera un intero intervallo (motore fermo,
+        // es. WebView sospesa) l'atleta viene marcato "partenza recuperata".
+        a.repStart = due;
+        a.autoLate = now - due > lane.intervalloPartenza * 1000;
         a.started = true;
         a.primoVia = a.repStart;
         a.autoWarned = false;
@@ -233,6 +239,7 @@ export function tapAthlete(s: VascaSession, lane: VascaLane, a: VascaAthlete, no
   const base = a.repStart ?? now;
   a.laps.push({ t: now, wall: Date.now(), start: base });
   a.lastRepStart = base;
+  a.autoLate = false;
   checkTargetLaps(a);
   const ripMs = effectiveRipartenza(s, lane, a) * 1000;
   a.repStart = null;
@@ -265,6 +272,7 @@ export function lapGenerale(s: VascaSession, now: number): number {
       const base = a.repStart;
       a.laps.push({ t: now, wall: Date.now(), start: base });
       a.lastRepStart = base;
+      a.autoLate = false;
       checkTargetLaps(a);
       const ripMs = effectiveRipartenza(s, lane, a) * 1000;
       a.repStart = null;
