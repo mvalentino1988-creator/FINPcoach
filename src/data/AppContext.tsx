@@ -95,9 +95,10 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  if (FINPStorage.getAtleti().length === 0) {
-    FINPStorage.applyDemoSeed();
-  }
+  // Prima esecuzione (nessun flag mode): getMode() carica il seed demo.
+  // Non si risemina qui: una rosa vuota voluta (startLiveSquad) o un import
+  // con meno di 48 atleti devono essere preservati.
+  FINPStorage.getMode();
 
   const [atleti, setAtleti] = useState<Atleta[]>(() => FINPStorage.getAtleti());
   const [condizioni, setCondizioni] = useState<CondizioneMedica[]>(() => FINPStorage.getCondizioni());
@@ -188,7 +189,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const applyingCloud = useRef(false);
   const hydrated = useRef(localStorage.getItem('finp_sync_enabled') !== 'true');
   const latestRef = useRef({ atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, macro, meso, micro, impostazioni, assegnazioneVasca });
-  latestRef.current = { atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, macro, meso, micro, impostazioni, assegnazioneVasca };
+  useEffect(() => {
+    latestRef.current = { atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, macro, meso, micro, impostazioni, assegnazioneVasca };
+  });
 
   const buildSyncPayload = (): SyncData => {
     const s = latestRef.current;
@@ -303,20 +306,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // La Regia e' la sola fonte di corsie/presenze: l'assegnazione segue i
   // parametri del giorno (numero corsie, presenti, vasca). Solo per la data
   // di oggi: un'assegnazione di ieri resta intatta finche' la Regia non decide.
-  useEffect(() => {
-    if (!assegnazioneVasca || assegnazioneVasca.data !== todayISO()) return;
-    const tuttiIds = atleti.map(a => a.id);
-    const presentiIds = (parametriOggi.atletiPresentiIds ?? tuttiIds).filter(id => tuttiIds.includes(id));
-    const allineata = allineaConParametri(
-      assegnazioneVasca,
-      parametriOggi.vascaMetri === 50 ? 50 : 25,
-      parametriOggi.numeroCorsie ?? 4,
-      presentiIds
-    );
-    if (JSON.stringify(allineata) !== JSON.stringify(assegnazioneVasca)) {
-      setAssegnazioneVasca(allineata);
+  // (adjust state during render: niente effect + setState)
+  const [prevAllinea, setPrevAllinea] = useState<{ a: typeof assegnazioneVasca; p: typeof parametriOggi; at: typeof atleti } | null>(null);
+  if (
+    prevAllinea === null ||
+    prevAllinea.a !== assegnazioneVasca ||
+    prevAllinea.p !== parametriOggi ||
+    prevAllinea.at !== atleti
+  ) {
+    setPrevAllinea({ a: assegnazioneVasca, p: parametriOggi, at: atleti });
+    if (assegnazioneVasca && assegnazioneVasca.data === todayISO()) {
+      const tuttiIds = atleti.map(a => a.id);
+      const presentiIds = (parametriOggi.atletiPresentiIds ?? tuttiIds).filter(id => tuttiIds.includes(id));
+      const allineata = allineaConParametri(
+        assegnazioneVasca,
+        parametriOggi.vascaMetri === 50 ? 50 : 25,
+        parametriOggi.numeroCorsie ?? 4,
+        presentiIds
+      );
+      if (JSON.stringify(allineata) !== JSON.stringify(assegnazioneVasca)) {
+        setAssegnazioneVasca(allineata);
+      }
     }
-  }, [assegnazioneVasca, parametriOggi, atleti]);
+  }
 
   // Internal helper to regenerate plan
   const rigeneraPianoInterno = (conservaPassato: boolean) => {
@@ -389,31 +401,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Ensure plan exists if a season is set and micro is empty
-  useEffect(() => {
-    if (stagione && micro.length === 0) {
-      rigeneraPianoInterno(false);
-    }
-  }, [stagione]);
+  // (adjust state during render: niente effect + setState)
+  const [pianoGeneratoPer, setPianoGeneratoPer] = useState<number | null>(null);
+  if (stagione && micro.length === 0 && pianoGeneratoPer !== stagione.id) {
+    setPianoGeneratoPer(stagione.id);
+    rigeneraPianoInterno(false);
+  }
 
   // Auto-volume update for athletes with volumeAuto: true
-  useEffect(() => {
+  // (adjust state during render quando cambiano le condizioni)
+  const [prevCondizioniAuto, setPrevCondizioniAuto] = useState<typeof condizioni | null>(null);
+  if (condizioni !== prevCondizioniAuto) {
+    setPrevCondizioniAuto(condizioni);
     const oggi = todayISO();
-    let cambiati = false;
     const aggiornati = atleti.map(a => {
       if (!a.volumeAuto) return a;
       const mie = condizioni.filter(c => c.atletaId === a.id && c.attiva);
       const f = AutoPianificatore.fattoreVolumeSuggerito(a, mie, oggi);
-      if (Math.abs(f - a.fattoreVolume) > 0.001) {
-        cambiati = true;
-        return { ...a, fattoreVolume: f };
-      }
-      return a;
+      return Math.abs(f - a.fattoreVolume) > 0.001 ? { ...a, fattoreVolume: f } : a;
     });
 
-    if (cambiati) {
+    if (aggiornati.some((a, i) => a !== atleti[i])) {
       setAtleti(aggiornati);
     }
-  }, [condizioni]);
+  }
 
   // Athlete CRUD
   const aggiungiAtleta = (a: Omit<Atleta, 'id'>) => {

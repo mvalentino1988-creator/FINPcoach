@@ -151,12 +151,23 @@ export class FINPStorage {
   }
 
   static getAtleti(): Atleta[] {
-    let list = load<Atleta[]>(STORAGE_KEYS.ATLETI, []);
-    if (list.length !== 48) {
-      list = this.createSeedAtleti();
-      save(STORAGE_KEYS.ATLETI, list);
+    // Seme solo al primo avvio (chiave assente) o se il JSON e illeggibile.
+    // Una rosa vuota o con un numero qualsiasi di atleti va preservata:
+    // riseminare il demo qui cancellerebbe i dati importati/vuoti dell'utente.
+    const raw = localStorage.getItem(STORAGE_KEYS.ATLETI);
+    if (raw == null) {
+      const seeded = this.createSeedAtleti();
+      save(STORAGE_KEYS.ATLETI, seeded);
+      return seeded;
     }
-    return list;
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      const seeded = this.createSeedAtleti();
+      save(STORAGE_KEYS.ATLETI, seeded);
+      return seeded;
+    }
   }
 
   static saveAtleti(atleti: Atleta[]) {

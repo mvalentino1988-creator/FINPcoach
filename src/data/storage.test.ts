@@ -24,7 +24,8 @@ const ls = storageMemoria();
 import { FINPStorage } from './storage';
 import { BACKUP_VERSIONE } from './backupValidate';
 
-// getAtleti() risemina se la lista non ha 48 elementi: usiamo un set completo.
+// getAtleti() semina il demo solo se la chiave manca o il JSON e illeggibile:
+// qualsiasi rosa (vuota o con N atleti) viene preservata.
 const SQUADRA_48: Atleta[] = Array.from({ length: 48 }, (_, i) => ({
   id: i + 1, nome: `N${i + 1}`, cognome: 'X', stato: 'UFFICIALE' as const,
   fattoreVolume: 1, note: '', volumeAuto: true,
@@ -80,6 +81,15 @@ describe('FINPStorage — export/import backup', () => {
     expect(FINPStorage.getAtleti()[0].id).toBe(101);
     // iaConfig non deve essere toccato dall'import
     expect(FINPStorage.getIAConfig().apiKey).toBe('K');
+  });
+
+  it('getAtleti preserva rose diverse da 48 e squadre vuote', () => {
+    FINPStorage.saveAtleti(SQUADRA_48.slice(0, 12));
+    expect(FINPStorage.getAtleti()).toHaveLength(12);
+    FINPStorage.saveAtleti([]);
+    expect(FINPStorage.getAtleti()).toHaveLength(0);
+    // ripristina per i test successivi
+    FINPStorage.saveAtleti(SQUADRA_48);
   });
 
   it('segnalazione ultimo backup', () => {
