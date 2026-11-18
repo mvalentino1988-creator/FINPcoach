@@ -160,6 +160,7 @@ export const VascaSessionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const value = useMemo<VascaSessionContextType>(
     () => ({
       // `version` garantisce che `session` sia la lettura più recente dopo ogni bump.
+      // eslint-disable-next-line react-hooks/refs -- pattern intenzionale: session è letta da sessionRef e il bump di `version` forza il nuovo value
       session: sessionRef.current,
       sessionRef,
       setSession,
@@ -171,6 +172,7 @@ export const VascaSessionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     [setSession, bump, schedulePersist, flushPersist, version],
   );
 
+  // eslint-disable-next-line react-hooks/refs -- value è memoizzato con `version` nella deps: legge sessionRef di proposito
   return <VascaSessionContext.Provider value={value}>{children}</VascaSessionContext.Provider>;
 };
 

@@ -33,7 +33,6 @@ export const HydrodynamicsChartsView: React.FC<Props> = ({ mainAtleta, top10List
     const TICK_COLOR = chartVar('--color-on-surface-variant', '#64748B');
     const TITLE_COLOR = chartVar('--color-on-surface-variant', '#424656');
     const LINE_FORCE = chartVar('--color-secondary', '#006A61');
-    const LINE_POWER = chartVar('--color-primary', '#0B5FFF');
 
     ctx.fillStyle = CHART_BG;
     ctx.fillRect(0, 0, width, height);
@@ -117,7 +116,6 @@ export const HydrodynamicsChartsView: React.FC<Props> = ({ mainAtleta, top10List
     const GRID_COLOR = chartVar('--color-outline-variant', '#E2E8F0');
     const TICK_COLOR = chartVar('--color-on-surface-variant', '#64748B');
     const TITLE_COLOR = chartVar('--color-on-surface-variant', '#424656');
-    const LINE_FORCE = chartVar('--color-secondary', '#006A61');
     const LINE_POWER = chartVar('--color-primary', '#0B5FFF');
 
     ctx.fillStyle = CHART_BG;

@@ -36,7 +36,6 @@ const ParaSwimmingAnalyticsView = lazy(() => import('./ParaSwimmingAnalyticsView
 
 type DatiTab = 'schede' | 'tempi' | 'registro' | 'biomeccanica';
 type VistaSchede = 'calendario' | 'lista';
-type ModalitaEditor = 'testuale' | 'strutturato';
 
 interface CustomWorkout {
   id: string;
@@ -58,9 +57,8 @@ export const DatiScreen: React.FC = () => {
     return saved === 'schede' || saved === 'tempi' || saved === 'registro' || saved === 'biomeccanica' ? saved : 'schede';
   });
   const [editMode, setEditMode] = useState(false);
-  const [modalitaEditor, setModalitaEditor] = useState<ModalitaEditor>('testuale');
   const [customWorkout, setCustomWorkout] = useState('');
-  const [customWorkouts, setCustomWorkouts] = useState<CustomWorkout[]>([]);
+  const [customWorkouts, setCustomWorkouts] = useState<CustomWorkout[]>(() => FINPStorage.getCustomWorkouts());
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null);
   const [workoutDate, setWorkoutDate] = useState<string>(formattaData(todayISO()));
   const [selectedAtletaId, setSelectedAtletaId] = useState<number | null>(null);
@@ -68,9 +66,8 @@ export const DatiScreen: React.FC = () => {
   const [calendarioData, setCalendarioData] = useState<string>(formattaData(todayISO()));
   const [modalitaNuovoModal, setModalitaNuovoModal] = useState(false);
   const [calendarioEspanso, setCalendarioEspanso] = useState(false);
-  const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrModalOpen, setOcrModalOpen] = useState(false);
-  const [ocrRawText, setOcrRawText] = useState('');
+  const [ocrRawText] = useState('');
   const [pendingGaraText, setPendingGaraText] = useState<string | null>(null);
   const [revisioneOpen, setRevisioneOpen] = useState(false);
 
@@ -78,10 +75,6 @@ export const DatiScreen: React.FC = () => {
   useEffect(() => {
     customWorkoutsRef.current = customWorkouts;
   }, [customWorkouts]);
-
-  useEffect(() => {
-    setCustomWorkouts(FINPStorage.getCustomWorkouts());
-  }, []);
 
   const salvaAllenamento = () => {
     const metriTotali = ParserScheda.calcolaMetriDaTesto(customWorkout);
@@ -104,35 +97,6 @@ export const DatiScreen: React.FC = () => {
     setWorkoutDate(formattaData(todayISO()));
     setSelectedAtletaId(null);
     setEditMode(false);
-  };
-
-  const handleSalvaStrutturato = (testo: string, metriTotali: number) => {
-    const newWorkout: CustomWorkout = {
-      id: Date.now().toString(),
-      data: workoutDate,
-      testo,
-      creatoIl: new Date().toISOString(),
-      atletaId: selectedAtletaId,
-      metriTotali,
-      fonte: 'manuale'
-    };
-
-    const updated = [newWorkout, ...customWorkouts];
-    setCustomWorkouts(updated);
-    FINPStorage.saveCustomWorkouts(updated);
-    
-    setSelectedWorkoutId(newWorkout.id);
-    setWorkoutDate(formattaData(todayISO()));
-    setSelectedAtletaId(null);
-    setEditMode(false);
-    setModalitaEditor('testuale');
-  };
-
-  const handleDelete = (id: string) => {
-    const updated = customWorkouts.filter(w => w.id !== id);
-    setCustomWorkouts(updated);
-    FINPStorage.saveCustomWorkouts(updated);
-    if (selectedWorkoutId === id) setSelectedWorkoutId(null);
   };
 
   const selectedWorkout = customWorkouts.find(w => w.id === selectedWorkoutId);
@@ -344,8 +308,9 @@ export const DatiScreen: React.FC = () => {
 
                 <div className="space-y-3 text-xs">
                   <div>
-                    <label className="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1 block">Data Allenamento</label>
+                    <label htmlFor="nuovo-allenamento-data" className="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1 block">Data Allenamento</label>
                     <input
+                      id="nuovo-allenamento-data"
                       type="text"
                       value={workoutDate}
                       onChange={e => setWorkoutDate(formatDataInput(e.target.value))}
@@ -354,8 +319,9 @@ export const DatiScreen: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1 block">Testo Scheda / Serie</label>
+                    <label htmlFor="nuovo-allenamento-testo" className="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1 block">Testo Scheda / Serie</label>
                     <textarea
+                      id="nuovo-allenamento-testo"
                       value={customWorkout}
                       onChange={e => setCustomWorkout(e.target.value)}
                       placeholder="Esempio: 400m Stile libero A1, 4x100m B1 a 1'30''..."

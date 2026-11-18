@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { FINPStorage } from '../data/storage';
 import { cifraBackup, decifraBackup, eBackupCifrato } from '../lib/backupCrypto';
 import { FirebaseSync, SyncStatus } from '../data/firebaseSync';
@@ -33,22 +33,12 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Firebase sync state
-  const [syncEnabled, setSyncEnabled] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>('disconnected');
-  const [lastSync, setLastSync] = useState<string | null>(null);
+  const [syncEnabled, setSyncEnabled] = useState(() => localStorage.getItem('finp_sync_enabled') === 'true');
+  const [, setSyncStatus] = useState<SyncStatus>(() => FirebaseSync.getState().status);
+  const [, setLastSync] = useState<string | null>(() => FirebaseSync.getState().lastSync);
   const [syncing, setSyncing] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const isConfigured = isFirebaseConfigured();
-
-  // Load sync settings
-  useEffect(() => {
-    const syncSettings = localStorage.getItem('finp_sync_enabled');
-    setSyncEnabled(syncSettings === 'true');
-    
-    const syncState = FirebaseSync.getState();
-    setSyncStatus(syncState.status);
-    setLastSync(syncState.lastSync);
-  }, []);
 
   // Toggle sync
   const handleToggleSync = async () => {
@@ -130,7 +120,7 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
       } else {
         toast({ variant: 'error', title: 'Errore di sincronizzazione', message: 'Riprova più tardi' });
       }
-    } catch (err) {
+    } catch {
       toast({ variant: 'error', title: 'Errore di sincronizzazione', message: 'Impossibile raggiungere il cloud' });
     }
     setSyncing(false);
@@ -360,15 +350,19 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
               <button
                 onClick={handleToggleSync}
                 aria-label="Attiva sincronizzazione cloud"
-                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-                  syncEnabled ? 'bg-primary' : 'bg-surface-container-highest'
-                }`}
+                className="relative inline-flex h-11 w-14 shrink-0 items-center justify-center"
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-surface-container-lowest shadow transition-transform ${
-                    syncEnabled ? 'translate-x-6' : 'translate-x-1'
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    syncEnabled ? 'bg-primary' : 'bg-surface-container-highest'
                   }`}
-                />
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-surface-container-lowest shadow transition-transform ${
+                      syncEnabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </span>
               </button>
             </div>
 
@@ -380,7 +374,7 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
                 {FirebaseSync.getCurrentUser() && (
                   <button
                     onClick={handleLogout}
-                    className="ds-btn-danger !min-h-[32px] !px-2.5 !py-1 text-[12px] shrink-0"
+                    className="ds-btn-danger !min-h-[44px] !px-2.5 !py-1 text-[12px] shrink-0"
                   >
                     <LogOut size={12} />
                     Logout

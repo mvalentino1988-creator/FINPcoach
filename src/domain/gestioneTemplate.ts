@@ -39,7 +39,7 @@ export class GestioneTemplate {
       if (salvati) {
         this.template = JSON.parse(salvati);
       }
-    } catch (e) {
+    } catch {
       this.template = [];
     }
   }

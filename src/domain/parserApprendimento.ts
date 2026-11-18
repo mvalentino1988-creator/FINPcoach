@@ -133,7 +133,7 @@ export class ParserApprendimento {
   }
 
   /** Migra una regola salvata in un formato precedente. */
-  private static migraRegola(grezza: any): RegolaParser {
+  private static migraRegola(grezza: Record<string, unknown>): RegolaParser {
     const base: RegolaBase = {
       pattern: String(grezza?.pattern ?? ''),
       descrizione: String(grezza?.descrizione ?? ''),
@@ -150,8 +150,8 @@ export class ParserApprendimento {
         tipo: 'NXM',
         distanza: distanza || 50,
         ripetizioni: Number(grezza?.ripetizioni ?? 1),
-        gruppoRipetizioni: grezza?.gruppoRipetizioni,
-        gruppoDistanza: grezza?.gruppoDistanza,
+        gruppoRipetizioni: grezza?.gruppoRipetizioni as number | undefined,
+        gruppoDistanza: grezza?.gruppoDistanza as number | undefined,
       };
     }
     if (tipo === 'UNITA') {
@@ -162,14 +162,14 @@ export class ParserApprendimento {
         distanza: distanza || 100,
         unita,
         fattoreUnita: Number(grezza?.fattoreUnita ?? fattoreUnitaDaNome(unita)),
-        gruppoDistanza: grezza?.gruppoDistanza,
+        gruppoDistanza: grezza?.gruppoDistanza as number | undefined,
       };
     }
     return {
       ...base,
       tipo: 'SOLO',
       distanza: distanza || 100,
-      gruppoDistanza: grezza?.gruppoDistanza,
+      gruppoDistanza: grezza?.gruppoDistanza as number | undefined,
     };
   }
 

@@ -35,30 +35,31 @@ export function Card({
   onClick,
 }: CardProps) {
   const isClickable = typeof onClick === 'function';
-
-  return (
-    <div
-      className={cn(
-        variantClass[variant],
-        paddingClass[padding],
-        isClickable && 'cursor-pointer',
-        className
-      )}
-      onClick={onClick}
-      role={isClickable ? 'button' : undefined}
-      tabIndex={isClickable ? 0 : undefined}
-      onKeyDown={
-        isClickable
-          ? (e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onClick(e as unknown as React.MouseEvent<HTMLDivElement>);
-              }
-            }
-          : undefined
-      }
-    >
-      {children}
-    </div>
+  const cls = cn(
+    variantClass[variant],
+    paddingClass[padding],
+    isClickable && 'cursor-pointer',
+    className
   );
+
+  if (isClickable) {
+    return (
+      <div
+        className={cls}
+        onClick={onClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick(e as unknown as React.MouseEvent<HTMLDivElement>);
+          }
+        }}
+      >
+        {children}
+      </div>
+    );
+  }
+
+  return <div className={cls}>{children}</div>;
 }

@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../data/AppContext';
-import { CodiceAllenamentoKey, FaseMesociclo, TipoMicrociclo } from '../types';
+import { CodiceAllenamentoKey, DayOfWeekNum, FaseMesociclo, TipoMicrociclo } from '../types';
 import { formattaData, isBefore, parseData, todayISO, yearsBetween } from '../domain/dateUtils';
 import { VolumeIndividuale } from '../domain/volumeIndividuale';
 import { generaCodiciSeduta } from '../domain/generatoreCodiciSeduta';
@@ -75,14 +75,17 @@ export const SchedeVascaScreen: React.FC = () => {
     return atletaSel ? condizioni.filter(c => c.atletaId === atletaSel.id) : [];
   }, [atletaSel, condizioni]);
 
-  const giorniAllenamento = impostazioni.giorni || [1, 2, 3, 4, 5];
+  const giorniAllenamento = useMemo<DayOfWeekNum[]>(() => impostazioni.giorni || [1, 2, 3, 4, 5], [impostazioni.giorni]);
   const parametriSeduta = useMemo(
     () => risolviParametriSeduta(oggi, impostazioni, stagione),
     [oggi, impostazioni, stagione]
   );
-  useEffect(() => {
+  const durataKey = `${oggi}:${parametriSeduta.durataMin}`;
+  const [prevDurataKey, setPrevDurataKey] = useState('');
+  if (durataKey !== prevDurataKey) {
+    setPrevDurataKey(durataKey);
     setDurataInput(String(parametriSeduta.durataMin));
-  }, [oggi, parametriSeduta.durataMin]);
+  }
   const hasOverride = Boolean(impostazioni.overrideSedute?.[oggi]);
   const settimanaISO = useMemo(
     () => seduteSettimana(oggi, giorniAllenamento),
@@ -268,10 +271,10 @@ export const SchedeVascaScreen: React.FC = () => {
             aria-labelledby="tab-parametri-destinatario"
             className="space-y-2 pt-2 border-t border-outline-variant animate-fade-in"
           >
-            <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">
+            <span id="parametri-destinatario-label" className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">
               Destinatario della proposta
-            </label>
-            <div className="flex flex-wrap gap-1.5">
+            </span>
+            <div className="flex flex-wrap gap-1.5" role="group" aria-labelledby="parametri-destinatario-label">
               <button
                 type="button"
                 onClick={() => selezionaAtleta(null)}

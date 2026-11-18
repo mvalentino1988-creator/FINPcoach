@@ -101,8 +101,8 @@ export const TestCalibrazioneModal: React.FC<Props> = ({ atleta, onClose, onSalv
 
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div>
-              <label className="ds-label block mb-1.5">Tipologia Vasca</label>
-              <div className="grid grid-cols-2 gap-2">
+              <span id="calib-vasca-label" className="ds-label block mb-1.5">Tipologia Vasca</span>
+              <div className="grid grid-cols-2 gap-2" role="group" aria-labelledby="calib-vasca-label">
                 {[25, 50].map(v => (
                   <button
                     key={v}
@@ -121,14 +121,14 @@ export const TestCalibrazioneModal: React.FC<Props> = ({ atleta, onClose, onSalv
             </div>
 
             <div>
-              <label className="ds-label block mb-1.5">Tempo Rilevato nel Test (mm:ss.cc o ss.cc) *</label>
+              <label htmlFor="calib-tempo" className="ds-label block mb-1.5">Tempo Rilevato nel Test (mm:ss.cc o ss.cc) *</label>
               <input
+                id="calib-tempo"
                 type="text"
                 value={tempoInput}
                 onChange={e => setTempoInput(e.target.value)}
                 placeholder="es. 1:12.45 o 29.10"
                 className="ds-input !h-12 font-mono text-sm font-bold text-primary"
-                autoFocus
               />
               {centesimi && (
                 <div className="ds-chip-green mt-2 !min-h-0">
@@ -139,8 +139,9 @@ export const TestCalibrazioneModal: React.FC<Props> = ({ atleta, onClose, onSalv
             </div>
 
             <div>
-              <label className="ds-label block mb-1.5">Note / Osservazioni</label>
+              <label htmlFor="calib-nota" className="ds-label block mb-1.5">Note / Osservazioni</label>
               <input
+                id="calib-nota"
                 type="text"
                 value={notaTest}
                 onChange={e => setNotaTest(e.target.value)}

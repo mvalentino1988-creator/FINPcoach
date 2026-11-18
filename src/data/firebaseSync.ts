@@ -54,12 +54,27 @@ export interface SyncState {
 /* I tipi delle funzioni Firebase sono deliberatamente laschi: il modulo e'
    caricato con import dinamico e le firme non servono al di fuori di questa
    classe (i consumatori usano solo metodi statici di FirebaseSync). */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// Tipi strutturali locali: l'SDK è caricato con import dinamico e le firme
+// non servono al di fuori di questa classe (i consumatori usano solo metodi
+// statici di FirebaseSync). Evitano dipendenze dai type-only export di firebase.
+interface FirebaseUserLike {
+  uid: string;
+  email?: string | null;
+}
+interface FirebaseAuthLike {
+  currentUser: FirebaseUserLike | null;
+}
+interface FirebaseDocLike {
+  exists(): boolean;
+  data(): unknown;
+}
+type UnsubscribeFn = () => void;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- firme SDK caricate dinamicamente, non tipizzabili in modo utile qui
 type FbFn = any;
 type FirebaseSdk = {
-  app: any;
-  db: any;
-  auth: any;
+  app: unknown;
+  db: unknown;
+  auth: FirebaseAuthLike;
   fns: {
     initializeApp: FbFn;
     getApps: FbFn;
@@ -81,7 +96,7 @@ type FirebaseSdk = {
 export class FirebaseSync {
   private static sdk: FirebaseSdk | null = null;
   private static sdkPromise: Promise<FirebaseSdk | null> | null = null;
-  private static unsubscribe: any = null;
+  private static unsubscribe: UnsubscribeFn | null = null;
   private static listeners: Set<(data: SyncData) => void> = new Set();
   private static state: SyncState = {
     status: 'disconnected',
@@ -144,8 +159,8 @@ export class FirebaseSync {
     return this.sdkPromise;
   }
 
-  private static get db(): any { return this.sdk?.db ?? null; }
-  private static get auth(): any { return this.sdk?.auth ?? null; }
+  private static get db(): unknown { return this.sdk?.db ?? null; }
+  private static get auth(): FirebaseAuthLike | null { return this.sdk?.auth ?? null; }
 
   /**
    * Login con email e password
@@ -162,10 +177,10 @@ export class FirebaseSync {
       this.state.userId = userCredential.user.uid;
       this.state.status = 'synced';
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Login error:', error);
       this.state.status = 'error';
-      this.state.error = this.getAuthErrorMessage(error.code);
+      this.state.error = this.getAuthErrorMessage((error as { code?: string }).code ?? '');
       return { success: false, error: this.state.error };
     }
   }
@@ -185,10 +200,10 @@ export class FirebaseSync {
       this.state.userId = userCredential.user.uid;
       this.state.status = 'synced';
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Registration error:', error);
       this.state.status = 'error';
-      this.state.error = this.getAuthErrorMessage(error.code);
+      this.state.error = this.getAuthErrorMessage((error as { code?: string }).code ?? '');
       return { success: false, error: this.state.error };
     }
   }
@@ -209,10 +224,10 @@ export class FirebaseSync {
       this.state.userId = userCredential.user.uid;
       this.state.status = 'synced';
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Google login error:', error);
       this.state.status = 'error';
-      this.state.error = error.message || 'Errore login con Google';
+      this.state.error = (error as Error).message || 'Errore login con Google';
       return { success: false, error: this.state.error || undefined };
     }
   }
@@ -239,14 +254,24 @@ export class FirebaseSync {
   /**
    * Ottieni l'utente corrente
    */
-  static getCurrentUser(): any {
+  static getCurrentUser(): FirebaseUserLike | null {
     return this.auth?.currentUser || null;
   }
 
   /**
-   * Iscriviti ai cambiamenti dello stato di autenticazione
+   * Iscriviti ai cambiamenti dello stato di autenticazione.
+   * Senza consenso esplicito + sync abilitata l'SDK Firebase NON viene
+   * nemmeno caricato: nessuna richiesta di rete all'avvio.
    */
-  static onAuthStateChange(callback: (user: any) => void): () => void {
+  static onAuthStateChange(callback: (user: FirebaseUserLike | null) => void): () => void {
+    const consentito =
+      typeof localStorage !== 'undefined' &&
+      localStorage.getItem('finp_sync_enabled') === 'true' &&
+      localStorage.getItem('finp_sync_consent') === 'true';
+    if (!consentito) {
+      callback(null);
+      return () => {};
+    }
     let innerUnsub: (() => void) | null = null;
     let cancelled = false;
     void this.init().then((sdk) => {
@@ -362,14 +387,14 @@ export class FirebaseSync {
       const docRef = sdk.fns.doc(sdk.db, 'users', userId);
       this.unsubscribe = sdk.fns.onSnapshot(
         docRef,
-        (doc: any) => {
+        (doc: FirebaseDocLike) => {
           if (doc.exists()) {
             callback(doc.data() as SyncData);
           } else {
             callback(null);
           }
         },
-        (error: any) => {
+        (error: Error) => {
           console.error('Subscribe error:', error);
           this.state.status = 'error';
           this.state.error = 'Errore sincronizzazione real-time';

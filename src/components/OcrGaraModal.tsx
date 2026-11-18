@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Check, X, Trophy, Trash2 } from 'lucide-react';
 import { TempoEstrattoOcr, OcrGaraParser } from '../domain/ocrGaraParser';
 import { Stile } from '../types';
@@ -20,17 +20,18 @@ const STILI: { key: Stile; label: string }[] = [
 ];
 
 const inputCompatto =
-  'h-9 px-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs font-medium text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition';
+  'h-11 px-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs font-medium text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition';
 
 export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfirm, onCancel }) => {
-  const [righe, setRighe] = useState<TempoEstrattoOcr[]>([]);
+  const [righe, setRighe] = useState<TempoEstrattoOcr[]>(() => OcrGaraParser.parseTabellaGare(initialRawText));
   const [rawText, setRawText] = useState(initialRawText);
   const [modoTesto, setModoTesto] = useState(false);
-
-  useEffect(() => {
+  const [prevInitialRawText, setPrevInitialRawText] = useState(initialRawText);
+  if (initialRawText !== prevInitialRawText) {
+    setPrevInitialRawText(initialRawText);
     setRawText(initialRawText);
     setRighe(OcrGaraParser.parseTabellaGare(initialRawText));
-  }, [initialRawText]);
+  }
 
   if (!isOpen) return null;
 
@@ -83,14 +84,14 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
             <button
               type="button"
               onClick={() => setModoTesto(false)}
-              className={`px-3.5 h-9 rounded-full text-xs font-bold transition ${!modoTesto ? 'bg-surface-container-lowest text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
+              className={`px-3.5 h-11 rounded-full text-xs font-bold transition ${!modoTesto ? 'bg-surface-container-lowest text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
             >
               Tabella Tempi Rilevati ({righe.length})
             </button>
             <button
               type="button"
               onClick={() => setModoTesto(true)}
-              className={`px-3.5 h-9 rounded-full text-xs font-bold transition ${modoTesto ? 'bg-surface-container-lowest text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
+              className={`px-3.5 h-11 rounded-full text-xs font-bold transition ${modoTesto ? 'bg-surface-container-lowest text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
             >
               Testo OCR Grezzo
             </button>
@@ -99,7 +100,7 @@ export const OcrGaraModal: React.FC<Props> = ({ isOpen, initialRawText, onConfir
             <button
               type="button"
               onClick={handleRicalcolaDaTesto}
-              className="ds-btn-secondary !min-h-[36px] !px-3 !py-1.5 text-xs"
+              className="ds-btn-secondary !min-h-[44px] !px-3 !py-1.5 text-xs"
             >
               Ricalcola Tabella da Testo
             </button>

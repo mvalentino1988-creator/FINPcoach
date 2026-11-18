@@ -12,8 +12,8 @@ export interface UpdateStatus {
 export interface RemoteData {
   version: string;
   updated: string;
-  records: any[];
-  regulations: any[];
+  records: unknown[];
+  regulations: unknown[];
 }
 
 export class AutoUpdateService {
@@ -74,9 +74,6 @@ export class AutoUpdateService {
       const remoteData = await this.fetchRemoteData();
 
       if (!remoteData) {
-        const metaRec = RecordService.meta();
-        const metaReg = RegolamentiService.meta();
-
         return {
           hasUpdate: false,
           ultimaVerifica: this.REMOTE_ENDPOINT ? new Date(ora).toLocaleDateString('it-IT') : 'Non configurato',
@@ -113,7 +110,7 @@ export class AutoUpdateService {
         remoteVersion: remoteData.version,
         messaggio: `Verifica completata: Database locale sincronizzato con versione ${remoteData.version}. (${metaRec.aggiornato} record, ${metaReg.aggiornato} regolamenti)`
       };
-    } catch (e) {
+    } catch {
       return {
         hasUpdate: false,
         ultimaVerifica: new Date(ora).toLocaleDateString('it-IT'),

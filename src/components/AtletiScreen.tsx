@@ -553,12 +553,13 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
           </div>
 
           <div className="p-3 bg-surface-container-low rounded-xl space-y-1 border border-outline-variant">
-            <label className="flex items-center justify-between gap-3 min-h-[48px] cursor-pointer rounded-lg px-1 -mx-1 hover:bg-surface-container transition-colors">
+            <label htmlFor="atleta-ufficiale" aria-label="Classificazione Ufficiale" className="flex items-center justify-between gap-3 min-h-[48px] cursor-pointer rounded-lg px-1 -mx-1 hover:bg-surface-container transition-colors">
               <span className="min-w-0">
                 <span className="font-semibold text-xs text-on-surface block">Classificazione Ufficiale</span>
                 <span className="text-xs text-on-surface-variant">Se disattivato, risulta 'In Attesa'</span>
               </span>
               <input
+                id="atleta-ufficiale"
                 type="checkbox"
                 checked={ufficiale}
                 onChange={e => setUfficiale(e.target.checked)}
@@ -566,12 +567,13 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
               />
             </label>
 
-            <label className="flex items-center justify-between gap-3 min-h-[48px] cursor-pointer rounded-lg px-1 -mx-1 hover:bg-surface-container transition-colors pt-2 border-t border-outline-variant">
+            <label htmlFor="atleta-volume-auto" aria-label="Volume Automatico" className="flex items-center justify-between gap-3 min-h-[48px] cursor-pointer rounded-lg px-1 -mx-1 hover:bg-surface-container transition-colors pt-2 border-t border-outline-variant">
               <span className="min-w-0">
                 <span className="font-semibold text-xs text-on-surface block">Volume Automatico</span>
                 <span className="text-xs text-on-surface-variant">Calcolato su età, condizioni mediche e classe</span>
               </span>
               <input
+                id="atleta-volume-auto"
                 type="checkbox"
                 checked={volumeAuto}
                 onChange={e => setVolumeAuto(e.target.checked)}
@@ -595,13 +597,13 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-on-surface-variant mb-1">
+            <span id="atleta-codici-label" className="block text-xs font-semibold text-on-surface-variant mb-1">
               Codici di Eccezione WPS
               <span className="text-xs text-on-surface-variant font-normal ml-1">
                 (es. * T A Y E 7 9 - Regole speciali per partenze, virate, tapper)
               </span>
-            </label>
-            <div className="flex flex-wrap gap-1.5">
+            </span>
+            <div className="flex flex-wrap gap-1.5" role="group" aria-labelledby="atleta-codici-label">
               {['*', 'T', 'A', 'Y', 'E', '7', '9'].map(codice => (
                 <button
                   key={codice}
@@ -631,8 +633,9 @@ const ModalAtleta: React.FC<ModalAtletaProps> = ({ iniziale, onAnnulla, onSalva 
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-on-surface-variant mb-1">Note / Menomazione</label>
+            <label htmlFor="atleta-note" className="block text-xs font-semibold text-on-surface-variant mb-1">Note / Menomazione</label>
             <textarea
+              id="atleta-note"
               rows={2}
               value={note}
               onChange={e => setNote(e.target.value)}
@@ -684,7 +687,6 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
   condizioni,
   assenze,
   tempi,
-  log,
   meso,
   micro,
   onChiudi,
@@ -695,10 +697,7 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
   onAggiungiAssenza,
   onEliminaAssenza,
   onAggiungiTempo,
-  onEliminaTempo,
-  parametriEffettivi,
-  stagione,
-  impostazioni
+  onEliminaTempo
 }) => {
   const [modificaOpen, setModificaOpen] = useState(false);
   const [codiciProposti, setCodiciProposti] = useState<CodiceAllenamentoKey[] | null>(null);

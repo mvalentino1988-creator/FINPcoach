@@ -441,7 +441,6 @@ export function chooseOrientation(
 ): { orientation: ForcedOrientation; score: number; changed: boolean } {
   const { portrait, landscape } = simulateOrientations(inp);
   const best = portrait.score >= landscape.score ? portrait : landscape;
-  const other = best === portrait ? landscape : portrait;
 
   let chosen: OrientCandidate;
   if (Math.abs(portrait.score - landscape.score) / Math.max(portrait.score, landscape.score, 0.0001) < 0.1) {

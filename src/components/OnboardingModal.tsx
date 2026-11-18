@@ -37,10 +37,10 @@ export const OnboardingModal: React.FC<Props> = ({ onComplete }) => {
 
         {/* Tema */}
         <div className="space-y-2.5">
-          <label className="font-label-caps text-label-caps uppercase tracking-wider text-primary font-bold block">
+          <span id="onboarding-tema-label" className="font-label-caps text-label-caps uppercase tracking-wider text-primary font-bold block">
             Tema Grafico
-          </label>
-          <div className="grid grid-cols-3 gap-2">
+          </span>
+          <div className="grid grid-cols-3 gap-2" role="group" aria-labelledby="onboarding-tema-label">
             {([
               { id: 'sistema', label: 'Sistema', icon: <Monitor size={20} /> },
               { id: 'chiaro',  label: 'Chiaro',  icon: <Sun size={20} /> },

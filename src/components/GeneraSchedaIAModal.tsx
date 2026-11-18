@@ -213,7 +213,7 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
                   <button
                     type="button"
                     onClick={() => setMostraApiKey(!mostraApiKey)}
-                    className="ds-btn-icon !w-9 !h-9"
+                    className="ds-btn-icon"
                     aria-label={mostraApiKey ? 'Nascondi API key' : 'Mostra API key'}
                   >
                     {mostraApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -222,7 +222,7 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
                     <button
                       type="button"
                       onClick={() => setConfig({ ...config, apiKey: '' })}
-                      className="ds-btn-icon !w-9 !h-9 text-coral"
+                      className="ds-btn-icon text-coral"
                       title="Rimuovi chiave"
                       aria-label="Rimuovi chiave API"
                     >
@@ -255,10 +255,10 @@ export const GeneraSchedaIAModal: React.FC<Props> = ({
             <div className="flex items-center justify-between gap-2">
               <span className="text-body-bold font-body-bold text-on-surface">Prompt preimpostato</span>
               <div className="flex items-center gap-1">
-                <button type="button" onClick={copiaPrompt} className="ds-btn-icon !w-9 !h-9" title="Copia prompt">
+                <button type="button" onClick={copiaPrompt} className="ds-btn-icon" title="Copia prompt">
                   <Copy size={16} />
                 </button>
-                <button type="button" onClick={apriWeb} className="ds-btn-icon !w-9 !h-9" title="Apri IA web">
+                <button type="button" onClick={apriWeb} className="ds-btn-icon" title="Apri IA web">
                   <ExternalLink size={16} />
                 </button>
               </div>

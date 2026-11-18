@@ -151,12 +151,21 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
   const overrideChoiceRef = useRef<'keep' | 'overwrite' | null>(null);
 
   const undoRef = useRef<string[]>([]);
+  const [undoDepth, setUndoDepth] = useState(0);
   const nodesRef = useRef<Map<string, TimerNodes>>(new Map());
   const topBarRef = useRef<HTMLDivElement | null>(null);
   const bottomBarRef = useRef<HTMLDivElement | null>(null);
   const gridRef = useRef<HTMLDivElement | null>(null);
   const generalTimeRef = useRef<HTMLOutputElement | null>(null);
   const tapGuardRef = useRef<Map<string, number>>(new Map());
+  const [gridSize, setGridSize] = useState({ w: 0, h: 0 });
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el) return undefined;
+    const ro = new ResizeObserver(() => setGridSize({ w: el.clientWidth, h: el.clientHeight }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const appliedOrientRef = useRef<{ mode: 'portrait' | 'landscape'; score: number } | null>(null);
   const desktopRef = useRef(false);
   const didMountEvalRef = useRef(false);
@@ -182,10 +191,12 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
   const pushUndo = useCallback(() => {
     undoRef.current.push(JSON.stringify(sessionRef.current));
     if (undoRef.current.length > UNDO_MAX) undoRef.current.shift();
-  }, []);
+    setUndoDepth(undoRef.current.length);
+  }, [sessionRef]);
 
   const undo = useCallback(() => {
     const snap = undoRef.current.pop();
+    setUndoDepth(undoRef.current.length);
     if (!snap) return;
     try {
       sessionRef.current = JSON.parse(snap) as VascaSession;
@@ -195,7 +206,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
     } catch {
       /* noop */
     }
-  }, [schedulePersist]);
+  }, [schedulePersist, sessionRef, setSession]);
 
   const noteAction = useCallback(() => {
     setUndoPulse(p => p + 1);
@@ -262,7 +273,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
     next.lanes = built.lanes;
     sessionRef.current = next;
     setSession(next);
-  }, [assegnazioneCorrente, atleti, syncNonce, setSession]);
+  }, [assegnazioneCorrente, atleti, syncNonce, setSession, sessionRef]);
 
   // -------------------------------------------------------------------------
   // Orologio: aggiornamento diretto dei nodi via requestAnimationFrame
@@ -334,7 +345,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [sessionRef]);
 
   // -------------------------------------------------------------------------
   // Orientamento automatico
@@ -444,7 +455,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       noteAction();
       bump();
     },
-    [bump, noteAction, pushUndo],
+    [bump, noteAction, pushUndo, sessionRef, setSession],
   );
 
   const findLaneAthlete = useCallback((laneNumero: number, athleteId: string) => {
@@ -452,7 +463,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
     const lane = s.lanes.find(l => l.numero === laneNumero);
     const a = lane?.atleti.find(x => x.id === athleteId);
     return lane && a ? { lane, a } : null;
-  }, []);
+  }, [sessionRef]);
 
   const handleCardTap = useCallback(
     (laneNumero: number, athleteId: string) => {
@@ -463,9 +474,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
 
       const s = sessionRef.current;
       if (s.stato !== 'in_corso') return;
-      const found = findLaneAthlete(laneNumero, athleteId);
-      if (!found) return;
-      const { lane, a } = found;
+      if (!findLaneAthlete(laneNumero, athleteId)) return;
       // Clone-first: se l'azione è ignorata non si tocca nulla (né lo stack undo).
       const next = cloneSession(s);
       const nextLane = next.lanes.find(l => l.numero === laneNumero);
@@ -486,7 +495,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       bump();
       document.body.classList.add('vasca-live');
     },
-    [bump, findLaneAthlete, noteAction, pushUndo],
+    [bump, findLaneAthlete, noteAction, pushUndo, sessionRef, setSession],
   );
 
   const handleVia = useCallback(() => {
@@ -500,7 +509,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
     beep(880, 200);
     vibrate([0, 160, 60, 160, 60, 400]);
     document.body.classList.add('vasca-live');
-  }, [bump, noteAction, pushUndo]);
+  }, [bump, noteAction, pushUndo, sessionRef, setSession]);
 
   const handleResume = useCallback(() => {
     pushUndo();
@@ -510,7 +519,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
     setSession(s);
     noteAction();
     bump();
-  }, [bump, noteAction, pushUndo]);
+  }, [bump, noteAction, pushUndo, sessionRef, setSession]);
 
   const handleStopGenerale = useCallback(() => {
     pushUndo();
@@ -520,14 +529,14 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
     setSession(s);
     noteAction();
     bump();
-  }, [bump, noteAction, pushUndo]);
+  }, [bump, noteAction, pushUndo, sessionRef, setSession]);
 
   const handleFine = useCallback(() => {
     const s = sessionRef.current;
     if (s.stato === 'in_corso') handleStopGenerale();
     setSummaryOpen(true);
     setSalvato(false);
-  }, [handleStopGenerale]);
+  }, [handleStopGenerale, sessionRef]);
 
   const handleReset = useCallback(() => {
     pushUndo();
@@ -550,13 +559,14 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
     sessionRef.current = fresh;
     setSession(fresh);
     undoRef.current = [];
+    setUndoDepth(0);
     document.body.classList.remove('vasca-live');
     setSheet(null);
     setSummaryOpen(false);
     setConfirmReset(false);
     noteAction();
     bump();
-  }, [bump, noteAction, pushUndo]);
+  }, [bump, noteAction, pushUndo, sessionRef, setSession]);
 
   const handleToggleFermo = useCallback(
     (laneNumero: number, athleteId: string) => {
@@ -587,7 +597,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       });
     }
     setSalvato(true);
-  }, [aggiungiTempo, vascaMetri]);
+  }, [aggiungiTempo, vascaMetri, sessionRef]);
 
   const handleCopia = useCallback(async () => {
     const s = sessionRef.current;
@@ -602,7 +612,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       document.execCommand('copy');
       ta.remove();
     }
-  }, [vascaMetri]);
+  }, [vascaMetri, sessionRef]);
 
   // -------------------------------------------------------------------------
   // Setup helpers (stato 'pronta')
@@ -633,7 +643,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       while (used.has(n)) n++;
       s.lanes.push(createLane(n));
     });
-  }, [mutate, assegnazioneCorrente, parametriOggi, impostaOverrideSeduta, oggi]);
+  }, [mutate, assegnazioneCorrente, parametriOggi, impostaOverrideSeduta, oggi, sessionRef]);
 
   const removeLane = useCallback(
     (lane: VascaLane) => {
@@ -650,7 +660,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
         s.lanes = s.lanes.filter(l => l.numero !== lane.numero);
       });
     },
-    [mutate, assegnazioneCorrente, parametriOggi, impostaOverrideSeduta, oggi],
+    [mutate, assegnazioneCorrente, parametriOggi, impostaOverrideSeduta, oggi, sessionRef],
   );
 
   const addAthleteToLane = useCallback(
@@ -666,7 +676,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       }
       setSheet(null);
     },
-    [mutate, updateAssegnazione],
+    [mutate, updateAssegnazione, sessionRef],
   );
 
   const removeAthlete = useCallback(
@@ -686,19 +696,19 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       }
       setSheet(null);
     },
-    [mutate, updateAssegnazione],
+    [mutate, updateAssegnazione, sessionRef],
   );
 
   // -------------------------------------------------------------------------
   // Ripartenze: modifica con eventuale conferma sovrascrittura
   // -------------------------------------------------------------------------
 
-  const lanesWithPersonal = (scope: 'lane' | 'global', lane?: VascaLane): number => {
+  const lanesWithPersonal = useCallback((scope: 'lane' | 'global', lane?: VascaLane): number => {
     const lanes = scope === 'global' ? sessionRef.current.lanes : sessionRef.current.lanes.filter(l => l.numero === lane?.numero);
     let n = 0;
     for (const l of lanes) for (const a of l.atleti) if (a.ripartenzaAtleta != null) n++;
     return n;
-  };
+  }, [sessionRef]);
 
   /**
    * Applica una modifica di ripartenza. Se nello scope ci sono personalizzazioni
@@ -721,7 +731,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       }
       setOverrideAsk({ scope, lane, apply: mutator });
     },
-    [mutate],
+    [mutate, lanesWithPersonal],
   );
 
   const resolveOverride = useCallback(
@@ -762,28 +772,28 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
 
   const laneCellH = useCallback(
     (lane: VascaLane): number => {
-      const el = gridRef.current;
-      if (!el) return 90;
+      const { h: cellHTotal } = gridSize;
+      if (!cellHTotal) return 90;
       const C = Math.max(1, laneCount);
       const rows = layoutOrient === 'landscape' ? 1 : C <= 3 ? 1 : C <= 6 ? 2 : 3;
       const gap = 6;
-      const cellH = (el.clientHeight - (rows - 1) * gap) / rows;
+      const cellH = (cellHTotal - (rows - 1) * gap) / rows;
       const headerH = 30;
       const n = Math.max(1, lane.atleti.length);
       const gapA = 4;
       return Math.max(0, (cellH - headerH - gapA * (n - 1)) / n);
     },
-    [layoutOrient, laneCount],
+    [layoutOrient, laneCount, gridSize],
   );
 
   const laneCellW = useCallback((): number => {
-    const el = gridRef.current;
-    if (!el) return 90;
+    const { w: cellWTotal } = gridSize;
+    if (!cellWTotal) return 90;
     const C = Math.max(1, laneCount);
     const cols = layoutOrient === 'landscape' ? C : Math.ceil(C / (C <= 3 ? 1 : C <= 6 ? 2 : 3));
     const gap = 6;
-    return Math.max(0, (el.clientWidth - (cols - 1) * gap) / cols - 14);
-  }, [layoutOrient, laneCount]);
+    return Math.max(0, (cellWTotal - (cols - 1) * gap) / cols - 14);
+  }, [layoutOrient, laneCount, gridSize]);
 
   const registerNode = useCallback((athleteId: string, kind: keyof TimerNodes) => {
     return (el: HTMLElement | null) => {
@@ -831,6 +841,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       },
       onPointerLeave: () => {
         if (timer != null) window.clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/immutability -- timer è una variabile locale del useMemo usata come debounce dei gesture handler
         timer = null;
       },
       onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
@@ -985,7 +996,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
                 <button
                   type="button"
                   onClick={() => setSheet({ type: 'picker', lane })}
-                  className="shrink-0 h-8 mx-1 mb-1 rounded-lg bg-surface-container text-on-surface text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-1 active:scale-[0.98] transition"
+                  className="shrink-0 h-11 mx-1 mb-1 rounded-lg bg-surface-container text-on-surface text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-1 active:scale-[0.98] transition"
                 >
                   <Plus size={12} /> Atleta
                 </button>
@@ -1062,7 +1073,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
         <button
           type="button"
           onClick={undo}
-          disabled={undoRef.current.length === 0}
+          disabled={undoDepth === 0}
           aria-label="Annulla ultima azione"
           className={`w-14 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-0.5 active:scale-[0.95] transition border ${
             undoPulse > 0
@@ -1077,8 +1088,9 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
 
       {/* ============ OVERLAY: reset ============ */}
       {confirmReset && (
-        <div className="fixed inset-0 z-[60] bg-black/50 flex items-end sm:items-center justify-center p-4" onClick={() => setConfirmReset(false)}>
-          <div className="bg-surface-container-lowest rounded-2xl p-5 max-w-sm w-full border border-outline-variant" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[60] bg-black/50 flex items-end sm:items-center justify-center p-4">
+          <button type="button" aria-label="Chiudi finestra" tabIndex={-1} onClick={() => setConfirmReset(false)} className="absolute inset-0 cursor-default" />
+          <div className="relative bg-surface-container-lowest rounded-2xl p-5 max-w-sm w-full border border-outline-variant" role="dialog" aria-modal="true" aria-label="Conferma azzeramento">
             <h3 className="font-headline-sm text-base font-bold mb-2">Azzera sessione?</h3>
             <p className="text-sm text-on-surface-variant mb-4">Tutti i tempi e le ripetizioni verranno cancellati. La composizione di corsie e atleti resta.</p>
             <div className="flex gap-2">
@@ -1132,8 +1144,9 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
 
       {/* ============ OVERLAY: sovrascrittura ripartenze ============ */}
       {overrideAsk && (
-        <div className="fixed inset-0 z-[60] bg-black/50 flex items-end sm:items-center justify-center p-4" onClick={() => resolveOverride('keep')}>
-          <div className="bg-surface-container-lowest rounded-2xl p-5 max-w-sm w-full border border-outline-variant" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[60] bg-black/50 flex items-end sm:items-center justify-center p-4">
+          <button type="button" aria-label="Chiudi finestra" tabIndex={-1} onClick={() => resolveOverride('keep')} className="absolute inset-0 cursor-default" />
+          <div className="relative bg-surface-container-lowest rounded-2xl p-5 max-w-sm w-full border border-outline-variant" role="dialog" aria-modal="true" aria-label="Personalizzazioni atleti">
             <h3 className="font-headline-sm text-base font-bold mb-2">Personalizzazioni atleti</h3>
             <p className="text-sm text-on-surface-variant mb-4">
               Alcuni atleti hanno una ripartenza personale. Mantenerle (predefinito) o sovrascriverle con il nuovo valore?
@@ -1280,13 +1293,17 @@ interface AthleteCardProps {
 const AthleteCard: React.FC<AthleteCardProps> = ({
   session, lane, athlete: a, compact, tileW, now, pronta, registerNode, onTap, onLongPress, onToggleStop, ignoredSignal,
 }) => {
+  const [prevIgnoredSignal, setPrevIgnoredSignal] = useState(ignoredSignal ?? 0);
   const [ignoredFlash, setIgnoredFlash] = useState(false);
+  if ((ignoredSignal ?? 0) !== prevIgnoredSignal) {
+    setPrevIgnoredSignal(ignoredSignal ?? 0);
+    if (ignoredSignal) setIgnoredFlash(true);
+  }
   useEffect(() => {
-    if (!ignoredSignal) return undefined;
-    setIgnoredFlash(true);
+    if (!ignoredFlash) return undefined;
     const t = window.setTimeout(() => setIgnoredFlash(false), 320);
     return () => window.clearTimeout(t);
-  }, [ignoredSignal]);
+  }, [ignoredFlash]);
   const status = athleteStatus(session, lane, a, now);
   const meta = STATUS_META[status];
   const personalRip = a.ripartenzaAtleta;
@@ -1360,7 +1377,7 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
           status === 'in_ritardo' ? 'border-warning' : status === 'in_ripartenza' ? 'border-primary' : status === 'in_nuoto' ? 'border-secondary' : 'border-outline-variant'
         } ${ignoredFlash ? 'ring-2 ring-warning' : ''}`}
       >
-        <span className="font-semibold text-on-surface truncate" style={{ fontSize: 11 }}>
+        <span className="font-semibold text-on-surface truncate" style={{ fontSize: 12 }}>
           {a.cognome}
         </span>
         <span ref={registerNode(a.id, 'time')} className="font-stat-timer text-on-surface tabular-nums shrink-0" style={{ fontSize: 13 }}>
@@ -1475,7 +1492,7 @@ const PresetRow: React.FC<{ values: readonly number[]; current: number | null; o
       <button
         type="button"
         onClick={() => onPick(null)}
-        className={`h-9 px-2.5 rounded-lg text-[12px] font-bold ${current == null ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface'}`}
+        className={`h-11 px-2.5 rounded-lg text-[12px] font-bold ${current == null ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface'}`}
       >
         Auto
       </button>
@@ -1485,7 +1502,7 @@ const PresetRow: React.FC<{ values: readonly number[]; current: number | null; o
         key={v}
         type="button"
         onClick={() => onPick(v)}
-        className={`h-9 px-2.5 rounded-lg text-[12px] font-bold tabular-nums ${current === v ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface'}`}
+        className={`h-11 px-2.5 rounded-lg text-[12px] font-bold tabular-nums ${current === v ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface'}`}
       >
         {formatRipartenza(v)}
       </button>
@@ -1496,11 +1513,12 @@ const PresetRow: React.FC<{ values: readonly number[]; current: number | null; o
 const SheetHost: React.FC<SheetHostProps> = (props) => {
   const { sheet, onClose } = props;
   return (
-    <div className="fixed inset-0 z-[55] bg-black/50 flex items-end sm:items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-[55] bg-black/50 flex items-end sm:items-center justify-center">
+      <button type="button" aria-label="Chiudi finestra" tabIndex={-1} onClick={onClose} className="absolute inset-0 cursor-default" />
       <div
-        className="bg-surface-container-lowest w-full sm:max-w-md max-h-[75dvh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-4 border border-outline-variant shadow-float"
-        onClick={e => e.stopPropagation()}
+        className="relative bg-surface-container-lowest w-full sm:max-w-md max-h-[75dvh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-4 border border-outline-variant shadow-float"
         role="dialog"
+        aria-modal="true"
         aria-label="Opzioni"
       >
         {sheet.type === 'picker' && <PickerSheet {...props} lane={sheet.lane} />}
@@ -1534,7 +1552,7 @@ const PickerSheet: React.FC<SheetHostProps & { lane: VascaLane }> = ({ lane, atl
     <div>
       <SheetHeader title={`Corsia ${lane.numero} — scegli atleta`} onClose={onClose} />
       <input
-        autoFocus
+        aria-label="Cerca atleta"
         value={pickerQuery}
         onChange={e => setPickerQuery(e.target.value)}
         placeholder="Cerca cognome…"
@@ -1653,7 +1671,7 @@ const AthleteSheet: React.FC<SheetHostProps & { laneNumero: number; athlete: Vas
         <button
           type="button"
           onClick={() => onSetAthleteRip(laneNumero, athlete.id, null)}
-          className="mt-2 h-10 px-3 rounded-lg bg-surface-container text-on-surface text-xs font-bold"
+          className="mt-2 h-11 px-3 rounded-lg bg-surface-container text-on-surface text-xs font-bold"
         >
           Ripristina ereditata ({formatRipartenza(inherited)})
         </button>
@@ -1671,11 +1689,11 @@ const AthleteSheet: React.FC<SheetHostProps & { laneNumero: number; athlete: Vas
 
       <p className="text-[12px] font-bold uppercase tracking-wide text-on-surface-variant mb-1 mt-4">Correggi ultimo lap</p>
       <div className="flex flex-wrap gap-1.5">
-        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, -5000)} className="h-10 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">−5s</button>
-        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, -1000)} className="h-10 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">−1s</button>
-        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, 1000)} className="h-10 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">+1s</button>
-        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, 5000)} className="h-10 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">+5s</button>
-        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, Number.MIN_SAFE_INTEGER)} className="h-10 px-3 rounded-lg bg-error-container text-on-error-container text-xs font-bold disabled:opacity-40">Elimina</button>
+        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, -5000)} className="h-11 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">−5s</button>
+        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, -1000)} className="h-11 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">−1s</button>
+        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, 1000)} className="h-11 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">+1s</button>
+        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, 5000)} className="h-11 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">+5s</button>
+        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, Number.MIN_SAFE_INTEGER)} className="h-11 px-3 rounded-lg bg-error-container text-on-error-container text-xs font-bold disabled:opacity-40">Elimina</button>
       </div>
 
       <div className="flex gap-2 mt-4">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Trash2, Save, X, ChevronDown, Star, Clock } from 'lucide-react';
 import { GestioneTemplate, Esercizio, EsercizioTemplate } from '../domain/gestioneTemplate';
 
@@ -16,14 +16,10 @@ const labelCls = 'block font-label-caps text-label-caps text-on-surface-variant 
 
 export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnnulla }) => {
   const [esercizi, setEsercizi] = useState<Esercizio[]>([]);
-  const [template, setTemplate] = useState<EsercizioTemplate[]>([]);
+  const [template, setTemplate] = useState<EsercizioTemplate[]>(() => GestioneTemplate.getTemplate());
   const [mostraTemplate, setMostraTemplate] = useState(false);
   const [nomeTemplate, setNomeTemplate] = useState('');
   const [salvaComeTemplate, setSalvaComeTemplate] = useState<number | null>(null);
-
-  useEffect(() => {
-    setTemplate(GestioneTemplate.getTemplate());
-  }, []);
 
   const aggiungiEsercizio = () => {
     const nuovo: Esercizio = {
@@ -39,6 +35,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
   const aggiungiDaTemplate = (tmpl: EsercizioTemplate) => {
     GestioneTemplate.usaTemplate(tmpl.id);
     const nuovo: Esercizio = {
+      // eslint-disable-next-line react-hooks/purity -- id generato in event handler
       id: Date.now().toString(),
       distanza: tmpl.distanza,
       stile: tmpl.stile,
@@ -116,7 +113,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
           <button
             type="button"
             onClick={() => setMostraTemplate(!mostraTemplate)}
-            className={`flex items-center gap-1.5 px-3 h-10 rounded-full text-xs font-label-caps font-bold transition ${
+            className={`flex items-center gap-1.5 px-3 h-11 rounded-full text-xs font-label-caps font-bold transition ${
               mostraTemplate
                 ? 'bg-primary-container text-on-primary-container shadow-sm'
                 : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
@@ -128,7 +125,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
           <button
             type="button"
             onClick={aggiungiEsercizio}
-            className="flex items-center gap-1.5 px-3 h-10 bg-primary-container text-on-primary-container rounded-full text-xs font-label-caps font-bold hover:bg-primary transition shadow-sm active:scale-95"
+            className="flex items-center gap-1.5 px-3 h-11 bg-primary-container text-on-primary-container rounded-full text-xs font-label-caps font-bold hover:bg-primary transition shadow-sm active:scale-95"
           >
             <Plus size={14} />
             Aggiungi
@@ -147,8 +144,16 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
               {template.map(tmpl => (
                 <div
                   key={tmpl.id}
+                  role="button"
+                  tabIndex={0}
                   className="flex items-center justify-between gap-2 p-2.5 bg-surface-container-lowest rounded-lg border border-outline-variant/50 hover:border-primary/40 cursor-pointer transition active:scale-[0.99]"
                   onClick={() => aggiungiDaTemplate(tmpl)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      aggiungiDaTemplate(tmpl);
+                    }
+                  }}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="font-body-bold text-body-bold text-on-surface text-sm truncate">{tmpl.nome}</div>
@@ -161,7 +166,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
                       GestioneTemplate.eliminaTemplate(tmpl.id);
                       setTemplate(GestioneTemplate.getTemplate());
                     }}
-                    className="w-9 h-9 flex items-center justify-center text-on-surface-variant hover:text-error rounded-lg hover:bg-error-container/50 transition shrink-0"
+                    className="w-11 h-11 flex items-center justify-center text-on-surface-variant hover:text-error rounded-lg hover:bg-error-container/50 transition shrink-0"
                     aria-label="Elimina template"
                   >
                     <Trash2 size={14} />
@@ -176,7 +181,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
       {/* Lista esercizi */}
       {esercizi.length === 0 ? (
         <div className="text-center py-8 text-on-surface-variant">
-          <div className="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mx-auto mb-2">
+          <div className="w-10 h-11 rounded-xl bg-surface-container flex items-center justify-center mx-auto mb-2">
             <Plus size={18} className="text-outline" />
           </div>
           <p className="text-sm font-semibold text-on-surface">Nessun esercizio aggiunto</p>
@@ -195,7 +200,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
                   <button
                     type="button"
                     onClick={() => setSalvaComeTemplate(salvaComeTemplate === idx ? null : idx)}
-                    className={`w-9 h-9 flex items-center justify-center rounded-lg transition ${
+                    className={`w-11 h-11 flex items-center justify-center rounded-lg transition ${
                       salvaComeTemplate === idx ? 'text-on-primary-fixed-variant bg-primary-fixed/40' : 'text-on-surface-variant hover:text-on-primary-fixed-variant hover:bg-primary-fixed/30'
                     }`}
                     title="Salva come template"
@@ -206,7 +211,7 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
                   <button
                     type="button"
                     onClick={() => eliminaEsercizio(es.id)}
-                    className="w-9 h-9 flex items-center justify-center text-on-surface-variant hover:text-error rounded-lg hover:bg-error-container/50 transition"
+                    className="w-11 h-11 flex items-center justify-center text-on-surface-variant hover:text-error rounded-lg hover:bg-error-container/50 transition"
                     aria-label="Elimina esercizio"
                   >
                     <Trash2 size={14} />
@@ -222,12 +227,12 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
                     value={nomeTemplate}
                     onChange={(e) => setNomeTemplate(e.target.value)}
                     placeholder="Nome template..."
-                    className="flex-1 px-3 h-10 text-xs border border-outline-variant/60 rounded-lg bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="flex-1 px-3 h-11 text-xs border border-outline-variant/60 rounded-lg bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                   <button
                     type="button"
                     onClick={() => salvaComeTemplateClick(idx)}
-                    className="px-3 h-10 bg-primary-container text-on-primary-container text-xs font-bold rounded-full hover:bg-primary transition active:scale-95"
+                    className="px-3 h-11 bg-primary-container text-on-primary-container text-xs font-bold rounded-full hover:bg-primary transition active:scale-95"
                   >
                     Salva
                   </button>
@@ -237,9 +242,10 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
               <div className="grid grid-cols-2 gap-3">
                 {/* Distanza */}
                 <div>
-                  <label className={labelCls}>Distanza</label>
+                  <label htmlFor={`es-${es.id}-distanza`} className={labelCls}>Distanza</label>
                   <div className="relative">
                     <select
+                      id={`es-${es.id}-distanza`}
                       value={es.distanza}
                       onChange={(e) => modificaEsercizio(es.id, 'distanza', parseInt(e.target.value))}
                       className={`${inputCls} appearance-none pr-8 font-semibold`}
@@ -254,9 +260,10 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
 
                 {/* Stile */}
                 <div>
-                  <label className={labelCls}>Stile</label>
+                  <label htmlFor={`es-${es.id}-stile`} className={labelCls}>Stile</label>
                   <div className="relative">
                     <select
+                      id={`es-${es.id}-stile`}
                       value={es.stile}
                       onChange={(e) => modificaEsercizio(es.id, 'stile', e.target.value)}
                       className={`${inputCls} appearance-none pr-8 font-semibold`}
@@ -272,8 +279,9 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
 
               {/* Ripetizioni */}
               <div>
-                <label className={labelCls}>Ripetizioni</label>
+                <label htmlFor={`es-${es.id}-ripetizioni`} className={labelCls}>Ripetizioni</label>
                 <input
+                  id={`es-${es.id}-ripetizioni`}
                   type="number"
                   min="1"
                   value={es.ripetizioni}
@@ -284,8 +292,9 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
 
               {/* Tempo */}
               <div>
-                <label className={labelCls}>Tempo (es. 1'30")</label>
+                <label htmlFor={`es-${es.id}-tempo`} className={labelCls}>Tempo (es. 1'30")</label>
                 <input
+                  id={`es-${es.id}-tempo`}
                   type="text"
                   value={es.tempo || ''}
                   onChange={(e) => modificaEsercizio(es.id, 'tempo', e.target.value)}
@@ -296,14 +305,14 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
 
               {/* Attrezzi */}
               <div>
-                <label className={labelCls}>Attrezzi</label>
-                <div className="flex flex-wrap gap-1">
+                <span id={`es-${es.id}-attrezzi`} className={labelCls}>Attrezzi</span>
+                <div className="flex flex-wrap gap-1" role="group" aria-labelledby={`es-${es.id}-attrezzi`}>
                   {ATTREZZI.map(att => (
                     <button
                       key={att}
                       type="button"
                       onClick={() => toggleAttrezzo(es.id, att)}
-                      className={`px-2.5 py-1 min-h-[32px] rounded-full font-label-caps text-[12px] font-bold transition ${
+                      className={`px-2.5 py-1 min-h-[44px] rounded-full font-label-caps text-[12px] font-bold transition ${
                         es.attrezzi.includes(att)
                           ? 'bg-primary-container text-on-primary-container shadow-sm'
                           : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
@@ -317,8 +326,9 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
 
               {/* Descrizione */}
               <div>
-                <label className={labelCls}>Descrizione</label>
+                <label htmlFor={`es-${es.id}-descrizione`} className={labelCls}>Descrizione</label>
                 <input
+                  id={`es-${es.id}-descrizione`}
                   type="text"
                   value={es.descrizione || ''}
                   onChange={(e) => modificaEsercizio(es.id, 'descrizione', e.target.value)}
@@ -329,8 +339,9 @@ export const EsercizioEditor: React.FC<EsercizioEditorProps> = ({ onSalva, onAnn
 
               {/* Note */}
               <div>
-                <label className={labelCls}>Note</label>
+                <label htmlFor={`es-${es.id}-note`} className={labelCls}>Note</label>
                 <input
+                  id={`es-${es.id}-note`}
                   type="text"
                   value={es.note || ''}
                   onChange={(e) => modificaEsercizio(es.id, 'note', e.target.value)}

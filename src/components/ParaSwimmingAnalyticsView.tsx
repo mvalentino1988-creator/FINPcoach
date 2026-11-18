@@ -30,8 +30,10 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
   const [performances, setPerformances] = useState(() => ParaSwimmingViewModel.getPerformances());
 
   useEffect(() => {
-    const status = ParaSwimmingViewModel.checkAndFetchMonthlyData();
-    setSyncStatus(status);
+    const id = requestAnimationFrame(() => {
+      setSyncStatus(ParaSwimmingViewModel.checkAndFetchMonthlyData());
+    });
+    return () => cancelAnimationFrame(id);
   }, []);
 
   const handleAddPerformance = (e: React.FormEvent) => {
@@ -54,6 +56,7 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
   };
 
   const filteredPerformances = useMemo(() => {
+    void performances; // forsa il ricalcolo dopo addPerformance
     return ParaSwimmingViewModel.getFilteredPerformances(atletaSel?.id ?? null, stile, distanza);
   }, [atletaSel, stile, distanza, performances]);
 
@@ -87,8 +90,9 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
       <div className="ds-card p-4 shadow-card space-y-3">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           <div>
-            <label className="ds-label block mb-1">Atleta</label>
+            <label htmlFor="para-atleta" className="ds-label block mb-1">Atleta</label>
             <select
+              id="para-atleta"
               value={atletaSel?.id ?? ''}
               onChange={(e) => setAtletaSelId(e.target.value ? Number(e.target.value) : null)}
               className="w-full min-w-0 min-h-[44px] px-2 sm:px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface"
@@ -100,8 +104,9 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
           </div>
 
           <div>
-            <label className="ds-label block mb-1">Stile</label>
+            <label htmlFor="para-stile" className="ds-label block mb-1">Stile</label>
             <select
+              id="para-stile"
               value={stile}
               onChange={(e) => setStile(e.target.value as Stile)}
               className="w-full min-w-0 min-h-[44px] px-2 sm:px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface"
@@ -115,8 +120,9 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
           </div>
 
           <div>
-            <label className="ds-label block mb-1">Distanza Gara</label>
+            <label htmlFor="para-distanza" className="ds-label block mb-1">Distanza Gara</label>
             <select
+              id="para-distanza"
               value={distanza}
               onChange={(e) => setDistanza(Number(e.target.value))}
               className="w-full min-w-0 min-h-[44px] px-2 sm:px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface"
@@ -129,8 +135,9 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
           </div>
 
           <div>
-            <label className="ds-label block mb-1">Filtro Elite Competitors</label>
+            <label htmlFor="para-livello" className="ds-label block mb-1">Filtro Elite Competitors</label>
             <select
+              id="para-livello"
               value={livelloGeo}
               onChange={(e) => setLivelloGeo(e.target.value as LivelloGeografico)}
               className="w-full min-w-0 min-h-[44px] px-2 sm:px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl font-bold text-on-surface"
@@ -198,8 +205,9 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
 
         <form onSubmit={handleAddPerformance} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
           <div>
-            <label className="ds-label block mb-1">Data (Seleziona da calendario)</label>
+            <label htmlFor="para-data" className="ds-label block mb-1">Data (Seleziona da calendario)</label>
             <input
+              id="para-data"
               type="date"
               value={dataTesto}
               onChange={e => setDataTesto(e.target.value)}
@@ -208,8 +216,9 @@ export const ParaSwimmingAnalyticsView: React.FC = () => {
           </div>
 
           <div>
-            <label className="ds-label block mb-1">Tempo Totale (secondi, es. 28.5 o 62.3)</label>
+            <label htmlFor="para-tempo" className="ds-label block mb-1">Tempo Totale (secondi, es. 28.5 o 62.3)</label>
             <input
+              id="para-tempo"
               type="number"
               step="0.01"
               placeholder="es. 28.5"

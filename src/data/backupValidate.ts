@@ -128,7 +128,7 @@ export function validaBackup(jsonString: string): BackupValidato {
   if (atleti) idUnivoci(atleti, 'id', errors, 'atleti');
   const atletaIds = new Set<number>((atleti ?? []).filter(isObj).map(x => x.id as number).filter(isNum));
 
-  const conAtleta = (nome: string, extra?: (item: Record<string, unknown>) => string[]) =>
+  const conAtleta = (nome: string) =>
     checkRifAtleta(it => it.atletaId, nome, atletaIds, warnings);
 
   const condizioni = validaArray('condizioni', raw.condizioni, errors, conAtleta('condizioni'));

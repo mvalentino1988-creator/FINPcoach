@@ -11,11 +11,11 @@ interface Props {
 
 export const OcrPreviewModal: React.FC<Props> = ({ isOpen, initialText, onConfirm, onCancel }) => {
   const [text, setText] = useState(initialText);
-
-  // Sincronizza lo stato quando initialText cambia
-  React.useEffect(() => {
+  const [prevInitialText, setPrevInitialText] = useState(initialText);
+  if (initialText !== prevInitialText) {
+    setPrevInitialText(initialText);
     setText(initialText);
-  }, [initialText]);
+  }
 
   if (!isOpen) return null;
 
@@ -53,10 +53,11 @@ export const OcrPreviewModal: React.FC<Props> = ({ isOpen, initialText, onConfir
         {/* Body */}
         <div className="p-4 sm:p-5 space-y-4 overflow-y-auto">
           <div className="space-y-2">
-            <label className="ds-label block">
+            <label htmlFor="ocr-testo-estratto" className="ds-label block">
               Testo Estratto (Modificabile)
             </label>
             <textarea
+              id="ocr-testo-estratto"
               value={text}
               onChange={(e) => setText(e.target.value)}
               className="ds-input !h-auto min-h-[10rem] p-3 font-mono text-xs resize-none"

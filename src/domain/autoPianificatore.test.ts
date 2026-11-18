@@ -1,15 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { AutoPianificatore } from './autoPianificatore';
-import { Atleta, LogSeduta, Stagione, CondizioneMedica } from '../types';
+import { Atleta, Stagione, CondizioneMedica } from '../types';
 
 const mkAtleta = (partial: Partial<Atleta> = {}): Atleta => ({
   id: 1, nome: 'T', cognome: 'A', stato: 'UFFICIALE',
   fattoreVolume: 1.0, note: '', volumeAuto: true, ...partial,
-});
-
-const mkLog = (data: string, presente = true, metri = 2000): LogSeduta => ({
-  id: Math.random(), atletaId: 1, data, presente, durataMin: 90,
-  metriEffettivi: metri, note: '',
 });
 
 describe('AutoPianificatore — date stagione', () => {

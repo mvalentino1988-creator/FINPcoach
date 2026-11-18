@@ -27,9 +27,14 @@ export const CalendarioScreen: React.FC = () => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const aggiornamento = useMemo(() => CalendarioService.statoAggiornamento(oggi), [oggi, refreshKey]);
+  // refreshKey è una dipendenza voluta: il servizio legge localStorage, il tick forza il ricalcolo.
+  const aggiornamento = useMemo(() => {
+    void refreshKey;
+    return CalendarioService.statoAggiornamento(oggi);
+  }, [oggi, refreshKey]);
 
   const eventi = useMemo(() => {
+    void refreshKey;
     const lista = CalendarioService.eventi();
     return soloProssimi ? lista.filter(e => e.al >= oggi) : lista;
   }, [soloProssimi, oggi, refreshKey]);
@@ -152,7 +157,7 @@ export const CalendarioScreen: React.FC = () => {
         <div className="rounded-xl bg-surface-container-lowest border border-outline-variant p-3 space-y-2 shadow-card">
           <div className="flex items-center justify-between">
             <span className="text-sm font-bold text-on-surface">Nuovo evento</span>
-            <button type="button" onClick={() => setShowForm(false)} className="ds-btn-icon !w-9 !h-9" aria-label="Chiudi form evento"><X size={16} /></button>
+            <button type="button" onClick={() => setShowForm(false)} className="ds-btn-icon" aria-label="Chiudi form evento"><X size={16} /></button>
           </div>
           <input className="ds-input !min-h-[44px]" placeholder="Titolo gara / evento" value={form.titolo} onChange={e => setForm({ ...form, titolo: e.target.value })} />
           <div className="grid grid-cols-2 gap-2">

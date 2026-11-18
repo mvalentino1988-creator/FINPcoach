@@ -209,7 +209,7 @@ describe('cronometroVasca — stop e ripresa generale', () => {
   });
 
   it('in stato ferma refreshSession non muove nulla', () => {
-    const { s, lane, a } = setup(60);
+    const { s, lane } = setup(60);
     lane.intervalloPartenza = 5;
     const a2 = createAthlete(2, 'Due');
     lane.atleti.push(a2);
@@ -223,7 +223,7 @@ describe('cronometroVasca — stop e ripresa generale', () => {
 
 describe('cronometroVasca — migrazione e riepilogo', () => {
   it('migrateSession completa start nei lap legacy senza errori', () => {
-    const { s, lane, a } = setup(60);
+    const { s, a } = setup(60);
     viaGenerale(s, 0);
     // Simula un lap vecchio senza `start`.
     a.laps.push({ t: 40_000, wall: Date.now() });

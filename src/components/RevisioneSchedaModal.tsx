@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ParserApprendimento, escapeRegExp } from '../domain/parserApprendimento';
 import { ParserScheda } from '../domain/parserScheda';
 import { Brain, Check, Sparkles, X } from 'lucide-react';
@@ -16,12 +16,16 @@ export const RevisioneSchedaModal: React.FC<Props> = ({ open, testo, onClose, on
   const [imparate, setImparate] = useState<Record<number, boolean>>({});
 
   // Riaprendo il pannello le righe partono sempre dal testo corrente.
-  useEffect(() => {
-    if (!open) return;
-    setRighe(testo.split('\n'));
-    setCorrezioni({});
-    setImparate({});
-  }, [open, testo]);
+  const syncKey = `${open}:${testo}`;
+  const [prevSyncKey, setPrevSyncKey] = useState(syncKey);
+  if (syncKey !== prevSyncKey) {
+    setPrevSyncKey(syncKey);
+    if (open) {
+      setRighe(testo.split('\n'));
+      setCorrezioni({});
+      setImparate({});
+    }
+  }
 
   const analisi = useMemo(() => {
     try {
@@ -160,7 +164,7 @@ export const RevisioneSchedaModal: React.FC<Props> = ({ open, testo, onClose, on
                                 : `${suggerimento.distanza}`;
                           correggiRiga(idx, val);
                         }}
-                        className="self-start ds-btn-ghost !min-h-[36px] !px-3 !py-1.5 text-xs"
+                        className="self-start ds-btn-ghost !min-h-[44px] !px-3 !py-1.5 text-xs"
                       >
                         <Sparkles size={14} />
                         <span>{suggerimento.descrizione}</span>

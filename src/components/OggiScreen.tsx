@@ -128,12 +128,11 @@ const OggiContent: React.FC = () => {
     rimuoviOverrideSeduta,
   } = useApp();
 
-  const [atletaSelId, setAtletaSelId] = useState<number | null>(null);
-  const [copiato, setCopiato] = useState(false);
+  const [atletaSelId] = useState<number | null>(null);
   const [modalParametriOpen, setModalParametriOpen] = useState(false);
   const [modalIAOpen, setModalIAOpen] = useState(false);
   const [modalEsercizioOpen, setModalEsercizioOpen] = useState(false);
-  const [revisioneStorage, setRevisioneStorage] = useState(0);
+  const [, setRevisioneStorage] = useState(0);
 
   // Popup modals per evitare scrolling nella schermata principale
   const [activePopup, setActivePopup] = useState<'squadra' | 'carico' | 'gare' | null>(null);
@@ -251,15 +250,12 @@ const OggiContent: React.FC = () => {
     return { ...g, diffDays: Math.max(0, diffDays) };
   }, [gare, oggi]);
 
-  const [dataSchedaTarget, setDataSchedaTarget] = useState<string>(oggi);
-
   const vai = (tab: TabKey, sezione?: string, datiTab?: string) => {
     if (sezione) sessionStorage.setItem('finp_altro_sezione', sezione);
     if (datiTab) sessionStorage.setItem('finp_dati_tab', datiTab);
     window.dispatchEvent(new CustomEvent('finp:navigate', { detail: tab }));
   };
 
-  const status = chiusuraOggi ? 'closed' : garaOggi ? 'race' : isGiornoAllenamento ? 'training' : 'rest';
   const statusLabel = chiusuraOggi ? 'Impianto Chiuso' : garaOggi ? 'Gara Ufficiale' : isGiornoAllenamento ? 'Allenamento Odierno' : 'Giorno di Riposo';
   const microLabel = microCorrente ? TIPO_MICROCICLO_LABEL[microCorrente.tipo] : 'Programmato';
 
@@ -267,6 +263,7 @@ const OggiContent: React.FC = () => {
   // disinstallare l'app li cancella. Avviso se mai esportato o oltre la soglia.
   const backupReminder = useMemo(() => {
     const raw = FINPStorage.getUltimoBackup();
+    // eslint-disable-next-line react-hooks/purity -- memoria del giorno: la precisione è il giorno, non il millisecondo
     const giorni = raw ? Math.floor((Date.now() - new Date(raw).getTime()) / 86400000) : null;
     const configurata = Number(localStorage.getItem('finp_backup_reminder_days'));
     const soglia = Number.isFinite(configurata) && configurata > 0 ? configurata : 14;
@@ -487,11 +484,12 @@ const OggiContent: React.FC = () => {
 
       {/* POPUP MODALS */}
       {activePopup === 'squadra' && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" onClick={() => setActivePopup(null)}>
-          <div className="bg-surface-container-lowest rounded-2xl p-5 max-w-md w-full shadow-float border border-outline-variant space-y-4 text-on-surface animate-slide-up max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <button type="button" aria-label="Chiudi finestra" tabIndex={-1} onClick={() => setActivePopup(null)} className="absolute inset-0 cursor-default" />
+          <div className="relative bg-surface-container-lowest rounded-2xl p-5 max-w-md w-full shadow-float border border-outline-variant space-y-4 text-on-surface animate-slide-up max-h-[80vh] flex flex-col" role="dialog" aria-modal="true" aria-label="Atleti in squadra">
             <div className="flex items-center justify-between">
               <h3 className="font-headline text-base font-bold">Atleti in Squadra ({atleti.length})</h3>
-              <button type="button" onClick={() => setActivePopup(null)} className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-surface-container">
+              <button type="button" onClick={() => setActivePopup(null)} className="w-11 h-11 rounded-full flex items-center justify-center hover:bg-surface-container">
                 <X size={18} />
               </button>
             </div>
@@ -511,11 +509,12 @@ const OggiContent: React.FC = () => {
       )}
 
       {activePopup === 'carico' && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" onClick={() => setActivePopup(null)}>
-          <div className="bg-surface-container-lowest rounded-2xl p-5 max-w-md w-full shadow-float border border-outline-variant space-y-4 text-on-surface animate-slide-up" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <button type="button" aria-label="Chiudi finestra" tabIndex={-1} onClick={() => setActivePopup(null)} className="absolute inset-0 cursor-default" />
+          <div className="relative bg-surface-container-lowest rounded-2xl p-5 max-w-md w-full shadow-float border border-outline-variant space-y-4 text-on-surface animate-slide-up" role="dialog" aria-modal="true" aria-label="Dettaglio carico settimanale">
             <div className="flex items-center justify-between">
               <h3 className="font-headline text-base font-bold">Dettaglio Carico Settimanale</h3>
-              <button type="button" onClick={() => setActivePopup(null)} className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-surface-container">
+              <button type="button" onClick={() => setActivePopup(null)} className="w-11 h-11 rounded-full flex items-center justify-center hover:bg-surface-container">
                 <X size={18} />
               </button>
             </div>
@@ -534,11 +533,12 @@ const OggiContent: React.FC = () => {
       )}
 
       {activePopup === 'gare' && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" onClick={() => setActivePopup(null)}>
-          <div className="bg-surface-container-lowest rounded-2xl p-5 max-w-md w-full shadow-float border border-outline-variant space-y-4 text-on-surface animate-slide-up" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <button type="button" aria-label="Chiudi finestra" tabIndex={-1} onClick={() => setActivePopup(null)} className="absolute inset-0 cursor-default" />
+          <div className="relative bg-surface-container-lowest rounded-2xl p-5 max-w-md w-full shadow-float border border-outline-variant space-y-4 text-on-surface animate-slide-up" role="dialog" aria-modal="true" aria-label="Prossime gare">
             <div className="flex items-center justify-between">
               <h3 className="font-headline text-base font-bold">Prossime Gare FINP</h3>
-              <button type="button" onClick={() => setActivePopup(null)} className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-surface-container">
+              <button type="button" onClick={() => setActivePopup(null)} className="w-11 h-11 rounded-full flex items-center justify-center hover:bg-surface-container">
                 <X size={18} />
               </button>
             </div>
@@ -609,8 +609,9 @@ const OggiContent: React.FC = () => {
       )}
 
       {modalEsercizioOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" onClick={() => setModalEsercizioOpen(false)}>
-          <div className="bg-surface-container-lowest rounded-2xl p-5 max-w-lg w-full shadow-float border border-outline-variant space-y-4 text-on-surface animate-slide-up max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <button type="button" aria-label="Chiudi finestra" tabIndex={-1} onClick={() => setModalEsercizioOpen(false)} className="absolute inset-0 cursor-default" />
+          <div className="relative bg-surface-container-lowest rounded-2xl p-5 max-w-lg w-full shadow-float border border-outline-variant space-y-4 text-on-surface animate-slide-up max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-label="Editor esercizio">
             <EsercizioEditor
               onSalva={(testo, metri) => {
                 const customWorkouts = FINPStorage.getCustomWorkouts();

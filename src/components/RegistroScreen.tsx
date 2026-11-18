@@ -30,10 +30,7 @@ export const RegistroScreen: React.FC = () => {
     meso,
     log,
     tempi,
-    stagione,
     condizioni,
-    impostazioni,
-    parametriEffettivi,
     salvaSeduta,
     aggiungiTempo,
     eliminaTempo
@@ -56,10 +53,11 @@ export const RegistroScreen: React.FC = () => {
   // Athletes attendance row state
   const [righe, setRighe] = useState<Record<number, { presente: boolean; metri: string; rpe: string }>>({});
 
-  // Initialize or update rows when date changes
-  React.useEffect(() => {
-    if (!dataParsed) return;
+  // Inizializza/aggiorna le righe quando i dati sottostanti cambiano
+  // (pattern "adjust state during render": niente effect + setState).
+  const costruisciRigheIniziali = (): Record<number, { presente: boolean; metri: string; rpe: string }> => {
     const initial: Record<number, { presente: boolean; metri: string; rpe: string }> = {};
+    if (!dataParsed) return initial;
 
     atleti.forEach(a => {
       const esistente = log.find(l => l.atletaId === a.id && l.data === dataParsed);
@@ -91,9 +89,21 @@ export const RegistroScreen: React.FC = () => {
         };
       }
     });
+    return initial;
+  };
 
-    setRighe(initial);
-  }, [dataParsed, atleti, assenze, micro, log]);
+  const [prevRigheDeps, setPrevRigheDeps] = useState<{ dataParsed: string | null; atleti: typeof atleti; assenze: typeof assenze; micro: typeof micro; log: typeof log } | null>(null);
+  if (
+    prevRigheDeps === null ||
+    prevRigheDeps.dataParsed !== dataParsed ||
+    prevRigheDeps.atleti !== atleti ||
+    prevRigheDeps.assenze !== assenze ||
+    prevRigheDeps.micro !== micro ||
+    prevRigheDeps.log !== log
+  ) {
+    setPrevRigheDeps({ dataParsed, atleti, assenze, micro, log });
+    setRighe(costruisciRigheIniziali());
+  }
 
   const giaRegistrata = Boolean(dataParsed && log.some(l => l.data === dataParsed));
 

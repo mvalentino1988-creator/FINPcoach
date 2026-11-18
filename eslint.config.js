@@ -23,18 +23,12 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'no-console': ['warn', { allow: ['error', 'warn'] }],
-      // Warning motivati (vedi docs/REPORT-CORREZIONI.md, blocco 9):
-      // - label-has-associated-control: molte label avvolgono il controllo
-      //   (HTML valido); l'htmlFor esplicito è miglioramento graduale.
-      // - Le regole react-hooks v6 su refs/setState in render/effect sono
-      //   euristiche nuove: producono falsi positivi su pattern legittimi
-      //   (es. tabRef per l'handler di back Android). Restano visibili come
-      //   warning per revisione manuale.
+      // Regole react-hooks v6: gli warning reali sono stati corretti con il
+      // pattern "adjust state during render", lazy initializer e dipendenze
+      // esplicite. Le eccezioni volute portano un eslint-disable commentato.
+      // preserve-manual-memoization resta warn: è un notice del React Compiler
+      // (memo manuale non preservabile), non un errore di correttezza.
       'jsx-a11y/label-has-associated-control': 'warn',
-      // Warning motivati: l'app usa spesso <div onClick> per card/bottoni
-      // personalizzati con aria-label e touch target >=44px (verificato nel
-      // blocco 5). La conversione a <button> nativo è un miglioramento
-      // graduale, non un errore bloccante.
       'jsx-a11y/click-events-have-key-events': 'warn',
       'jsx-a11y/no-static-element-interactions': 'warn',
       'jsx-a11y/no-noninteractive-element-interactions': 'warn',

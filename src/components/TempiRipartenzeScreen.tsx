@@ -45,8 +45,6 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
   const atletaSel = atleti.find(a => a.id === (atletaSelId ?? atleti[0]?.id)) ?? atleti[0] ?? null;
 
   // OCR modal
-  const [mostraImport, setMostraImport] = useState(false);
-  const [testoImport, setTestoImport] = useState('');
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrGaraModalOpen, setOcrGaraModalOpen] = useState(false);
   const [ocrRawText, setOcrRawText] = useState('');
@@ -153,24 +151,6 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
     setNote('');
   };
 
-  const handleImportOCR = () => {
-    const importati = CalcoloRitmiRipartenze.parseImportaTempi(testoImport);
-    for (const t of importati) {
-      aggiungiTempo({
-        atletaId: atletaSel.id,
-        data: todayISO(),
-        stile: t.stile,
-        distanzaMetri: t.distanzaMetri,
-        centesimi: t.centesimi,
-        contesto: t.contesto,
-        vascaMetri: 25,
-        note: t.note
-      });
-    }
-    setMostraImport(false);
-    setTestoImport('');
-  };
-
   return (
     <div className="space-y-4">
       {/* Title */}
@@ -186,7 +166,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
 
       {/* Athlete banner selector */}
       <div className="ds-card p-3 shadow-card flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg bg-primary-fixed/60 flex items-center justify-center text-on-primary-fixed-variant shrink-0">
+        <div className="w-11 h-11 rounded-lg bg-primary-fixed/60 flex items-center justify-center text-on-primary-fixed-variant shrink-0">
           <User size={18} />
         </div>
         <div className="flex-1 min-w-0">
@@ -216,7 +196,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => setTestModalOpen(true)}
-              className="ds-btn-primary !min-h-[40px] !px-3 text-xs shrink-0"
+              className="ds-btn-primary !min-h-[44px] !px-3 text-xs shrink-0"
             >
               <Sparkles size={14} />
               <span>Esegui Test Ora</span>
@@ -336,7 +316,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
             <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
             <span className="truncate">Registra Nuovo Tempo / Test</span>
           </h3>
-          <label className="px-3 py-1.5 min-h-[40px] bg-surface-container-lowest hover:bg-primary-fixed/40 hover:text-on-primary-fixed-variant text-primary border border-primary/25 rounded-full font-label-caps text-label-caps cursor-pointer transition flex items-center gap-1.5 shrink-0 active:scale-95">
+          <label className="px-3 py-1.5 min-h-[44px] bg-surface-container-lowest hover:bg-primary-fixed/40 hover:text-on-primary-fixed-variant text-primary border border-primary/25 rounded-full font-label-caps text-label-caps cursor-pointer transition flex items-center gap-1.5 shrink-0 active:scale-95">
             {ocrLoading ? <Loader2 size={13} className="animate-spin" /> : <Camera size={13} />}
             <span>{ocrLoading ? 'OCR…' : 'Screenshot'}</span>
             <input
@@ -373,8 +353,9 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
         <form onSubmit={handleSalvaTempo} className="space-y-3 text-xs pt-1">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Data</label>
+              <label htmlFor="tempo-data" className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Data</label>
               <input
+                id="tempo-data"
                 type="text"
                 value={dataTesto}
                 onChange={e => setDataTesto(e.target.value)}
@@ -385,8 +366,9 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Distanza (m)</label>
+              <label htmlFor="tempo-distanza" className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Distanza (m)</label>
               <input
+                id="tempo-distanza"
                 type="number"
                 value={distanza}
                 onChange={e => setDistanza(e.target.value)}
@@ -397,8 +379,9 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Tempo (es. 1:04.20)</label>
+              <label htmlFor="tempo-tempo" className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Tempo (es. 1:04.20)</label>
               <input
+                id="tempo-tempo"
                 type="text"
                 placeholder="es. 1:04.20"
                 value={tempoTesto}
@@ -412,8 +395,9 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Stile</label>
+              <label htmlFor="tempo-stile" className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Stile</label>
               <select
+                id="tempo-stile"
                 value={stile}
                 onChange={e => setStile(e.target.value as Stile)}
                 className="ds-select !h-11 font-semibold"
@@ -427,8 +411,9 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Contesto</label>
+              <label htmlFor="tempo-contesto" className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Contesto</label>
               <select
+                id="tempo-contesto"
                 value={contesto}
                 onChange={e => setContesto(e.target.value as ContestoTempo)}
                 className="ds-select !h-11 font-semibold"
@@ -440,8 +425,9 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Vasca</label>
+              <label htmlFor="tempo-vasca" className="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Vasca</label>
               <select
+                id="tempo-vasca"
                 value={vasca}
                 onChange={e => setVasca(Number(e.target.value))}
                 className="ds-select !h-11 font-semibold"
@@ -512,7 +498,7 @@ export const TempiRipartenzeScreen: React.FC<Props> = ({
 
                   <button
                     onClick={() => eliminaTempo(t.id)}
-                    className="w-9 h-9 flex items-center justify-center text-on-surface-variant hover:text-error rounded-lg hover:bg-error-container/50 transition shrink-0"
+                    className="w-11 h-11 flex items-center justify-center text-on-surface-variant hover:text-error rounded-lg hover:bg-error-container/50 transition shrink-0"
                     aria-label="Elimina tempo"
                   >
                     <Trash2 size={16} />

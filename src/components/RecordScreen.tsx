@@ -388,7 +388,7 @@ export const RecordScreen: React.FC = () => {
             <>
               <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <span className="font-label-caps text-[12px] text-on-primary/80 uppercase block">Miglior tempo di gara</span>
+                  <span className="font-label-caps text-[12px] text-on-primary uppercase block">Miglior tempo di gara</span>
                   <span className="text-xs font-semibold">{formattaData(migliorTempo.data)}</span>
                 </div>
                 <span className="font-stat-timer-mobile text-[26px] leading-none tabular-nums shrink-0">

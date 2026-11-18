@@ -1,4 +1,4 @@
-import { Atleta, CondizioneMedica, Tempo } from '../types';
+import { Atleta, CondizioneMedica, LogSeduta, Tempo } from '../types';
 import { todayISO, yearsBetween } from './dateUtils';
 import { RilevamentoLivello, LivelloAtleta } from './rilevamentoLivello';
 
@@ -31,7 +31,7 @@ export class CalibrazioneAtletaService {
     atleta: Atleta,
     tempi: Tempo[],
     condizioni: CondizioneMedica[],
-    logSedute: any[] = []
+    logSedute: LogSeduta[] = []
   ): CalibrazioneAtleta {
     const oggi = todayISO();
     const eta = atleta.dataNascita ? yearsBetween(atleta.dataNascita, oggi) : null;
@@ -188,7 +188,6 @@ export class CalibrazioneAtletaService {
     // Tempi recenti = indice più alto
     const tempiDati = tempi.filter(t => t.contesto !== 'ALLENAMENTO');
     if (tempiDati.length > 0) {
-      const ultimo = tempiDati.reduce((max, t) => t.data > max.data ? t : max);
       // Se il miglior tempo è uno degli ultimi 3
       const ultimi3 = tempiDati
         .sort((a, b) => b.data.localeCompare(a.data))

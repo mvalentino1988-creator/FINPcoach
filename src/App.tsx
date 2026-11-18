@@ -49,8 +49,10 @@ function normalizeTab(value: string | null): TabKey {
 
 export const AppContent: React.FC = () => {
   const [tab, setTab] = useState<TabKey>(() => normalizeTab(sessionStorage.getItem('finp_active_tab')));
-  const [showLogin, setShowLogin] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLogin, setShowLogin] = useState(() =>
+    localStorage.getItem('finp_sync_enabled') === 'true' && !FirebaseSync.getCurrentUser()
+  );
+  const [, setIsLoggedIn] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('finp_onboarded'));
   const [mode, setMode] = useState<'demo' | 'live' | null>(() => {
     const m = FINPStorage.getMode();
@@ -94,7 +96,9 @@ export const AppContent: React.FC = () => {
   }, []);
 
   const tabRef = useRef<TabKey>(tab);
-  tabRef.current = tab;
+  useEffect(() => {
+    tabRef.current = tab;
+  }, [tab]);
   useEffect(() => {
     return pushBackHandler(() => {
       if (tabRef.current !== 'oggi') {
@@ -111,17 +115,6 @@ export const AppContent: React.FC = () => {
   useEffect(() => {
     document.body.classList.toggle('app-no-scroll', fixed);
   }, [fixed]);
-
-  useEffect(() => {
-    const syncEnabled = localStorage.getItem('finp_sync_enabled') === 'true';
-    const user = FirebaseSync.getCurrentUser();
-    if (syncEnabled && !user) {
-      setShowLogin(true);
-    } else if (user) {
-      setIsLoggedIn(true);
-      setShowLogin(false);
-    }
-  }, []);
 
   if (!mode) {
     return <WelcomeScreen onReady={() => setMode(FINPStorage.getMode())} />;

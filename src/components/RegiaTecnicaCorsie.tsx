@@ -21,10 +21,6 @@ import { IndicatoreCodici } from './IndicatoreCodici';
 import { FINPStorage } from '../data/storage';
 import { ParserScheda } from '../domain/parserScheda';
 import { formattaData, todayISO } from '../domain/dateUtils';
-import {
-  profiloCorsiaAtleta,
-  type TipoLavoroCorsia,
-} from '../domain/composizioneCorsie';
 import { generaCodiciSeduta } from '../domain/generatoreCodiciSeduta';
 import { CodiceAllenamentoKey } from '../types';
 import {
@@ -53,13 +49,6 @@ import {
 import { INTERVALLO_PRESETS } from '../domain/cronometroVasca';
 import { useSessioneVasca, sessioneBloccaRegia, vaiAVistaVasca } from '../lib/vascaSessione';
 
-const FOCUS_TIPO: Record<TipoLavoroCorsia, string> = {
-  V: 'velocità e reattività',
-  M: 'soglia e VO2',
-  F: 'fondo e tecnica',
-  N: 'lavoro da definire',
-};
-
 const CODICI_VALIDI = new Set<CodiceAllenamentoKey>(['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'C3', 'D']);
 
 const LANE_ACCENTS = [
@@ -74,9 +63,6 @@ const LONG_PRESS_MS = 500;
 const formattaSecondi = (s: number | null | undefined): string =>
   s == null ? '—' : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
-const initiali = (a: { nome: string; cognome: string }): string =>
-  `${a.cognome.charAt(0)}${a.nome.charAt(0)}`.toUpperCase() || '?';
-
 export const RegiaTecnicaCorsie: React.FC = () => {
   const {
     atleti, tempi, condizioni, micro, meso, stagione,
@@ -90,6 +76,9 @@ export const RegiaTecnicaCorsie: React.FC = () => {
   const bloccata = sessioneBloccaRegia(sessione);
 
   const [precedente, setPrecedente] = useState<AssegnazioneVasca | null>(null);
+  if (assegnazioneVasca && assegnazioneVasca.data !== oggi && precedente !== assegnazioneVasca) {
+    setPrecedente(assegnazioneVasca);
+  }
   const [selezionato, setSelezionato] = useState<number | null>(null);
   const [sheetAtleta, setSheetAtleta] = useState<{ id: number; corsia: number | null } | null>(null);
   const [ricerca, setRicerca] = useState('');
@@ -121,7 +110,6 @@ export const RegiaTecnicaCorsie: React.FC = () => {
       return;
     }
     if (assegnazioneVasca.data !== oggi) {
-      setPrecedente(assegnazioneVasca);
       salvaAssegnazioneVasca(
         nuovaAssegnazione(oggi, vascaMetri, parametriOggi.numeroCorsie ?? NUMERO_CORISIE_DEFAULT, presentiIds)
       );
@@ -153,11 +141,6 @@ export const RegiaTecnicaCorsie: React.FC = () => {
     else base.add(atletaId);
     scriviParametri({ atletiPresentiIds: tuttiIds.filter(id => base.has(id)) });
   };
-
-  const profiliCorsia = useMemo(
-    () => new Map(atleti.map(a => [a.id, profiloCorsiaAtleta(a, tempi)])),
-    [atleti, tempi]
-  );
 
   const microCorrente = useMemo(
     () => micro.find(m => m.inizio <= oggi && m.fine >= oggi) ?? micro[0] ?? null,
@@ -354,7 +337,7 @@ ${righe}
           <button
             type="button"
             onClick={() => vaiAVistaVasca('cronometro')}
-            className="flex items-center gap-1 px-3 min-h-[40px] rounded-lg bg-primary text-on-primary text-[12px] font-bold shrink-0"
+            className="flex items-center gap-1 px-3 min-h-[44px] rounded-lg bg-primary text-on-primary text-[12px] font-bold shrink-0"
           >
             <Play size={14} /> Cronometro
           </button>
@@ -371,14 +354,14 @@ ${righe}
             <button
               type="button"
               onClick={ripristinaPrecedente}
-              className="px-3 min-h-[40px] rounded-lg bg-primary text-on-primary text-[12px] font-bold"
+              className="px-3 min-h-[44px] rounded-lg bg-primary text-on-primary text-[12px] font-bold"
             >
               Usa
             </button>
             <button
               type="button"
               onClick={() => setPrecedente(null)}
-              className="px-3 min-h-[40px] rounded-lg bg-surface-container text-on-surface-variant text-[12px] font-bold"
+              className="px-3 min-h-[44px] rounded-lg bg-surface-container text-on-surface-variant text-[12px] font-bold"
             >
               No
             </button>
@@ -395,7 +378,7 @@ ${righe}
             disabled={bloccata || numeroCorsie <= 1}
             onClick={() => cambiaNumeroCorsie(-1)}
             aria-label="Riduci corsie"
-            className="w-9 h-9 rounded-md flex items-center justify-center text-on-surface disabled:opacity-40"
+            className="w-11 h-11 rounded-md flex items-center justify-center text-on-surface disabled:opacity-40"
           >
             <Minus size={15} />
           </button>
@@ -407,7 +390,7 @@ ${righe}
             disabled={bloccata || numeroCorsie >= MAX_CORISIE}
             onClick={() => cambiaNumeroCorsie(1)}
             aria-label="Aumenta corsie"
-            className="w-9 h-9 rounded-md flex items-center justify-center text-on-surface disabled:opacity-40"
+            className="w-11 h-11 rounded-md flex items-center justify-center text-on-surface disabled:opacity-40"
           >
             <Plus size={15} />
           </button>
@@ -418,7 +401,7 @@ ${righe}
           type="button"
           disabled={bloccata}
           onClick={() => update(a => applicaSuggerimento(a, atleti, tempi))}
-          className="flex items-center gap-1 px-3 min-h-[40px] rounded-lg bg-primary-fixed text-on-primary-fixed-variant text-[12px] font-bold disabled:opacity-50"
+          className="flex items-center gap-1 px-3 min-h-[44px] rounded-lg bg-primary-fixed text-on-primary-fixed-variant text-[12px] font-bold disabled:opacity-50"
         >
           <Sliders size={14} /> Suggerisci
         </button>
@@ -426,7 +409,7 @@ ${righe}
           type="button"
           disabled={bloccata}
           onClick={() => setConfermaSvuota(true)}
-          className="flex items-center gap-1 px-3 min-h-[40px] rounded-lg bg-surface-container text-on-surface-variant text-[12px] font-bold disabled:opacity-50"
+          className="flex items-center gap-1 px-3 min-h-[44px] rounded-lg bg-surface-container text-on-surface-variant text-[12px] font-bold disabled:opacity-50"
         >
           <Trash2 size={14} /> Svuota
         </button>
@@ -437,7 +420,7 @@ ${righe}
         <button
           type="button"
           onClick={() => setIntensitaAperta(v => !v)}
-          className="w-full flex items-center justify-between gap-2 min-h-[40px]"
+          className="w-full flex items-center justify-between gap-2 min-h-[44px]"
           aria-expanded={intensitaAperta}
         >
           <span className="flex items-center gap-1.5 min-w-0">
@@ -497,7 +480,7 @@ ${righe}
                   value={ricerca}
                   onChange={e => setRicerca(e.target.value)}
                   placeholder="Cerca atleta…"
-                  className="w-full h-9 pl-8 pr-3 rounded-lg bg-surface-container-lowest border border-outline-variant/60 text-[13px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary/50"
+                  className="w-full h-11 pl-8 pr-3 rounded-lg bg-surface-container-lowest border border-outline-variant/60 text-[13px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary/50"
                 />
               </div>
               <div className="flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto app-fixed-scroll">
@@ -560,7 +543,7 @@ ${righe}
                     type="button"
                     disabled={bloccata}
                     onClick={() => togglePresente(a.id)}
-                    className="flex items-center gap-1.5 min-h-[40px] px-2.5 py-1 rounded-xl border border-dashed border-outline-variant/70 bg-transparent text-on-surface-variant text-[12px] font-bold disabled:opacity-60"
+                    className="flex items-center gap-1.5 min-h-[44px] px-2.5 py-1 rounded-xl border border-dashed border-outline-variant/70 bg-transparent text-on-surface-variant text-[12px] font-bold disabled:opacity-60"
                     title="Segna presente"
                   >
                     <UserCheck size={13} className="text-primary" />
@@ -583,7 +566,20 @@ ${righe}
             return (
               <div
                 key={c.numero}
-                onClick={() => onTapCorsia(c.numero)}
+                role="button"
+                tabIndex={0}
+                aria-label={`Corsia ${c.numero}, ${c.atletiIds.length} atleti`}
+                onClick={e => {
+                  // Clic su controlli interni (bottoni +/-/blocco) non seleziona la corsia.
+                  if ((e.target as HTMLElement).closest('button')) return;
+                  onTapCorsia(c.numero);
+                }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onTapCorsia(c.numero);
+                  }
+                }}
                 onDragOver={e => { if (!bloccata) e.preventDefault(); }}
                 onDrop={e => onDropAtleta(e, c.numero)}
                 className={`rounded-xl bg-surface-container-low relative overflow-hidden flex flex-col min-w-0 border transition ${
@@ -593,7 +589,7 @@ ${righe}
                 <div className={`absolute top-0 left-0 bottom-0 w-1 ${accent.bar}`} />
                 <div className="p-2 pl-3 flex flex-col gap-1.5 min-h-0">
                   {/* Intestazione corsia */}
-                  <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                  <div className="flex items-center gap-1.5">
                     <span className={`w-6 h-6 rounded-md ${accent.chip} text-[12px] font-bold flex items-center justify-center shrink-0`}>
                       {c.numero}
                     </span>
@@ -606,7 +602,7 @@ ${righe}
                         type="button"
                         disabled={bloccata}
                         onClick={() => update(a => impostaRipartenzaCorsia(a, c.numero, secondi5(Math.max(5, (c.ripartenzaCorsia ?? corrente.ripartenzaGenerale) - 5))))}
-                        className="w-7 h-7 rounded-md bg-surface-container text-on-surface text-[12px] font-bold disabled:opacity-40"
+                        className="w-11 h-11 rounded-md bg-surface-container text-on-surface text-[12px] font-bold disabled:opacity-40"
                         aria-label="Diminuisci ripartenza corsia"
                       >−</button>
                       <span className="px-1 font-label-caps text-[12px] font-bold text-on-surface min-w-[2.2ch] text-center" title="Ripartenza corsia (multipli di 5 s)">
@@ -616,7 +612,7 @@ ${righe}
                         type="button"
                         disabled={bloccata}
                         onClick={() => update(a => impostaRipartenzaCorsia(a, c.numero, secondi5(Math.min(600, (c.ripartenzaCorsia ?? corrente.ripartenzaGenerale) + 5))))}
-                        className="w-7 h-7 rounded-md bg-surface-container text-on-surface text-[12px] font-bold disabled:opacity-40"
+                        className="w-11 h-11 rounded-md bg-surface-container text-on-surface text-[12px] font-bold disabled:opacity-40"
                         aria-label="Aumenta ripartenza corsia"
                       >+</button>
                       {c.ripartenzaCorsia != null && (
@@ -624,7 +620,7 @@ ${righe}
                           type="button"
                           disabled={bloccata}
                           onClick={() => update(a => impostaRipartenzaCorsia(a, c.numero, null))}
-                          className="w-6 h-7 rounded-md text-on-surface-variant text-[12px] font-bold"
+                          className="w-9 h-11 rounded-md text-on-surface-variant text-[12px] font-bold"
                           aria-label="Ripartenza corsia ereditata"
                           title="Torna alla ripartenza ereditata"
                         >×</button>
@@ -639,7 +635,7 @@ ${righe}
                           const next = opts[(curIdx + 1) % opts.length];
                           update(a => impostaIntervalloCorsia(a, c.numero, next));
                         }}
-                        className={`h-7 px-1.5 rounded-md font-label-caps text-[8.5px] font-bold uppercase ${
+                        className={`h-11 px-2 rounded-md font-label-caps text-[12px] font-bold uppercase ${
                           c.intervalloPartenza != null ? 'bg-secondary-fixed text-on-secondary-fixed-variant' : 'bg-surface-container text-on-surface-variant'
                         }`}
                         title="Intervallo partenza automatica"
@@ -650,7 +646,7 @@ ${righe}
                       <button
                         type="button"
                         onClick={() => update(a => impostaBloccoCorsia(a, c.numero, !c.bloccata))}
-                        className={`w-7 h-7 rounded-md flex items-center justify-center ${
+                        className={`w-11 h-11 rounded-md flex items-center justify-center ${
                           c.bloccata ? 'bg-primary-fixed text-primary' : 'bg-surface-container text-on-surface-variant'
                         }`}
                         aria-label={c.bloccata ? `Sblocca corsia ${c.numero}` : `Blocca corsia ${c.numero}`}
@@ -677,6 +673,9 @@ ${righe}
                         return (
                           <div
                             key={id}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`${a.cognome} ${a.nome}, corsia ${c.numero}`}
                             draggable={!bloccata && !c.bloccata}
                             onDragStart={e => {
                               e.dataTransfer.setData('application/x-finp-atleta', String(id));
@@ -686,11 +685,18 @@ ${righe}
                               e.stopPropagation();
                               onTapAtleta(id);
                             }}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onTapAtleta(id);
+                              }
+                            }}
                             onPointerDown={() => startLongPress(id, c.numero)}
                             onPointerUp={cancelLongPress}
                             onPointerLeave={cancelLongPress}
                             onPointerCancel={cancelLongPress}
-                            className={`flex items-center gap-1.5 px-1.5 py-1 rounded-lg bg-surface-container-lowest border min-w-0 cursor-pointer transition active:scale-[0.98] ${
+                            className={`flex items-center gap-1.5 px-1.5 py-1 min-h-[48px] rounded-lg bg-surface-container-lowest border min-w-0 cursor-pointer transition active:scale-[0.98] ${
                               selezionato === id ? 'border-primary ring-2 ring-primary/30' : 'border-outline-variant/30'
                             }`}
                           >
@@ -713,7 +719,7 @@ ${righe}
                                   update(cur => rimuoviDaCorsia(cur, id));
                                 }}
                                 aria-label={`Rimuovi ${a.cognome} dalla corsia ${c.numero}`}
-                                className="w-5 h-5 rounded text-on-surface-variant hover:text-error flex items-center justify-center shrink-0"
+                                className="w-11 h-11 -m-2 rounded text-on-surface-variant hover:text-error flex items-center justify-center shrink-0"
                               >
                                 <Minus size={11} />
                               </button>
@@ -748,8 +754,9 @@ ${righe}
 
       {/* Conferma svuota */}
       {confermaSvuota && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-4" onClick={() => setConfermaSvuota(false)}>
-          <div className="w-full max-w-sm rounded-2xl bg-surface p-5 shadow-xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-4">
+          <button type="button" aria-label="Chiudi finestra" tabIndex={-1} onClick={() => setConfermaSvuota(false)} className="absolute inset-0 cursor-default" />
+          <div className="relative w-full max-w-sm rounded-2xl bg-surface p-5 shadow-xl" role="dialog" aria-modal="true" aria-label="Conferma svuotamento corsie">
             <h3 className="font-headline-sm text-[16px] font-bold text-on-surface">Svuotare tutte le corsie?</h3>
             <p className="mt-1 text-[13px] text-on-surface-variant">
               Tutti gli atleti tornano tra i non assegnati. Ripartenze e impostazioni delle corsie restano.
@@ -779,8 +786,9 @@ ${righe}
 
       {/* Bottom sheet atleta */}
       {sheetAtletaObj && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={() => setSheetAtleta(null)}>
-          <div className="w-full max-w-md rounded-t-3xl sm:rounded-3xl bg-surface p-5 shadow-xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40">
+          <button type="button" aria-label="Chiudi finestra" tabIndex={-1} onClick={() => setSheetAtleta(null)} className="absolute inset-0 cursor-default" />
+          <div className="relative w-full max-w-md rounded-t-3xl sm:rounded-3xl bg-surface p-5 shadow-xl max-h-[85vh] overflow-y-auto" role="dialog" aria-modal="true" aria-label="Dettaglio atleta">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <h3 className="font-headline-sm text-[18px] font-bold text-on-surface">
@@ -795,7 +803,7 @@ ${righe}
                 type="button"
                 onClick={() => setSheetAtleta(null)}
                 aria-label="Chiudi"
-                className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant"
+                className="w-11 h-11 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant"
               >
                 <Minus size={16} className="rotate-45" />
               </button>

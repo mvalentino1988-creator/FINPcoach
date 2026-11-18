@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useApp } from '../data/AppContext';
 import {
   CalendarDays,
@@ -64,10 +64,10 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
     });
   }, [aspettoOpen, backupOpen]);
 
-  const vai = (tab: TabKey) => {
+  const vai = useCallback((tab: TabKey) => {
     onTabChange(tab);
     sessionStorage.removeItem('finp_from_altro');
-  };
+  }, [onTabChange]);
 
   useEffect(() => {
     const onOpenBackup = () => setBackupOpen(true);
@@ -89,7 +89,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [vai]);
 
   const renderItem = (key: TabKey, mobile = false) => {
     const item = ITEMS[key];
@@ -109,7 +109,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
         <item.Icon size={mobile ? 22 : 18} className="shrink-0" />
         <span className={mobile ? '' : 'truncate flex-1'}>{item.label}</span>
         {!mobile && (
-          <span className={`text-xs font-semibold tabular-nums shrink-0 ${active ? 'text-primary/60' : 'text-on-surface-variant'}`}>
+          <span className={`text-xs font-semibold tabular-nums shrink-0 ${active ? 'text-primary' : 'text-on-surface-variant'}`}>
             {ORDINE.indexOf(key) + 1}
           </span>
         )}
@@ -216,6 +216,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
 
       {/* Mobile bottom dock — stile mockup: pill attiva primary */}
       <nav
+        // eslint-disable-next-line react-hooks/refs -- dockRef è un RefCallback stabile (useLayoutMetrics), non un ref .current
         ref={layout.dockRef}
         aria-label="Navigazione principale"
         className="lg:hidden fixed bottom-0 inset-x-0 z-40 ds-glass border-t border-[color-mix(in_srgb,var(--color-outline-variant)_40%,transparent)] shadow-[0_-1px_12px_rgba(0,0,0,0.05)]"
@@ -228,8 +229,15 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
 
       {/* Aspetto modal */}
       {aspettoOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-fade-in" onClick={() => setAspettoOpen(false)}>
-          <div className="bg-surface-container-lowest rounded-2xl p-5 max-w-md w-full shadow-float border border-outline-variant space-y-5 text-on-surface animate-slide-up" onClick={e => e.stopPropagation()} role="dialog" aria-label="Aspetto">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-fade-in">
+          <button
+            type="button"
+            aria-label="Chiudi finestra"
+            tabIndex={-1}
+            onClick={() => setAspettoOpen(false)}
+            className="absolute inset-0 cursor-default"
+          />
+          <div className="relative bg-surface-container-lowest rounded-2xl p-5 max-w-md w-full shadow-float border border-outline-variant space-y-5 text-on-surface animate-slide-up" role="dialog" aria-label="Aspetto">
             <div className="flex items-center justify-between">
               <h3 className="font-headline-sm text-headline-sm font-bold">Aspetto</h3>
               <button type="button" onClick={() => setAspettoOpen(false)} aria-label="Chiudi" className="w-12 h-12 rounded-full flex items-center justify-center hover:bg-surface-container transition">

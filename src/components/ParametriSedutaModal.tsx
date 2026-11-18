@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ParametriSeduta } from '../types';
 import {
   DURATA_DEFAULT_MIN,
@@ -48,20 +48,24 @@ export const ParametriSedutaModal: React.FC<Props> = ({
   const [durata, setDurata] = useState(normalizzaDurata(iniziali.durataMin, DURATA_DEFAULT_MIN));
 
   // Riaprendo il pannello i valori partono sempre dai parametri effettivi.
-  useEffect(() => {
-    if (!open) return;
-    setVasca(normalizzaVasca(iniziali.vascaMetri));
-    setDurata(normalizzaDurata(iniziali.durataMin, DURATA_DEFAULT_MIN));
-  }, [open, iniziali.vascaMetri, iniziali.durataMin]);
+  const syncKey = `${open}:${iniziali.vascaMetri}:${iniziali.durataMin}`;
+  const [prevSyncKey, setPrevSyncKey] = useState(syncKey);
+  if (syncKey !== prevSyncKey) {
+    setPrevSyncKey(syncKey);
+    if (open) {
+      setVasca(normalizzaVasca(iniziali.vascaMetri));
+      setDurata(normalizzaDurata(iniziali.durataMin, DURATA_DEFAULT_MIN));
+    }
+  }
 
-  const nuoviParametri: ParametriSeduta = { vascaMetri: vasca, durataMin: durata };
+  const nuoviParametri: ParametriSeduta = useMemo(() => ({ vascaMetri: vasca, durataMin: durata }), [vasca, durata]);
 
   const { ripartizione, variazioni } = useMemo(() => {
     const dopo = settimana.map((s) =>
       s.data === dataISO ? { data: s.data, parametri: nuoviParametri } : s
     );
     return ricalibraSettimana(settimana, dopo, volumeSettimana, passo100m);
-  }, [settimana, dataISO, vasca, durata, volumeSettimana, passo100m]);
+  }, [settimana, dataISO, nuoviParametri, volumeSettimana, passo100m]);
 
   const oggi = ripartizione.find((r) => r.data === dataISO);
   const altre = variazioni.filter((v) => v.data !== dataISO && v.delta !== 0);
@@ -96,10 +100,10 @@ export const ParametriSedutaModal: React.FC<Props> = ({
         {/* Body */}
         <div className="p-4 sm:p-5 space-y-4 overflow-y-auto">
           <div className="space-y-2">
-            <label className="flex items-center gap-1.5 text-body-bold font-body-bold text-on-surface">
+            <span id="parametri-vasca-label" className="flex items-center gap-1.5 text-body-bold font-body-bold text-on-surface">
               <Waves size={15} className="text-primary" /> Vasca
-            </label>
-            <div className="grid grid-cols-2 gap-2 p-1 bg-surface-container-low rounded-full">
+            </span>
+            <div className="grid grid-cols-2 gap-2 p-1 bg-surface-container-low rounded-full" role="group" aria-labelledby="parametri-vasca-label">
               {[25, 50].map((v) => (
                 <button
                   key={v}
@@ -118,11 +122,12 @@ export const ParametriSedutaModal: React.FC<Props> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="flex items-center gap-1.5 text-body-bold font-body-bold text-on-surface">
+            <label htmlFor="parametri-durata" className="flex items-center gap-1.5 text-body-bold font-body-bold text-on-surface">
               <Clock size={15} className="text-primary" /> Durata (minuti)
             </label>
             <div className="flex flex-wrap items-center gap-2">
               <input
+                id="parametri-durata"
                 type="number"
                 min={DURATA_MIN}
                 max={DURATA_MAX}

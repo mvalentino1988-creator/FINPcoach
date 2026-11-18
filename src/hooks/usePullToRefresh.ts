@@ -91,7 +91,7 @@ export const usePullToRefresh = ({
         isRefreshing: false
       });
     }
-  }, [disabled, state, threshold, onRefresh]);
+  }, [state, threshold, onRefresh]);
 
   useEffect(() => {
     if (disabled) return;

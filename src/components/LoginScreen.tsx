@@ -204,10 +204,11 @@ export const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onSkip }) => {
               <form onSubmit={handleSubmit} className="space-y-3">
                 {/* Email */}
                 <div>
-                  <label className="block font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant mb-1.5">Email</label>
+                  <label htmlFor="login-email" className="block font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant mb-1.5">Email</label>
                   <div className="relative">
                     <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-outline" />
                     <input
+                      id="login-email"
                       type="email"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
@@ -220,12 +221,13 @@ export const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onSkip }) => {
 
                 {/* Password */}
                 <div>
-                  <label className="block font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant mb-1.5">
+                  <label htmlFor="login-password" className="block font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant mb-1.5">
                     Password {isRegistering && <span className="font-normal normal-case text-on-surface-variant">(min. 6 caratteri)</span>}
                   </label>
                   <div className="relative">
                     <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-outline" />
                     <input
+                      id="login-password"
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={e => setPassword(e.target.value)}
@@ -246,10 +248,11 @@ export const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onSkip }) => {
                 {/* Confirm password */}
                 {isRegistering && (
                   <div>
-                    <label className="block font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant mb-1.5">Conferma Password</label>
+                    <label htmlFor="login-password-confirm" className="block font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant mb-1.5">Conferma Password</label>
                     <div className="relative">
                       <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-outline" />
                       <input
+                        id="login-password-confirm"
                         type={showPassword ? 'text' : 'password'}
                         value={confirmPassword}
                         onChange={e => setConfirmPassword(e.target.value)}

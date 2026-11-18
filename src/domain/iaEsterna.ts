@@ -159,13 +159,17 @@ export function estraiRisposta(testo: string): IARisposta | null {
     const serieRaw = Array.isArray(obj?.serie) ? obj.serie : Array.isArray(obj?.series) ? obj.series : null;
     if (!serieRaw) return null;
 
-    const serie: IASerieProposta[] = serieRaw
-      .map((s: any) => ({
-        sezione: typeof s?.sezione === 'string' ? s.sezione : undefined,
-        codice: typeof s?.codice === 'string' ? s.codice.toUpperCase() : undefined,
-        ripetizioni: Number(s?.ripetizioni ?? s?.reps ?? 1),
-        distanza: Number(s?.distanza ?? s?.distance ?? 0),
-        descrizione: String(s?.descrizione ?? s?.description ?? ''),
+    type SerieRaw = {
+      sezione?: unknown; codice?: unknown; ripetizioni?: unknown; reps?: unknown;
+      distanza?: unknown; distance?: unknown; descrizione?: unknown; description?: unknown;
+    };
+    const serie: IASerieProposta[] = (serieRaw as SerieRaw[])
+      .map(s => ({
+        sezione: typeof s.sezione === 'string' ? s.sezione : undefined,
+        codice: typeof s.codice === 'string' ? s.codice.toUpperCase() : undefined,
+        ripetizioni: Number(s.ripetizioni ?? s.reps ?? 1),
+        distanza: Number(s.distanza ?? s.distance ?? 0),
+        descrizione: String(s.descrizione ?? s.description ?? ''),
       }))
       .filter((s: IASerieProposta) => s.distanza > 0);
 
@@ -252,8 +256,9 @@ export async function chiamaIA(config: IAConfig, prompt: string, timeoutMs = 900
       return { ok: false, errore: 'Risposta IA vuota o in formato inatteso.' };
     }
     return { ok: true, testo };
-  } catch (e: any) {
-    const msg = e?.name === 'AbortError' ? 'Timeout della richiesta IA.' : (e?.message || 'Errore di rete.');
+  } catch (e) {
+    const err = e as { name?: string; message?: string };
+    const msg = err?.name === 'AbortError' ? 'Timeout della richiesta IA.' : (err?.message || 'Errore di rete.');
     return { ok: false, errore: msg };
   } finally {
     clearTimeout(timer);

@@ -65,7 +65,7 @@ export class FINPSpecialistAI {
    * Analisi FINP / World Para Swimming. La stima delle classi è sempre indicativa:
    * la classificazione ufficiale spetta alla commissione.
    */
-  static analizza(condizione: string, limitazioni: string, eta?: number | null): AnalisiMedicaResult {
+  static analizza(condizione: string, limitazioni: string, _eta?: number | null): AnalisiMedicaResult {
     const x = new Testo(`${condizione} ${limitazioni}`);
     const fattori: string[] = [];
     const raccomandazioni: string[] = [];

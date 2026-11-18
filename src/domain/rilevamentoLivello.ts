@@ -1,4 +1,4 @@
-import { Atleta, Tempo } from '../types';
+import { Atleta, LogSeduta, Tempo } from '../types';
 import { todayISO, yearsBetween } from './dateUtils';
 
 export type LivelloAtleta = 'PRINCIPIANTE' | 'INTERMEDIO' | 'AVANZATO';
@@ -18,7 +18,7 @@ export class RilevamentoLivello {
    * - Età
    * - Frequenza di allenamento
    */
-  static valuta(atleta: Atleta, tempi: Tempo[], logSedute: any[]): ValutazioneLivello {
+  static valuta(atleta: Atleta, tempi: Tempo[], _logSedute: LogSeduta[]): ValutazioneLivello {
     const oggi = todayISO();
     const eta = atleta.dataNascita ? yearsBetween(atleta.dataNascita, oggi) : null;
     const note: string[] = [];

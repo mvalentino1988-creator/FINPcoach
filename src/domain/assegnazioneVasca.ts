@@ -75,7 +75,7 @@ export function nuovaAssegnazione(
 }
 
 /** Normalizza un oggetto letto da LocalStorage/backup: robusto ai dati corrotti. */
-export function normalizzaAssegnazione(raw: unknown, fallbackData?: string): AssegnazioneVasca | null {
+export function normalizzaAssegnazione(raw: unknown, _fallbackData?: string): AssegnazioneVasca | null {
   if (!raw || typeof raw !== 'object') return null;
   const r = raw as Partial<AssegnazioneVasca>;
   if (typeof r.data !== 'string' || !r.data) return null;
@@ -164,13 +164,6 @@ function rimuoviDaTutte(a: AssegnazioneVasca, atletaId: number): AssegnazioneVas
     ...a,
     corsie: a.corsie.map(c => ({ ...c, atletiIds: c.atletiIds.filter(id => id !== atletaId) })),
   };
-}
-
-function corsiaSenzaAtleta(a: AssegnazioneVasca, atletaId: number): number | null {
-  for (const c of a.corsie) {
-    if (c.atletiIds.includes(atletaId)) return c.numero;
-  }
-  return null;
 }
 
 /** Marca/non marca un atleta come presente; se diventa non presente esce dalla corsia. */

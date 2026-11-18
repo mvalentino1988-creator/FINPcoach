@@ -49,23 +49,24 @@ export function Modal({
   if (!open) return null;
 
   const content = (
-    <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-fade-in"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      aria-hidden="true"
-    >
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-fade-in">
+      {/* Backdrop cliccabile come vero bottone (accessibile da tastiera/screen reader) */}
+      <button
+        type="button"
+        aria-label="Chiudi finestra"
+        tabIndex={-1}
+        onClick={onClose}
+        className="absolute inset-0 cursor-default"
+      />
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
         className={cn(
-          'bg-surface-container-lowest rounded-2xl shadow-float border border-outline-variant animate-slide-up w-full',
+          'relative bg-surface-container-lowest rounded-2xl shadow-float border border-outline-variant animate-slide-up w-full',
           sizeClass[size],
           className
         )}
-        onClick={(e) => e.stopPropagation()}
       >
         {title && (
           <div className="flex items-center justify-between px-4 pt-4 pb-2">

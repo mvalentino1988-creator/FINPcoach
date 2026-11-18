@@ -142,7 +142,6 @@ export class ParserScheda {
       return distanza >= 200 ? 'A2' : 'B1';
     }
 
-    const metriTotali = distanza * ripetizioni;
     if (distanza <= 25 && ripetizioni >= 8) return 'D';
     if (distanza <= 50 && ripetizioni >= 6) return 'B2';
     if (distanza <= 100 && ripetizioni >= 4) return 'B1';
