@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Nome mostrato nell launcher per la build QA (pacchetto .qa separato). -->
+    <string name="app_name">FINPcoach QA</string>
+</resources>

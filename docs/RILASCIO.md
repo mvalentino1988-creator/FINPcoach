@@ -22,6 +22,20 @@ cd app && ./gradlew assembleDebug
 L'APK debug è firmato automaticamente dal debug keystore. La WebView ha
 `setWebContentsDebuggingEnabled` attivo solo se l'APK è debuggable.
 
+## Build QA (collaudo su dispositivo)
+
+```bash
+cd app && ./gradlew assembleQa   # (o :app:assembleQa dalla root)
+```
+
+- `applicationId` = `com.mattia.nuotoparalimpico.qa`, nome "FINPcoach QA"
+  (override in `app/src/qa/res/values/strings.xml`): convive con l'app di
+  produzione senza toccarne i dati (internal storage separato).
+- `initWith(debug)`: debuggable, WebView DevTools attive.
+- Usare SOLO dati sintetici (vedi `scripts/qa/gen-backup.mjs`).
+- Installazione: `adb install -r app/build/outputs/apk/qa/app-qa.apk`.
+- Collaudo: `scripts/qa/` (lib.sh, settings.sh, cdp.mjs, inject-backup.mjs).
+
 ## Build di release
 
 ```bash

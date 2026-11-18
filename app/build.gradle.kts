@@ -36,6 +36,17 @@ android {
                 "proguard-rules.pro"
             )
         }
+        // Build QA per il collaudo sul dispositivo: pacchetto separato
+        // (applicationId .qa), dati sintetici, name "FINPcoach QA".
+        // Convive con l'app di produzione senza toccarne i dati.
+        create("qa") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".qa"
+            versionNameSuffix = "-qa"
+            isDebuggable = true
+            // WebView.setWebContentsDebuggingEnabled e' attivo perche' isDebuggable.
+            // Il nome "FINPcoach QA" arriva da app/src/qa/res/values/strings.xml.
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

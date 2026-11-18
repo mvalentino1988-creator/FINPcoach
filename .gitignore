@@ -28,3 +28,19 @@ tmp/
 ,
 *.tmp
 
+# ---- Artefatti QA e dati prelevati dal telefono (MAI committare) ----
+# output generati dagli script QA (backup sintetici, screenshot grezzi)
+scripts/qa/out/
+scripts/qa/shots/
+scripts/qa/ui.xml
+scripts/qa/qa_settings.env
+# backup esportati dall'app (anche cifrati .finpbackup) e dati reali
+FINPcoach_backup_*.json
+FINPcoach_backup_*.finpbackup
+*.finpbackup
+*.backup
+# dump/prelievi dal dispositivo
+qa-*.json
+*.tar
+!docs/qa/pixel/*.jpg
+
