@@ -340,6 +340,40 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        /** Stampa un documento HTML arbitrario (es. composizione corsie) via PrintManager. */
+        @JavascriptInterface
+        fun printHtml(html: String?) {
+            try {
+                if (!isTrustedPage() || html.isNullOrEmpty()) return
+                runOnUiThread {
+                    try {
+                        val pm = getSystemService(Context.PRINT_SERVICE) as PrintManager
+                        val doc = WebView(this@MainActivity).apply {
+                            settings.javaScriptEnabled = false
+                            webViewClient = object : android.webkit.WebViewClient() {
+                                override fun onPageFinished(view: WebView, url: String) {
+                                    try {
+                                        pm.print(
+                                            "FINPcoach",
+                                            view.createPrintDocumentAdapter("FINPcoach"),
+                                            PrintAttributes.Builder().build()
+                                        )
+                                    } catch (e: Exception) {
+                                        Log.e(TAG, "printHtml failed", e)
+                                    }
+                                }
+                            }
+                        }
+                        doc.loadDataWithBaseURL("https://appassets.androidplatform.net/", html, "text/html", "utf-8", null)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "printHtml failed", e)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "printHtml failed", e)
+            }
+        }
+
         @JavascriptInterface
         fun getSystemIsDark(): Boolean {
             try {

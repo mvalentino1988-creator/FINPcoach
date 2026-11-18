@@ -13,6 +13,7 @@ export interface AndroidBridgeApi {
   setImmersive?: (on: boolean) => void;
   exportTextFile?: (fileName: string, content: string) => boolean;
   printPage?: () => void;
+  printHtml?: (html: string) => void;
   getSystemIsDark?: () => boolean;
 }
 

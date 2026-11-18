@@ -276,6 +276,17 @@ export const RegiaTecnicaCorsie: React.FC = () => {
 <div class="meta">${formattaData(oggi)} · ${assegnati.size}/${presentiIds.length} atleti assegnati · ripartenza generale ${formattaSecondi(corrente.ripartenzaGenerale)}</div>
 ${righe}
 </body></html>`;
+    // Su Android WebView non esiste window.print: usa la stampa nativa
+    // del documento generato. Sul web si mantiene window.open + print.
+    const bridge = window.AndroidBridge;
+    if (bridge && typeof bridge.printHtml === 'function') {
+      try {
+        bridge.printHtml(html);
+        return;
+      } catch {
+        // fallback al percorso web
+      }
+    }
     const w = window.open('', '_blank', 'noopener');
     if (!w) return;
     w.document.write(html);
