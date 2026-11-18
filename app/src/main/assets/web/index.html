@@ -8,26 +8,11 @@
     <title>FINPcoach - Nuoto Paralimpico</title>
     <!-- Font e icone sono inclusi nel bundle (vedi src/index.css): funzionano anche senza rete a bordo vasca. -->
     <meta name="description" content="Piattaforma gestionale e tecnica per allenatori FINP: gestione atleti con analisi medica e stima classi, programmazione stagionale intelligente, calcolo andature/ripartenze e schede vasca." />
-    <script type="module" crossorigin src="./assets/index-Cmt0z7C5.js"></script>
+    <script type="module" crossorigin src="./assets/index-lfRGQaaV.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/vendor-react-C8w-UNLI.js">
     <link rel="stylesheet" crossorigin href="./assets/index-BONI29h1.css">
   </head>
   <body class="bg-surface text-on-surface antialiased min-h-screen">
     <div id="root"></div>
-    <script>
-      // Nell'app Android: allinea le icone della barra di stato al tema effettivamente in uso
-      // (tema di sistema o scelta manuale in "Aspetto"). Nel browser non fa nulla.
-      (function () {
-        function sync() {
-          try {
-            if (window.AndroidBridge && window.AndroidBridge.setSystemBarsDark) {
-              window.AndroidBridge.setSystemBarsDark(document.documentElement.classList.contains('dark'));
-            }
-          } catch (e) { /* ignora */ }
-        }
-        new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-        window.addEventListener('load', sync);
-      })();
-    </script>
   </body>
 </html>

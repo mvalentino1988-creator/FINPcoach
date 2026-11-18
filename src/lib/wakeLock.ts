@@ -4,16 +4,7 @@
  * sia il bridge nativo Android (FLAG_KEEP_SCREEN_ON via AndroidBridge).
  */
 
-interface AndroidBridgeInterface {
-  setKeepScreenOn?: (keepOn: boolean) => void;
-  setSystemBarsDark?: (dark: boolean) => void;
-}
-
-declare global {
-  interface Window {
-    AndroidBridge?: AndroidBridgeInterface;
-  }
-}
+import { androidBridge, callNative } from './nativeBridge';
 
 let wakeLockSentinel: WakeLockSentinel | null = null;
 let isRequested = false;
@@ -21,14 +12,8 @@ let isRequested = false;
 export async function requestKeepScreenOn(): Promise<boolean> {
   isRequested = true;
 
-  // 1. Android Bridge nativo
-  if (typeof window !== 'undefined' && window.AndroidBridge?.setKeepScreenOn) {
-    try {
-      window.AndroidBridge.setKeepScreenOn(true);
-    } catch (e) {
-      console.warn('AndroidBridge.setKeepScreenOn error:', e);
-    }
-  }
+  // 1. Android Bridge nativo (wrapper sicuro: mai eccezioni)
+  callNative(androidBridge(), 'setKeepScreenOn', true);
 
   // 2. Web Wake Lock API
   if (typeof navigator !== 'undefined' && 'wakeLock' in navigator) {
@@ -51,14 +36,8 @@ export async function requestKeepScreenOn(): Promise<boolean> {
 export async function releaseKeepScreenOn(): Promise<void> {
   isRequested = false;
 
-  // 1. Android Bridge nativo
-  if (typeof window !== 'undefined' && window.AndroidBridge?.setKeepScreenOn) {
-    try {
-      window.AndroidBridge.setKeepScreenOn(false);
-    } catch (e) {
-      console.warn('AndroidBridge.setKeepScreenOn release error:', e);
-    }
-  }
+  // 1. Android Bridge nativo (wrapper sicuro: mai eccezioni)
+  callNative(androidBridge(), 'setKeepScreenOn', false);
 
   // 2. Web Wake Lock API
   if (wakeLockSentinel) {

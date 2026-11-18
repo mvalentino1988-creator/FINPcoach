@@ -26,6 +26,7 @@ import { todayISO } from '../domain/dateUtils';
 import { conOverride, conParametriGiorno, risolviParametriSeduta, senzaOverride, ParametriRisolti } from '../domain/parametriSeduta';
 import { AssegnazioneVasca, allineaConParametri, normalizzaAssegnazione } from '../domain/assegnazioneVasca';
 import { FINPStorage } from './storage';
+import { androidBridge, callNative } from '../lib/nativeBridge';
 import { FirebaseSync, SyncData } from './firebaseSync';
 
 interface AppContextType {
@@ -129,13 +130,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
     const getAndroidSystemDark = (): boolean | null => {
-      try {
-        const bridge = (window as unknown as { AndroidBridge?: { getSystemIsDark?: () => boolean } }).AndroidBridge;
-        if (bridge && typeof bridge.getSystemIsDark === 'function') {
-          return bridge.getSystemIsDark();
-        }
-      } catch { /* bridge non disponibile */ }
-      return null;
+      const dark = callNative<boolean>(androidBridge(), 'getSystemIsDark');
+      return typeof dark === 'boolean' ? dark : null;
     };
 
     const updateTheme = () => {
@@ -146,8 +142,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       root.classList.toggle('dark', isDark);
       root.style.colorScheme = isDark ? 'dark' : 'light';
-      (window as unknown as { AndroidBridge?: { setSystemBarsDark?: (dark: boolean) => void } })
-        .AndroidBridge?.setSystemBarsDark?.(isDark);
+      callNative(androidBridge(), 'setSystemBarsDark', isDark);
     };
 
     const handleAndroidThemeChange = (e: CustomEvent<{ isDark?: boolean }>) => {
@@ -155,8 +150,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const isDark = e.detail.isDark;
         root.classList.toggle('dark', isDark);
         root.style.colorScheme = isDark ? 'dark' : 'light';
-        (window as unknown as { AndroidBridge?: { setSystemBarsDark?: (dark: boolean) => void } })
-          .AndroidBridge?.setSystemBarsDark?.(isDark);
+        callNative(androidBridge(), 'setSystemBarsDark', isDark);
       }
     };
 

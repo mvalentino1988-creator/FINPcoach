@@ -4,6 +4,7 @@ import { cifraBackup, decifraBackup, eBackupCifrato } from '../lib/backupCrypto'
 import { FirebaseSync, SyncStatus } from '../data/firebaseSync';
 import { isFirebaseConfigured } from '../data/firebaseConfig';
 import { LoginScreen } from './LoginScreen';
+import { androidBridge, hasNativeMethod, invokeNative } from '../lib/nativeBridge';
 import { Download, Upload, RefreshCw, X, ShieldCheck, Database, Cloud, CloudOff, LogOut, Loader2, Trash2, Info, AlertTriangle } from 'lucide-react';
 import { Button, Modal, ToastProvider, useToast } from './ui';
 
@@ -146,10 +147,15 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
   };
 
   const salvaFile = (fileName: string, content: string, mime: string, msg: string) => {
-    const bridge = (window as unknown as { AndroidBridge?: { exportTextFile?: (n: string, c: string) => boolean } }).AndroidBridge;
-    if (bridge?.exportTextFile?.(fileName, content)) {
-      toast({ variant: 'success', title: 'Backup esportato', message: msg });
-      return;
+    const bridge = androidBridge();
+    if (hasNativeMethod(bridge, 'exportTextFile')) {
+      const res = invokeNative<boolean>(bridge, 'exportTextFile', fileName, content);
+      if (res.ok && res.value === true) {
+        toast({ variant: 'success', title: 'Backup esportato', message: msg });
+        return;
+      }
+      // Bridge presente ma salvataggio nativo fallito: avviso + fallback web.
+      toast({ variant: 'error', title: 'Salvataggio nativo non riuscito', message: 'Uso il download del browser.' });
     }
     const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);

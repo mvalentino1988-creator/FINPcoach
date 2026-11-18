@@ -11,21 +11,6 @@
   </head>
   <body class="bg-surface text-on-surface antialiased min-h-screen">
     <div id="root"></div>
-    <script>
-      // Nell'app Android: allinea le icone della barra di stato al tema effettivamente in uso
-      // (tema di sistema o scelta manuale in "Aspetto"). Nel browser non fa nulla.
-      (function () {
-        function sync() {
-          try {
-            if (window.AndroidBridge && window.AndroidBridge.setSystemBarsDark) {
-              window.AndroidBridge.setSystemBarsDark(document.documentElement.classList.contains('dark'));
-            }
-          } catch (e) { /* ignora */ }
-        }
-        new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-        window.addEventListener('load', sync);
-      })();
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

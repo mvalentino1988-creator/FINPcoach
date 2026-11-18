@@ -8,21 +8,19 @@
  *  3. Nessun supporto: ritorna false -> la UI mostra un banner discreto.
  */
 
+import {
+  hasNativeMethod,
+  invokeNative,
+  nativeOrientationBridge,
+} from './nativeBridge';
+
 export type OrientationMode = 'portrait' | 'landscape' | 'system';
-
-interface NativeOrientationBridge {
-  setOrientation?: (mode: string) => void;
-}
-
-declare global {
-  interface Window {
-    NativeOrientation?: NativeOrientationBridge;
-  }
-}
 
 /** true se il bridge nativo esiste. */
 export function hasNativeOrientation(): boolean {
-  return typeof window !== 'undefined' && typeof window.NativeOrientation?.setOrientation === 'function';
+  return typeof window !== 'undefined'
+    ? hasNativeMethod(nativeOrientationBridge(), 'setOrientation')
+    : false;
 }
 
 /**
@@ -33,11 +31,9 @@ export function applyOrientation(mode: OrientationMode): 'native' | 'web' | 'non
   if (typeof window === 'undefined') return 'none';
 
   if (hasNativeOrientation()) {
-    try {
-      window.NativeOrientation!.setOrientation!(mode);
+    // Wrapper sicuro: se la chiamata fallisce si passa al fallback web.
+    if (invokeNative(nativeOrientationBridge(), 'setOrientation', mode).ok) {
       return 'native';
-    } catch {
-      /* fallback web */
     }
   }
 

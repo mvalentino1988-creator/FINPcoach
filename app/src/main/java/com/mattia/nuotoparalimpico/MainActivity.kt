@@ -39,6 +39,13 @@ class MainActivity : ComponentActivity() {
     private var currentTopInset = 0
     private var currentBottomInset = 0
 
+    // Host della pagina corrente, aggiornato SOLO sul thread UI dai callback
+    // di WebViewClient. I metodi @JavascriptInterface girano sul thread
+    // JavaBridge (non UI): non possono toccare la WebView, quindi leggono
+    // solo questo stato volatile.
+    @Volatile
+    private var currentPageHost: String? = null
+
     // ActivityResultLauncher per file picker (API moderna)
     private val filePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (uploadMessage == null) return@registerForActivityResult
@@ -127,6 +134,9 @@ class MainActivity : ComponentActivity() {
             (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         applySystemBarsAppearance(dark = systemIsDark)
 
+        // Host iniziale per isTrustedPage(): la pagina caricata e' l'app bundle.
+        currentPageHost = ASSET_HOST
+
         if (savedInstanceState == null || webView.restoreState(savedInstanceState) == null) {
             webView.loadUrl(APP_URL)
         }
@@ -189,13 +199,17 @@ class MainActivity : ComponentActivity() {
     private inner class NativeOrientationBridge {
         @JavascriptInterface
         fun setOrientation(mode: String) {
-            if (!isTrustedPage()) return
-            runOnUiThread {
-                requestedOrientation = when (mode) {
-                    "portrait" -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                    "landscape" -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                    else -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            try {
+                if (!isTrustedPage()) return
+                runOnUiThread {
+                    requestedOrientation = when (mode) {
+                        "portrait" -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                        "landscape" -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                        else -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                    }
                 }
+            } catch (e: Exception) {
+                Log.e(TAG, "setOrientation failed", e)
             }
         }
     }
@@ -204,9 +218,13 @@ class MainActivity : ComponentActivity() {
      * I bridge JS esposti (AndroidBridge, NativeOrientation) devono rispondere solo
      * quando la pagina corrente e' l'app bundle servita dall'asset host. Se la WebView
      * mostrasse mai un'altra origine, le chiamate vengono ignorate.
+     *
+     * IMPORTANTE: gira sul thread JavaBridge, non su quello UI. Non deve MAI
+     * toccare webView o qualunque View: usa solo lo stato volatile aggiornato
+     * dai callback di WebViewClient (sempre sul thread UI).
      */
     private fun isTrustedPage(): Boolean {
-        val host = webView.url?.let { Uri.parse(it).host }
+        val host = currentPageHost
         return host == ASSET_HOST || host == REMOTE_HOST
     }
 
@@ -214,19 +232,27 @@ class MainActivity : ComponentActivity() {
     private inner class AndroidBridge {
         @JavascriptInterface
         fun setSystemBarsDark(dark: Boolean) {
-            if (!isTrustedPage()) return
-            runOnUiThread { applySystemBarsAppearance(dark) }
+            try {
+                if (!isTrustedPage()) return
+                runOnUiThread { applySystemBarsAppearance(dark) }
+            } catch (e: Exception) {
+                Log.e(TAG, "setSystemBarsDark failed", e)
+            }
         }
 
         @JavascriptInterface
         fun setKeepScreenOn(keepOn: Boolean) {
-            if (!isTrustedPage()) return
-            runOnUiThread {
-                if (keepOn) {
-                    window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                } else {
-                    window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            try {
+                if (!isTrustedPage()) return
+                runOnUiThread {
+                    if (keepOn) {
+                        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    } else {
+                        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    }
                 }
+            } catch (e: Exception) {
+                Log.e(TAG, "setKeepScreenOn failed", e)
             }
         }
 
@@ -259,25 +285,34 @@ class MainActivity : ComponentActivity() {
         /** Apre la stampa nativa Android della pagina corrente (il WebView non supporta window.print). */
         @JavascriptInterface
         fun printPage() {
-            if (!isTrustedPage()) return
-            runOnUiThread {
-                try {
-                    val pm = getSystemService(Context.PRINT_SERVICE) as PrintManager
-                    pm.print(
-                        "FINPcoach",
-                        webView.createPrintDocumentAdapter("FINPcoach"),
-                        PrintAttributes.Builder().build()
-                    )
-                } catch (e: Exception) {
-                    Log.e(TAG, "printPage failed", e)
+            try {
+                if (!isTrustedPage()) return
+                runOnUiThread {
+                    try {
+                        val pm = getSystemService(Context.PRINT_SERVICE) as PrintManager
+                        pm.print(
+                            "FINPcoach",
+                            webView.createPrintDocumentAdapter("FINPcoach"),
+                            PrintAttributes.Builder().build()
+                        )
+                    } catch (e: Exception) {
+                        Log.e(TAG, "printPage failed", e)
+                    }
                 }
+            } catch (e: Exception) {
+                Log.e(TAG, "printPage failed", e)
             }
         }
 
         @JavascriptInterface
         fun getSystemIsDark(): Boolean {
-            if (!isTrustedPage()) return true
-            return (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            try {
+                if (!isTrustedPage()) return true
+                return (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            } catch (e: Exception) {
+                Log.e(TAG, "getSystemIsDark failed", e)
+                return true
+            }
         }
     }
 
@@ -290,8 +325,27 @@ class MainActivity : ComponentActivity() {
 
     private inner class BundledAppWebViewClient : WebViewClient() {
 
+        /**
+         * Aggiorna il tracciamento dell'host corrente. Chiamare SOLO dal thread
+         * UI (tutti i callback di WebViewClient lo sono).
+         */
+        private fun notePageHost(url: String?) {
+            currentPageHost = url?.let { runCatching { Uri.parse(it).host }.getOrNull() }
+        }
+
+        override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
+            super.onPageStarted(view, url, favicon)
+            notePageHost(url)
+        }
+
+        override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
+            super.doUpdateVisitedHistory(view, url, isReload)
+            notePageHost(url)
+        }
+
         override fun onPageFinished(view: WebView, url: String) {
             super.onPageFinished(view, url)
+            notePageHost(url)
             updateWebViewInsets()
         }
 
