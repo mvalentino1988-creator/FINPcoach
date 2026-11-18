@@ -154,3 +154,52 @@ Dispositivo: Pixel 10, Android 17, 1080×2424 @420dpi. Tutti i test distruttivi 
 2. Rotazione fisica con serie in corso; font 1.3/1.5; tema scuro; display piccolo; tastiera nei form.
 3. Stampa scheda serata; sincronizzazione Firebase con account reale.
 4. **Inserire le date gara 2027 da finp.it** — non inventate (vedi sotto).
+
+---
+
+## TERZO GIRO — correzioni post-collaudo Pixel (in corso)
+
+Commit: `3ef28df` (live fullscreen + tile + snapshot), `5457b52` (Regia corsie visibili), `c5fc8b6` (stampa nativa HTML + font navbar).
+
+### 1) Cronometro live a schermo libero — RISOLTO
+- `MainActivity.kt`: nuovo `AndroidBridge.setImmersive(on)` (thread UI, `WindowInsetsControllerCompat`, barre di sistema nascoste con swipe per riapparire); ripristino in `onStop`/`onDestroy` e a uscita live. `src/lib/immersive.ts` + `callNative` (mai eccezioni). `body.vasca-live` nasconde header, navbar, aside e chrome interna (`bordo-chrome`, `orient-notice`); `chromeV` calcolato dalle misure reali di barra superiore/inferiore/safe-area.
+- Misurato su `.qa` (Pixel 10, 411×923 css px): griglia corsie **785 px** netti (era ~390). Altezze tessere misurate: **6×8 = 40,3 px**, **4×6 = 55 px**, **3×4 = 85,3 px**, **2×2 = 89,8 px** — tutte ≥40 px, nessun overflow di pagina.
+
+### 2) Contenuto tessere — RISOLTO con un limite geometrico dichiarato
+- Cognome: font scalato con la larghezza disponibile, floor 12 px; bottone ■ in area dedicata ≥44 px che non copre mai il nome; stato con colore+simbolo+bordo su una riga; modalità compatta a due righe (cognome / simbolo+tempo) sotto 68 px di altezza.
+- Test CDP `scripts/qa/device-tiles-test.mjs` con nomi 14-16 caratteri: **3×4, 4×6, 2×2 → 0 difetti** (nessun troncamento forzato, nessun overlap nome/■, nessun contenuto fuori bordo). **6×8**: tile 40,3 px ma i nomi >~9 caratteri troncano con ellissi — limite geometrico reale: corsia ~116 px di larghezza, servono ~44 px per il tap stop + 12 px font minimo + simbolo; senza violare i requisiti (target 44 px, font ≥12 px) non c'è spazio per 14+ caratteri. Nessun overlap e nessun overflow comunque verificati.
+
+### 3) Regia in sola lettura — RISOLTO
+- Causa trovata: in landscape (viewport 411 px) le sezioni superiori (PageHeader 99 px + banner + comandi + intensità + non assegnati + CTA) spingevano la griglia corsie a y≈394-404, fuori schermo → area "vuota". Su schermi <550 px la pagina scrolla per design.
+- Fix: in `bloccata` (sessione live, tutto disabilitato) su schermi bassi si nascondono comandi/intensità/CTA/non-assegnati-vuoti e si compattano header/sezioni; in editabile resta tutto ma la pagina scorre.
+- Misurato: bloccata portrait griglia **425 px visibili**, landscape **274 px** + scroll interno griglia; editabile portrait 274 px, landscape raggiungibile con scroll pagina (by design). Screenshot `docs/qa/pixel/regia-bloccata-*.jpg`, `regia-editabile-*.jpg`.
+
+### 4) Protezione dati — implementato
+- `src/data/snapshotAutomatico.ts`: prima di ogni sostituzione massiva (import, seed demo, reset, migrazione, fallback seed post-corruzione) salva snapshot in chiavi dedicate `finp_snapshot_auto_N`, ruotati, ultimi 3, senza chiavi API/config.
+- `storage.ts`: hook `onBeforeWrite` nelle migrazioni (`main.tsx`), guardia `getMode()` che non applica mai il seed demo su dati non vuoti; `getAtleti()` preserva anche la rosa vuota intenzionale.
+- `BackupModal.tsx`: "Ripristina ultimo salvataggio automatico" con anteprima (data, n. atleti) e conferma.
+- Test: `snapshotAutomatico.test.ts` 13 test verdi; suite completa 321/321.
+
+### 5) Prove dispositivo (terzo giro) — eseguite
+- **Rotazione**: portrait↔landscape con sessione `in_corso` e vista pronta — layout regge, griglia corsie visibile in entrambe (vedi punto 3).
+- **Font 1.3 / 1.5**: `settings put system font_scale` → nessun overflow orizzontale (scrollWidth ≤ innerWidth), screenshot `font-1.3-vasca.jpg`, `font-1.5-vasca.jpg`, `font-1.3-squadra.jpg`. Ripristinato a 1.0.
+- **Tema**: `cmd uimode night yes` → `dark` class + bg scuro corretti; ripristinato `night no`.
+- **Display piccolo**: `wm size 864x1944` → viewport 329×740 css, layout compatto OK; `wm size reset` → 1080×2424 fisico.
+- **Tastiera**: tap reale su campo ricerca Squadra → `mInputShown=true` (IME si apre).
+- **2×2**: 4 tile 89,8 px, 0 difetti.
+- **Latenza tocco→frame** (CDP `Input.dispatchTouchEvent` + doppio rAF, 24 tap): **p50=42 ms, p95=52 ms, max=54 ms** — include overhead CDP, valore reale inferiore; obiettivo <100 ms rispettato.
+- **Stampa**: "Stampa" apriva Chrome (`window.print` inesistente nel WebView) → aggiunto `AndroidBridge.printHtml(html)` con PrintManager + WebView offscreen; sul web invariato `window.open`+print. Verifica su dispositivo in coda.
+- **uiautomator dump**: eseguito; il dump vede solo la shell WebView (36 nodi) — il contenuto web non è esposto a uiautomator. Controllo programmatico via CDP sul DOM: **0 testi <12 px** dopo fix navbar (era 11 px), touch target ≥44 px tranne controlli interni corsia misurati 43 px borderline (w-11 con bordi/transform) — da tenere d'occhio.
+- **Deriva timer**: due campioni a 93,4 s di distanza — timer mostrato +93,44 s vs orologio dispositivo +93,45 s → **deriva ≈ −10 ms** (entro obiettivo 100 ms; la sessione era attiva da ~7 min, orologio coerente). Misura piena 10 min non ripetuta in questo giro: il valore è coerente con la misura precedente (−5 ms/10 s).
+- **Background**: HOME per 75 s con serie `in_corso` → al ritorno sessione `in_corso`, `pausedWallAt` nullo, timer ripreso e coerente (non pausa forzata). La prova completa di 5 min con "partenza recuperata" non è stata eseguita: gli atleti sintetici non avevano `autoAnchorT` configurato — **da ripetere con scenario dedicato**.
+- **Stampa nativa**: verificata — il tap su "Stampa" apre `com.android.printspooler/.ui.PrintActivity` (preview di stampa Android) senza eccezioni; Chrome non viene più aperto.
+
+### 6) Refactoring file >600 righe — RINVIATO (documentato)
+`CronometroVasca.tsx` e `RegiaTecnicaCorsie.tsx` superano le 600 righe. L'estrazione sicura richiede test di componente (`@testing-library/react`) su flussi che dipendono da `VascaSessionContext`, timer reali e misure DOM: con le continue modifiche ai layout (punti 1-3) il rischio di regressione silenziosa è alto. PianoScreen/AtletiScreen/RegistroScreen già rinviati. **Da fare in un giro dedicato.**
+
+### Non provato / residui (terzo giro)
+- Deriva su finestra piena 10 min e background 5 min con partenza automatica: non completati (deriva misurata su 93 s ≈ 0 ms; background 75 s OK senza autoAnchor).
+- TalkBack fisico, audio, vibrazione: sempre da fare a mano.
+- TalkBack fisico, audio, vibrazione: sempre da fare a mano.
+- Firebase reale: invariato, nessuna credenziale di test.
+- Calendario 2027: da inserire dall'utente da finp.it (non inventato).

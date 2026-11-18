@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.2.2 — Terzo giro post-collaudo (2026-11-18)
+
+- **Cronometro live fullscreen**: `AndroidBridge.setImmersive` (barre di sistema nascoste, ripristino in onStop/onDestroy) + `body.vasca-live` che nasconde header/navbar/aside; griglia corsie da ~390 a **785 px** netti. Altezze tessere: 6×8=40,3px, 4×6=55px, 3×4=85,3px, 2×2=89,8px.
+- **Tessere**: cognome senza overlap col bottone ■ (area ≥44px), font scalato con floor 12px, modalità compatta a due righe; test CDP con nomi 14-16 caratteri — 0 difetti su 3×4/4×6/2×2; 6×8 tronca nomi >~9 caratteri (limite geometrico dichiarato).
+- **Regia corsie visibili**: in sola lettura su schermi <550px si celano i controlli disabilitati e si compatta l'intestazione — griglia da sotto-il-fold a 425px (portrait) / 274px (landscape).
+- **Protezione dati**: snapshot automatici ruotati (ultimi 3) prima di import/seed/reset/migrazione; ripristino con anteprima in Dati; nessun seed demo su dati non vuoti; 13 test nuovi (321 totale).
+- **Stampa**: `AndroidBridge.printHtml` — la stampa della composizione corsie non apre più Chrome.
+- **Device (.qa)**: rotazione, font 1.3/1.5, tema scuro, display piccolo, tastiera, 2×2, latenza p50=42/p95=52ms verificati; uiautomator + check DOM (0 testi <12px).
+
 ## 0.2.1 — Fix bridge Android, build QA, collaudo Pixel (2026-11-18)
 
 - **Fix critico Android**: i metodi `@JavascriptInterface` non leggono più la WebView da thread non-UI (stato `@Volatile` aggiornato solo su thread UI); nuovo wrapper sicuro `src/lib/nativeBridge.ts` per tutte le chiamate native. Risolve il crash "Si è verificato un imprevisto" all'avvio.

@@ -34,7 +34,12 @@ cd app && ./gradlew assembleQa   # (o :app:assembleQa dalla root)
 - `initWith(debug)`: debuggable, WebView DevTools attive.
 - Usare SOLO dati sintetici (vedi `scripts/qa/gen-backup.mjs`).
 - Installazione: `adb install -r app/build/outputs/apk/qa/app-qa.apk`.
-- Collaudo: `scripts/qa/` (lib.sh, settings.sh, cdp.mjs, inject-backup.mjs).
+- Collaudo: `scripts/qa/` (lib.sh, settings.sh, cdp.mjs, inject-backup.mjs,
+  device-tiles-test.mjs per le misure delle tessere del cronometro).
+- Note terzo giro: la build deve essere prodotta **senza `.env`** (gli asset
+  Android non devono contenere `VITE_FIREBASE_*`); `printHtml` è un metodo
+  `@JavascriptInterface` aggiunto in `MainActivity.kt` per la stampa nativa
+  della composizione corsie.
 
 ## Build di release
 
