@@ -2679,3 +2679,42 @@ body.vasca-live .bordo-chrome,
 body.vasca-live .orient-notice {
   display: none !important;
 }
+
+/* ============================================================================
+   REGIA — su schermi bassi (orientamento orizzontale) le sezioni superiori
+   comprimono per lasciare spazio utile all'area corsie.
+   ============================================================================ */
+@media (max-height: 550px) {
+  .regia-screen {
+    gap: 0.25rem;
+  }
+  .regia-head section {
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+  }
+  .regia-head section h1 {
+    font-size: 15px;
+    line-height: 1.2;
+  }
+  .regia-head section p {
+    display: none;
+  }
+  .regia-screen > section {
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+  }
+  /* In sola lettura (sessione live) i controlli sono tutti disabilitati:
+     su schermi bassi si celano per lasciare l'area corsie visibile. */
+  .regia-bloccata .regia-commands,
+  .regia-bloccata .regia-intensita,
+  .regia-bloccata .regia-cta {
+    display: none;
+  }
+  .regia-bloccata .regia-nonass-empty {
+    display: none;
+  }
+  .regia-banner {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+}

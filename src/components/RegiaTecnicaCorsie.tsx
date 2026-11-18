@@ -300,6 +300,7 @@ ${righe}
 
   if (!corrente) return null;
 
+  const tuttiAssegnatiVisibile = atletiNonAssegnati(corrente, atleti).length === 0 && !ricerca;
   const numeroCorsie = corrente.numeroCorsie;
   const sheetAtletaObj = sheetAtleta
     ? atletaPerId.get(sheetAtleta.id) ?? null
@@ -307,9 +308,9 @@ ${righe}
   const sheetCorsia = sheetAtleta?.corsia != null ? corsiaPerNumero(corrente, sheetAtleta.corsia) : null;
 
   return (
-    <div className="flex flex-1 min-h-0 flex-col gap-2 overflow-hidden">
+    <div className={`regia-screen flex flex-1 min-h-0 flex-col gap-2 overflow-hidden${bloccata ? ' regia-bloccata' : ''}`}>
       {/* Intestazione pagina */}
-      <div className="shrink-0">
+      <div className="regia-head shrink-0">
         <PageHeader
           label="Pianificatore"
           title={`Regia Tecnica · Vasca ${vascaMetri} m`}
@@ -330,7 +331,7 @@ ${righe}
 
       {/* Banner sessione in corso: composizione in sola lettura */}
       {bloccata && (
-        <div className="shrink-0 flex items-center justify-between gap-2 rounded-xl bg-warning-container/60 border border-warning/40 px-3 py-2">
+        <div className="regia-banner shrink-0 flex items-center justify-between gap-2 rounded-xl bg-warning-container/60 border border-warning/40 px-3 py-2">
           <span className="font-label-caps text-[12px] font-bold text-on-warning-container uppercase tracking-wide">
             Sessione in corso — composizione in sola lettura
           </span>
@@ -370,7 +371,7 @@ ${righe}
       )}
 
       {/* Barra comandi compatta */}
-      <div className="shrink-0 flex items-center gap-1.5 flex-wrap">
+      <div className="regia-commands shrink-0 flex items-center gap-1.5 flex-wrap">
         {/* Stepper corsie */}
         <div className="flex items-center rounded-lg bg-surface-container p-0.5 shadow-sm">
           <button
@@ -416,7 +417,7 @@ ${righe}
       </div>
 
       {/* Intensità della seduta: riga comprimibile, chiusa di default */}
-      <section className="shrink-0 rounded-xl bg-surface-container-low px-3.5 py-2 shadow-sm border border-outline-variant/30">
+      <section className="regia-intensita shrink-0 rounded-xl bg-surface-container-low px-3.5 py-2 shadow-sm border border-outline-variant/30">
         <button
           type="button"
           onClick={() => setIntensitaAperta(v => !v)}
@@ -450,7 +451,7 @@ ${righe}
       </section>
 
       {/* Non assegnati */}
-      <section className="shrink-0 rounded-xl bg-surface-container-low px-3 py-2 shadow-sm border border-outline-variant/30">
+      <section className={`shrink-0 rounded-xl bg-surface-container-low px-3 py-2 shadow-sm border border-outline-variant/30${tuttiAssegnatiVisibile ? ' regia-nonass-empty' : ''}`}>
         <div className="flex items-center gap-2 pb-1.5">
           <UserCheck size={15} className="text-primary shrink-0" />
           <span className="font-label-caps text-[12px] uppercase text-on-surface-variant font-bold">
@@ -740,7 +741,7 @@ ${righe}
       </section>
 
       {/* Vai al cronometro */}
-      <div className="shrink-0 pb-1">
+      <div className="regia-cta shrink-0 pb-1">
         <button
           type="button"
           disabled={assegnati.size === 0}
