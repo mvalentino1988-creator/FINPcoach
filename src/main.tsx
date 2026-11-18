@@ -5,11 +5,12 @@ import './index.css';
 import { FINPStorage } from './data/storage';
 import { caricaDatiStatici } from './data/staticData';
 import { runMigrations } from './data/migrations';
+import { salvaSnapshotDati } from './data/snapshotAutomatico';
 
 async function avvia() {
   /* Migrazioni dello schema di persistenza: idempotenti, mai bloccanti. */
   try {
-    runMigrations(localStorage);
+    runMigrations(localStorage, salvaSnapshotDati);
   } catch {
     /* storage non disponibile (es. modalità privata): l'app prosegue */
   }

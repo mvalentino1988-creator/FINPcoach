@@ -5,8 +5,9 @@ import { FirebaseSync, SyncStatus } from '../data/firebaseSync';
 import { isFirebaseConfigured } from '../data/firebaseConfig';
 import { LoginScreen } from './LoginScreen';
 import { androidBridge, hasNativeMethod, invokeNative } from '../lib/nativeBridge';
-import { Download, Upload, RefreshCw, X, ShieldCheck, Database, Cloud, CloudOff, LogOut, Loader2, Trash2, Info, AlertTriangle } from 'lucide-react';
+import { Download, Upload, RefreshCw, X, ShieldCheck, Database, Cloud, CloudOff, LogOut, Loader2, Trash2, Info, AlertTriangle, History } from 'lucide-react';
 import { Button, Modal, ToastProvider, useToast } from './ui';
+import { infoSnapshotPiuRecente, ripristinaSnapshot } from '../data/snapshotAutomatico';
 
 interface Props {
   onClose: () => void;
@@ -259,6 +260,28 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
     }
   };
 
+  /** Ripristina l'ultimo snapshot automatico (pre-import/reset/seed). */
+  const handleRipristinaSnapshot = () => {
+    const info = infoSnapshotPiuRecente();
+    if (!info) return;
+    const quando = new Date(info.ts).toLocaleString('it-IT');
+    if (
+      confirm(
+        `Ripristinare il salvataggio automatico del ${quando}?\n\n` +
+          `Atleti nello snapshot: ${info.numAtleti}.\n` +
+          'I dati attuali verranno sostituiti da quelli salvati.'
+      )
+    ) {
+      if (ripristinaSnapshot(info.ts)) {
+        toast({ variant: 'success', title: 'Ripristino completato', message: 'Ricarico…' });
+        setTimeout(() => {
+          window.location.reload();
+        }, 800);
+      } else {
+        toast({ variant: 'error', title: 'Ripristino fallito', message: 'Impossibile leggere lo snapshot.' });
+      }
+    }
+  };
   /** Torna allo stato "squadra vuota" (stesso stato del primo avvio) azzerando lo storage. */
   const handleClearSquad = () => {
     if (
@@ -287,6 +310,8 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
       />
     );
   }
+
+  const snapInfo = infoSnapshotPiuRecente();
 
   const syncStato = syncEnabled && FirebaseSync.getCurrentUser()
     ? { label: 'Connesso e sincronizzato', dot: 'bg-status-live' }
@@ -486,6 +511,25 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
               </div>
               <span className="ds-chip-blue shrink-0">Sfoglia</span>
             </button>
+
+            {/* Ripristino snapshot automatico (pre-sostituzioni massive) */}
+            {snapInfo && (
+              <button
+                onClick={handleRipristinaSnapshot}
+                className="w-full flex items-center justify-between gap-3 p-3.5 rounded-xl border border-outline-variant bg-surface-container-low hover:border-primary/40 hover:bg-surface-container transition group text-left"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <History size={17} className="text-primary shrink-0 group-hover:scale-110 transition" />
+                  <div className="min-w-0">
+                    <div className="font-bold text-on-surface text-sm">Ripristina ultimo salvataggio automatico</div>
+                    <div className="text-xs text-on-surface-variant font-normal">
+                      {new Date(snapInfo.ts).toLocaleString('it-IT')} · {snapInfo.numAtleti} atleti
+                    </div>
+                  </div>
+                </div>
+                <span className="ds-chip-blue shrink-0">Ripristina</span>
+              </button>
+            )}
 
             {/* Reset to Seed Demo */}
             <button

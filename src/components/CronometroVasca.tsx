@@ -32,10 +32,21 @@ import {
 } from '../domain/cronometroVasca';
 import { applyOrientation, releaseOrientation } from '../lib/orientation';
 import { requestKeepScreenOn, releaseKeepScreenOn } from '../lib/wakeLock';
+import { setImmersive, releaseImmersive } from '../lib/immersive';
 import { beep, vibrate } from '../lib/beep';
 import { cloneSession, useVascaSession } from '../data/VascaSessionContext';
 import { leggiSessioneVasca, VASCA_SESSION_KEY } from '../lib/vascaSessione';
 import { todayISO } from '../domain/dateUtils';
+
+/**
+ * Attiva/disattiva la modalità "live": nasconde l'intera chrome dell'app
+ * (classe CSS vasca-live) e le barre di sistema Android (immersive).
+ */
+function setLiveChrome(on: boolean) {
+  document.body.classList.toggle('vasca-live', on);
+  if (on) setImmersive(true);
+  else releaseImmersive();
+}
 import { Atleta } from '../types';
 import {
   AssegnazioneVasca,
@@ -180,8 +191,15 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
     return () => {
       void releaseKeepScreenOn();
       releaseOrientation();
-      document.body.classList.remove('vasca-live');
+      setLiveChrome(false);
     };
+  }, []);
+
+  // Sessione ripresa già in corso/ferma: il live parte subito a schermo libero.
+  useEffect(() => {
+    const st = sessionRef.current.stato;
+    if (st === 'in_corso' || st === 'ferma') setLiveChrome(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al mount
   }, []);
 
   // -------------------------------------------------------------------------
@@ -493,7 +511,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       if (nextA.laps.length > before) vibrate([0, 60]);
       noteAction();
       bump();
-      document.body.classList.add('vasca-live');
+      setLiveChrome(true);
     },
     [bump, findLaneAthlete, noteAction, pushUndo, sessionRef, setSession],
   );
@@ -508,7 +526,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
     bump();
     beep(880, 200);
     vibrate([0, 160, 60, 160, 60, 400]);
-    document.body.classList.add('vasca-live');
+    setLiveChrome(true);
   }, [bump, noteAction, pushUndo, sessionRef, setSession]);
 
   const handleResume = useCallback(() => {
@@ -534,6 +552,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
   const handleFine = useCallback(() => {
     const s = sessionRef.current;
     if (s.stato === 'in_corso') handleStopGenerale();
+    setLiveChrome(false);
     setSummaryOpen(true);
     setSalvato(false);
   }, [handleStopGenerale, sessionRef]);
@@ -560,7 +579,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
     setSession(fresh);
     undoRef.current = [];
     setUndoDepth(0);
-    document.body.classList.remove('vasca-live');
+    setLiveChrome(false);
     setSheet(null);
     setSummaryOpen(false);
     setConfirmReset(false);
@@ -781,7 +800,9 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       const headerH = 30;
       const n = Math.max(1, lane.atleti.length);
       const gapA = 4;
-      return Math.max(0, (cellH - headerH - gapA * (n - 1)) / n);
+      // Margine di sicurezza: la stima resta sotto l'altezza reale cosi'
+      // il layout non va mai in overflow per differenze di 1-2px.
+      return Math.max(0, (cellH - headerH - gapA * (n - 1)) / n - 6);
     },
     [layoutOrient, laneCount, gridSize],
   );
@@ -916,7 +937,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
       </div>
 
       {orientNotice && (
-        <div className="shrink-0 mx-1.5 mb-1 px-2.5 py-1 rounded-lg bg-warning-container text-on-warning-container text-[12px] font-semibold text-center">
+        <div className="orient-notice shrink-0 mx-1.5 mb-1 px-2.5 py-1 rounded-lg bg-warning-container text-on-warning-container text-[12px] font-semibold text-center">
           Ruota il telefono per più spazio
         </div>
       )}
@@ -930,7 +951,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
         {lanesVisibili.map(lane => {
           const tileH = laneCellH(lane);
           const tileW = laneCellW();
-          const compact = tileH < 46;
+          const compact = tileH < 68;
           return (
             <section
               key={lane.numero}
@@ -964,6 +985,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
                     lane={lane}
                     athlete={a}
                     compact={compact}
+                    tileH={tileH}
                     tileW={tileW}
                     now={now}
                     pronta={inPronta}
@@ -1280,6 +1302,7 @@ interface AthleteCardProps {
   lane: VascaLane;
   athlete: VascaAthlete;
   compact: boolean;
+  tileH: number;
   tileW: number;
   now: number;
   pronta: boolean;
@@ -1291,7 +1314,7 @@ interface AthleteCardProps {
 }
 
 const AthleteCard: React.FC<AthleteCardProps> = ({
-  session, lane, athlete: a, compact, tileW, now, pronta, registerNode, onTap, onLongPress, onToggleStop, ignoredSignal,
+  session, lane, athlete: a, compact, tileH, tileW, now, pronta, registerNode, onTap, onLongPress, onToggleStop, ignoredSignal,
 }) => {
   const [prevIgnoredSignal, setPrevIgnoredSignal] = useState(ignoredSignal ?? 0);
   const [ignoredFlash, setIgnoredFlash] = useState(false);
@@ -1341,9 +1364,15 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
     const widthAt12 = len * 6.6;
     const avail = Math.max(26, tileW - 22);
     const scale = Math.min(1.1, avail / widthAt12);
-    return Math.max(9.5, Math.min(12.5, 12 * scale));
+    // Il font non scende mai sotto 12px: oltre si tronca con ellissi.
+    return Math.min(13, Math.max(12, 12 * scale));
   }, [a.cognome, tileW]);
 
+  // Con tessere basse i testi secondari vengono nascosti del tutto
+  // (mai tagliati a meta'): il layout deve restare leggibile.
+  const showSub = tileH >= 78;
+  const showBar = tileH >= 70;
+  const timeFont = tileH >= 78 ? 20 : 16;
   const canStop = !pronta && (a.started || a.laps.length > 0 || a.repStart != null || a.restUntil != null);
   const stopBtn = canStop && (
     <button
@@ -1355,7 +1384,7 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
         e.stopPropagation();
         onToggleStop();
       }}
-      className="absolute top-0 right-0 w-12 h-12 flex items-start justify-end pt-0.5 pr-0.5 z-10"
+      className={`absolute right-0 w-11 h-11 flex items-center justify-center z-10 ${compact ? 'top-1/2 -translate-y-1/2' : 'bottom-0'}`}
     >
       <span className="w-6 h-6 rounded-md bg-surface-container-highest/90 text-on-surface-variant flex items-center justify-center text-[12px] font-black border border-outline-variant/50">
         ■
@@ -1363,22 +1392,51 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
     </button>
   );
 
+  const tileHandlers = {
+    role: 'button' as const,
+    tabIndex: 0,
+    onPointerDown: handlePointerDown,
+    onPointerUp: handlePointerUp,
+    onPointerLeave: clearPress,
+    onPointerCancel: clearPress,
+    onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+  };
+  const tileBorder = `relative flex-1 min-h-0 rounded-lg border-l-4 bg-surface-container-lowest overflow-hidden active:scale-[0.99] transition ${
+    status === 'in_ritardo' ? 'border-warning' : status === 'in_ripartenza' ? 'border-primary' : status === 'in_nuoto' ? 'border-secondary' : 'border-outline-variant'
+  } ${ignoredFlash ? 'ring-2 ring-warning' : ''}`;
+
+  if (compact && tileH >= 34) {
+    // Due righe: cognome (con simbolo di stato) sopra, tempo sotto.
+    // La riga del nome riserva 48px a destra per il bottone stop.
+    return (
+      <div {...tileHandlers} className={`${tileBorder} flex flex-col justify-center gap-0.5 pl-1.5 pr-1.5`}>
+        <div className="flex items-center gap-1 min-w-0 pr-11">
+          <span className="font-semibold text-on-surface truncate min-w-0 flex-1" style={{ fontSize: 12 }}>
+            {a.cognome}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 min-w-0 pr-11">
+          <span aria-hidden className={`text-[12px] leading-none shrink-0 ${meta.cls}`}>{meta.symbol}</span>
+          <span ref={registerNode(a.id, 'time')} className="font-stat-timer text-on-surface-variant tabular-nums leading-none" style={{ fontSize: 12 }}>
+            —
+          </span>
+        </div>
+        {stopBtn}
+      </div>
+    );
+  }
+
   if (compact) {
     return (
       <div
-        role="button"
-        tabIndex={0}
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={clearPress}
-        onPointerCancel={clearPress}
-        onContextMenu={e => e.preventDefault()}
-        className={`relative flex-1 min-h-0 rounded-lg border-l-4 bg-surface-container-lowest px-1.5 flex items-center justify-between gap-1 overflow-hidden active:scale-[0.99] transition ${
-          status === 'in_ritardo' ? 'border-warning' : status === 'in_ripartenza' ? 'border-primary' : status === 'in_nuoto' ? 'border-secondary' : 'border-outline-variant'
-        } ${ignoredFlash ? 'ring-2 ring-warning' : ''}`}
+        {...tileHandlers}
+        className={`${tileBorder} pl-1.5 pr-11 flex items-center justify-between gap-1`}
       >
-        <span className="font-semibold text-on-surface truncate" style={{ fontSize: 12 }}>
-          {a.cognome}
+        <span className="flex items-center gap-1 min-w-0">
+          <span aria-hidden className={`text-[12px] leading-none shrink-0 ${meta.cls}`}>{meta.symbol}</span>
+          <span className="font-semibold text-on-surface truncate" style={{ fontSize: 12 }}>
+            {a.cognome}
+          </span>
         </span>
         <span ref={registerNode(a.id, 'time')} className="font-stat-timer text-on-surface tabular-nums shrink-0" style={{ fontSize: 13 }}>
           —
@@ -1401,7 +1459,7 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
     >
       {/* 1) Cognome */}
       <div className="flex items-start justify-between gap-1 min-w-0">
-        <span className="font-semibold text-on-surface whitespace-nowrap truncate leading-tight" style={{ fontSize: nameFont }}>
+        <span className="font-semibold text-on-surface whitespace-nowrap truncate leading-tight min-w-0 flex-1" style={{ fontSize: nameFont }}>
           {a.cognome}
         </span>
         {stopBtn}
@@ -1410,34 +1468,38 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
       {/* 2) Tempo grande */}
       <output
         ref={registerNode(a.id, 'time') as React.Ref<HTMLOutputElement>}
-        className="font-stat-timer-mobile text-on-surface tabular-nums leading-none self-center"
-        style={{ fontSize: 20 }}
+        className={`font-stat-timer-mobile text-on-surface tabular-nums leading-none self-center ${canStop ? 'mr-12' : ''}`}
+        style={{ fontSize: timeFont }}
       >
         —
       </output>
 
       {/* 3) Lap + 4) stato + countdown */}
-      <div className="flex flex-col gap-0.5">
+      <div className={`flex flex-col gap-0.5 ${canStop ? 'pr-12' : ''}`}>
         <div className="flex items-center justify-between gap-1">
           <span className="text-[12px] font-bold uppercase tracking-wide text-on-surface-variant">
             Giro {a.laps.length}
           </span>
-          <span className={`text-[12px] font-bold flex items-center gap-0.5 ${meta.cls}`}>
+          <span className={`text-[12px] font-bold flex items-center gap-0.5 whitespace-nowrap ${meta.cls}`}>
             <span aria-hidden>{meta.symbol}</span> {meta.label}
             {a.autoLate && (
               <span className="text-warning" title="Partenza automatica recuperata dopo sospensione" aria-label="partenza recuperata"> ↺</span>
             )}
           </span>
         </div>
-        <div className="h-1 rounded-full bg-surface-container-highest overflow-hidden">
-          <div
-            ref={registerNode(a.id, 'bar')}
-            className={`h-full rounded-full transition-[width] duration-150 ${meta.bar}`}
-            style={{ width: '0%' }}
-          />
-        </div>
-        <span ref={registerNode(a.id, 'sub')} className="text-[12px] font-semibold text-on-surface-variant tabular-nums truncate" />
-        {personalRip != null && personalRip !== inherited && (
+        {showBar && (
+          <div className="h-1 rounded-full bg-surface-container-highest overflow-hidden">
+            <div
+              ref={showBar ? registerNode(a.id, 'bar') : () => {}}
+              className={`h-full rounded-full transition-[width] duration-150 ${meta.bar}`}
+              style={{ width: '0%' }}
+            />
+          </div>
+        )}
+        {showSub && (
+          <span ref={registerNode(a.id, 'sub')} className="text-[12px] font-semibold text-on-surface-variant tabular-nums truncate" />
+        )}
+        {showSub && personalRip != null && personalRip !== inherited && (
           <span className="text-[12px] font-bold uppercase tracking-wide text-tertiary">rip. {formatRipartenza(personalRip)}</span>
         )}
       </div>

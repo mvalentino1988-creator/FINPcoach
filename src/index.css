@@ -2663,7 +2663,7 @@
    VASCA LIVE — al VIA il cronometro va in fullscreen: header e dock nav
    vengono nascosti finché la sessione non viene azzerata o si esce.
    ============================================================================ */
-body.vasca-live > header,
+body.vasca-live .app-shell > header,
 body.vasca-live nav[aria-label="Navigazione principale"],
 body.vasca-live aside {
   display: none !important;
@@ -2673,8 +2673,9 @@ body.vasca-live .app-main {
   padding-bottom: 0.5rem !important;
 }
 
-@media (min-width: 1024px) {
-  body.vasca-live aside {
-    display: flex !important;
-  }
+/* Chrome interna della pagina Bordo Vasca (titolo + toggle Cronometro/Regia)
+   e banner di orientamento: nascoste in live per dare tutte le corsie. */
+body.vasca-live .bordo-chrome,
+body.vasca-live .orient-notice {
+  display: none !important;
 }

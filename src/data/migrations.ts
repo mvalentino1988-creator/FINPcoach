@@ -103,10 +103,19 @@ function leggiVersioni(s: StorageLike): Record<string, number> {
  * Esegue le migrazioni mancanti. Da chiamare una volta all'avvio,
  * prima di leggere i dati. Mai lancia eccezioni.
  */
-export function runMigrations(storage: StorageLike): MigrationReport {
+export function runMigrations(storage: StorageLike, onBeforeWrite?: () => void): MigrationReport {
   const report: MigrationReport = { migrated: [], errors: [] };
   const versioni = leggiVersioni(storage);
   let dirty = false;
+  let snapshotFatto = false;
+  // Prima della prima scrittura di una migrazione si salva uno snapshot
+  // dei dati correnti (protezione da perdita su migrazioni distruttive).
+  const primaScrittura = () => {
+    if (!snapshotFatto) {
+      snapshotFatto = true;
+      try { onBeforeWrite?.(); } catch { /* snapshot best-effort */ }
+    }
+  };
 
   for (const schema of SCHEMA) {
     const corrente = versioni[schema.key] ?? 1; // le chiavi pre-versionamento sono v1
@@ -149,6 +158,7 @@ export function runMigrations(storage: StorageLike): MigrationReport {
 
     if (v > corrente) {
       try {
+        primaScrittura();
         storage.setItem(schema.key, JSON.stringify(value));
         versioni[schema.key] = v;
         report.migrated.push(schema.key);

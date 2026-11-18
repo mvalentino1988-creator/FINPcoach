@@ -32,8 +32,9 @@ export const BordoVascaScreen: React.FC = () => {
 
   return (
     <div className="flex flex-1 min-h-0 flex-col gap-1.5 overflow-hidden h-full">
-      {/* Intestazione live + toggle stile mockup Stitch (segmentato) */}
-      <div className="shrink-0 flex items-center justify-between gap-2 px-0.5">
+      {/* Intestazione live + toggle stile mockup Stitch (segmentato).
+          In modalità live (body.vasca-live) vengono nascosti dal CSS. */}
+      <div className="bordo-chrome shrink-0 flex items-center justify-between gap-2 px-0.5">
         <div className="flex items-center gap-1.5 min-w-0">
           <Waves size={15} className="text-primary shrink-0" />
           <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider font-bold truncate">
@@ -48,7 +49,7 @@ export const BordoVascaScreen: React.FC = () => {
 
       {/* Il toggle e' disponibile a ogni larghezza: su tablet a bordo vasca
           serve passare al cronometro senza uscire dalla pagina. */}
-      <div className="shrink-0 flex items-center p-0.5 rounded-xl bg-surface-container-high shadow-sm">
+      <div className="bordo-chrome shrink-0 flex items-center p-0.5 rounded-xl bg-surface-container-high shadow-sm">
         <button
           type="button"
           onClick={() => setVista('cronometro')}

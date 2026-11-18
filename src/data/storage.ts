@@ -17,6 +17,7 @@ import { AssegnazioneVasca, normalizzaAssegnazione } from '../domain/assegnazion
 import { Festivita } from '../domain/festivita';
 import { IA_CONFIG_DEFAULT, IAConfig } from '../domain/iaEsterna';
 import { BACKUP_VERSIONE, validaBackup } from './backupValidate';
+import { salvaSnapshotDati } from './snapshotAutomatico';
 
 const MODE_KEY = 'finp_mode';
 
@@ -93,6 +94,12 @@ export class FINPStorage {
     const m = localStorage.getItem(MODE_KEY);
     if (m === 'live') return 'live';
     if (m !== 'demo') {
+      // Se la chiave mode è assenza ma ci sono dati utente (import, vecchia
+      // versione), NON sostituirli con il seed demo: li preserviamo come live.
+      if (m == null && this.haDatiUtente()) {
+        this.setMode('live');
+        return 'live';
+      }
       this.applyDemoSeed();
     }
     return 'demo';
@@ -107,6 +114,7 @@ export class FINPStorage {
   }
 
   static applyDemoSeed(): void {
+    salvaSnapshotDati();
     this.setMode('demo');
     const atleti = this.createSeedAtleti();
     save(STORAGE_KEYS.ATLETI, atleti);
@@ -126,6 +134,7 @@ export class FINPStorage {
   }
 
   static startLiveSquad(): void {
+    salvaSnapshotDati();
     this.setMode('live');
     save(STORAGE_KEYS.ATLETI, []);
     save(STORAGE_KEYS.CONDIZIONI, []);
@@ -140,6 +149,29 @@ export class FINPStorage {
     save(STORAGE_KEYS.MICROCICLI, []);
     save(STORAGE_KEYS.IMPOSTAZIONI, {});
     save(STORAGE_KEYS.CUSTOM_WORKOUTS, []);
+  }
+
+  /** Vero se esistono dati utente non vuoti (per non seminare demo sopra). */
+  private static haDatiUtente(): boolean {
+    try {
+      const nonVuoto = (key: string) => {
+        const raw = localStorage.getItem(key);
+        if (raw == null) return false;
+        const v = JSON.parse(raw);
+        if (Array.isArray(v)) return v.length > 0;
+        return v != null;
+      };
+      return (
+        nonVuoto(STORAGE_KEYS.ATLETI) ||
+        nonVuoto(STORAGE_KEYS.TEMPI) ||
+        nonVuoto(STORAGE_KEYS.LOG_SEDUTE) ||
+        nonVuoto(STORAGE_KEYS.GARE) ||
+        nonVuoto(STORAGE_KEYS.CUSTOM_WORKOUTS) ||
+        localStorage.getItem(STORAGE_KEYS.STAGIONE) != null
+      );
+    } catch {
+      return false;
+    }
   }
 
   static getCustomWorkouts(): CustomWorkout[] {
@@ -164,6 +196,8 @@ export class FINPStorage {
       const parsed = JSON.parse(raw);
       return Array.isArray(parsed) ? parsed : [];
     } catch {
+      // Il raw corrotto va preservato in uno snapshot prima di riseminare.
+      salvaSnapshotDati();
       const seeded = this.createSeedAtleti();
       save(STORAGE_KEYS.ATLETI, seeded);
       return seeded;
@@ -372,6 +406,7 @@ export class FINPStorage {
     }
 
     try {
+      salvaSnapshotDati();
       this.applicaDatiBackup(risultato.data);
       return { ok: true, errors: [], warnings: risultato.warnings };
     } catch (e) {
@@ -415,6 +450,7 @@ export class FINPStorage {
   }
 
   static resetToDefault(): void {
+    salvaSnapshotDati();
     Object.values(STORAGE_KEYS).forEach(k => localStorage.removeItem(k));
     this.applyDemoSeed();
   }

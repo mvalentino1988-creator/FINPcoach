@@ -46,6 +46,10 @@ class MainActivity : ComponentActivity() {
     @Volatile
     private var currentPageHost: String? = null
 
+    // Modalita immersive (barre di sistema nascoste) attiva durante il live.
+    // Solo il thread UI la modifica.
+    private var immersive = false
+
     // ActivityResultLauncher per file picker (API moderna)
     private val filePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (uploadMessage == null) return@registerForActivityResult
@@ -166,6 +170,19 @@ class MainActivity : ComponentActivity() {
         controller.isAppearanceLightNavigationBars = !dark
     }
 
+    /** Mostra/nasconde le barre di sistema (swipe per rimostrarle). Solo thread UI. */
+    private fun applyImmersive(enabled: Boolean) {
+        immersive = enabled
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        if (enabled) {
+            controller.systemBarsBehavior =
+                androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            controller.hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+        } else {
+            controller.show(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+        }
+    }
+
     private fun updateWebViewInsets() {
         val density = resources.displayMetrics.density
         val topDp = if (density > 0f) currentTopInset / density else currentTopInset.toFloat()
@@ -184,9 +201,17 @@ class MainActivity : ComponentActivity() {
         super.onSaveInstanceState(outState)
     }
 
+    override fun onStop() {
+        // Mai lasciare le barre di sistema nascoste quando l'app va in background.
+        if (immersive) applyImmersive(false)
+        super.onStop()
+    }
+
     override fun onDestroy() {
-        // Alla chiusura dell'app si torna sempre all'orientamento di sistema.
+        // Alla chiusura dell'app si torna sempre all'orientamento di sistema
+        // e alle barre di sistema visibili.
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        if (immersive) applyImmersive(false)
         webView.destroy()
         super.onDestroy()
     }
@@ -253,6 +278,17 @@ class MainActivity : ComponentActivity() {
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "setKeepScreenOn failed", e)
+            }
+        }
+
+        /** Modalita immersiva: nasconde le barre di sistema durante il live. */
+        @JavascriptInterface
+        fun setImmersive(on: Boolean) {
+            try {
+                if (!isTrustedPage()) return
+                runOnUiThread { applyImmersive(on) }
+            } catch (e: Exception) {
+                Log.e(TAG, "setImmersive failed", e)
             }
         }
 

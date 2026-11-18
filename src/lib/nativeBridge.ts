@@ -10,6 +10,7 @@
 export interface AndroidBridgeApi {
   setSystemBarsDark?: (dark: boolean) => void;
   setKeepScreenOn?: (on: boolean) => void;
+  setImmersive?: (on: boolean) => void;
   exportTextFile?: (fileName: string, content: string) => boolean;
   printPage?: () => void;
   getSystemIsDark?: () => boolean;
