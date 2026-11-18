@@ -70,6 +70,21 @@ vanno mai in git). Per firmare un release:
    Allo stato attuale `isMinifyEnabled = false`: la WebView carica solo
    asset bundled, il codice nativo è piccolo, il rischio non giustifica R8.
 
+## Sicurezza Firebase (se si usa la sincronizzazione cloud)
+
+- `firestore.rules` (caricato via `firebase.json`): lettura/scrittura solo su
+  `users/{userId}` e solo se `request.auth.uid == userId`. Distribuire con
+  `firebase deploy --only firestore:rules`.
+- La app chiede consenso esplicito alla prima attivazione
+  (`finp_sync_consent`) e NON carica l'SDK Firebase senza consenso +
+  sincronizzazione attiva.
+- **Limitare la chiave API** nella Google Cloud Console: la `VITE_FIREBASE_API_KEY`
+  è pubblica per costruzione (finisce nel bundle). In Cloud Console →
+  Credenziali → restrizioni: consentire solo le API necessarie
+  (Identity Toolkit, Token Service, Firestore) e, se possibile, limitare
+  per referente HTTP.
+- `allowBackup=false` e niente chiavi/secret nel repository.
+
 ## Ciclo di vita verificato
 
 - `configChanges="orientation|screenSize|..."` nel manifest: la rotazione

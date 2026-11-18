@@ -99,3 +99,58 @@ Eseguita il 2026-06-01 su `main` (commit `8754eb0`):
 6. **Backup cifrato**: esportare con password, reinstallare, importare — verificare che senza password i dati non si aprano.
 7. **Sincronizzazione Firebase**: prima attivazione deve mostrare la richiesta di consenso; senza `.env` Firebase non deve caricare nulla.
 8. **OCR**: import tempo da foto — Tesseract deve inizializzarsi solo all'uso (verificare in DevTools che il chunk non sia nel bundle iniziale).
+
+---
+
+## Sessione collaudo Pixel (2026-11-18) — build QA `com.mattia.nuotoparalimpico.qa`
+
+Dispositivo: Pixel 10, Android 17, 1080×2424 @420dpi. Tutti i test distruttivi eseguiti SOLO sul pacchetto `.qa` con dati sintetici (QA-Rossi*, nomi inventati). Il pacchetto di produzione ha ricevuto solo `install -r` + smoke test.
+
+### Bug bloccante risolto (già pushato in `884e473`)
+- `MainActivity.kt`: `isTrustedPage()` non tocca più la WebView da thread JavaBridge — stato `@Volatile` aggiornato solo su thread UI; tutti i `@JavascriptInterface` in try/catch. Nuovo `src/lib/nativeBridge.ts` (`callNative`/`invokeNative`) usato ovunque. Verificato sul dispositivo: nessun "Si è verificato un imprevisto", `getSystemIsDark()` risponde.
+
+### Build QA e tooling (commit `3768032`)
+- `buildType qa` (applicationId `.qa`, nome "FINPcoach QA", debug WebView). Script in `scripts/qa/` (screenshot, impostazioni reversibili, CDP/puppeteer-core, backup sintetici 48 e 12 atleti).
+
+### Correzioni progetto in questa sessione
+- `firestore.rules`: accesso solo a `users/{userId}` del proprietario; `firebase.json` aggiornato; caricamento SDK solo con consenso+sync (nessuna richiesta di rete all'avvio — verificato via CDP: 0 request).
+- Accessibilità: tutti i warning `jsx-a11y` a zero (label↔controlli, backdrop-bottoni, target ≥44px, font ≥12px — incluso `fontSize:11→12` in `CronometroVasca`).
+- Lint: 267 → **0 errori, 8 warning** (solo `react-hooks/preserve-manual-memoization`, euristica React Compiler accettata). `tsc` pulito, **308/308 test**.
+
+### BUG CRITICO TROVATO E CORRETTO sul dispositivo
+- `FINPStorage.getAtleti()` riseminava il dataset demo ogni volta che il numero di atleti era **diverso da 48**. Conseguenza: qualsiasi import con rosa ≠48 (o squadra svuotata volontariamente) veniva **cancellato e sostituito dal demo al ricaricamento** — perdita dati reale in produzione.
+- Riprodotto sul Pixel: import backup-12 (12 atleti) → dopo reload tornavano 48 atleti demo. Corretto: il seed parte solo se la chiave `finp_atleti` è assente o il JSON illeggibile; rosa vuota e qualsiasi N preservati. `AppContext` non forza più `applyDemoSeed` su lista vuota. Test di regressione aggiunto. Riverificato sul Pixel: import 12 atleti → reload → **12 atleti QA preservati**.
+
+### Prove sul dispositivo (eseguite davvero)
+- **Avvio**: `am start -W` a freddo TotalTime **449 ms**; warm 55 ms; logcat senza FATAL/JavaBridge/WebView-thread error. Nessuna richiesta di rete all'avvio (CDP).
+- **Backup cifrato**: export `.finpbackup` da UI reale → file in `/sdcard/Download` (22 KB), JSON valido `{tipo, v:1, kdf:PBKDF2-SHA256, iter:100000, salt, iv, data}`, **zero occorrenze di dati in chiaro** e nessun apiKey. `pm clear` sul `.qa` → reimport con password corretta → 48 atleti QA ripristinati. Password errata → "Password errata o file danneggiato" senza toccare i dati.
+- **Import rifiuti**: JSON corrotto → "File non è un JSON valido"; `version:"9.9"` → "Backup di versione 9.9: più recente di quella supportata (1.1)"; schema senza `version` → rifiutato. In tutti i casi i dati esistenti intatti.
+- **Regia/Cronometro 6×8**: 48 atleti su 6 corsie assegnati (dati QA). In `pronta` portrait le tessere sono schiacciate (~5 px) per limite geometrico; dopo VIA GENERALE (fullscreen `vasca-live`) → **22,5 px uniformi**, nessuno scroll. **Limite noto**: sotto i 40 px previsti per 6×8 — non raggiungibile su 411×923 CSS px in nessun orientamento (max ~37 px stimato in landscape); la scelta orientamento ha optato per il minore dei mali. Da valutare se serve scroll per corsia.
+- **Cronometro 3×4** (12 atleti): tessere **55,7 px** ≥40 px, nessun overflow/scroll. Tap atleta → partenza/lap registrati ("In nuoto"/"GIRO"/"Recupero" visibili). VIA GENERALE avvia la serie; STOP GENERALE richiede doppio tap/long-press (gesture di conferma) → stato `ferma` con RIPRENDI.
+- **Persistenza**: `am force-stop` + riavvio → sessione ripristinata con tempi esatti; HOME+resume → idem; serie live ripresa con stati "In nuoto/Recupero".
+- **Deriva timer**: 10 s misurati → timer +10010 ms vs wall 10015 ms (**deriva −5 ms**, entro la quantizzazione centesimi).
+- **Prestazioni**: `gfxinfo framestats` in serie live — 4372 frame, janky 0,18% (metrica moderna), p50=10 ms, p95=16 ms, p99=20 ms; `meminfo` TOTAL ~254 MB PSS (WebView incluse).
+- **Orientamento**: resta `portrait-primary` in 6×8 (scelta algoritmica motivata); `releaseOrientation` al montaggio. Verifica rotazione manuale non eseguita (vedi sotto).
+- **Screenshot QA** in `docs/qa/pixel/` (4 JPG ≤101 KB): cronometro live 3×4, regia 3 corsie, squadra 12 atleti, oggi.
+
+### Prove NON eseguite (onestà)
+- **TalkBack/audio/vibrazione/suono**: richiedono interazione fisica/audio — da verificare a mano.
+- **Rotazione fisica, font_scale 1.3/1.5, tema scuro, wm size ridotti, tastiera nei form**: non eseguiti in questa sessione (i controlli statici di a11y/font sono stati corretti nel codice).
+- **Stampa nativa** (`printPage`): non testata su PDF reale.
+- **Sincronizzazione Firebase reale**: nessuna credenziale di test; verificato solo che senza consenso+config non parte alcuna richiesta.
+- **2×2 scenario**: non eseguito (3×4 e 6×8 rappresentativi).
+- **Latenza tocco→aggiornamento p50/p95 <100 ms**: misurata solo indirettamente (tap→DOM <500 ms ciclo CDP, include overhead); misura fine non automatizzata.
+- **Deriva su 10 minuti**: misurata solo su finestra 10 s (−5 ms); non ripetuta su 10 min.
+- **Impostazioni dispositivo**: nessuna impostazione di sistema è stata modificata (solo `pm clear` sul pacchetto `.qa`, `am force-stop`, `adb forward`) — nulla da ripristinare.
+
+### Difetti residui noti
+- Tessere cronometro 6×8 sotto i 40 px (limite geometrico, vedi sopra).
+- `getAtleti()` non risemi più il demo: utenti che in passato hanno avuto la rosa sovrascritta dal bug non possono recuperarla (i dati demo hanno sostituito i reali — da segnalare se lamentato).
+- 8 warning lint `preserve-manual-memoization` accettati (euristica React Compiler, non bug).
+- File >600 righe non ancora splittati (PianoScreen, CronometroVasca, AtletiScreen, RegiaTecnicaCorsie, RegistroScreen) — rinviato, nessuna regressione introdotta.
+
+### Da verificare a mano
+1. TalkBack su tutte le schermate; vibrazione e beep del cronometro; uso con mani bagnate; sole diretto.
+2. Rotazione fisica con serie in corso; font 1.3/1.5; tema scuro; display piccolo; tastiera nei form.
+3. Stampa scheda serata; sincronizzazione Firebase con account reale.
+4. **Inserire le date gara 2027 da finp.it** — non inventate (vedi sotto).

@@ -23,10 +23,16 @@ async function connect() {
     browserURL: CDP_URL,
     defaultViewport: null,
   });
-  // La WebView espone una sola "page" per istanza.
+  // Preferisce la pagina visibile (l'app può esporre più WebView, es. una nascosta).
   const pages = await browser.pages();
   if (pages.length === 0) throw new Error('Nessuna pagina CDP trovata');
-  return { browser, page: pages[0] };
+  let page = pages[0];
+  for (const p of pages) {
+    try {
+      if ((await p.evaluate(() => document.visibilityState)) === 'visible') { page = p; break; }
+    } catch { /* pagina non pronta */ }
+  }
+  return { browser, page };
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

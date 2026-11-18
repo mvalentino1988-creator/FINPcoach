@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 0.2.1 — Fix bridge Android, build QA, collaudo Pixel (2026-11-18)
+
+- **Fix critico Android**: i metodi `@JavascriptInterface` non leggono più la WebView da thread non-UI (stato `@Volatile` aggiornato solo su thread UI); nuovo wrapper sicuro `src/lib/nativeBridge.ts` per tutte le chiamate native. Risolve il crash "Si è verificato un imprevisto" all'avvio.
+- **BUG DATI CRITICO**: `FINPStorage.getAtleti()` non risemina più il demo quando la rosa ha un numero di atleti diverso da 48 — prima cancellava qualsiasi import/squadra vuota al ricaricamento.
+- **Build QA separata** (`.qa`, "FINPcoach QA") e script di collaudo in `scripts/qa/` (CDP/puppeteer, backup sintetici, impostazioni reversibili).
+- **Sicurezza**: `firestore.rules` limitate al proprietario; caricamento Firebase solo con consenso+sync (zero rete all'avvio); backup cifrato AES-GCM verificato su device (export/import/password errata/rifiuti).
+- **Accessibilità**: warning jsx-a11y azzerati; target touch ≥44px; font ≥12px; backdrop dei modali come bottoni.
+- **Lint**: 0 errori (8 warning React Compiler accettati); TypeScript pulito; 308 test.
+- **Collaudo Pixel 10**: vedi `docs/REPORT-CORREZIONI.md` — avvio 449ms, niente richieste di rete, persistenza sessione dopo force-stop, deriva timer −5ms/10s, gfxinfo p99=20ms.
+
+
 ## 0.2.0 — Quality pass completo (2026)
 
 Lavoro di rifinitura in 10 blocchi: correttezza, sicurezza dei dati, accessibilità, prestazioni, manutenibilità. Nessuna funzionalità esistente rimossa.
