@@ -11,6 +11,7 @@ import {
   Stagione,
   Chiusura,
   Gara,
+  IscrizioneGara,
   Macrociclo,
   Mesociclo,
   Microciclo,
@@ -31,6 +32,7 @@ export interface SyncData {
   stagione: Stagione | null;
   chiusure: Chiusura[];
   gare: Gara[];
+  iscrizioniGare?: IscrizioneGara[];
   macrocicli: Macrociclo[];
   mesocicli: Mesociclo[];
   microcicli: Microciclo[];

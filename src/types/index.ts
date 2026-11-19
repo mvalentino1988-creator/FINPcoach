@@ -94,12 +94,49 @@ export interface CondizioneMedica {
   attiva: boolean;
 }
 
+/** Ambito di un'assenza: allenamenti, una gara specifica o tutto. */
+export type AmbitoAssenza = 'TUTTO' | 'ALLENAMENTO' | 'GARA';
+
+export const AMBITO_ASSENZA_LABEL: Record<AmbitoAssenza, string> = {
+  TUTTO: 'Tutto',
+  ALLENAMENTO: 'Solo allenamenti',
+  GARA: 'Solo gara'
+};
+
 export interface Assenza {
   id: number;
   atletaId: number;
   dal: string; // YYYY-MM-DD
   al: string;  // YYYY-MM-DD
   motivo: string;
+  /** Ambito dell'assenza (default 'TUTTO' per i dati esistenti). */
+  ambito?: AmbitoAssenza;
+  /** Gara a cui l'assenza si riferisce (solo con ambito 'GARA'). */
+  garaId?: number;
+}
+
+/** Evento a cui un atleta è iscritto in una gara. */
+export interface EventoIscrizione {
+  stile: Stile;
+  distanzaMetri: number;
+  tempoIscrizioneCentesimi?: number;
+}
+
+export type StatoIscrizione = 'ISCRITTO' | 'RITIRATO' | 'ASSENTE';
+
+export const STATO_ISCRIZIONE_LABEL: Record<StatoIscrizione, string> = {
+  ISCRITTO: 'Iscritto',
+  RITIRATO: 'Ritirato',
+  ASSENTE: 'Assente'
+};
+
+/** Iscrizione di un atleta a una gara della stagione. */
+export interface IscrizioneGara {
+  id: number;
+  garaId: number;
+  atletaId: number;
+  eventi: EventoIscrizione[];
+  stato: StatoIscrizione;
 }
 
 export interface AtletaAttributo {

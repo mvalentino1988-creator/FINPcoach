@@ -17,6 +17,7 @@ import { ElencoAvvisi } from './ElencoAvvisi';
 import { PageHeader } from './PageHeader';
 import { Badge, Select } from './ui';
 import { normalizzaDurata } from '../domain/parametriSeduta';
+import { IscrittiGaraPanel } from './IscrittiGaraPanel';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import {
   Activity,
@@ -861,7 +862,37 @@ export const PianoScreen: React.FC = () => {
       </section>
       )}
 
-
+      {/* Gare della stagione e iscrizioni */}
+      {stagione && gare.length > 0 && (
+        <section className="overflow-hidden rounded-xl border border-border-hairline bg-surface-container-lowest shadow-card">
+          <div className="flex items-center gap-3 border-b border-border-hairline bg-surface-container-low px-4 py-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-tertiary-fixed text-on-tertiary-fixed">
+              <Flag size={17} />
+            </span>
+            <div>
+              <h2 className="font-headline-sm text-headline-sm font-bold text-on-surface">Gare e iscrizioni</h2>
+              <p className="text-xs text-on-surface-variant">Iscrizioni per gara con eventi ammissibili (programma WPS) e avvisi su assenze.</p>
+            </div>
+          </div>
+          <div className="space-y-2 p-4">
+            {[...gare]
+              .sort((a, b) => a.dal.localeCompare(b.dal))
+              .map(g => (
+                <div key={g.id} className="space-y-1">
+                  <div className="flex items-center gap-2 px-1">
+                    <Flag size={13} className={g.prioritaria ? 'text-tertiary' : 'text-on-surface-variant'} />
+                    <span className="truncate font-headline-sm text-headline-sm font-bold text-on-surface">{g.nome}</span>
+                    <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">
+                      {formattaData(g.dal)}{g.dal !== g.al ? ` – ${formattaData(g.al)}` : ''}
+                    </span>
+                    {g.prioritaria && <Badge variant="coral" size="sm">A-race</Badge>}
+                  </div>
+                  <IscrittiGaraPanel gara={g} />
+                </div>
+              ))}
+          </div>
+        </section>
+      )}
 
       {vistaPiano === 'programmazione' && (
       <section className="overflow-hidden rounded-xl border border-border-hairline bg-surface-container-lowest shadow-card">

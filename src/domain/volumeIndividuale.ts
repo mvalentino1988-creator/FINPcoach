@@ -1,16 +1,17 @@
 import { Assenza, Atleta, Microciclo, VolumeAtleta } from '../types';
 import { addDays, daysBetween, isAfter, isBefore, previousOrSameMonday, weeksBetween } from './dateUtils';
+import { assenzaCopreAmbito, isAssenteInData } from './assenze';
 
 export class VolumeIndividuale {
   /**
    * Volume settimanale di un singolo atleta: parte dal target di squadra e applica
-   * fattore volume, giorni di assenza e rientro graduale dopo assenze di almeno 14 giorni
-   * (60% nella settimana del rientro, 80% nella successiva).
+   * fattore volume, giorni di assenza (ambito allenamento) e rientro graduale dopo
+   * assenze di almeno 14 giorni (60% nella settimana del rientro, 80% nella successiva).
    */
   static settimana(micro: Microciclo, atleta: Atleta, assenze: Assenza[]): VolumeAtleta {
     const giorni = Array.from({ length: 7 }, (_, i) => addDays(micro.inizio, i));
     const assenti = giorni.filter(d =>
-      assenze.some(a => !isBefore(d, a.dal) && !isAfter(d, a.al))
+      isAssenteInData(atleta.id, d, assenze, 'ALLENAMENTO')
     ).length;
 
     if (assenti === 7) {
@@ -28,8 +29,10 @@ export class VolumeIndividuale {
       note.push(`assente ${assenti} giorni`);
     }
 
+    // Solo le assenze che coprono l'allenamento contano per il rientro.
+    const assenzeAllenamento = assenze.filter(a => assenzaCopreAmbito(a, 'ALLENAMENTO'));
     let rientro = 1.0;
-    for (const a of assenze) {
+    for (const a of assenzeAllenamento) {
       const dur = daysBetween(a.dal, a.al) + 1;
       if (dur < 14) continue;
       const giornoDopo = addDays(a.al, 1);

@@ -35,6 +35,7 @@ export interface KeySchema {
 export const MIGRATIONS_KEY = 'finp_schema_migrations';
 
 import { normalizzaAssegnazione } from '../domain/assegnazioneVasca';
+import { normalizzaAmbitoAssenza } from '../domain/assenze';
 
 /**
  * Schema corrente. Le chiavi esistenti prima del versionamento sono v1;
@@ -45,7 +46,29 @@ export const SCHEMA: KeySchema[] = [
   { key: 'finp_mode', version: 1, migrations: [] },
   { key: 'finp_atleti', version: 1, migrations: [] },
   { key: 'finp_condizioni', version: 1, migrations: [] },
-  { key: 'finp_assenze', version: 1, migrations: [] },
+  {
+    key: 'finp_assenze',
+    version: 2,
+    migrations: [
+      {
+        to: 2,
+        // v1 -> v2: ambito assenza (default 'TUTTO') e garaId opzionale.
+        run: value => {
+          if (!Array.isArray(value)) return value;
+          return value.map(a => {
+            if (!a || typeof a !== 'object') return a;
+            const it = a as Record<string, unknown>;
+            const ambito = normalizzaAmbitoAssenza(it.ambito);
+            const out: Record<string, unknown> = { ...it, ambito };
+            if (ambito !== 'GARA') delete out.garaId;
+            else if (typeof out.garaId !== 'number') delete out.garaId;
+            return out;
+          });
+        },
+      },
+    ],
+  },
+  { key: 'finp_iscrizioni_gare', version: 1, migrations: [] },
   { key: 'finp_tempi', version: 1, migrations: [] },
   { key: 'finp_log_sedute', version: 1, migrations: [] },
   { key: 'finp_stagione', version: 1, migrations: [] },

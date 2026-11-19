@@ -9,6 +9,7 @@ import {
   DayOfWeekNum,
   Gara,
   ImpostazioniPiano,
+  IscrizioneGara,
   LogSeduta,
   Macrociclo,
   Mesociclo,
@@ -22,6 +23,7 @@ import { AutoPianificatore } from '../domain/autoPianificatore';
 import { Festivita } from '../domain/festivita';
 import { PianoGenerator } from '../domain/pianoGenerator';
 import { PianoValidator } from '../domain/validatori';
+import { avvisiIscrizioniGare, avvisiTempiInAssenza } from '../domain/assenze';
 import { todayISO } from '../domain/dateUtils';
 import { conOverride, conParametriGiorno, risolviParametriSeduta, senzaOverride, ParametriRisolti } from '../domain/parametriSeduta';
 import { AssegnazioneVasca, allineaConParametri, normalizzaAssegnazione } from '../domain/assegnazioneVasca';
@@ -38,6 +40,7 @@ interface AppContextType {
   stagione: Stagione | null;
   chiusure: Chiusura[];
   gare: Gara[];
+  iscrizioniGare: IscrizioneGara[];
   macro: Macrociclo[];
   meso: Mesociclo[];
   micro: Microciclo[];
@@ -70,6 +73,9 @@ interface AppContextType {
   aggiungiGara: (nome: string, dal: string, al: string, prioritaria: boolean, luogo?: string) => void;
   modificaGara: (g: Gara) => void;
   eliminaGara: (id: number) => void;
+  aggiungiIscrizioneGara: (i: Omit<IscrizioneGara, 'id'>) => void;
+  aggiornaIscrizioneGara: (i: IscrizioneGara) => void;
+  eliminaIscrizioneGara: (id: number) => void;
   salvaImpostazioni: (imp: ImpostazioniPiano) => void;
   /** Programmazione vasca/durata per un giorno della settimana (senza rigenerare il piano). */
   impostaParametriGiorno: (giorno: DayOfWeekNum, parametri: ParametriSeduta) => void;
@@ -108,6 +114,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [stagione, setStagione] = useState<Stagione | null>(() => FINPStorage.getStagione());
   const [chiusure, setChiusure] = useState<Chiusura[]>(() => FINPStorage.getChiusure());
   const [gare, setGare] = useState<Gara[]>(() => FINPStorage.getGare());
+  const [iscrizioniGare, setIscrizioniGare] = useState<IscrizioneGara[]>(() => FINPStorage.getIscrizioniGare());
   const [macro, setMacro] = useState<Macrociclo[]>(() => FINPStorage.getMacrocicli());
   const [meso, setMeso] = useState<Mesociclo[]>(() => FINPStorage.getMesocicli());
   const [micro, setMicro] = useState<Microciclo[]>(() => FINPStorage.getMicrocicli());
@@ -182,15 +189,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => { FINPStorage.saveStagione(stagione); }, [stagione]);
   useEffect(() => { FINPStorage.saveChiusure(chiusure); }, [chiusure]);
   useEffect(() => { FINPStorage.saveGare(gare); }, [gare]);
+  useEffect(() => { FINPStorage.saveIscrizioniGare(iscrizioniGare); }, [iscrizioniGare]);
   useEffect(() => { FINPStorage.savePiano(macro, meso, micro); }, [macro, meso, micro]);
   useEffect(() => { FINPStorage.saveImpostazioni(impostazioni); }, [impostazioni]);
   useEffect(() => { FINPStorage.saveAssegnazioneVasca(assegnazioneVasca); }, [assegnazioneVasca]);
 
   const applyingCloud = useRef(false);
   const hydrated = useRef(localStorage.getItem('finp_sync_enabled') !== 'true');
-  const latestRef = useRef({ atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, macro, meso, micro, impostazioni, assegnazioneVasca });
+  const latestRef = useRef({ atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, iscrizioniGare, macro, meso, micro, impostazioni, assegnazioneVasca });
   useEffect(() => {
-    latestRef.current = { atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, macro, meso, micro, impostazioni, assegnazioneVasca };
+    latestRef.current = { atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, iscrizioniGare, macro, meso, micro, impostazioni, assegnazioneVasca };
   });
 
   const buildSyncPayload = (): SyncData => {
@@ -206,6 +214,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       stagione: s.stagione,
       chiusure: s.chiusure,
       gare: s.gare,
+      iscrizioniGare: s.iscrizioniGare,
       macrocicli: s.macro,
       mesocicli: s.meso,
       microcicli: s.micro,
@@ -225,6 +234,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (cloudData.stagione !== undefined) setStagione(cloudData.stagione);
     if (cloudData.chiusure) setChiusure(cloudData.chiusure);
     if (cloudData.gare) setGare(cloudData.gare);
+    if (cloudData.iscrizioniGare) setIscrizioniGare(cloudData.iscrizioniGare);
     if (cloudData.macrocicli) setMacro(cloudData.macrocicli);
     if (cloudData.mesocicli) setMeso(cloudData.mesocicli);
     if (cloudData.microcicli) setMicro(cloudData.microcicli);
@@ -279,7 +289,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 2000);
 
     return () => clearTimeout(timeoutId);
-  }, [atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, macro, meso, micro, impostazioni, assegnazioneVasca]);
+  }, [atleti, condizioni, assenze, tempi, log, stagione, chiusure, gare, iscrizioniGare, macro, meso, micro, impostazioni, assegnazioneVasca]);
 
   // Compute effective planning parameters
   const parametriEffettivi = useMemo<ParametriPiano>(() => {
@@ -295,8 +305,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Compute validation warnings on the plan
   const avvisiPiano = useMemo<Avviso[]>(() => {
     if (!stagione || micro.length === 0) return [];
-    return PianoValidator.valida(stagione, micro, gare);
-  }, [stagione, micro, gare]);
+    return [
+      ...PianoValidator.valida(stagione, micro, gare),
+      ...avvisiIscrizioniGare(iscrizioniGare, assenze, gare, atleti),
+      ...avvisiTempiInAssenza(tempi, assenze),
+    ];
+  }, [stagione, micro, gare, iscrizioniGare, assenze, atleti, tempi]);
 
   // Parametri della seduta di oggi (override > giorno della settimana > stagione)
   const parametriOggi = useMemo<ParametriRisolti>(() => {
@@ -442,6 +456,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAssenze(prev => prev.filter(a => a.atletaId !== id));
     setTempi(prev => prev.filter(t => t.atletaId !== id));
     setLog(prev => prev.filter(l => l.atletaId !== id));
+    setIscrizioniGare(prev => prev.filter(i => i.atletaId !== id));
   };
 
   const aggiungiCondizione = (c: Omit<CondizioneMedica, 'id'>) => {
@@ -497,6 +512,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setStagione(nuovaStagione);
     setChiusure(feste);
     setGare([]);
+    setIscrizioniGare([]);
     setMacro(newMacro);
     setMeso(newMeso);
     setMicro(newMicro);
@@ -504,6 +520,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     FINPStorage.saveStagione(nuovaStagione);
     FINPStorage.saveChiusure(feste);
     FINPStorage.saveGare([]);
+    FINPStorage.saveIscrizioniGare([]);
     FINPStorage.savePiano(newMacro, newMeso, newMicro);
   };
 
@@ -561,6 +578,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setStagione(null);
     setChiusure([]);
     setGare([]);
+    setIscrizioniGare([]);
     setMacro([]);
     setMeso([]);
     setMicro([]);
@@ -568,6 +586,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     FINPStorage.saveStagione(null);
     FINPStorage.saveChiusure([]);
     FINPStorage.saveGare([]);
+    FINPStorage.saveIscrizioniGare([]);
     FINPStorage.savePiano([], [], []);
   };
 
@@ -615,7 +634,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const eliminaGara = (id: number) => {
     setGare(prev => prev.filter(g => g.id !== id));
+    setIscrizioniGare(prev => prev.filter(i => i.garaId !== id));
     setTimeout(() => rigeneraPianoInterno(true), 50);
+  };
+
+  const aggiungiIscrizioneGara = (i: Omit<IscrizioneGara, 'id'>) => {
+    const nextId = iscrizioniGare.length > 0 ? Math.max(...iscrizioniGare.map(it => it.id)) + 1 : 1;
+    setIscrizioniGare(prev => [...prev, { ...i, id: nextId }]);
+  };
+
+  const aggiornaIscrizioneGara = (i: IscrizioneGara) => {
+    setIscrizioniGare(prev => prev.map(it => (it.id === i.id ? i : it)));
+  };
+
+  const eliminaIscrizioneGara = (id: number) => {
+    setIscrizioniGare(prev => prev.filter(it => it.id !== id));
   };
 
   const salvaImpostazioni = (imp: ImpostazioniPiano) => {
@@ -688,6 +721,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         stagione,
         chiusure,
         gare,
+        iscrizioniGare,
         macro,
         meso,
         micro,
@@ -714,6 +748,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         aggiungiGara,
         modificaGara,
         eliminaGara,
+        aggiungiIscrizioneGara,
+        aggiornaIscrizioneGara,
+        eliminaIscrizioneGara,
         salvaImpostazioni,
         impostaParametriGiorno,
         impostaOverrideSeduta,

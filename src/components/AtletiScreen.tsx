@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../data/AppContext';
-import { Atleta, CodiceAllenamentoKey, CondizioneMedica, Assenza, Tempo, StimaClassiFINP, LogSeduta, Mesociclo, Microciclo, ParametriPiano, Stagione, ImpostazioniPiano, Stile, ContestoTempo } from '../types';
+import { Atleta, AmbitoAssenza, AMBITO_ASSENZA_LABEL, CodiceAllenamentoKey, CondizioneMedica, Assenza, Gara, Tempo, StimaClassiFINP, LogSeduta, Mesociclo, Microciclo, ParametriPiano, Stagione, ImpostazioniPiano, Stile, ContestoTempo } from '../types';
 import { formattaData, parseData, todayISO, yearsBetween, isBefore } from '../domain/dateUtils';
 import { AtletaValidator } from '../domain/validatori';
 import { ClassiSportive } from '../domain/classiSportive';
@@ -45,6 +45,7 @@ const AtletiScreenContent: React.FC = () => {
     log,
     micro,
     meso,
+    gare,
     parametriEffettivi,
     stagione,
     impostazioni,
@@ -407,6 +408,7 @@ const AtletiScreenContent: React.FC = () => {
           parametriEffettivi={parametriEffettivi}
           stagione={stagione}
           impostazioni={impostazioni}
+          gare={gare}
         />
       )}
     </div>
@@ -680,6 +682,7 @@ interface ModalDettaglioProps {
   parametriEffettivi: ParametriPiano;
   stagione: Stagione | null;
   impostazioni: ImpostazioniPiano;
+  gare: Gara[];
 }
 
 const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
@@ -697,7 +700,8 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
   onAggiungiAssenza,
   onEliminaAssenza,
   onAggiungiTempo,
-  onEliminaTempo
+  onEliminaTempo,
+  gare
 }) => {
   const [modificaOpen, setModificaOpen] = useState(false);
   const [codiciProposti, setCodiciProposti] = useState<CodiceAllenamentoKey[] | null>(null);
@@ -711,6 +715,8 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
   const [assDal, setAssDal] = useState('');
   const [assAl, setAssAl] = useState('');
   const [assMotivo, setAssMotivo] = useState('');
+  const [assAmbito, setAssAmbito] = useState<AmbitoAssenza>('TUTTO');
+  const [assGaraId, setAssGaraId] = useState<number | null>(null);
 
   const oggi = todayISO();
   const eta = atleta.dataNascita ? yearsBetween(atleta.dataNascita, oggi) : null;
@@ -1068,6 +1074,12 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                     <span className="font-headline-sm text-headline-sm text-on-surface">
                       {formattaData(a.dal)} – {formattaData(a.al)}
                     </span>
+                    <Badge variant="secondary" size="sm" className="ml-1">
+                      {AMBITO_ASSENZA_LABEL[a.ambito ?? 'TUTTO']}
+                      {a.ambito === 'GARA' && a.garaId != null
+                        ? `: ${gare.find(g => g.id === a.garaId)?.nome ?? `gara ${a.garaId}`}`
+                        : ''}
+                    </Badge>
                     {a.motivo && <span className="text-on-surface-variant ml-2 break-words">({a.motivo})</span>}
                   </div>
                   <button
@@ -1105,21 +1117,50 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                   value={assMotivo}
                   onChange={e => setAssMotivo(e.target.value)}
                 />
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
+                  <Select
+                    label="Ambito"
+                    value={assAmbito}
+                    onChange={e => {
+                      const amb = e.target.value as AmbitoAssenza;
+                      setAssAmbito(amb);
+                      if (amb !== 'GARA') setAssGaraId(null);
+                    }}
+                    options={(
+                      ['TUTTO', 'ALLENAMENTO', 'GARA'] as AmbitoAssenza[]
+                    ).map(v => ({ value: v, label: AMBITO_ASSENZA_LABEL[v] }))}
+                  />
+                  {assAmbito === 'GARA' && (
+                    <Select
+                      label="Gara"
+                      value={assGaraId != null ? String(assGaraId) : ''}
+                      onChange={e => setAssGaraId(e.target.value ? parseInt(e.target.value, 10) : null)}
+                      options={[
+                        { value: '', label: 'Tutte le gare' },
+                        ...gare.map(g => ({ value: String(g.id), label: g.nome })),
+                      ]}
+                    />
+                  )}
+                </div>
                 <Button
                   type="button"
                   variant="secondary"
-                  disabled={!assenzaValida}
+                  disabled={!assenzaValida || (assAmbito === 'GARA' && gare.length > 0 && assGaraId == null && false)}
                   onClick={() => {
                     if (dalParsed && alParsed) {
                       onAggiungiAssenza({
                         atletaId: atleta.id,
                         dal: dalParsed,
                         al: alParsed,
-                        motivo: assMotivo.trim()
+                        motivo: assMotivo.trim(),
+                        ambito: assAmbito,
+                        ...(assAmbito === 'GARA' && assGaraId != null ? { garaId: assGaraId } : {})
                       });
                       setAssDal('');
                       setAssAl('');
                       setAssMotivo('');
+                      setAssAmbito('TUTTO');
+                      setAssGaraId(null);
                     }
                   }}
                   className="w-full"

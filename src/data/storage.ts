@@ -6,6 +6,7 @@ import {
   CustomWorkout,
   Gara,
   ImpostazioniPiano,
+  IscrizioneGara,
   LogSeduta,
   Macrociclo,
   Mesociclo,
@@ -30,6 +31,7 @@ const STORAGE_KEYS = {
   STAGIONE: 'finp_stagione',
   CHIUSURE: 'finp_chiusure',
   GARE: 'finp_gare',
+  ISCRIZIONI_GARE: 'finp_iscrizioni_gare',
   MACROCICLI: 'finp_macrocicli',
   MESOCICLI: 'finp_mesocicli',
   MICROCICLI: 'finp_microcicli',
@@ -126,6 +128,7 @@ export class FINPStorage {
     save(STORAGE_KEYS.STAGIONE, stagione);
     save(STORAGE_KEYS.CHIUSURE, Festivita.perStagione(stagione).map((c, i) => ({ ...c, id: i + 1 })));
     save(STORAGE_KEYS.GARE, this.createSeedGare());
+    save(STORAGE_KEYS.ISCRIZIONI_GARE, []);
     save(STORAGE_KEYS.MACROCICLI, []);
     save(STORAGE_KEYS.MESOCICLI, []);
     save(STORAGE_KEYS.MICROCICLI, []);
@@ -144,6 +147,7 @@ export class FINPStorage {
     save(STORAGE_KEYS.STAGIONE, null);
     save(STORAGE_KEYS.CHIUSURE, []);
     save(STORAGE_KEYS.GARE, []);
+    save(STORAGE_KEYS.ISCRIZIONI_GARE, []);
     save(STORAGE_KEYS.MACROCICLI, []);
     save(STORAGE_KEYS.MESOCICLI, []);
     save(STORAGE_KEYS.MICROCICLI, []);
@@ -264,6 +268,14 @@ export class FINPStorage {
     save(STORAGE_KEYS.GARE, gare);
   }
 
+  static getIscrizioniGare(): IscrizioneGara[] {
+    return load<IscrizioneGara[]>(STORAGE_KEYS.ISCRIZIONI_GARE, []);
+  }
+
+  static saveIscrizioniGare(iscrizioni: IscrizioneGara[]) {
+    save(STORAGE_KEYS.ISCRIZIONI_GARE, iscrizioni);
+  }
+
   static getMacrocicli(): Macrociclo[] {
     return load<Macrociclo[]>(STORAGE_KEYS.MACROCICLI, []);
   }
@@ -367,6 +379,7 @@ export class FINPStorage {
       stagione: this.getStagione(),
       chiusure: this.getChiusure(),
       gare: this.getGare(),
+      iscrizioniGare: this.getIscrizioniGare(),
       macrocicli: this.getMacrocicli(),
       mesocicli: this.getMesocicli(),
       microcicli: this.getMicrocicli(),
@@ -396,9 +409,10 @@ export class FINPStorage {
     const chiavi = [
       STORAGE_KEYS.ATLETI, STORAGE_KEYS.CONDIZIONI, STORAGE_KEYS.ASSENZE,
       STORAGE_KEYS.TEMPI, STORAGE_KEYS.LOG_SEDUTE, STORAGE_KEYS.STAGIONE,
-      STORAGE_KEYS.CHIUSURE, STORAGE_KEYS.GARE, STORAGE_KEYS.MACROCICLI,
-      STORAGE_KEYS.MESOCICLI, STORAGE_KEYS.MICROCICLI, STORAGE_KEYS.IMPOSTAZIONI,
-      STORAGE_KEYS.CUSTOM_WORKOUTS, STORAGE_KEYS.VASCA_ASSEGNAZIONE, MODE_KEY,
+      STORAGE_KEYS.CHIUSURE, STORAGE_KEYS.GARE, STORAGE_KEYS.ISCRIZIONI_GARE,
+      STORAGE_KEYS.MACROCICLI, STORAGE_KEYS.MESOCICLI, STORAGE_KEYS.MICROCICLI,
+      STORAGE_KEYS.IMPOSTAZIONI, STORAGE_KEYS.CUSTOM_WORKOUTS,
+      STORAGE_KEYS.VASCA_ASSEGNAZIONE, MODE_KEY,
     ];
     const snapshot = new Map<string, string | null>();
     for (const k of chiavi) {
@@ -437,6 +451,7 @@ export class FINPStorage {
     put(STORAGE_KEYS.STAGIONE, d.stagione as Stagione | null | undefined);
     put(STORAGE_KEYS.CHIUSURE, d.chiusure as Chiusura[] | undefined);
     put(STORAGE_KEYS.GARE, d.gare as Gara[] | undefined);
+    put(STORAGE_KEYS.ISCRIZIONI_GARE, d.iscrizioniGare as IscrizioneGara[] | undefined);
     put(STORAGE_KEYS.MACROCICLI, d.macrocicli as Macrociclo[] | undefined);
     put(STORAGE_KEYS.MESOCICLI, d.mesocicli as Mesociclo[] | undefined);
     put(STORAGE_KEYS.MICROCICLI, d.microcicli as Microciclo[] | undefined);

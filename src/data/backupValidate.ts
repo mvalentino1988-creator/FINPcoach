@@ -141,6 +141,10 @@ export function validaBackup(jsonString: string): BackupValidato {
     if (isNum(rid) && !atletaIds.has(rid)) warnings.push(`assenze: riferimento a atletaId ${rid} non presente`);
     if (!isDateStr(item.dal)) err.push('dal non valido');
     if (!isDateStr(item.al)) err.push('al non valido');
+    if (item.ambito !== undefined && item.ambito !== 'TUTTO' && item.ambito !== 'ALLENAMENTO' && item.ambito !== 'GARA') {
+      err.push('ambito non valido (TUTTO|ALLENAMENTO|GARA)');
+    }
+    if (item.garaId !== undefined && !(isNum(item.garaId) && item.garaId > 0)) err.push('garaId non valido');
     return err;
   });
   if (assenze) idUnivoci(assenze, 'id', errors, 'assenze');
@@ -190,6 +194,35 @@ export function validaBackup(jsonString: string): BackupValidato {
       else if (!isNum(item.id)) errors.push(`${nome}[${i}]: id non valido`);
     });
   }
+  // Iscrizioni alle gare: chiave dedicata, inclusa in backup/validazione.
+  const gareIds = new Set<number>();
+  if (Array.isArray(raw.gare)) {
+    for (const g of raw.gare) {
+      if (isObj(g) && isNum(g.id)) gareIds.add(g.id);
+    }
+  }
+  const iscrizioni = validaArray('iscrizioniGare', raw.iscrizioniGare, errors, item => {
+    if (!isObj(item)) return ['atteso un oggetto'];
+    const err = checkConId()(item);
+    const rid = item.atletaId;
+    if (isNum(rid) && !atletaIds.has(rid)) warnings.push(`iscrizioniGare: riferimento a atletaId ${rid} non presente`);
+    if (!(isNum(item.garaId) && item.garaId > 0)) err.push('garaId non valido');
+    else if (gareIds.size > 0 && !gareIds.has(item.garaId)) warnings.push(`iscrizioniGare: garaId ${item.garaId} non presente nell'elenco gare`);
+    if (!['ISCRITTO', 'RITIRATO', 'ASSENTE'].includes(item.stato as string)) err.push('stato non valido');
+    if (item.eventi !== undefined) {
+      if (!Array.isArray(item.eventi)) err.push('eventi: atteso un array');
+      else {
+        item.eventi.forEach((e, i) => {
+          if (!isObj(e)) { err.push(`eventi[${i}]: atteso un oggetto`); return; }
+          if (!isStr(e.stile)) err.push(`eventi[${i}].stile mancante`);
+          if (!(isNum(e.distanzaMetri) && e.distanzaMetri > 0)) err.push(`eventi[${i}].distanzaMetri non valida`);
+        });
+      }
+    }
+    return err;
+  });
+  if (iscrizioni) idUnivoci(iscrizioni, 'id', errors, 'iscrizioniGare');
+
   if (raw.impostazioni !== undefined && raw.impostazioni !== null && !isObj(raw.impostazioni)) {
     errors.push('impostazioni: atteso un oggetto');
   }
