@@ -39,6 +39,6 @@ Formato: `id | stato (da fare/in corso/fatto/bloccato) | hash commit | nota`
 | E6 | fatto | — | difetto asset con chiavi Firebase corretto (rebuild senza .env) |
 
 ## FASE F — Consegna
-| F1 | fatto | — | REPORT/CHANGELOG/RILASCIO/README/DECISIONI |
-| F2 | in corso | — | tsc/lint/test/build, git pulito |
+| F1 | fatto | a7bc5e6 | REPORT/CHANGELOG/RILASCIO/README/DECISIONI |
+| F2 | fatto | a7bc5e6 | tsc/lint/test/build, git pulito |
 | F3 | da fare | — | rebase + push |
