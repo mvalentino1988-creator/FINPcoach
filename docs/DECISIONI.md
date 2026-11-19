@@ -26,3 +26,11 @@
   su due righe (font 12 px, max 2 righe). Motivo: requisiti B4(a); target
   >=44 px mantenuti sui controlli (w-9->w-11 in Regia). La tessera con
   altezza <34 px mantiene il troncamento (una sola riga possibile).
+
+## 2026-11-19 — D3 scomposizione componenti rinviata
+Scelta: NON scomporre CronometroVasca/RegiaTecnicaCorsie/AtletiScreen/PianoScreen in questa sessione.
+Motivo: i componenti superano ampiamente 600 righe (fino a ~1900) e la scomposizione senza test di componente
+schermata rischia regressioni comportamentali; le modifiche B4 sul cronometro sono già testate a livello dominio
+(cronometroVasca.test.ts) e la regola utente prevede "se rischioso, annota e passa oltre".
+Mitigazione: test di componente UI (ui.test.tsx) e mock Firebase (firebaseSync.test.ts) aggiunti; la matrice
+segnala i componenti come non provati a livello schermo.

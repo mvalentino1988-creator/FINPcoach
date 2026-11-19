@@ -26,9 +26,9 @@ Formato: `id | stato (da fare/in corso/fatto/bloccato) | hash commit | nota`
 
 ## FASE D — Matrice collaudo
 | D1 | fatto | — | inventory.mjs genera MATRICE-COLLAUDO.md (239 elementi) |
-| D2 | da fare | — | @testing-library/react + test componenti |
-| D3 | da fare | — | scomposizione Cronometro/Regia (<600 righe) |
-| D4 | da fare | — | test espliciti funzioni app (firebase mock, OCR, CSS...) |
+| D2 | in corso | — | @testing-library/react+jsdom; ui.test.tsx 12 test primitive verdi; test schermate con stress dataset parziale |
+| D3 | bloccato | — | componenti 800-1900 righe; scomposizione rischiosa senza test schermo — rinviata, vedi DECISIONI |
+| D4 | in corso | — | firebaseSync.test.ts (10 test, SDK mockato) verde; OCR/parser/backup/migrazioni già coperti da suite esistente |
 
 ## FASE E — Pixel (.qa)
 | E1 | da fare | — | rebuild/reinstall .qa, import stress-100, misure |
