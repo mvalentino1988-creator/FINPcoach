@@ -203,3 +203,28 @@ Commit: `3ef28df` (live fullscreen + tile + snapshot), `5457b52` (Regia corsie v
 - TalkBack fisico, audio, vibrazione: sempre da fare a mano.
 - Firebase reale: invariato, nessuna credenziale di test.
 - Calendario 2027: da inserire dall'utente da finp.it (non inventato).
+
+---
+
+## Collaudo a pieno regime — 100 atleti simulati / 48 presenti (2026-11-19)
+
+Dataset deterministico `scripts/qa/out/stress-100.json` (4,2 MB, seme fisso, `meta.simulato=true`): 100 atleti SIM-*, 48 presenti nel giorno di prova, 6 corsie, ~10.000+ log sedute, assenze con ambito, gare e iscrizioni.
+
+### Esiti misurati
+- **Import dispositivo (.qa)**: `stress-100.json` importato via UI in ~18 s; `stress-100-cifrato.finpbackup` decifrato e importato con 100 atleti. Import di file corrotto rifiutato correttamente ("File non è un JSON valido"), dati intatti.
+- **Storage**: ~2,7 MB totali in localStorage; snapshot automatico presente; nessun `QuotaExceededError`.
+- **Memoria**: TOTAL PSS ~270 MB (WebView+GPU incluse); nessuna eccezione in logcat.
+- **Rendering con 100 atleti**: Oggi/Vasca/Squadra/Piano 130–180 ms al cambio schermata.
+- **Regia**: "NON ASSEGNATI · 48" e "NON PRESENTI · 52" esatti; "Suggerisci" assegna tutti i 48 (6 corsie × 8); assegnazione **persistente dopo force-stop**.
+- **Stampa**: composizione corsie stampata senza eccezioni.
+- **Test automatici**: 436 test verdi (38 file) inclusi budget di prestazione dominio (volumi <500 ms, piano <1 s, validatore <200 ms, ACWR <300 ms, ricerca regolamenti <50 ms, import backup <3 s), correttezza dataset, assegnazione corsie 48/6, piano atleta + CSV.
+
+### Difetti trovati e corretti in questo ciclo
+- Asset Android contenenti chiavi Firebase (`AIza`) perché la build era stata eseguita con `.env` presente → ricostruiti senza env, verificato 0 occorrenze.
+- Import lint: 6 import non usati rimossi.
+
+### Non provato / residui
+- Scenario cronometro "10 minuti con deriva p50/p95" e "background 5 min con autoAnchorT" sul dispositivo: non ripetuto in questo ciclo (deriva precedente ~0 ms/93 s; test dominio `cronometroVasca.test.ts` copre la logica).
+- TalkBack fisico, audio, vibrazione: da fare a mano.
+- Test di componente a livello schermo (Oggi, Squadra, scheda atleta...): parziali — vedi `docs/qa/MATRICE-COLLAUDO.md`.
+- Scomposizione componenti >600 righe: rinviata (motivazione in `docs/DECISIONI.md`).

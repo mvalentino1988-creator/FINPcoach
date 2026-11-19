@@ -15,7 +15,8 @@
 
 ```bash
 npm ci
-npm run build            # produce dist/ e sincronizza app/src/main/assets/web
+npm run build:android    # produce dist/ e sincronizza app/src/main/assets/web
+                         # SENZA chiavi Firebase (VITE_FIREBASE_* azzerate)
 cd app && ./gradlew assembleDebug
 ```
 
@@ -36,10 +37,30 @@ cd app && ./gradlew assembleQa   # (o :app:assembleQa dalla root)
 - Installazione: `adb install -r app/build/outputs/apk/qa/app-qa.apk`.
 - Collaudo: `scripts/qa/` (lib.sh, settings.sh, cdp.mjs, inject-backup.mjs,
   device-tiles-test.mjs per le misure delle tessere del cronometro).
-- Note terzo giro: la build deve essere prodotta **senza `.env`** (gli asset
-  Android non devono contenere `VITE_FIREBASE_*`); `printHtml` è un metodo
+- Regola fissa: la build per Android va fatta con `npm run build:android`
+  (script `scripts/build-android.mjs`), che azzera `VITE_FIREBASE_*` in
+  modo che gli asset non contengano mai la configurazione Firebase. Se si
+  usa `npm run build` con un `.env` presente, ricontrollare con
+  `grep -r "AIza" app/src/main/assets/web` prima di compilare l'APK. `printHtml` è un metodo
   `@JavascriptInterface` aggiunto in `MainActivity.kt` per la stampa nativa
   della composizione corsie.
+
+### Dataset di stress (100 atleti / 48 presenti)
+
+```bash
+node scripts/qa/gen-stress.mjs   # produce scripts/qa/out/stress-100.json
+                                 #   + stress-100-cifrato.finpbackup (pwd: qa-test-2026)
+                                 #   + stress-100-manifest.json
+```
+
+- Deterministico (seme fisso): stesso seme → file identico. Output in
+  `scripts/qa/out/` (gitignored): **mai committare** i dataset generati.
+- Tutti gli atleti hanno cognome `SIM-*` e `meta.simulato=true`.
+- Import su `.qa` via UI (Dati → Importa backup) o via CDP:
+  `node scripts/qa/device-import-test.mjs scripts/qa/out/stress-100.json ""`
+  e per il cifrato: `... stress-100-cifrato.finpbackup qa-test-2026`.
+- Inventario di collaudo: `node scripts/qa/inventory.mjs` →
+  `docs/qa/MATRICE-COLLAUDO.md`.
 
 ## Build di release
 

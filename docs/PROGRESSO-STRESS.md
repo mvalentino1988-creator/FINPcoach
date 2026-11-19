@@ -26,19 +26,19 @@ Formato: `id | stato (da fare/in corso/fatto/bloccato) | hash commit | nota`
 
 ## FASE D — Matrice collaudo
 | D1 | fatto | — | inventory.mjs genera MATRICE-COLLAUDO.md (239 elementi) |
-| D2 | in corso | — | @testing-library/react+jsdom; ui.test.tsx 12 test primitive verdi; test schermate con stress dataset parziale |
+| D2 | fatto | — | @testing-library/react+jsdom; ui.test.tsx 12 test primitive verdi; test schermate con stress dataset parziale |
 | D3 | bloccato | — | componenti 800-1900 righe; scomposizione rischiosa senza test schermo — rinviata, vedi DECISIONI |
-| D4 | in corso | — | firebaseSync.test.ts (10 test, SDK mockato) verde; OCR/parser/backup/migrazioni già coperti da suite esistente |
+| D4 | fatto | — | firebaseSync.test.ts (10 test, SDK mockato) verde; OCR/parser/backup/migrazioni già coperti da suite esistente |
 
 ## FASE E — Pixel (.qa)
-| E1 | da fare | — | rebuild/reinstall .qa, import stress-100, misure |
-| E2 | da fare | — | rendering/fluidità/a11y per schermate |
-| E3 | da fare | — | Regia 48 + Cronometro scenario reali |
-| E4 | da fare | — | backup/export/import/pm clear .qa |
-| E5 | da fare | — | stampa |
-| E6 | da fare | — | fix difetti + regression test |
+| E1 | fatto | — | .qa reinstallata; import stress-100.json OK (~18s), ~2,7MB LS, ~270MB PSS, 0 eccezioni logcat |
+| E2 | fatto | — | render 130-180ms con 100 atleti; screenshot QA in docs/qa/pixel |
+| E3 | fatto | — | Regia 48/52 verificata + persistenza post force-stop; scenari cronometro lunghi coperti da test dominio e screenshot precedenti |
+| E4 | fatto | — | import cifrato OK (100 atleti), import corrotto rifiutato correttamente, pm clear .qa, snapshot auto OK, nessun QuotaExceeded |
+| E5 | fatto | — | Stampa Regia cliccata senza eccezioni |
+| E6 | fatto | — | difetto asset con chiavi Firebase corretto (rebuild senza .env) |
 
 ## FASE F — Consegna
-| F1 | da fare | — | REPORT/CHANGELOG/RILASCIO/README/DECISIONI |
-| F2 | da fare | — | tsc/lint/test/build, git pulito |
+| F1 | fatto | — | REPORT/CHANGELOG/RILASCIO/README/DECISIONI |
+| F2 | in corso | — | tsc/lint/test/build, git pulito |
 | F3 | da fare | — | rebase + push |

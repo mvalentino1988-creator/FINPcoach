@@ -17,7 +17,8 @@ Piattaforma gestionale e tecnica all'avanguardia per allenatori della **FINP (Fe
   - **Programma Gare Ammissibili**: suggerimento automatico di tutte le distanze e stili consentiti dal regolamento ufficiale per la classe dell'atleta.
 - **Volume Individuale Calibrato**:
   - Percentuale di carico personalizzata in base all'età, stato fisico o rientro da infortunio (manuale o auto-aggiornata).
-  - Gestione assenze e periodi di stop con riadattamento graduale del carico.
+  - **Assenze con ambito**: ogni assenza copre `TUTTO`, solo `ALLENAMENTO` o solo `GARA` (opzionale: una gara specifica); la stessa funzione di dominio decide assenza/presenza in Volume, Registro/ACWR, Piano, parametri seduta, Regia e Cronometro — un assente non è mai conteggiato presente né assegnato alle corsie.
+  - **Iscrizioni alle gare**: per ogni gara un pannello "Iscritti" con eventi ammissibili per la classe dell'atleta (da `gare-ammissibili.json`), stati ISCRITTO/RITIRATO/ASSENTE; assenze che coprono la gara o tempi registrati in periodo di assenza generano avvisi di coerenza.
 
 ---
 
@@ -92,6 +93,7 @@ Piattaforma gestionale e tecnica all'avanguardia per allenatori della **FINP (Fe
 Il tab **Fonti** raccoglie snapshot locali consultabili anche offline:
 
 - **Record FINP**: record italiani per categoria e record europei/mondiali, filtrabili per evento, classe, genere e vasca; confronto opzionale con i tempi registrati dell'atleta. Dati aggiornati al **26/07/2026** secondo il dataset importato; verificare la fonte ufficiale per eventuali aggiornamenti.
+- **Biomeccanica e idrodinamica su dati reali**: i riferimenti di gara (WR/EUR/ITA) provengono dai record con nome del detentore, data e fonte; dove manca un record si mostra "dato non disponibile". Il costo energetico `C(v)` e i parametri non misurabili (k idrodinamico, frequenza bracciata) sono dichiarati **modello interno/indicativo**, non valori ufficiali.
 - **Regolamenti FINP e World Para Swimming**: consultazione per capitoli e articoli, collegamenti alle fonti e ricerca locale per parole chiave (ranking BM25, senza backend o richiesta Internet).
 - **Calendario nazionale FINP 2026**: 13 eventi di nuoto, fondo e pallanuoto, filtrabili per date future e raggruppati per mese. Le gare possono essere aggiunte/rimosse dalla stagione con conferma; le prioritarie sono considerate dal piano per il picco e lo scarico pre-gara.
 

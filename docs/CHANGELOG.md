@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 0.2.3 — Collaudo a pieno regime 100/48 (2026-11-19)
+
+- **Stress test automatici**: dataset deterministico 100 atleti simulati / 48 presenti (`scripts/qa/gen-stress.mjs`, `src/test/stressDataset`); budget prestazione dominio e test di correttezza/corsie/piano atleta in `src/domain/stress.test.ts`.
+- **Assenze con ambito**: `TUTTO|ALLENAMENTO|GARA` + `garaId` opzionale, funzioni unificate `assenzaCopreAmbito`/`isAssenteInData`; avvisi iscrizioni e tempi in assenza; assenti mai assegnati alle corsie.
+- **Iscrizioni gara**: `IscrizioneGara` con eventi ammissibili per classe, pannello "Iscritti" per gara, stati ISCRITTO/RITIRATO/ASSENTE.
+- **Biomeccanica su record reali**: benchmark da `records.json` (WR/EUR/ITA) con fonte e data; niente nomi inventati; modello energetico dichiarato "interno/indicativo"; fix classe `includes('S1')`.
+- **Regolamenti**: ricerca con sinonimi/normalizzazione (viraggio/virata, protest/ricorso...); verifica gare ammissibili WPS 10.4.1 e integrità record con test.
+- **Snapshot storage**: compressione gzip (CompressionStream) per dataset grandi, formato backward compatible.
+- **Test**: 436 test su 38 file; componenti UI (testing-library+jsdom) e mock FirebaseSync aggiunti. Vitest esegue i file in sequenza (`fileParallelism: false`) per non falsare i budget di prestazione su macchine a 4 CPU.
+- **Device .qa**: import 100 atleti ~18s, Regia 48/52 + persistenza post force-stop, import cifrato, import corrotto rifiutato, stampa senza eccezioni.
+- **Fix**: asset Android ricostruiti senza `.env` (nessun `AIza` negli asset).
+
 ## 0.2.2 — Terzo giro post-collaudo (2026-11-18)
 
 - **Cronometro live fullscreen**: `AndroidBridge.setImmersive` (barre di sistema nascoste, ripristino in onStop/onDestroy) + `body.vasca-live` che nasconde header/navbar/aside; griglia corsie da ~390 a **785 px** netti. Altezze tessere: 6×8=40,3px, 4×6=55px, 3×4=85,3px, 2×2=89,8px.

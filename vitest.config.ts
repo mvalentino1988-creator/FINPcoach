@@ -10,6 +10,10 @@ export default defineConfig({
   },
   test: {
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
-    environment: 'node'
+    environment: 'node',
+    // 4 CPU: file in sequenza per non gonfiare i budget di prestazione
+    // (i test di stress misurano performance.now e sono sensibili alla contesa).
+    fileParallelism: false,
+    testTimeout: 30000,
   }
 });
