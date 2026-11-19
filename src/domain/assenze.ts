@@ -51,6 +51,26 @@ export function isAssenteInData(
   });
 }
 
+/**
+ * Atleti effettivamente presenti in una data: dalla lista dei presenti
+ * (o tutti se non specificata) si escludono SEMPRE gli assenti per
+ * l'ambito dato (default ALLENAMENTO: copre TUTTO e ALLENAMENTO, non GARA).
+ * Punto unico usato da Regia, Cronometro, allineamento assegnazioni e Registro.
+ */
+export function presentiEffettiviInData(
+  data: string,
+  atleti: { id: number }[],
+  assenze: Assenza[],
+  atletiPresentiIds?: number[] | null,
+  ambito: AmbitoPresenza = 'ALLENAMENTO'
+): number[] {
+  const base = atletiPresentiIds ?? atleti.map(a => a.id);
+  const validi = new Set(atleti.map(a => a.id));
+  return base.filter(
+    id => validi.has(id) && !isAssenteInData(id, data, assenze, ambito)
+  );
+}
+
 /** Giorni di assenza (ambito allenamento) coperti nel periodo [dal, al]. */
 export function giorniAssentiInPeriodo(
   atletaId: number,

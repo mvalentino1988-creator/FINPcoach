@@ -6,6 +6,7 @@ import {
   avvisiTempiInAssenza,
   normalizzaAssenza,
   normalizzaIscrizione,
+  presentiEffettiviInData,
 } from './assenze';
 import { Assenza, Gara, IscrizioneGara, Tempo } from '../types';
 import { VolumeIndividuale } from './volumeIndividuale';
@@ -129,5 +130,35 @@ describe('VolumeIndividuale con ambiti', () => {
     ];
     const v = VolumeIndividuale.settimana(micro, atleta, soloAllen);
     expect(v.metri).toBe(Math.round(14000 * (4 / 7)));
+  });
+});
+
+describe('presentiEffettiviInData', () => {
+  const atleti = [{ id: 1 }, { id: 2 }, { id: 3 }];
+  const data = '2026-04-08';
+  const base: Assenza[] = [
+    { id: 1, atletaId: 1, dal: '2026-04-06', al: '2026-04-10', motivo: '', ambito: 'TUTTO' },
+    { id: 2, atletaId: 2, dal: '2026-04-06', al: '2026-04-10', motivo: '', ambito: 'ALLENAMENTO' },
+    { id: 3, atletaId: 3, dal: '2026-04-06', al: '2026-04-10', motivo: '', ambito: 'GARA', garaId: 7 },
+  ];
+
+  it('esclude TUTTO e ALLENAMENTO, include GARA per allenamento', () => {
+    const presenti = presentiEffettiviInData(data, atleti, base);
+    expect(presenti).toEqual([3]); // solo l'atleta con assenza solo-gara
+  });
+
+  it('per ambito GARA esclude TUTTO e GARA ma non ALLENAMENTO', () => {
+    const presenti = presentiEffettiviInData(data, atleti, base, null, 'GARA');
+    expect(presenti).toEqual([2]);
+  });
+
+  it('rispetta la lista atletiPresentiIds esplicita', () => {
+    const presenti = presentiEffettiviInData(data, atleti, base, [1, 2, 3]);
+    expect(presenti).toEqual([3]);
+  });
+
+  it('senza assenze restituisce tutti i validi', () => {
+    const presenti = presentiEffettiviInData(data, atleti, [], [1, 2, 99]);
+    expect(presenti).toEqual([1, 2]);
   });
 });

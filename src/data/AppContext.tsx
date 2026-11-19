@@ -23,7 +23,7 @@ import { AutoPianificatore } from '../domain/autoPianificatore';
 import { Festivita } from '../domain/festivita';
 import { PianoGenerator } from '../domain/pianoGenerator';
 import { PianoValidator } from '../domain/validatori';
-import { avvisiIscrizioniGare, avvisiTempiInAssenza } from '../domain/assenze';
+import { avvisiIscrizioniGare, avvisiTempiInAssenza, presentiEffettiviInData } from '../domain/assenze';
 import { todayISO } from '../domain/dateUtils';
 import { conOverride, conParametriGiorno, risolviParametriSeduta, senzaOverride, ParametriRisolti } from '../domain/parametriSeduta';
 import { AssegnazioneVasca, allineaConParametri, normalizzaAssegnazione } from '../domain/assegnazioneVasca';
@@ -321,17 +321,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // parametri del giorno (numero corsie, presenti, vasca). Solo per la data
   // di oggi: un'assegnazione di ieri resta intatta finche' la Regia non decide.
   // (adjust state during render: niente effect + setState)
-  const [prevAllinea, setPrevAllinea] = useState<{ a: typeof assegnazioneVasca; p: typeof parametriOggi; at: typeof atleti } | null>(null);
+  const [prevAllinea, setPrevAllinea] = useState<{ a: typeof assegnazioneVasca; p: typeof parametriOggi; at: typeof atleti; as: typeof assenze } | null>(null);
   if (
     prevAllinea === null ||
     prevAllinea.a !== assegnazioneVasca ||
     prevAllinea.p !== parametriOggi ||
-    prevAllinea.at !== atleti
+    prevAllinea.at !== atleti ||
+    prevAllinea.as !== assenze
   ) {
-    setPrevAllinea({ a: assegnazioneVasca, p: parametriOggi, at: atleti });
+    setPrevAllinea({ a: assegnazioneVasca, p: parametriOggi, at: atleti, as: assenze });
     if (assegnazioneVasca && assegnazioneVasca.data === todayISO()) {
-      const tuttiIds = atleti.map(a => a.id);
-      const presentiIds = (parametriOggi.atletiPresentiIds ?? tuttiIds).filter(id => tuttiIds.includes(id));
+      const dataOggi = todayISO();
+      const presentiIds = presentiEffettiviInData(dataOggi, atleti, assenze, parametriOggi.atletiPresentiIds);
       const allineata = allineaConParametri(
         assegnazioneVasca,
         parametriOggi.vascaMetri === 50 ? 50 : 25,

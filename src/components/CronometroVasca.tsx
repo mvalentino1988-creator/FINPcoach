@@ -37,6 +37,7 @@ import { beep, vibrate } from '../lib/beep';
 import { cloneSession, useVascaSession } from '../data/VascaSessionContext';
 import { leggiSessioneVasca, VASCA_SESSION_KEY } from '../lib/vascaSessione';
 import { todayISO } from '../domain/dateUtils';
+import { presentiEffettiviInData } from '../domain/assenze';
 
 /**
  * Attiva/disattiva la modalità "live": nasconde l'intera chrome dell'app
@@ -136,7 +137,7 @@ const STATUS_META: Record<AthleteStatus, { label: string; symbol: string; cls: s
 };
 
 export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true }) => {
-  const { atleti, stagione, aggiungiTempo, assegnazioneVasca, salvaAssegnazioneVasca, parametriOggi, impostaOverrideSeduta } = useApp();
+  const { atleti, stagione, assenze, aggiungiTempo, assegnazioneVasca, salvaAssegnazioneVasca, parametriOggi, impostaOverrideSeduta } = useApp();
   // 'attivo' governa il possesso dell'orientamento (vedi effetto orientamento).
   const vascaMetri: 25 | 50 = stagione?.vascaMetri === 25 ? 25 : 50;
 
@@ -248,12 +249,10 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
   const [syncNonce, setSyncNonce] = useState(0);
   const lastSyncSigRef = useRef('');
 
-  const presentiIds = useMemo(() => {
-    const tutti = atleti.map(x => x.id);
-    const validi = new Set(tutti);
-    const base = parametriOggi.atletiPresentiIds ?? tutti;
-    return base.filter(id => validi.has(id));
-  }, [parametriOggi.atletiPresentiIds, atleti]);
+  const presentiIds = useMemo(
+    () => presentiEffettiviInData(oggi, atleti, assenze, parametriOggi.atletiPresentiIds),
+    [parametriOggi.atletiPresentiIds, atleti, assenze, oggi]
+  );
   const presentiSet = useMemo(() => new Set(presentiIds), [presentiIds]);
 
   const updateAssegnazione = useCallback(

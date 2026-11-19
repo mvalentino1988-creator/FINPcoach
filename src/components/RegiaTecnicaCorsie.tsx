@@ -21,6 +21,7 @@ import { IndicatoreCodici } from './IndicatoreCodici';
 import { FINPStorage } from '../data/storage';
 import { ParserScheda } from '../domain/parserScheda';
 import { formattaData, todayISO } from '../domain/dateUtils';
+import { presentiEffettiviInData } from '../domain/assenze';
 import { generaCodiciSeduta } from '../domain/generatoreCodiciSeduta';
 import { CodiceAllenamentoKey } from '../types';
 import {
@@ -65,7 +66,7 @@ const formattaSecondi = (s: number | null | undefined): string =>
 
 export const RegiaTecnicaCorsie: React.FC = () => {
   const {
-    atleti, tempi, condizioni, micro, meso, stagione,
+    atleti, tempi, condizioni, micro, meso, stagione, assenze,
     assegnazioneVasca, salvaAssegnazioneVasca,
     parametriOggi, impostaOverrideSeduta,
   } = useApp();
@@ -92,10 +93,9 @@ export const RegiaTecnicaCorsie: React.FC = () => {
   // Assegnazione "corrente" solo se di oggi; altrimenti la creiamo qui sotto.
   const corrente = assegnazioneVasca && assegnazioneVasca.data === oggi ? assegnazioneVasca : null;
 
-  const tuttiIds = useMemo(() => atleti.map(a => a.id), [atleti]);
   const presentiIds = useMemo(
-    () => (parametriOggi.atletiPresentiIds ?? tuttiIds).filter(id => tuttiIds.includes(id)),
-    [parametriOggi.atletiPresentiIds, tuttiIds]
+    () => presentiEffettiviInData(oggi, atleti, assenze, parametriOggi.atletiPresentiIds),
+    [parametriOggi.atletiPresentiIds, atleti, assenze, oggi]
   );
   const presentiSet = useMemo(() => new Set(presentiIds), [presentiIds]);
 
@@ -139,7 +139,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
     const base = new Set(presentiIds);
     if (base.has(atletaId)) base.delete(atletaId);
     else base.add(atletaId);
-    scriviParametri({ atletiPresentiIds: tuttiIds.filter(id => base.has(id)) });
+    scriviParametri({ atletiPresentiIds: atleti.map(a => a.id).filter(id => base.has(id)) });
   };
 
   const microCorrente = useMemo(

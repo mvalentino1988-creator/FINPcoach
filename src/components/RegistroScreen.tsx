@@ -4,6 +4,7 @@ import { Atleta, Assenza, CodiceAllenamentoKey, ContestoTempo, LogSeduta, Microc
 import { formattaData, parseData, todayISO, yearsBetween } from '../domain/dateUtils';
 import { formattaTempo, parseTempo, primatiPersonali } from '../domain/tempoUtils';
 import { VolumeIndividuale } from '../domain/volumeIndividuale';
+import { isAssenteInData } from '../domain/assenze';
 import { generaCodiciSeduta } from '../domain/generatoreCodiciSeduta';
 import { ACWR_DISCLAIMER, CalcoloScienzaNuoto } from '../domain/calcoloCSS';
 import { Riepilogo } from '../domain/riepilogo';
@@ -68,9 +69,7 @@ export const RegistroScreen: React.FC = () => {
           rpe: esistente.rpe?.toString() ?? ''
         };
       } else {
-        const assente = assenze.some(
-          ass => ass.atletaId === a.id && ass.dal <= dataParsed && ass.al >= dataParsed
-        );
+        const assente = isAssenteInData(a.id, dataParsed, assenze, 'ALLENAMENTO');
         const settimana = micro.find(m => m.inizio <= dataParsed && m.fine >= dataParsed);
         const previsti = settimana && settimana.sedutePreviste > 0
           ? Math.round(
