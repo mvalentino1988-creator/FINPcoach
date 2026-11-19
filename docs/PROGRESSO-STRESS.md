@@ -25,7 +25,7 @@ Formato: `id | stato (da fare/in corso/fatto/bloccato) | hash commit | nota`
 | C4 | fatto | — | PianoAtletaPanel + csvSquadro + stampa, test 5 atleti |
 
 ## FASE D — Matrice collaudo
-| D1 | da fare | — | scripts/qa/inventory.mjs + MATRICE-COLLAUDO.md |
+| D1 | fatto | — | inventory.mjs genera MATRICE-COLLAUDO.md (239 elementi) |
 | D2 | da fare | — | @testing-library/react + test componenti |
 | D3 | da fare | — | scomposizione Cronometro/Regia (<600 righe) |
 | D4 | da fare | — | test espliciti funzioni app (firebase mock, OCR, CSS...) |

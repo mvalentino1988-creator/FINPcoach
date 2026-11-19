@@ -4,7 +4,7 @@ import { Stile } from '../types';
 import { BiomechanicsEngine, LivelloGeografico } from '../domain/biomechanicsEngine';
 import { HydrodynamicsEngine } from '../domain/hydrodynamicsEngine';
 import { ParaSwimmingViewModel } from '../domain/paraSwimmingViewModel';
-import { classeRecordPerStile, confrontoAtletaRecord, recordPerRiferimento, clusterRecord, LivelloRecord } from '../domain/recordBenchmark';
+import { classeRecordPerStile, confrontoAtletaRecord, clusterRecord } from '../domain/recordBenchmark';
 import { RecordService } from '../domain/recordService';
 import { ParaSwimmingCanvasChart } from './ParaSwimmingCanvasChart';
 import { HydrodynamicsChartsView } from './HydrodynamicsChartsView';

@@ -2,8 +2,6 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { __setPayloadRecordForTest } from '../data/staticData';
-import { __resetRegolamentiIndiceForTest } from './regolamentiService';
-import { RegolamentiService } from './regolamentiService';
 import { RecordService } from './recordService';
 import { parseTempo } from './tempoUtils';
 

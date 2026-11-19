@@ -15,8 +15,7 @@ import { PianoGenerator } from './pianoGenerator';
 import { PianoValidator, AtletaValidator } from './validatori';
 import { CalcoloScienzaNuoto } from './calcoloCSS';
 import { isAssenteInData, presentiEffettiviInData } from './assenze';
-import { nuovaAssegnazione, assegnaAtleta, corsiaDiAtleta, atletiAssegnati } from './assegnazioneVasca';
-import { suggerisciComposizioneCorsie } from './composizioneCorsie';
+import { nuovaAssegnazione, assegnaAtleta, atletiAssegnati } from './assegnazioneVasca';
 import { RegolamentiService, __resetRegolamentiIndiceForTest } from './regolamentiService';
 import { __setPayloadRegolamentiForTest } from '../data/staticData';
 
