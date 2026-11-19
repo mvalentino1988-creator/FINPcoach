@@ -1331,6 +1331,8 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
   const personalRip = a.ripartenzaAtleta;
   const inherited = lane.ripartenzaCorsia ?? session.ripartenzaGenerale;
 
+  const canStop = !pronta && (a.started || a.laps.length > 0 || a.repStart != null || a.restUntil != null);
+
   const pressTimer = useRef<number | null>(null);
   const longFired = useRef(false);
   const downAt = useRef(0);
@@ -1347,7 +1349,11 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
     pressTimer.current = window.setTimeout(() => {
       longFired.current = true;
       navigator.vibrate?.([0, 30]);
-      onLongPress();
+      // In layout compatto (6x8) la pressione lunga è lo STOP individuale
+      // (toggle: riprimi = annulla). Se l'atleta è già fermo si apre il
+      // pannello, dove "Riprendi" è sempre disponibile.
+      if (compact && canStop && !a.fermo) onToggleStop();
+      else onLongPress();
     }, LONG_PRESS_MS);
   };
 
@@ -1372,8 +1378,9 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
   const showSub = tileH >= 78;
   const showBar = tileH >= 70;
   const timeFont = tileH >= 78 ? 20 : 16;
-  const canStop = !pronta && (a.started || a.laps.length > 0 || a.repStart != null || a.restUntil != null);
-  const stopBtn = canStop && (
+  // Nelle tessere compatte niente area ■ dedicata: lo STOP è la pressione
+  // lunga (toggle), il pannello resta raggiungibile con atleta fermo o in attesa.
+  const stopBtn = !compact && canStop && (
     <button
       type="button"
       aria-label={`Stop ${a.cognome}`}
@@ -1406,21 +1413,31 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
 
   if (compact && tileH >= 34) {
     // Due righe: cognome (con simbolo di stato) sopra, tempo sotto.
-    // La riga del nome riserva 48px a destra per il bottone stop.
+    // Senza area stop dedicata: il nome usa tutta la larghezza e va
+    // su due righe se necessario (fino a ~16 caratteri a 12px).
     return (
-      <div {...tileHandlers} className={`${tileBorder} flex flex-col justify-center gap-0.5 pl-1.5 pr-1.5`}>
-        <div className="flex items-center gap-1 min-w-0 pr-11">
-          <span className="font-semibold text-on-surface truncate min-w-0 flex-1" style={{ fontSize: 12 }}>
+      <div
+        {...tileHandlers}
+        title={canStop && !a.fermo ? 'Tenere premuto: stop individuale' : undefined}
+        className={`${tileBorder} flex flex-col justify-center gap-0.5 pl-1.5 pr-1.5`}
+      >
+        <div className="flex items-start gap-1 min-w-0">
+          <span
+            className="font-semibold text-on-surface min-w-0 flex-1 leading-tight break-words"
+            style={{ fontSize: 12, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}
+          >
             {a.cognome}
           </span>
+          {canStop && !a.fermo && (
+            <span aria-hidden className="shrink-0 text-[10px] leading-none text-on-surface-variant/50 mt-0.5">■</span>
+          )}
         </div>
-        <div className="flex items-center gap-1 min-w-0 pr-11">
+        <div className="flex items-center gap-1 min-w-0">
           <span aria-hidden className={`text-[12px] leading-none shrink-0 ${meta.cls}`}>{meta.symbol}</span>
           <span ref={registerNode(a.id, 'time')} className="font-stat-timer text-on-surface-variant tabular-nums leading-none" style={{ fontSize: 12 }}>
             —
           </span>
         </div>
-        {stopBtn}
       </div>
     );
   }
@@ -1429,7 +1446,8 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
     return (
       <div
         {...tileHandlers}
-        className={`${tileBorder} pl-1.5 pr-11 flex items-center justify-between gap-1`}
+        title={canStop && !a.fermo ? 'Tenere premuto: stop individuale' : undefined}
+        className={`${tileBorder} pl-1.5 pr-1.5 flex items-center justify-between gap-1`}
       >
         <span className="flex items-center gap-1 min-w-0">
           <span aria-hidden className={`text-[12px] leading-none shrink-0 ${meta.cls}`}>{meta.symbol}</span>
@@ -1440,7 +1458,6 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
         <span ref={registerNode(a.id, 'time')} className="font-stat-timer text-on-surface tabular-nums shrink-0" style={{ fontSize: 13 }}>
           —
         </span>
-        {stopBtn}
       </div>
     );
   }

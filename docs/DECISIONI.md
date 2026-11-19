@@ -17,3 +17,12 @@
 - Scelta: snapshot compressi con gzip (CompressionStream) per dataset > 400 KiB; formato inline invariato per dataset piccoli (backward compatible). `ripristinaSnapshot` ora asincrono.
 - Dopo: snapshot compresso ≈ 193 KiB ciascuno → totale stimato ≈ 3,1 MiB (31% di 10 MiB).
 - L'API `salvaSnapshotDati()` resta sincrona lato chiamante: la compressione è accodata (`snapshotFlush()` per i test).
+
+## 2026-… — B4 tessere cronometro compatte (6x8)
+- Scelta: in `compact` la pressione lunga (450 ms) fa da STOP/Riprendi
+  (toggle = "annulla sempre disponibile"); il pannello atleta resta
+  raggiungibile con atleta fermo o in fase pronta. L'area bottone ■ (44 px)
+  è rimossa dalle tessere compatte: il cognome usa tutta la larghezza e va
+  su due righe (font 12 px, max 2 righe). Motivo: requisiti B4(a); target
+  >=44 px mantenuti sui controlli (w-9->w-11 in Regia). La tessera con
+  altezza <34 px mantiene il troncamento (una sola riga possibile).

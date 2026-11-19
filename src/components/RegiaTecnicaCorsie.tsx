@@ -632,7 +632,7 @@ ${righe}
                           type="button"
                           disabled={bloccata}
                           onClick={() => update(a => impostaRipartenzaCorsia(a, c.numero, null))}
-                          className="w-9 h-11 rounded-md text-on-surface-variant text-[12px] font-bold"
+                          className="w-11 h-11 rounded-md text-on-surface-variant text-[12px] font-bold"
                           aria-label="Ripartenza corsia ereditata"
                           title="Torna alla ripartenza ereditata"
                         >×</button>

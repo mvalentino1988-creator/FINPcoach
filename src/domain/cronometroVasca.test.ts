@@ -15,6 +15,7 @@ import {
   tapAthlete,
   athleteStatus,
   lastLapMs,
+  currentRepMs,
   migrateSession,
   buildSummary,
   chooseOrientation,
@@ -273,5 +274,75 @@ describe('cronometroVasca — scelta orientamento (411x923)', () => {
         expect(r.orientation).toBe(expected);
       }
     }
+  });
+});
+
+describe('cronometroVasca — deriva su 10 minuti', () => {
+  it('refresh ogni secondo per 10 minuti: nessuna deriva, i lap restano esatti', () => {
+    const s = createSession(40);
+    const lane = createLane(1);
+    lane.intervalloPartenza = 10;
+    const a1 = createAthlete(1, 'Primo');
+    const a2 = createAthlete(2, 'Secondo');
+    lane.atleti.push(a1, a2);
+    s.lanes.push(lane);
+    viaGenerale(s, 0);
+
+    // a2 parte in automatico alla sua coordinata di catena (t = 10 s).
+    let giri = 0;
+    const DURATA_NUOTO = 40_000;
+    const STEP = 1_000;
+    const TOTALE = 600 * STEP; // 10 minuti
+
+    for (let t = 0; t <= TOTALE; t += STEP) {
+      refreshSession(s, t);
+      // a1 tocca esattamente ai suoi 40 s di nuoto (ancorato a repStart).
+      if (
+        a1.repStart != null &&
+        a1.laps.length === giri &&
+        t >= a1.repStart + DURATA_NUOTO
+      ) {
+        tapAthlete(s, lane, a1, a1.repStart + DURATA_NUOTO);
+        giri++;
+        // Ogni lap registrato dura esattamente la nuotata (nessuna deriva).
+        expect(lastLapMs(a1)).toBe(DURATA_NUOTO);
+      }
+    }
+
+    // a2 è partito in automatico esattamente a t = 10 s (griglia, non tempo reale).
+    expect(a2.repStart).toBe(10_000);
+    expect(a2.autoLate).toBe(false);
+
+    // Nessuna deriva: almeno 7 giri completi in 10 minuti.
+    expect(giri).toBeGreaterThanOrEqual(7);
+
+    // Il tempo corrente mostrato è esattamente now - repStart (nessun accumulo).
+    const now = 600_000;
+    refreshSession(s, now);
+    const atteso = a1.repStart != null ? now - a1.repStart : null;
+    expect(currentRepMs(s, lane, a1, now)).toBe(atteso);
+  });
+
+  it('partenza recuperata con autoAnchorT: dopo sospensione il turno resta sul tempo teorico', () => {
+    const s = createSession(40);
+    const lane = createLane(1);
+    lane.intervalloPartenza = 10;
+    const a1 = createAthlete(1, 'Primo');
+    const a2 = createAthlete(2, 'Secondo');
+    lane.atleti.push(a1, a2);
+    s.lanes.push(lane);
+    viaGenerale(s, 0);
+    // Catena iniziale: a2 ha autoAnchorT e deve partire a t=10 s.
+    refreshSession(s, 1_000);
+    expect(a2.repStart).toBeNull(); // ancora in attesa
+    // Motore fermo fino a t = 70 s (oltre 6 intervalli): al rientro la
+    // partenza recuperata usa il tempo teorico più recente, non il tempo reale.
+    refreshSession(s, 70_000);
+    expect(a2.repStart).not.toBeNull();
+    expect(a2.repStart!).toBeLessThanOrEqual(70_000);
+    expect(a2.autoLate).toBe(true);
+    // La ripartenza successiva resta ancorata alla griglia teorica.
+    const vicina = a2.repStart!;
+    expect(vicina % 10_000).toBe(0);
   });
 });
