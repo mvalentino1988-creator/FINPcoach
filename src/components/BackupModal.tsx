@@ -261,7 +261,7 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
   };
 
   /** Ripristina l'ultimo snapshot automatico (pre-import/reset/seed). */
-  const handleRipristinaSnapshot = () => {
+  const handleRipristinaSnapshot = async () => {
     const info = infoSnapshotPiuRecente();
     if (!info) return;
     const quando = new Date(info.ts).toLocaleString('it-IT');
@@ -272,7 +272,7 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
           'I dati attuali verranno sostituiti da quelli salvati.'
       )
     ) {
-      if (ripristinaSnapshot(info.ts)) {
+      if (await ripristinaSnapshot(info.ts)) {
         toast({ variant: 'success', title: 'Ripristino completato', message: 'Ricarico…' });
         setTimeout(() => {
           window.location.reload();

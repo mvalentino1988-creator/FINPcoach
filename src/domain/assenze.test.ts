@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  assenzaCopreAmbito,
   isAssenteInData,
   giorniAssentiInPeriodo,
   avvisiIscrizioniGare,

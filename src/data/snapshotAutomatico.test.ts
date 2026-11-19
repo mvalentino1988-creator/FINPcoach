@@ -23,8 +23,10 @@ import { FINPStorage } from './storage';
 import {
   SNAPSHOT_KEY,
   SNAPSHOT_MAX,
+  SNAPSHOT_COMPRESS_MIN_BYTES,
   listaSnapshot,
   salvaSnapshotDati,
+  snapshotFlush,
   infoSnapshotPiuRecente,
   ripristinaSnapshot,
 } from './snapshotAutomatico';
@@ -45,7 +47,7 @@ describe('snapshotAutomatico', () => {
     expect(listaSnapshot()).toHaveLength(0);
   });
 
-  it('salva e ripristina i dati correnti', () => {
+  it('salva e ripristina i dati correnti', async () => {
     FINPStorage.saveAtleti(SQUADRA as never);
     expect(salvaSnapshotDati()).toBe(true);
     const info = infoSnapshotPiuRecente();
@@ -53,7 +55,7 @@ describe('snapshotAutomatico', () => {
 
     FINPStorage.saveAtleti([]);
     expect(FINPStorage.getAtleti()).toHaveLength(0);
-    expect(ripristinaSnapshot(info!.ts)).toBe(true);
+    expect(await ripristinaSnapshot(info!.ts)).toBe(true);
     expect(FINPStorage.getAtleti()).toHaveLength(5);
   });
 
@@ -67,6 +69,33 @@ describe('snapshotAutomatico', () => {
     // Il più recente contiene l'ultimo id salvato.
     const info = infoSnapshotPiuRecente();
     expect(info?.numAtleti).toBe(1);
+  });
+
+  it('dataset grande: snapshot compresso gzip e ripristino funzionante', async () => {
+    // Dati oltre la soglia di compressione: ~5.000 tempi simulati.
+    const tempiGrandi = Array.from({ length: 5000 }, (_, i) => ({
+      id: i + 1, atletaId: (i % 48) + 1, data: '2026-01-01', stile: 'STILE_LIBERO',
+      distanzaMetri: 100, centesimi: 6000 + i, contesto: 'ALLENAMENTO',
+      vascaMetri: 25, note: 'x'.repeat(40),
+    }));
+    FINPStorage.saveAtleti(SQUADRA as never);
+    FINPStorage.saveTempi(tempiGrandi as never);
+    expect(salvaSnapshotDati()).toBe(true);
+    await snapshotFlush();
+
+    const lista = listaSnapshot();
+    expect(lista.length).toBeGreaterThan(0);
+    const voce = lista[0] as { v?: number; gz?: string; numAtleti?: number };
+    expect(voce.v).toBe(2);
+    expect(typeof voce.gz).toBe('string');
+    expect(voce.numAtleti).toBe(5);
+    // Lo snapshot compresso è molto più piccolo dei dati grezzi.
+    expect(ls.getItem(SNAPSHOT_KEY)!.length).toBeLessThan(SNAPSHOT_COMPRESS_MIN_BYTES);
+
+    FINPStorage.saveTempi([]);
+    expect(await ripristinaSnapshot(lista[0].ts)).toBe(true);
+    expect(FINPStorage.getTempi()).toHaveLength(5000);
+    expect(FINPStorage.getAtleti()).toHaveLength(5);
   });
 
   it('lo snapshot non contiene mai la chiave API (finp_ia_config)', () => {
@@ -86,22 +115,22 @@ describe('protezione dati nelle sostituzioni massive', () => {
     FINPStorage.saveAtleti(SQUADRA as never);
   });
 
-  it('applyDemoSeed crea uno snapshot dei dati precedenti', () => {
+  it('applyDemoSeed crea uno snapshot dei dati precedenti', async () => {
     FINPStorage.applyDemoSeed();
     const info = infoSnapshotPiuRecente();
     expect(info).not.toBeNull();
     expect(info!.numAtleti).toBe(5);
-    expect(ripristinaSnapshot(info!.ts)).toBe(true);
+    expect(await ripristinaSnapshot(info!.ts)).toBe(true);
     expect(FINPStorage.getAtleti()).toHaveLength(5);
     expect(FINPStorage.getAtleti()[0].cognome).toBe('Test');
   });
 
-  it('startLiveSquad crea uno snapshot prima di svuotare', () => {
+  it('startLiveSquad crea uno snapshot prima di svuotare', async () => {
     FINPStorage.startLiveSquad();
     expect(FINPStorage.getAtleti()).toHaveLength(0);
     const info = infoSnapshotPiuRecente();
     expect(info!.numAtleti).toBe(5);
-    ripristinaSnapshot(info!.ts);
+    await ripristinaSnapshot(info!.ts);
     expect(FINPStorage.getAtleti()).toHaveLength(5);
   });
 
@@ -112,7 +141,7 @@ describe('protezione dati nelle sostituzioni massive', () => {
     expect(info!.numAtleti).toBe(5);
   });
 
-  it('importBackup valido crea uno snapshot dei dati sostituiti', () => {
+  it('importBackup valido crea uno snapshot dei dati sostituiti', async () => {
     const backup = JSON.stringify({
       version: BACKUP_VERSIONE,
       timestamp: new Date().toISOString(),
@@ -124,7 +153,7 @@ describe('protezione dati nelle sostituzioni massive', () => {
     expect(FINPStorage.getAtleti()[0].id).toBe(999);
     const info = infoSnapshotPiuRecente();
     expect(info!.numAtleti).toBe(5);
-    ripristinaSnapshot(info!.ts);
+    await ripristinaSnapshot(info!.ts);
     expect(FINPStorage.getAtleti()[0].cognome).toBe('Test');
   });
 

@@ -5,12 +5,12 @@ Formato: `id | stato (da fare/in corso/fatto/bloccato) | hash commit | nota`
 ## FASE A — Dati di stress
 | id | stato | commit | nota |
 |----|-------|--------|------|
-| A0 | in corso | — | setup: PROGRESSO/DECISIONI/BLOCCHI + baseline tsc/test |
-| A1 | da fare | — | Assenza.ambito/garaId, IscrizioneGara, regole, UI minima |
-| A1-T | da fare | — | test dominio assenze/iscrizioni |
-| A2 | da fare | — | scripts/qa/gen-stress.mjs -> stress-100.json (+ cifrato) |
-| A3 | da fare | — | test validità dataset + manifest incongruenze |
-| A4 | da fare | — | misura storage; mitigazione se >50% quota |
+| A0 | fatto | — | setup: PROGRESSO/DECISIONI/BLOCCHI + baseline tsc/test |
+| A1 | fatto | 8f5acb6 | Assenza.ambito/garaId, IscrizioneGara, regole, UI minima |
+| A1-T | fatto | 8f5acb6 | test dominio assenze/iscrizioni (31 test verdi) |
+| A2 | fatto | — | scripts/qa/gen-stress.mjs -> stress-100.json (+ cifrato, manifest) |
+| A3 | fatto | — | test validità dataset: 9 test verdi (validaBackup, import, regole, determinismo) |
+| A4 | fatto | — | live 2,52 MiB; snapshot gzip 193 KiB cad. -> ~3,1 MiB totali |
 
 ## FASE B — Correzioni dominio
 | B1 | da fare | — | biomechanics/records reali, bug classe.includes, C(v), indici |

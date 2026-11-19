@@ -1,5 +1,5 @@
 import { Assenza, Atleta, Microciclo, VolumeAtleta } from '../types';
-import { addDays, daysBetween, isAfter, isBefore, previousOrSameMonday, weeksBetween } from './dateUtils';
+import { addDays, daysBetween, previousOrSameMonday, weeksBetween } from './dateUtils';
 import { assenzaCopreAmbito, isAssenteInData } from './assenze';
 
 export class VolumeIndividuale {
