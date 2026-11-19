@@ -15,6 +15,7 @@ import { Sezione } from './Sezione';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { AtletaBiomeccanicaView } from './AtletaBiomeccanicaView';
 import { GareAmmissibiliCard } from './GareAmmissibiliCard';
+import { PianoAtletaPanel } from './PianoAtletaPanel';
 import { Badge, Button, Card, EmptyState, Input, Select, Tabs, ToastProvider, useToast } from './ui';
 import {
   AlertTriangle,
@@ -1169,6 +1170,16 @@ const ModalDettaglioAtleta: React.FC<ModalDettaglioProps> = ({
                 </Button>
               </div>
             </div>
+          </Sezione>
+
+          {/* Piano individuale dell'atleta (C4): volumi, tapering, gare */}
+          <Sezione
+            titolo="Piano Atleta"
+            icon={<Calendar size={15} />}
+            storageKey="atleta_piano"
+            defaultAperto={false}
+          >
+            <PianoAtletaPanel atleta={atleta} />
           </Sezione>
             </div>
           )}

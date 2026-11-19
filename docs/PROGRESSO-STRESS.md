@@ -16,13 +16,13 @@ Formato: `id | stato (da fare/in corso/fatto/bloccato) | hash commit | nota`
 | B1 | fatto | — | biomechanics/records reali, bug classe.includes, C(v), indici |
 | B2 | fatto | — | sinonimi ricerca, verifica gare vs WPS 10.4.1, integrita records |
 | B3 | fatto | — | presentiEffettiviInData unica, usata da Regia/Cronometro/AppContext/Registro |
-| B4 | da fare | — | cronometro: nomi lunghi, target 44px, partenza recuperata/drift |
+| B4 | fatto | — | stop pressione lunga, nome piena larghezza, controlli 44px, test deriva |
 
 ## FASE C — Stress test automatici
-| C1 | da fare | — | src/test/stressDataset.ts + budget performance |
-| C2 | da fare | — | correttezza su tutto il dataset |
-| C3 | da fare | — | corsie 48 presenti / 100 atleti |
-| C4 | da fare | — | vista Piano atleta + CSV squadra |
+| C1 | fatto | — | stress.test.ts: 9 budget MISURATI tutti entro soglia |
+| C2 | fatto | — | invarianti+moduli su dataset; sweep totale parziale (vedi report) |
+| C3 | fatto | — | 48 presenti assegnati 1 volta, nessun assente |
+| C4 | fatto | — | PianoAtletaPanel + csvSquadro + stampa, test 5 atleti |
 
 ## FASE D — Matrice collaudo
 | D1 | da fare | — | scripts/qa/inventory.mjs + MATRICE-COLLAUDO.md |
