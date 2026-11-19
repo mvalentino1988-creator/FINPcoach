@@ -1,19 +1,22 @@
 import { Stile } from '../types';
+import { recordPerRiferimento, LivelloRecord } from './recordBenchmark';
 
 export interface AthleteHydroProfile {
   id: string;
   nome: string;
-  classe: string; // S1-S14
+  classe: string; // S1-S14, SB*, SM*
   stile: Stile;
   distanza: number;
-  kCoeff: number; // Coefficiente di forma idrodinamica
-  velocitaMedia: number; // m/s
+  /** Coefficiente di forma idrodinamica: STIMA INDICATIVA del modello didattico, non una misura. */
+  kCoeff: number;
+  velocitaMedia: number; // m/s — reale solo per i profili generati da recordBenchmark
   isMainAtleta: boolean;
 }
 
 export class HydrodynamicsEngine {
   /**
    * Calcola la Forza Resistente F(v) = k * v^2 [Newton]
+   * (modello didattico: l'unità Newton è nominale, non una misura di laboratorio)
    */
   static calcolaForzaResistente(k: number, v: number): number {
     return k * Math.pow(v, 2);
@@ -21,6 +24,8 @@ export class HydrodynamicsEngine {
 
   /**
    * Calcola la Potenza Intra-ciclo P(t) = k * v(t)^3 [Watt]
+   * Frequenza di bracciata (1,2 Hz) e ampiezza intra-ciclo (25% della
+   * velocità media) sono ipotesi del modello didattico, non misure.
    */
   static calcolaPotenzaIntraCiclo(k: number, vMedia: number, t: number, frequenzaHz: number = 1.2): number {
     const deltaV = vMedia * 0.25;
@@ -46,30 +51,33 @@ export class HydrodynamicsEngine {
   }
 
   /**
-   * Genera i Top 10 atleti di benchmark per classe e distanza
+   * Profilo di benchmark basato sul RECORD REALE per (livello, classe, stile,
+   * distanza, vasca). La velocità è reale (distanza/tempo del record); il
+   * kCoeff resta una stima indicativa del modello didattico.
+   * Restituisce [] se non esiste un record: la UI mostra "dato non disponibile".
    */
-  static generaTop10Benchmark(classe: string, stile: Stile, distanza: number): AthleteHydroProfile[] {
-    const profili: AthleteHydroProfile[] = [];
-    const kBase = classe.includes('S1') || classe.includes('S2') || classe.includes('S3') ? 0.65 : 0.35;
-
-    for (let i = 1; i <= 10; i++) {
-      const deltaK = (i - 1) * 0.02;
-      const k = Number((kBase + deltaK).toFixed(3));
-      const vBase = 2.1 - (i * 0.06);
-      const v = Math.max(0.6, Number(vBase.toFixed(2)));
-
-      profili.push({
-        id: `top10_${i}`,
-        nome: `Elite Competitor #${i} (${classe})`,
-        classe,
-        stile,
-        distanza,
-        kCoeff: k,
-        velocitaMedia: v,
-        isMainAtleta: false
-      });
-    }
-
-    return profili;
+  static benchmarkRecord(
+    livello: LivelloRecord,
+    classe: string,
+    stile: Stile,
+    distanza: number,
+    kCoeffStima: number,
+    vascaMetri: number = 25
+  ): AthleteHydroProfile[] {
+    const rif = recordPerRiferimento(livello, classe, stile, distanza, vascaMetri);
+    if (!rif.disponibile || rif.velocitaMedia === null) return [];
+    const nome = rif.detentore
+      ? `Record ${livello}: ${rif.detentore} (${rif.tempoFormattato})`
+      : `Record ${livello} (${rif.tempoFormattato})`;
+    return [{
+      id: `record_${livello}_${classe}`,
+      nome,
+      classe,
+      stile,
+      distanza,
+      kCoeff: kCoeffStima,
+      velocitaMedia: rif.velocitaMedia,
+      isMainAtleta: false
+    }];
   }
 }

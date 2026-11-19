@@ -196,7 +196,7 @@ export const HydrodynamicsChartsView: React.FC<Props> = ({ mainAtleta, top10List
             <span>Resistenza & Potenza Idrodinamica</span>
           </h3>
           <p className="text-xs text-on-surface-variant mt-1">
-            Analisi comparativa per {mainAtleta.nome} ({mainAtleta.classe} · {mainAtleta.stile.replace('_', ' ')}) vs Top 10 Benchmark.
+            Analisi comparativa per {mainAtleta.nome} ({mainAtleta.classe} · {mainAtleta.stile.replace('_', ' ')}) vs record di riferimento reale. k e le curve sono un modello didattico indicativo, non misure.
           </p>
         </div>
 
@@ -215,7 +215,7 @@ export const HydrodynamicsChartsView: React.FC<Props> = ({ mainAtleta, top10List
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="ds-card-flat p-3 flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <span className="ds-label block">Area di Resistenza Sottostante (R)</span>
+            <span className="ds-label block">Area di Resistenza Sottostante (R) — modello</span>
             <span className="font-headline-sm text-sm font-bold text-on-surface tabular-nums">{areaAtleta.toFixed(1)} N·m/s</span>
           </div>
           <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary-container flex items-center justify-center shrink-0">
@@ -224,8 +224,8 @@ export const HydrodynamicsChartsView: React.FC<Props> = ({ mainAtleta, top10List
         </div>
         <div className="ds-card-flat p-3 flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <span className="ds-label block">Coefficiente di Forma (k)</span>
-            <span className="font-headline-sm text-sm font-bold text-on-surface tabular-nums">{mainAtleta.kCoeff} kg/m</span>
+            <span className="ds-label block">Coefficiente di Forma (k) — stima indicativa</span>
+            <span className="font-headline-sm text-sm font-bold text-on-surface tabular-nums">{mainAtleta.kCoeff}</span>
           </div>
           <span className="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
             <Activity size={18} />
@@ -236,7 +236,7 @@ export const HydrodynamicsChartsView: React.FC<Props> = ({ mainAtleta, top10List
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2 text-xs">
           <span className="ds-label">Grafico Superiore · F = k · v²</span>
-          <span className="text-xs text-on-surface-variant">Atleta vs Top 10 (Tratteggiato)</span>
+          <span className="text-xs text-on-surface-variant">Atleta vs record reale (Tratteggiato)</span>
         </div>
         <div className="min-w-0 overflow-hidden bg-surface-container-low p-3 rounded-xl border border-outline-variant">
           <canvas ref={canvasTopRef} width={600} height={220} className="mx-auto block max-w-full h-auto" />
@@ -246,7 +246,7 @@ export const HydrodynamicsChartsView: React.FC<Props> = ({ mainAtleta, top10List
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2 text-xs">
           <span className="ds-label">Grafico Inferiore · P = k · v³</span>
-          <span className="text-xs text-on-surface-variant">Atleta vs Top 10 (Tratteggiato)</span>
+          <span className="text-xs text-on-surface-variant">Atleta vs record reale (Tratteggiato)</span>
         </div>
         <div className="min-w-0 overflow-hidden bg-surface-container-low p-3 rounded-xl border border-outline-variant">
           <canvas ref={canvasBottomRef} width={600} height={220} className="mx-auto block max-w-full h-auto" />

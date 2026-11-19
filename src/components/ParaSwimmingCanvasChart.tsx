@@ -96,12 +96,14 @@ export const ParaSwimmingCanvasChart: React.FC<Props> = ({
     ctx.stroke();
 
     const classColors: Record<string, string> = {
-      S1: '#EF4444',
-      S3: '#F97316',
-      S5: '#EAB308',
-      S7: '#10B981',
+      S1: '#EF4444', S2: '#F87171',
+      S3: '#F97316', S4: '#FB923C',
+      S5: '#EAB308', S6: '#FACC15',
+      S7: '#10B981', S8: '#34D399',
       S9: '#3B82F6',
-      S10: '#8B5CF6'
+      S10: '#8B5CF6', S11: '#A78BFA', S12: '#C4B5FD', S13: '#818CF8', S14: '#6366F1',
+      SB1: '#EC4899', SB3: '#F472B6', SB5: '#F9A8D4', SB7: '#FDA4AF', SB9: '#FECDD3',
+      SM1: '#14B8A6', SM3: '#2DD4BF', SM5: '#5EEAD4', SM7: '#99F6E4', SM9: '#CCFBF1'
     };
 
     eliteClusters.forEach(p => {
@@ -157,7 +159,7 @@ export const ParaSwimmingCanvasChart: React.FC<Props> = ({
     ctx.save();
     ctx.translate(15, height / 2);
     ctx.rotate(-Math.PI / 2);
-    ctx.fillText('Costo Energetico C(v) [J/m/kg]', 0, 0);
+    ctx.fillText('Indice costo energetico (modello interno)', 0, 0);
     ctx.restore();
   }, [athletePerformances, eliteClusters, width, height, themeTick]);
 
@@ -167,9 +169,9 @@ export const ParaSwimmingCanvasChart: React.FC<Props> = ({
         <div className="min-w-0">
           <h3 className="font-headline-sm text-sm text-on-surface flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-primary-container shrink-0" />
-            Curva a U del Costo Energetico C(v)
+            Curva a U — Indice di Costo Energetico (modello interno)
           </h3>
-          <p className="ds-label mt-0.5">J/m/kg vs Velocità (m/s)</p>
+          <p className="ds-label mt-0.5">Indice adimensionale vs Velocità (m/s) · punti = record reali</p>
         </div>
         <div className="flex items-center gap-2 text-xs flex-wrap">
           <span className="ds-chip-neutral">

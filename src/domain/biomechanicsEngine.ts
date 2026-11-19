@@ -1,6 +1,8 @@
 import { Stile } from '../types';
+import { clusterRecord, PuntoRecord } from './recordBenchmark';
+import type { LivelloRecord } from './recordBenchmark';
 
-export type LivelloGeografico = 'Mondiale' | 'Europeo' | 'Italiano';
+export type LivelloGeografico = LivelloRecord;
 
 export interface AthleticPerformance {
   id: string;
@@ -11,25 +13,32 @@ export interface AthleticPerformance {
   distanza: number; // 50, 100, 200, 400
   tempoSecondi: number;
   velocitaMedia: number; // m/s
-  costoEnergetico: number; // C(v)
-  indiceAsimmetriaMs?: number; // Indice di asimmetria propulsiva (ms) per disabilità monolaterali
+  costoEnergetico: number; // indice di costo energetico (modello interno, adimensionale, non validato)
 }
 
 export interface EliteClusterPoint {
   classeS: string;
   velocitaMedia: number;
   costoEnergetico: number;
+  /** Nome reale del detentore del record (mai un nome inventato). */
   atletaNome?: string;
 }
 
 export class BiomechanicsEngine {
   /**
-   * Calcola il Costo Energetico del nuoto C(v) [J/m/kg]
-   * Formula ufficiale: C(v) = (220 / v) + 75 * v^2
+   * Indice di costo energetico C(v) = (220 / v) + 75 * v^2.
+   * ATTENZIONE: modello interno didattico, adimensionale e NON validato
+   * scientificamente. Non è una misura né una formula ufficiale: non usarlo
+   * per decisioni di allenamento o di carico.
    */
   static calcolaCostoEnergetico(velocitaMedia: number): number {
     if (velocitaMedia <= 0) return 0;
     return (220 / velocitaMedia) + 75 * Math.pow(velocitaMedia, 2);
+  }
+
+  /** Alias esplicito per chiarezza nei chiamanti. */
+  static indiceCostoEnergetico(velocitaMedia: number): number {
+    return this.calcolaCostoEnergetico(velocitaMedia);
   }
 
   /**
@@ -40,71 +49,27 @@ export class BiomechanicsEngine {
     return distanzaMetri / tempoSecondi;
   }
 
-  private static FATTORE_GEOGRAFICO: Record<LivelloGeografico, number> = {
-    Mondiale: 1.00,
-    Europeo: 0.96,
-    Italiano: 0.92
-  };
-
-  private static VELOCITA_BASE_S50M: Record<string, number> = {
-    S1: 0.85,
-    S2: 1.05,
-    S3: 1.25,
-    S4: 1.42,
-    S5: 1.58,
-    S6: 1.72,
-    S7: 1.84,
-    S8: 1.95,
-    S9: 2.05,
-    S10: 2.18,
-    S11: 1.98,
-    S12: 2.12,
-    S13: 2.16,
-    S14: 2.10
-  };
-
-  private static FATTORE_DISTANZA(distanzaMetri: number): number {
-    if (distanzaMetri <= 50) return 1.00;
-    if (distanzaMetri <= 100) return 0.92;
-    if (distanzaMetri <= 200) return 0.84;
-    return 0.78;
-  }
-
+  /**
+   * Cluster di riferimento basato sui RECORD REALI (vedi recordBenchmark).
+   * Per ogni classe con un record disponibile per (livello, stile, distanza,
+   * vasca) restituisce un punto con la velocità del record e il nome reale
+   * del detentore. Le classi senza record non compaiono: la UI deve
+   * mostrare "dato non disponibile".
+   */
   static generaClusterElite(
     livello: LivelloGeografico,
     stile: Stile,
     distanza: number,
-    filtroClasseS?: string | null
+    filtroClasseS?: string | null,
+    vascaMetri: number = 25
   ): EliteClusterPoint[] {
-    const punti: EliteClusterPoint[] = [];
-    const fatGeo = this.FATTORE_GEOGRAFICO[livello];
-    const fatDist = this.FATTORE_DISTANZA(distanza);
-
-    let fatStile = 1.0;
-    if (stile === 'DORSO') fatStile = 0.93;
-    if (stile === 'RANA') fatStile = 0.82;
-    if (stile === 'FARFALLA') fatStile = 0.96;
-    if (stile === 'MISTI') fatStile = 0.88;
-
-    const tutteClassi = ['S1', 'S3', 'S5', 'S7', 'S9', 'S10', 'S11', 'S12', 'S13', 'S14'];
-    const classiS = (filtroClasseS && tutteClassi.includes(filtroClasseS))
-      ? [filtroClasseS]
-      : (filtroClasseS ? [filtroClasseS] : tutteClassi);
-
-    classiS.forEach(cl => {
-      const vBase = (this.VELOCITA_BASE_S50M[cl] || 1.50) * fatGeo * fatDist * fatStile;
-      for (let i = 0; i < 3; i++) {
-        const delta = (i - 1) * 0.025;
-        const v = Math.max(0.4, vBase + delta);
-        punti.push({
-          classeS: cl,
-          velocitaMedia: v,
-          costoEnergetico: this.calcolaCostoEnergetico(v),
-          atletaNome: `Top10 ${cl} (#${i + 1})`
-        });
-      }
-    });
-
-    return punti;
+    return clusterRecord(livello, stile, distanza, filtroClasseS, vascaMetri).map(
+      (p: PuntoRecord): EliteClusterPoint => ({
+        classeS: p.classe,
+        velocitaMedia: p.riferimento.velocitaMedia ?? 0,
+        costoEnergetico: this.calcolaCostoEnergetico(p.riferimento.velocitaMedia ?? 0),
+        atletaNome: p.riferimento.detentore ?? undefined
+      })
+    );
   }
 }

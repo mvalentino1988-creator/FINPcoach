@@ -13,7 +13,7 @@ Formato: `id | stato (da fare/in corso/fatto/bloccato) | hash commit | nota`
 | A4 | fatto | — | live 2,52 MiB; snapshot gzip 193 KiB cad. -> ~3,1 MiB totali |
 
 ## FASE B — Correzioni dominio
-| B1 | da fare | — | biomechanics/records reali, bug classe.includes, C(v), indici |
+| B1 | fatto | — | biomechanics/records reali, bug classe.includes, C(v), indici |
 | B2 | da fare | — | regolamenti WPS/FINP, gare-ammissibili, ricerca 25 query, recordService |
 | B3 | da fare | — | funzione unica assenza/presenza, rientro graduale |
 | B4 | da fare | — | cronometro: nomi lunghi, target 44px, partenza recuperata/drift |

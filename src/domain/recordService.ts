@@ -124,6 +124,11 @@ export class RecordService {
     return data()?.meta ?? META_VUOTA;
   }
 
+  /** Tutti i record grezzi caricati (per i benchmark di dominio). */
+  static tutti(): RecordFINP[] {
+    return elenco();
+  }
+
   /** Tutti gli eventi disponibili per una vasca (individuali + staffette). */
   static eventi(vasca: number): string[] {
     const set = new Set<string>();
