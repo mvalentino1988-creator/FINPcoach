@@ -143,6 +143,54 @@ const K1 = 1.5;
 const B = 0.75;
 const PESO_TITOLO = 3;
 
+/** Sinonimi/varianti comuni: la query viene espansa (la ricerca è a somma, quindi OR implicito). */
+const SINONIMI: Record<string, string[]> = {
+  viraggio: ['virata', 'virate', 'viraggi', 'turn'],
+  virate: ['viraggio', 'virata', 'turn'],
+  squalificato: ['squalifica', 'squalifiche', 'dq'],
+  gare: ['gara'],
+  classi: ['classe'],
+  atleti: ['atleta'],
+  nuoto: ['nuotata', 'nuotare', 'swimming'],
+  partenza: ['partenze', 'partire', 'start', 'blocks', 'block'],
+  arrivo: ['tocco', 'finish'],
+  tocco: ['arrivo', 'tocco', 'wall'],
+  ausili: ['aiuto', 'supporto', 'tapper'],
+  proteste: ['protesta', 'protest', 'ricorso'],
+  protesta: ['proteste', 'protest', 'ricorso'],
+  ricorsi: ['ricorso', 'appello', 'appeal'],
+  record: ['primato', 'primati', 'records'],
+  iscrizioni: ['iscrizione', 'iscriversi', 'entry', 'entries'],
+  classificazione: ['classifica', 'ranking', 'classification'],
+  abbigliamento: ['mutande', 'costume', 'grembiule'],
+  allenamento: ['richiamo', 'warmup'],
+  chrono: ['cronometraggio'],
+  grembiule: ['cuffia', 'cap', 'swim cap'],
+  mutande: ['costume', 'swimsuit', 'jammers'],
+  occhiali: ['goggles'],
+  dorso: ['backstroke'],
+  ostacolo: ['backstroke flags', 'flags'],
+  tappetino: ['tappeto', 'wall', 'touch pad'],
+  tappezzeria: ['wall', 'touch pad'],
+  segnalatore: ['stroke judge', 'judge'],
+};
+
+/** Estende i termini della query con sinonimi e varianti singolare/plurale. */
+function espandiTermini(termini: string[]): string[] {
+  const out = new Set(termini);
+  for (const t of termini) {
+    for (const s of SINONIMI[t] ?? []) out.add(s);
+    // Plurale inglese -s e italiano -i/-e comuni.
+    if (t.length > 3 && t.endsWith('s')) out.add(t.slice(0, -1));
+    if (t.length > 3 && t.endsWith('i')) { out.add(t.slice(0, -1)); out.add(t.slice(0, -1) + 'o'); }
+    if (t.length > 3 && t.endsWith('e')) out.add(t.slice(0, -1) + 'a');
+    // Inverso: singolare -> plurale banale.
+    out.add(t + 's');
+    out.add(t + 'i');
+  }
+  return [...out];
+}
+
 function idf(termine: string): number {
   const df = DF.get(termine) ?? 0;
   return Math.log(1 + (N_DOC - df + 0.5) / (df + 0.5));
@@ -279,6 +327,16 @@ function costruisciCapitoli(doc: DocumentoRegolamento): CapitoloRegolamento[] {
 
 const CAPITOLI_CACHE = new Map<string, CapitoloRegolamento[]>();
 
+/** SOLO PER TEST: azzera indice e cache dopo aver iniettato un payload di test. */
+export function __resetRegolamentiIndiceForTest(): void {
+  INDICE.length = 0;
+  DF.clear();
+  indicePronto = false;
+  N_DOC = 0;
+  LUNGHEZZA_MEDIA = 1;
+  CAPITOLI_CACHE.clear();
+}
+
 export class RegolamentiService {
   static meta(): MetaRegolamenti {
     return data()?.meta ?? META_VUOTA;
@@ -331,7 +389,7 @@ export class RegolamentiService {
    */
   static cerca(query: string, limite = 12, documentoId?: string): RisultatoRicerca[] {
     assicuraIndice();
-    const termini = tokenizza(query);
+    const termini = espandiTermini(tokenizza(query));
     if (termini.length === 0) return [];
 
     const risultati: RisultatoRicerca[] = [];

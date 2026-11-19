@@ -56,3 +56,8 @@ export function payloadRegolamenti(): unknown | null {
 export function __setPayloadRecordForTest(p: unknown | null): void {
   records = p;
 }
+
+/** SOLO PER TEST: inietta il payload regolamenti senza fetch (mai usare in produzione). */
+export function __setPayloadRegolamentiForTest(p: unknown | null): void {
+  regolamenti = p;
+}

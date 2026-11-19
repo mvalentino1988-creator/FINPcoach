@@ -14,7 +14,7 @@ Formato: `id | stato (da fare/in corso/fatto/bloccato) | hash commit | nota`
 
 ## FASE B — Correzioni dominio
 | B1 | fatto | — | biomechanics/records reali, bug classe.includes, C(v), indici |
-| B2 | da fare | — | regolamenti WPS/FINP, gare-ammissibili, ricerca 25 query, recordService |
+| B2 | fatto | — | sinonimi ricerca, verifica gare vs WPS 10.4.1, integrita records |
 | B3 | da fare | — | funzione unica assenza/presenza, rientro graduale |
 | B4 | da fare | — | cronometro: nomi lunghi, target 44px, partenza recuperata/drift |
 
