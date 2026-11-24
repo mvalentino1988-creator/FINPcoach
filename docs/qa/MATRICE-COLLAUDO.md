@@ -1,50 +1,54 @@
 # Matrice di collaudo — FINPcoach
-Generata da `scripts/qa/inventory.mjs` il 2026-11-19.
+Generata da `scripts/qa/inventory.mjs` il 2026-11-24.
 
 | Elemento | Tipo | Stato | Test |
 |---|---|---|---|
-| AltroScreen | componente | non provato | — |
-| AtletaBiomeccanicaView | componente | non provato | — |
-| AtletiScreen | componente | non provato | — |
-| BackupModal | componente | non provato | — |
-| BadgeCodice | componente | non provato | — |
-| BordoVascaScreen | componente | non provato | — |
-| CalendarioScreen | componente | non provato | — |
+| AltroScreen | componente | verde | src/components/schermate.test.tsx |
+| AtletaBiomeccanicaView | componente | verde | src/components/bordoVasca.test.tsx |
+| AtletiScreen | componente | verde | src/components/schermate.test.tsx |
+| BackupModal | componente | verde | src/components/bordoVasca.test.tsx |
+| BadgeCodice | componente | verde | src/components/ui.test.tsx |
+| bordoVasca.test | componente (interno) | verde | src\components\bordoVasca.test.tsx |
+| BordoVascaScreen | componente | verde | src/components/bordoVasca.test.tsx |
+| CalendarioScreen | componente | verde | src/components/schermate.test.tsx |
 | CodiciSeduta | componente | verde | (test di dominio) |
-| CronometroVasca | componente | non provato | — |
-| DatiScreen | componente | non provato | — |
-| ElencoAvvisi | componente | non provato | — |
-| ErrorBoundary | componente (interno) | non provato | — |
-| EsercizioEditor | componente | non provato | — |
-| FontiScreen | componente | non provato | — |
-| GareAmmissibiliCard | componente | non provato | — |
-| GeneraSchedaIAModal | componente | non provato | — |
-| HydrodynamicsChartsView | componente | non provato | — |
-| IndicatoreCodici | componente | non provato | — |
-| IscrittiGaraPanel | componente | non provato | — |
-| LoginScreen | componente | non provato | — |
-| Marquee | componente | non provato | — |
-| Navbar | componente | non provato | — |
-| OcrGaraModal | componente | non provato | — |
-| OcrPreviewModal | componente | non provato | — |
-| OggiScreen | componente | non provato | — |
-| OnboardingModal | componente | non provato | — |
-| PageHeader | componente | non provato | — |
-| ParametriSedutaModal | componente | non provato | — |
-| ParaSwimmingAnalyticsView | componente | non provato | — |
-| ParaSwimmingCanvasChart | componente | non provato | — |
-| PianoAtletaPanel | componente | non provato | — |
-| PianoScreen | componente | non provato | — |
-| RecordScreen | componente | non provato | — |
-| RegiaTecnicaCorsie | componente | non provato | — |
-| RegistroScreen | componente | non provato | — |
-| RegolamentiScreen | componente | non provato | — |
-| RevisioneSchedaModal | componente | non provato | — |
-| SchedeVascaScreen | componente | non provato | — |
-| Sezione | componente | non provato | — |
-| TempiRipartenzeScreen | componente | non provato | — |
-| TestCalibrazioneModal | componente | non provato | — |
-| WelcomeScreen | componente | non provato | — |
+| CronometroVasca | componente | verde | src/components/bordoVasca.test.tsx |
+| DatiScreen | componente | verde | src/components/schermate.test.tsx |
+| ElencoAvvisi | componente | verde | src/components/schermate.test.tsx |
+| ErrorBoundary | componente (interno) | verde | src/components/schermate.test.tsx |
+| EsercizioEditor | componente | verde | src/components/piano.test.tsx |
+| FontiScreen | componente | verde | src/components/schermate.test.tsx |
+| GareAmmissibiliCard | componente | verde | src/components/piano.test.tsx |
+| GeneraSchedaIAModal | componente | verde | src/components/piano.test.tsx |
+| HydrodynamicsChartsView | componente | verde | src/components/bordoVasca.test.tsx |
+| IndicatoreCodici | componente | verde | src/components/schermate.test.tsx |
+| IscrittiGaraPanel | componente | verde | src/components/piano.test.tsx |
+| LoginScreen | componente | verde | src/components/schermate.test.tsx |
+| Marquee | componente | verde | src/components/ui.test.tsx |
+| Navbar | componente | verde | src/components/schermate.test.tsx |
+| OcrGaraModal | componente | verde | src/components/piano.test.tsx |
+| OcrPreviewModal | componente | verde | src/components/piano.test.tsx |
+| OggiScreen | componente | verde | src/components/schermate.test.tsx |
+| OnboardingModal | componente | verde | src/components/schermate.test.tsx |
+| PageHeader | componente | verde | src/components/schermate.test.tsx |
+| ParametriSedutaModal | componente | verde | src/components/piano.test.tsx |
+| ParaSwimmingAnalyticsView | componente | verde | src/components/bordoVasca.test.tsx |
+| ParaSwimmingCanvasChart | componente | verde | src/components/bordoVasca.test.tsx |
+| piano.test | componente (interno) | verde | src\components\piano.test.tsx |
+| PianoAtletaPanel | componente | verde | src/components/piano.test.tsx |
+| PianoScreen | componente | verde | src/components/piano.test.tsx |
+| RecordScreen | componente | verde | src/components/schermate.test.tsx |
+| RegiaTecnicaCorsie | componente | verde | src/components/bordoVasca.test.tsx |
+| RegistroScreen | componente | verde | src/components/schermate.test.tsx |
+| RegolamentiScreen | componente | verde | src/components/schermate.test.tsx |
+| RevisioneSchedaModal | componente | verde | src/components/piano.test.tsx |
+| SchedeVascaScreen | componente | verde | src/components/schermate.test.tsx |
+| schermate.test | componente (interno) | verde | src\components\schermate.test.tsx |
+| Sezione | componente | verde | src/components/schermate.test.tsx |
+| TempiRipartenzeScreen | componente | verde | src/components/schermate.test.tsx |
+| TestCalibrazioneModal | componente | verde | src/components/piano.test.tsx |
+| ui.test | componente (interno) | verde | src\components\ui.test.tsx |
+| WelcomeScreen | componente | verde | src/components/schermate.test.tsx |
 | assegnazioneVasca::NUMERO_CORISIE_DEFAULT | dominio | verde | src\domain\assegnazioneVasca.test.ts |
 | assegnazioneVasca::RIPARTENZA_GENERALE_DEFAULT | dominio | verde | src\domain\assegnazioneVasca.test.ts |
 | assegnazioneVasca::MAX_CORISIE | dominio | verde | src\domain\assegnazioneVasca.test.ts |
@@ -82,21 +86,21 @@ Generata da `scripts/qa/inventory.mjs` il 2026-11-19.
 | assenze::avvisiIscrizioniGare | dominio | verde | src\domain\assenze.test.ts |
 | assenze::avvisiTempiInAssenza | dominio | verde | src\domain\assenze.test.ts |
 | autoPianificatore::AutoPianificatore | dominio | verde | src\domain\autoPianificatore.test.ts |
-| autoUpdateService::AutoUpdateService | dominio | non provato | — |
-| biomechanicsEngine::BiomechanicsEngine | dominio | non provato | — |
-| calcoloCSS::ACWR_SOTTO_CARICO | dominio | non provato | — |
-| calcoloCSS::ACWR_ATTENZIONE | dominio | non provato | — |
-| calcoloCSS::ACWR_ELEVATO | dominio | non provato | — |
-| calcoloCSS::ACWR_DISCLAIMER | dominio | non provato | — |
-| calcoloCSS::livelloACWR | dominio | non provato | — |
-| calcoloCSS::CalcoloScienzaNuoto | dominio | non provato | — |
-| calcoloRitmiRipartenze::CalcoloRitmiRipartenze | dominio | non provato | — |
-| calendarioService::validaEventoCalendario | dominio | non provato | — |
-| calendarioService::importaCalendarioJson | dominio | non provato | — |
-| calendarioService::aggiungiEventoManuale | dominio | non provato | — |
-| calendarioService::CalendarioService | dominio | non provato | — |
-| calibrazioneAtleta::CalibrazioneAtletaService | dominio | non provato | — |
-| classiSportive::ClassiSportive | dominio | non provato | — |
+| autoUpdateService::AutoUpdateService | dominio | verde | src/domain/serviziExtra.test.ts |
+| biomechanicsEngine::BiomechanicsEngine | dominio | verde | src/domain/serviziExtra.test.ts |
+| calcoloCSS::ACWR_SOTTO_CARICO | dominio | verde | src/domain/serviziExtra.test.ts |
+| calcoloCSS::ACWR_ATTENZIONE | dominio | verde | src/domain/serviziExtra.test.ts |
+| calcoloCSS::ACWR_ELEVATO | dominio | verde | src/domain/serviziExtra.test.ts |
+| calcoloCSS::ACWR_DISCLAIMER | dominio | verde | src/domain/serviziExtra.test.ts |
+| calcoloCSS::livelloACWR | dominio | verde | src/domain/serviziExtra.test.ts |
+| calcoloCSS::CalcoloScienzaNuoto | dominio | verde | src/domain/serviziExtra.test.ts |
+| calcoloRitmiRipartenze::CalcoloRitmiRipartenze | dominio | verde | src/domain/serviziExtra.test.ts |
+| calendarioService::validaEventoCalendario | dominio | verde | src/domain/serviziExtra.test.ts |
+| calendarioService::importaCalendarioJson | dominio | verde | src/domain/serviziExtra.test.ts |
+| calendarioService::aggiungiEventoManuale | dominio | verde | src/domain/serviziExtra.test.ts |
+| calendarioService::CalendarioService | dominio | verde | src/domain/serviziExtra.test.ts |
+| calibrazioneAtleta::CalibrazioneAtletaService | dominio | verde | src/domain/serviziExtra.test.ts |
+| classiSportive::ClassiSportive | dominio | verde | src/domain/serviziExtra.test.ts |
 | codici::CODICI_ALLENAMENTO | dominio | verde | src\domain\generatoreCodiciSeduta.test.ts |
 | codici::CODICI_KEYS | dominio | verde | src\domain\generatoreCodiciSeduta.test.ts |
 | composizioneCorsie::ordineAssegnazioneCorsie | dominio | verde | src\domain\composizioneCorsie.test.ts |
@@ -157,8 +161,8 @@ Generata da `scripts/qa/inventory.mjs` il 2026-11-19.
 | dateUtils::isAfter | dominio | verde | src\domain\dateUtils.test.ts |
 | dateUtils::isEqual | dominio | verde | src\domain\dateUtils.test.ts |
 | dateUtils::isInRange | dominio | verde | src\domain\dateUtils.test.ts |
-| festivita::Festivita | dominio | non provato | — |
-| finpAnalisiMedica::FINPSpecialistAI | dominio | non provato | — |
+| festivita::Festivita | dominio | verde | src/domain/serviziExtra.test.ts |
+| finpAnalisiMedica::FINPSpecialistAI | dominio | verde | src/domain/serviziExtra.test.ts |
 | gareAmmissibili::FONTE_PROGRAMMA | dominio | verde | src\domain\gareAmmissibili.test.ts |
 | gareAmmissibili::PROGRAMMA_WPS | dominio | verde | src\domain\gareAmmissibili.test.ts |
 | gareAmmissibili::etichettaClassi | dominio | verde | src\domain\gareAmmissibili.test.ts |
@@ -168,8 +172,8 @@ Generata da `scripts/qa/inventory.mjs` il 2026-11-19.
 | gareAmmissibili::classiMancanti | dominio | verde | src\domain\gareAmmissibili.test.ts |
 | generatoreCodiciSeduta::codiciConsentiti | dominio | verde | src\domain\generatoreCodiciSeduta.test.ts |
 | generatoreCodiciSeduta::generaCodiciSeduta | dominio | verde | src\domain\generatoreCodiciSeduta.test.ts |
-| gestioneTemplate::GestioneTemplate | dominio | non provato | — |
-| hydrodynamicsEngine::HydrodynamicsEngine | dominio | non provato | — |
+| gestioneTemplate::GestioneTemplate | dominio | verde | src/domain/serviziExtra.test.ts |
+| hydrodynamicsEngine::HydrodynamicsEngine | dominio | verde | src/domain/serviziExtra.test.ts |
 | iaEsterna::IA_CONFIG_DEFAULT | dominio | verde | src\domain\iaEsterna.test.ts |
 | iaEsterna::configIAValida | dominio | verde | src\domain\iaEsterna.test.ts |
 | iaEsterna::costruisciPromptScheda | dominio | verde | src\domain\iaEsterna.test.ts |
@@ -179,8 +183,8 @@ Generata da `scripts/qa/inventory.mjs` il 2026-11-19.
 | iaEsterna::etichettaParametri | dominio | verde | src\domain\iaEsterna.test.ts |
 | ocrGaraParser::OcrGaraParser | dominio | verde | src\domain\ocrGaraParser.test.ts |
 | ocrService::OCRService | dominio | verde | src\domain\ocrService.test.ts |
-| ocrWeb::OcrWeb | dominio | non provato | — |
-| ocrWorkoutStandardizer::OcrWorkoutStandardizer | dominio | non provato | — |
+| ocrWeb::OcrWeb | dominio | verde | src/domain/serviziExtra.test.ts |
+| ocrWorkoutStandardizer::OcrWorkoutStandardizer | dominio | verde | src/domain/serviziExtra.test.ts |
 | parametriSeduta::VASCHE_VALIDE | dominio | verde | src\domain\parametriSeduta.test.ts |
 | parametriSeduta::DURATA_MIN | dominio | verde | src\domain\parametriSeduta.test.ts |
 | parametriSeduta::DURATA_MAX | dominio | verde | src\domain\parametriSeduta.test.ts |
@@ -196,7 +200,7 @@ Generata da `scripts/qa/inventory.mjs` il 2026-11-19.
 | parametriSeduta::dateSettimana | dominio | verde | src\domain\parametriSeduta.test.ts |
 | parametriSeduta::seduteSettimana | dominio | verde | src\domain\parametriSeduta.test.ts |
 | parametriSeduta::seduteResidue | dominio | verde | src\domain\parametriSeduta.test.ts |
-| paraSwimmingViewModel::ParaSwimmingViewModel | dominio | non provato | — |
+| paraSwimmingViewModel::ParaSwimmingViewModel | dominio | verde | src/domain/serviziExtra.test.ts |
 | parserApprendimento::fattoreUnitaDaNome | dominio | verde | src\domain\parserApprendimento.test.ts |
 | parserApprendimento::escapeRegExp | dominio | verde | src\domain\parserApprendimento.test.ts |
 | parserApprendimento::ParserApprendimento | dominio | verde | src\domain\parserApprendimento.test.ts |
@@ -206,7 +210,7 @@ Generata da `scripts/qa/inventory.mjs` il 2026-11-19.
 | pianoAtleta::csvSquadra | dominio | verde | src\domain\pianoAtleta.test.ts |
 | pianoAtleta::pianoAtletaTesto | dominio | verde | src\domain\pianoAtleta.test.ts |
 | pianoGenerator::PianoGenerator | dominio | verde | src\domain\pianoGenerator.test.ts |
-| puntiTabellariService::PuntiTabellariService | dominio | non provato | — |
+| puntiTabellariService::PuntiTabellariService | dominio | verde | src/domain/serviziExtra.test.ts |
 | recordBenchmark::recordPerRiferimento | dominio | verde | src\domain\recordBenchmark.test.ts |
 | recordBenchmark::classiPerStile | dominio | verde | src\domain\recordBenchmark.test.ts |
 | recordBenchmark::clusterRecord | dominio | verde | src\domain\recordBenchmark.test.ts |
@@ -216,16 +220,16 @@ Generata da `scripts/qa/inventory.mjs` il 2026-11-19.
 | recordService::RecordService | dominio | verde | src\domain\recordService.test.ts |
 | regolamentiService::__resetRegolamentiIndiceForTest | dominio | verde | src\domain\regolamentiService.test.ts |
 | regolamentiService::RegolamentiService | dominio | verde | src\domain\regolamentiService.test.ts |
-| riepilogo::Riepilogo | dominio | non provato | — |
-| rilevamentoLivello::RilevamentoLivello | dominio | non provato | — |
+| riepilogo::Riepilogo | dominio | verde | src/domain/serviziExtra.test.ts |
+| rilevamentoLivello::RilevamentoLivello | dominio | verde | src/domain/serviziExtra.test.ts |
 | staffetteService::StaffetteService | dominio | verde | src\domain\staffetteService.test.ts |
 | tempoUtils::parseTempo | dominio | verde | src\domain\tempoUtils.test.ts |
 | tempoUtils::formattaTempo | dominio | verde | src\domain\tempoUtils.test.ts |
 | tempoUtils::primatiPersonali | dominio | verde | src\domain\tempoUtils.test.ts |
 | tempoUtils::calcolaPuntiWPS | dominio | verde | src\domain\tempoUtils.test.ts |
 | tempoUtils::convertiVasca | dominio | verde | src\domain\tempoUtils.test.ts |
-| validatori::PianoValidator | dominio | non provato | — |
-| validatori::AtletaValidator | dominio | non provato | — |
+| validatori::PianoValidator | dominio | verde | src/domain/serviziExtra.test.ts |
+| validatori::AtletaValidator | dominio | verde | src/domain/serviziExtra.test.ts |
 | volumeIndividuale::VolumeIndividuale | dominio | verde | src\domain\volumeIndividuale.test.ts |
 | volumePrescritto::arrotondaA50m | dominio | verde | src\domain\volumePrescritto.test.ts |
 | volumePrescritto::EFFICIENZA_VASCA | dominio | verde | src\domain\volumePrescritto.test.ts |
@@ -236,11 +240,11 @@ Generata da `scripts/qa/inventory.mjs` il 2026-11-19.
 | volumePrescritto::ripartisciSettimana | dominio | verde | src\domain\volumePrescritto.test.ts |
 | volumePrescritto::ricalibraSettimana | dominio | verde | src\domain\volumePrescritto.test.ts |
 | backupValidate | dati/storage | verde | src\data\backupValidate.test.ts |
-| firebaseConfig | dati/storage | non provato | — |
-| firebaseSync | dati/storage | non provato | — |
+| firebaseConfig | dati/storage | non provato | — — motivo: modulo di configurazione Firebase: verificato indirettamente dai test di storage/firebaseSync; nessuna logica da testare |
+| firebaseSync | dati/storage | verde | src\data\firebaseSync.test.ts |
 | migrations | dati/storage | verde | src\data\migrations.test.ts |
 | snapshotAutomatico | dati/storage | verde | src\data\snapshotAutomatico.test.ts |
-| staticData | dati/storage | non provato | — |
+| staticData | dati/storage | non provato | — — motivo: wrapper di dati statici JSON: coperto dai test di dominio che leggono il dataset |
 | storage | dati/storage | verde | src\data\storage.test.ts |
 
 ## Note

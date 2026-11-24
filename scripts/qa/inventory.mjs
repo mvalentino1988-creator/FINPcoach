@@ -24,10 +24,24 @@ const componentFiles = files(join(SRC, 'components'), '.tsx');
 const domainFiles = files(join(SRC, 'domain'), '.ts').filter(f => !f.endsWith('.test.ts'));
 const dataFiles = files(join(SRC, 'data'), '.ts').filter(f => !f.endsWith('.test.ts'));
 
+// Mappa di copertura esplicita: scripts/qa/coverage.json
+// { "Elemento": "src/.../file.test.ts" } oppure { "Elemento": { "motivo": "..." } }
+const COVERAGE_PATH = 'scripts/qa/coverage.json';
+const coverage = existsSync(COVERAGE_PATH) ? JSON.parse(readFileSync(COVERAGE_PATH, 'utf8')) : {};
+const lookup = (elemento, testFile) => {
+  const entry = coverage[elemento];
+  if (typeof entry === 'string') return { testato: existsSync(entry) ? 'verde' : 'non provato', testFile: entry, motivo: existsSync(entry) ? null : `test mancante: ${entry}` };
+  if (entry && entry.motivo) return { testato: 'non provato', testFile: null, motivo: entry.motivo };
+  return { testato: testFile ? 'verde' : 'non provato', testFile: testFile ?? null, motivo: null };
+};
+
 const rows = [];
+const gaps = [];
 const add = (elemento, tipo, file, testFile) => {
-  const testato = testFile ? 'verde' : 'non provato';
-  rows.push(`| ${elemento} | ${tipo} | ${testato} | ${testFile ?? '—'} |`);
+  const { testato, testFile: tf, motivo } = lookup(elemento, testFile);
+  const nota = motivo ? ` — motivo: ${motivo}` : '';
+  rows.push(`| ${elemento} | ${tipo} | ${testato} | ${tf ?? '—'}${nota} |`);
+  if (testato === 'non provato' && !motivo) gaps.push(elemento);
 };
 
 // Componenti: estrai export const/function
@@ -80,4 +94,8 @@ if (!existsSync('docs/qa')) mkdirSync('docs/qa', { recursive: true });
 writeFileSync(OUT, md);
 console.log(`Scritto ${OUT}: ${rows.length} elementi`);
 const nonProvati = rows.filter(r => r.includes('non provato'));
-console.log(`Non provati: ${nonProvati.length}`);
+console.log(`Non provati: ${nonProvati.length} (con motivo: ${nonProvati.filter(r => r.includes('motivo:')).length}, senza motivo: ${gaps.length})`);
+if (gaps.length > 0) {
+  console.error('Elementi "non provato" senza motivo:', gaps.join(', '));
+  process.exit(1);
+}
