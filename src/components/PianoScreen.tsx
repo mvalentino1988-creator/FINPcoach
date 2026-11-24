@@ -19,6 +19,7 @@ import { Badge, Select } from './ui';
 import { normalizzaDurata } from '../domain/parametriSeduta';
 import { IscrittiGaraPanel } from './IscrittiGaraPanel';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { salvaSnapshotDati } from '../data/snapshotAutomatico';
 import {
   Activity,
   AlertCircle,
@@ -221,7 +222,9 @@ export const PianoScreen: React.FC = () => {
     atleti,
     condizioni,
     stagione,
+    chiusure,
     gare,
+    iscrizioniGare,
     macro,
     meso,
     micro,
@@ -400,7 +403,13 @@ export const PianoScreen: React.FC = () => {
 
             <button
               onClick={() => {
-                if (window.confirm('Eliminare la stagione? Verranno eliminati chiusure, gare e piano. Gli atleti restano salvati.')) {
+                const parti = [
+                  `stagione "${stagione?.nome ?? ''}" (${formattaData(stagione?.inizio ?? '')} – ${formattaData(stagione?.fine ?? '')})`,
+                  `${micro.length} microcicli`, `${macro.length} macrocicli`, `${meso.length} mesocicli`,
+                  `${gare.length} gare`, `${iscrizioniGare.length} iscrizioni`, `${chiusure.length} chiusure`,
+                ];
+                if (window.confirm(`Eliminare la stagione? Verranno eliminati: ${parti.join(', ')}.\n\nGli atleti e i tempi restano salvati. Prima della cancellazione viene creato uno snapshot di sicurezza (max 3, in Dati > Snapshot).`)) {
+                  salvaSnapshotDati();
                   eliminaStagione();
                 }
               }}
@@ -880,12 +889,12 @@ export const PianoScreen: React.FC = () => {
               .map(g => (
                 <div key={g.id} className="space-y-1">
                   <div className="flex items-center gap-2 px-1">
-                    <Flag size={13} className={g.prioritaria ? 'text-tertiary' : 'text-on-surface-variant'} />
-                    <span className="truncate font-headline-sm text-headline-sm font-bold text-on-surface">{g.nome}</span>
-                    <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">
+                    <Flag size={13} className={`shrink-0 ${g.prioritaria ? 'text-tertiary' : 'text-on-surface-variant'}`} />
+                    <span className="min-w-0 font-headline-sm text-headline-sm font-bold text-on-surface" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{g.nome}</span>
+                    <span className="shrink-0 whitespace-nowrap font-label-caps text-label-caps uppercase text-on-surface-variant">
                       {formattaData(g.dal)}{g.dal !== g.al ? ` – ${formattaData(g.al)}` : ''}
                     </span>
-                    {g.prioritaria && <Badge variant="coral" size="sm">A-race</Badge>}
+                    {g.prioritaria && <Badge variant="coral" size="sm" className="shrink-0">A-race</Badge>}
                   </div>
                   <IscrittiGaraPanel gara={g} />
                 </div>

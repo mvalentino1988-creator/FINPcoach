@@ -5,9 +5,9 @@ const sh = c => execSync(`"${ADB}" shell ${c}`, { encoding: 'utf8' }).trim();
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 function buildSession() {
   const lanes = [];
-  for (let c = 1; c <= 3; c++) {
+  for (let c = 1; c <= 6; c++) {
     const atleti = [];
-    for (let i = 0; i < 4; i++) atleti.push({ id:`at-${c}-${i}`, atletaId:null, cognome:`QA-${c}${i}`, repStart:Date.now(), restUntil:null, lastRepStart:null, primoVia:Date.now()-30000, started:true, fermo:false, laps:[{t:Date.now(),ms:30000,start:Date.now()-30000}], ripartenzaAtleta:null, targetLaps:null, autoAnchorT:null, autoWarned:false });
+    for (let i = 0; i < 8; i++) atleti.push({ id:`at-${c}-${i}`, atletaId:null, cognome:`QA-${c}${i}`, repStart:Date.now(), restUntil:null, lastRepStart:null, primoVia:Date.now()-30000, started:true, fermo:false, laps:[{t:Date.now(),ms:30000,start:Date.now()-30000}], ripartenzaAtleta:null, targetLaps:null, autoAnchorT:null, autoWarned:false });
     lanes.push({ numero:c, ripartenzaCorsia:null, intervalloPartenza:null, atleti, pendingAuto:null });
   }
   return { id:'ses-drift', t0:Date.now()-60000, stato:'in_corso', ripartenzaGenerale:60, shiftMs:0, pausedSessionAt:null, pausedWallAt:null, lanes };
@@ -45,8 +45,11 @@ function parseTimer(t){const m=(t||'').match(/(\d+):(\d{2})(?:[.,](\d{1,2}))?/);
   }
   let drift = null;
   if (samples.length >= 2) {
-    const a = samples[0], b = samples[samples.length-1];
-    drift = ((b.app - a.app) % 600000) - (b.dev - a.dev);
+    // offset = orologio app - orologio dispositivo; la deriva e' max-min degli offset
+    const offs = samples.map(s => ((s.app - s.dev) % 3600000));
+    drift = Math.max(...offs) - Math.min(...offs);
+    const det = samples.map(s => ((s.app - s.dev) % 3600000)).join(',');
+    console.log('OFFSETS', det);
   }
   console.log('RESULT samples=' + samples.length + ' driftMs=' + drift);
   // --- test background 5 min: HOME, attesa, torna, cerca "partenza recuperata" ---

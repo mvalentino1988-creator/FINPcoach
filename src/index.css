@@ -1836,7 +1836,7 @@
      ============================================================================ */
   .ds-chip {
     @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold
-           font-headline shadow-sm transition-all duration-250 hover:shadow-md;
+           font-headline shadow-sm transition-all duration-250 hover:shadow-md whitespace-nowrap;
     min-height: 32px;
   }
 
