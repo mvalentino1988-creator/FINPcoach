@@ -121,11 +121,19 @@ const longPressTile = (page, nome, ms = 900) => page.evaluate(async (n, w) => {
 
 async function main() {
   const browser = await puppeteer.connect({ browserURL: CDP, defaultViewport: null, protocolTimeout: 120000 });
-  const pages = await browser.pages();
-  let page = pages[0];
-  for (const p of pages) {
-    try { if ((await p.evaluate(() => document.visibilityState)) === 'visible') { page = p; break; } } catch {}
+  // Scegli la pagina VISIBLE: con piu' WebView attivi (target stale dopo
+  // restart) pages[0] puo' essere una pagina nascosta e ogni misura
+  // (visibilityState, rAF) risulta falsata.
+  let page = null;
+  for (let i = 0; i < 15 && !page; i++) {
+    try { execFileSync(ADB, ['shell', 'input', 'keyevent', 'KEYCODE_WAKEUP']); } catch {}
+    try { execFileSync(ADB, ['shell', 'wm', 'dismiss-keyguard']); } catch {}
+    for (const p of await browser.pages()) {
+      try { if ((await p.evaluate(() => document.visibilityState)) === 'visible') { page = p; break; } } catch {}
+    }
+    if (!page) await sleep(2000);
   }
+  if (!page) throw new Error('nessuna pagina visibile via CDP');
   page.on('pageerror', e => console.log('PAGE_ERR', String(e).slice(0, 200)));
 
   // --- 0. Assegnazione: intervallo partenza 4s sulla corsia 1 ---
@@ -288,16 +296,26 @@ async function main() {
       execFileSync(ADB, ['shell', 'input', 'keyevent', 'KEYCODE_HOME']);
       await sleep(300000);
       execFileSync(ADB, ['shell', 'am', 'start', '-n', `${PKG}/com.mattia.nuotoparalimpico.MainActivity`]);
-      // attendi che la pagina torni visibile (il WebView puo' ricaricare)
-      for (let i = 0; i < 30; i++) {
+      // attendi che la pagina torni visibile (il WebView puo' ricaricare);
+      // la vecchia istanza e' staccata dopo il resume: risolvi sempre la
+      // pagina corrente da browser.pages() e non fidarti del riferimento.
+      let okVis = false;
+      for (let i = 0; i < 30 && !okVis; i++) {
         await sleep(2000);
         try {
-          const ps = await browser.pages();
-          for (const q of ps) {
-            try { if ((await q.evaluate(() => document.visibilityState)) === 'visible') { page = q; } } catch {}
+          for (const q of await browser.pages()) {
+            try {
+              const v = await q.evaluate(() => document.visibilityState);
+              if (v === 'visible') { page = q; okVis = true; break; }
+            } catch {}
           }
-          if ((await page.evaluate(() => document.visibilityState)) === 'visible') break;
         } catch {}
+      }
+      if (!okVis) {
+        // fallback: ultima pagina non staccata
+        for (const q of await browser.pages()) {
+          try { await q.evaluate(() => 1); page = q; } catch {}
+        }
       }
       await nav(page);
       const post = await page.evaluate(() => ({

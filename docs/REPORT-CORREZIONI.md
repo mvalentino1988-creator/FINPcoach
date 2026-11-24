@@ -259,10 +259,18 @@ Suite: 502+ test verdi.
 - Squadra 100 atleti: scroll ~7ms, ricerca ~28ms (<100ms), screenshot
   `piano-100-atleti.jpg` (rinominato: era PianO).
 - Stampa piano/composizione corsie: click senza eccezioni (bridge Android).
-- Deriva timer e background 5min: in corso al momento della consegna
-  (metodologia corretta: attesa 2 frame rAF + wake-up/keyguard; i valori
-  negativi osservati in run precedenti erano rAF in throttling a schermo
-  spento/keyguard, non deriva del motore che e' Date.now-based).
+- Deriva timer (10 min previsti, 16 campioni su ~8 min): 13 visibili,
+  drift picco-picco 854 ms senza trend temporale — jitter di campionamento
+  (letto DOM vs aggiornamento rAF con schermo che si spegne tra i wake-up),
+  non deriva del motore che e' Date.now-based. Obiettivo <100 ms non
+  raggiunto come metrica DOM grezza: da affinare con un probe basato su
+  rAF reale se serve precisione superiore.
+- Background 5 min con catena auto armata: al resume sessione `in_corso`,
+  14 timer coerenti, nessun marker "partenza recuperata" — il WebView ha
+  continuato a eseguire i timer in background quindi le partenze sono
+  avvenute nei tempi teorici (autoLate non scatta senza sospensione reale).
+  Il percorso "recuperata" e' coperto da `cronometroVasca.test.ts`
+  (motore sospeso >1 intervallo -> autoLate).
 - Tastiera nei form: non verificata via CDP (l'IME non si apre con focus
   programmatico) — da fare a mano.
 
