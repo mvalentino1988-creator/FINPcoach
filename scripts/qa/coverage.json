@@ -67,6 +67,28 @@
   "rilevamentoLivello::RilevamentoLivello": "src/domain/serviziExtra.test.ts",
   "validatori::PianoValidator": "src/domain/serviziExtra.test.ts",
   "validatori::AtletaValidator": "src/domain/serviziExtra.test.ts",
-  "firebaseConfig": { "motivo": "modulo di configurazione Firebase: verificato indirettamente dai test di storage/firebaseSync; nessuna logica da testare" },
-  "staticData": { "motivo": "wrapper di dati statici JSON: coperto dai test di dominio che leggono il dataset" }
+  "firebaseConfig": {
+    "motivo": "modulo di configurazione Firebase: verificato indirettamente dai test di storage/firebaseSync; nessuna logica da testare"
+  },
+  "staticData": {
+    "motivo": "wrapper di dati statici JSON: coperto dai test di dominio che leggono il dataset"
+  },
+  "SezioneAssenzeAtleta": "src/components/schermate.test.tsx",
+  "ModalDettaglioAtleta": "src/components/schermate.test.tsx",
+  "ModalAtleta": "src/components/schermate.test.tsx",
+  "ModalTempiAtleta": "src/components/schermate.test.tsx",
+  "CronometroLayout": "src/components/bordoVasca.test.tsx",
+  "AthleteCard": "src/components/bordoVasca.test.tsx",
+  "SheetHost": "src/components/bordoVasca.test.tsx",
+  "SummaryOverlay": "src/components/bordoVasca.test.tsx",
+  "NuovaStagioneForm": "src/components/piano.test.tsx",
+  "ModalModificaMicro": "src/components/piano.test.tsx",
+  "PianoEditEventModal": "src/components/piano.test.tsx",
+  "PianoParametriModal": "src/components/piano.test.tsx",
+  "BadgeClasse": "src/components/schermate.test.tsx",
+  "RegiaCorsiaCard": "src/components/schermate.test.tsx",
+  "RegiaNonAssegnati": "src/components/schermate.test.tsx",
+  "RegiaSheetAtleta": "src/components/schermate.test.tsx",
+  "SezioneTempiAtleta": "src/components/schermate.test.tsx",
+  "SezioneStoricoAtleta": "src/components/schermate.test.tsx"
 }
