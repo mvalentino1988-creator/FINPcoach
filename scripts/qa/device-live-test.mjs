@@ -47,22 +47,23 @@ const MISURA = `(() => {
   return { tiles: righe.length, altezze: [...altezze].sort((a, b) => a - b), fail, righe: righe.slice(0, 5) };
 })()`;
 
-// Per la deriva: restituisce, per ogni atleta con rep in corso, {cognome, displayedMs}.
-const TIMERS_RUN = `(() => {
-  const out = [];
+// Per la deriva: in UNA evaluate restituisce clock dispositivo, timer visibili e sessione.
+const DRIFT_SAMPLE = `(() => {
+  const timers = [];
   for (const t of document.querySelectorAll('div[role="button"]')) {
     const r = t.getBoundingClientRect();
     if (r.height < 10) continue;
     const nameEl = [...t.querySelectorAll('span')].find(sp =>
       sp.textContent && sp.textContent.trim().length > 2 && sp.children.length === 0 && !/^\\d/.test(sp.textContent.trim()));
     if (!nameEl) continue;
-    const timers = [...t.querySelectorAll('span')]
+    const times = [...t.querySelectorAll('span')]
       .map(sp => (sp.textContent || '').trim())
       .filter(x => /^\\d{1,3}:\\d{2}[.,]\\d{2}$/.test(x));
-    if (!timers.length) continue;
-    out.push({ nome: nameEl.textContent.trim(), t: timers[timers.length - 1] });
+    if (times.length) timers.push({ nome: nameEl.textContent.trim(), t: times[times.length - 1] });
   }
-  return out;
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem('finp_vasca_session_v1') || 'null'); } catch {}
+  return { dev: Date.now(), timers, s };
 })()`;
 
 const parseTimer = t => {
@@ -123,7 +124,7 @@ const longPressTile = (page, nome, ms = 900) => page.evaluate(async (n, w) => {
 }, nome, ms);
 
 async function main() {
-  const browser = await puppeteer.connect({ browserURL: CDP, defaultViewport: null });
+  const browser = await puppeteer.connect({ browserURL: CDP, defaultViewport: null, protocolTimeout: 120000 });
   const pages = await browser.pages();
   let page = pages[0];
   for (const p of pages) {
@@ -167,21 +168,22 @@ async function main() {
   if (!NO_DRIFT && ses?.stato === 'in_corso') {
     const samples = [];
     for (let i = 0; i < 20; i++) {
-      const dev = Date.now();
-      const [timers, s2] = await Promise.all([page.evaluate(TIMERS_RUN).catch(() => []), page.evaluate(SESSIONE)]);
-      // mappa cognome -> repStart
-      const rep = {};
-      for (const l of s2?.lanes ?? []) for (const a of l.atleti) if (a.repStart != null) rep[a.cognome] = a.repStart;
-      const offs = [];
-      for (const tm of timers) {
-        const rs = rep[tm.nome];
-        const disp = parseTimer(tm.t);
-        if (rs != null && disp != null) offs.push(disp - (dev - rs));
+      let snap = null;
+      try { snap = await page.evaluate(DRIFT_SAMPLE); } catch (e) { console.log('sampleErr@' + i, String(e).slice(0, 60)); }
+      if (snap) {
+        const rep = {};
+        for (const l of snap.s?.lanes ?? []) for (const a of l.atleti) if (a.repStart != null) rep[a.cognome] = a.repStart;
+        const offs = [];
+        for (const tm of snap.timers) {
+          const rs = rep[tm.nome];
+          const disp = parseTimer(tm.t);
+          if (rs != null && disp != null) offs.push(disp - (snap.dev - rs));
+        }
+        if (offs.length) {
+          offs.sort((a, b) => a - b);
+          samples.push({ dev: snap.dev, med: offs[Math.floor(offs.length / 2)], n: offs.length });
+        } else console.log('noTimers@' + i);
       }
-      if (offs.length) {
-        offs.sort((a, b) => a - b);
-        samples.push({ dev, med: offs[Math.floor(offs.length / 2)], n: offs.length });
-      } else console.log('noTimers@' + i);
       await sleep(30000);
     }
     if (samples.length >= 2) {

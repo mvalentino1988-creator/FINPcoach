@@ -52,3 +52,4 @@ Formato: `id | stato (da fare/in corso/fatto/bloccato) | hash commit | nota`
 | R4 | fatto | — | VERIFICA-REGOLAMENTI.md: 244/248 testi FINP fedeli (4 scarti encoding), capitolo NP.1.24 assente (gap noto), WPS non verificabile con fonti locali, gare-ammissibili 10.4.1 verificato (test), record 50/50 ok, 25 query coperte da regolamentiRicerca.test.ts |
 | R5 | da fare | — | quota LocalStorage reale su .qa, stima crescita, archiviazione+avviso 70% |
 | R6 | in corso | — | badge A-race: whitespace-nowrap su .ds-chip (anti-a-capo su trattino), nome gara 2 righe, data+belt shrink-0; cestino stagione: conferma con riepilogo (micro/gare/iscrizioni/chiusure) + salvaSnapshotDati() prima di eliminaStagione |
+| R5 | in corso | — | storageQuota.ts (misura UTF-8+estimate), card Spazio in BackupModal con avviso >70%, pulizia log vecchi con doppia conferma+promemoria backup; misura quota reale .qa in attesa del device |

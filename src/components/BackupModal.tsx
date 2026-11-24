@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FINPStorage } from '../data/storage';
 import { cifraBackup, decifraBackup, eBackupCifrato } from '../lib/backupCrypto';
 import { FirebaseSync, SyncStatus } from '../data/firebaseSync';
@@ -8,6 +8,7 @@ import { androidBridge, hasNativeMethod, invokeNative } from '../lib/nativeBridg
 import { Download, Upload, RefreshCw, X, ShieldCheck, Database, Cloud, CloudOff, LogOut, Loader2, Trash2, Info, AlertTriangle, History } from 'lucide-react';
 import { Button, Modal, ToastProvider, useToast } from './ui';
 import { infoSnapshotPiuRecente, ripristinaSnapshot } from '../data/snapshotAutomatico';
+import { infoQuota, quotaInAllerta, type QuotaInfo } from '../lib/storageQuota';
 
 interface Props {
   onClose: () => void;
@@ -31,6 +32,9 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
   const [decPassErr, setDecPassErr] = useState<string | null>(null);
   const [encModalOpen, setEncModalOpen] = useState(false);
   const [ultimoBackup, setUltimoBackup] = useState<string | null>(() => FINPStorage.getUltimoBackup());
+  const [quota, setQuota] = useState<QuotaInfo | null>(null);
+  const [puliziaEsito, setPuliziaEsito] = useState<string | null>(null);
+  useEffect(() => { void infoQuota().then(setQuota); }, []);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Firebase sync state
@@ -283,6 +287,32 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
     }
   };
   /** Torna allo stato "squadra vuota" (stesso stato del primo avvio) azzerando lo storage. */
+  // R5 — Pulizia guidata: rimuove i log sedute anteriori all'inizio della
+  // stagione corrente. I tempi di gara non vengono mai toccati.
+  const handlePulisciLog = () => {
+    const stagione = FINPStorage.getStagione();
+    const soglia = stagione?.inizio ?? '';
+    const log = FINPStorage.getLogSedute();
+    const vecchi = soglia ? log.filter(l => l.data < soglia) : [];
+    if (vecchi.length === 0) {
+      setPuliziaEsito('Nessun log vecchio');
+      return;
+    }
+    const kb = (JSON.stringify(vecchi).length / 1024).toFixed(0);
+    if (!confirm(
+      `PROMEMORIA: esporta prima un backup se ti servono i log vecchi.\n\n` +
+      `Verranno eliminati ${vecchi.length} record di registro (${kb} KB circa) ` +
+      `con data precedente al ${soglia} (inizio stagione corrente).\n` +
+      `I tempi di gara e gli atleti NON vengono toccati.\n\nContinuare?`
+    )) return;
+    if (!confirm('Conferma eliminazione definitiva dei log vecchi. Procedere?')) return;
+    const tenuti = log.filter(l => l.data >= soglia);
+    FINPStorage.saveLogSedute(tenuti);
+    setPuliziaEsito(`${vecchi.length} record rimossi`);
+    toast({ variant: 'success', title: 'Registro ripulito', message: `${vecchi.length} record vecchi eliminati` });
+    void infoQuota().then(setQuota);
+  };
+
   const handleClearSquad = () => {
     if (
       confirm(
@@ -460,6 +490,46 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
                 Ultimo backup esportato: <strong className="text-on-surface">{new Date(ultimoBackup).toLocaleString('it-IT')}</strong>
               </p>
             )}
+
+            {/* Spazio occupato / archiviazione */}
+            {quota && (
+              <div className={`rounded-xl border p-3.5 ${quotaInAllerta(quota) ? 'border-warning/50 bg-warning-container/40' : 'border-outline-variant bg-surface-container-low'}`}>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Database size={16} className={quotaInAllerta(quota) ? 'text-warning shrink-0' : 'text-primary shrink-0'} />
+                    <div className="min-w-0">
+                      <div className="font-bold text-on-surface text-sm">Spazio occupato</div>
+                      <div className="text-xs text-on-surface-variant">
+                        {(quota.usato / 1048576).toFixed(1)} MB / {(quota.quota / 1048576).toFixed(1)} MB ({Math.round(quota.percent * 100)}%)
+                        {!quota.stimata && ' · quota stimata'}
+                      </div>
+                    </div>
+                  </div>
+                  {quotaInAllerta(quota) && <span className="ds-chip shrink-0 !bg-warning/20 !text-warning border border-warning/40">{Math.round(quota.percent * 100)}%</span>}
+                </div>
+                {quotaInAllerta(quota) && (
+                  <p className="mt-2 text-xs font-bold text-warning flex items-start gap-1.5">
+                    <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                    Spazio oltre il 70%: esporta un backup e valuta la pulizia dei log vecchi qui sotto.
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={handlePulisciLog}
+                  className="mt-2.5 w-full flex items-center justify-between gap-3 p-2.5 rounded-lg border border-outline-variant bg-surface-container hover:border-error/40 transition text-left"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Trash2 size={15} className="text-error shrink-0" />
+                    <div className="min-w-0">
+                      <div className="font-bold text-on-surface text-xs">Pulisci registro vecchio</div>
+                      <div className="text-[11px] text-on-surface-variant">Elimina i log sedute anteriori alla stagione corrente (dopo conferma + promemoria backup)</div>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold text-on-surface-variant shrink-0">{puliziaEsito ?? 'Azioni'}</span>
+                </button>
+              </div>
+            )}
+
             {/* Download Backup */}
             <button
               onClick={handleDownload}

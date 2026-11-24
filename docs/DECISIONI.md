@@ -34,3 +34,11 @@ schermata rischia regressioni comportamentali; le modifiche B4 sul cronometro so
 (cronometroVasca.test.ts) e la regola utente prevede "se rischioso, annota e passa oltre".
 Mitigazione: test di componente UI (ui.test.tsx) e mock Firebase (firebaseSync.test.ts) aggiunti; la matrice
 segnala i componenti come non provati a livello schermo.
+
+## 2026-11-24 — R5 archiviazione storage
+- Misura reale quota su .qa in corso (device-quota-test.mjs); `navigator.storage.estimate()` usato quando disponibile, fallback 5 MB.
+- Scelta: NON migrazione IndexedDB (troppo invasiva per il guadagno). Implementato: `src/lib/storageQuota.ts` (misura UTF-8 reale, percentuale), avviso >70% + card "Spazio occupato" in BackupModal, e "Pulisci registro vecchio" = rimuove logSedute anteriori all'inizio stagione corrente con doppia conferma e promemoria backup (i tempi di gara non vengono mai toccati). L'export completo esistente resta il backup di emergenza.
+- Motivazione: il dato pesante accumulato nel tempo e' logSedute/tempi; i tempi sono record agonistici (mai cancellati), il registro allenamenti e' comprimibile solo con consenso esplicito. L'archiviazione "stagioni chiuse" non si applica: l'app tiene una sola stagione corrente.
+
+## 2026-11-24 — R7 scomposizione rinviata di nuovo
+- Resta valida la decisione D3: i test di componente R2 coprono rendering e interazioni base, ma la scomposizione di file da 1900 righe richiede un giro dedicato con piu' tempo; qui si privilegiano le prove device e la consegna.

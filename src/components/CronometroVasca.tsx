@@ -1434,6 +1434,9 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
         </div>
         <div className="flex items-center gap-1 min-w-0">
           <span aria-hidden className={`text-[12px] leading-none shrink-0 ${meta.cls}`}>{meta.symbol}</span>
+          {a.autoLate && (
+            <span className="text-warning text-[10px] leading-none shrink-0" title="Partenza automatica recuperata dopo sospensione" aria-label="partenza recuperata">↺</span>
+          )}
           <span ref={registerNode(a.id, 'time')} className="font-stat-timer text-on-surface-variant tabular-nums leading-none" style={{ fontSize: 12 }}>
             —
           </span>
@@ -1451,6 +1454,9 @@ const AthleteCard: React.FC<AthleteCardProps> = ({
       >
         <span className="flex items-center gap-1 min-w-0">
           <span aria-hidden className={`text-[12px] leading-none shrink-0 ${meta.cls}`}>{meta.symbol}</span>
+          {a.autoLate && (
+            <span className="text-warning text-[10px] leading-none shrink-0" title="Partenza automatica recuperata dopo sospensione" aria-label="partenza recuperata">↺</span>
+          )}
           <span className="font-semibold text-on-surface truncate" style={{ fontSize: 12 }}>
             {a.cognome}
           </span>
