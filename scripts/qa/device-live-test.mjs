@@ -166,6 +166,9 @@ async function main() {
     for (let i = 0; i < 20; i++) {
       let snap = null;
       try { snap = await page.evaluate(DRIFT_SAMPLE); } catch (e) { console.log('sampleErr@' + i, String(e).slice(0, 60)); }
+      // Tieni il display sveglio (keyevent, nessuna impostazione toccata):
+      // senza, il display si spegne e rAF viene messo in throttling.
+      try { execFileSync(ADB, ['shell', 'input', 'keyevent', 'KEYCODE_WAKEUP']); } catch {}
       if (snap && snap.t0 != null) {
         const disp = parseTimer(snap.txt);
         if (disp != null) {
@@ -275,7 +278,17 @@ async function main() {
       execFileSync(ADB, ['shell', 'input', 'keyevent', 'KEYCODE_HOME']);
       await sleep(300000);
       execFileSync(ADB, ['shell', 'am', 'start', '-n', `${PKG}/com.mattia.nuotoparalimpico.MainActivity`]);
-      await sleep(8000);
+      // attendi che la pagina torni visibile (il WebView puo' ricaricare)
+      for (let i = 0; i < 30; i++) {
+        await sleep(2000);
+        try {
+          const ps = await browser.pages();
+          for (const q of ps) {
+            try { if ((await q.evaluate(() => document.visibilityState)) === 'visible') { page = q; } } catch {}
+          }
+          if ((await page.evaluate(() => document.visibilityState)) === 'visible') break;
+        } catch {}
+      }
       await nav(page);
       const post = await page.evaluate(() => ({
         vis: document.visibilityState,
