@@ -166,9 +166,11 @@ async function main() {
     for (let i = 0; i < 20; i++) {
       let snap = null;
       try { snap = await page.evaluate(DRIFT_SAMPLE); } catch (e) { console.log('sampleErr@' + i, String(e).slice(0, 60)); }
-      // Tieni il display sveglio (keyevent, nessuna impostazione toccata):
-      // senza, il display si spegne e rAF viene messo in throttling.
+      // Tieni il display sveglio (keyevent + dismiss-keyguard, nessuna
+      // impostazione toccata): senza, il display si spegne / il keyguard
+      // copre l'app e rAF viene messo in throttling.
       try { execFileSync(ADB, ['shell', 'input', 'keyevent', 'KEYCODE_WAKEUP']); } catch {}
+      try { execFileSync(ADB, ['shell', 'wm', 'dismiss-keyguard']); } catch {}
       if (snap && snap.t0 != null) {
         const disp = parseTimer(snap.txt);
         if (disp != null) {
@@ -176,12 +178,20 @@ async function main() {
           samples.push({ dev: snap.dev, off: disp - (snap.dev - snap.t0), vis: snap.vis });
         } else console.log('noTimer@' + i + ' txt=' + snap.txt);
       } else console.log('noSnap@' + i);
-      await sleep(30000);
+      // sonno a scatti da 10s con refresh del display
+      for (let k = 0; k < 3; k++) {
+        await sleep(10000);
+        try { execFileSync(ADB, ['shell', 'input', 'keyevent', 'KEYCODE_WAKEUP']); } catch {}
+        try { execFileSync(ADB, ['shell', 'wm', 'dismiss-keyguard']); } catch {}
+      }
     }
     if (samples.length >= 2) {
       const offs = samples.map(s => s.off);
       const drift = Math.max(...offs) - Math.min(...offs);
-      console.log('RESULT driftMs=' + Math.round(drift) + ' samples=' + samples.length + ' offs=' + offs.map(o => Math.round(o)).join(',') + ' vis=' + [...new Set(samples.map(x => x.vis))].join('/'));
+      const visS = samples.filter(x => x.vis === 'visible');
+      const offsV = visS.map(s => s.off);
+      const driftV = offsV.length >= 2 ? Math.max(...offsV) - Math.min(...offsV) : null;
+      console.log('RESULT driftMs=' + Math.round(drift) + ' driftVis=' + (driftV == null ? 'n/a' : Math.round(driftV)) + ' samples=' + samples.length + ' vis=' + visS.length + ' offs=' + offs.map(o => Math.round(o)).join(',') + ' visStati=' + [...new Set(samples.map(x => x.vis))].join('/'));
     } else console.log('RESULT driftMs=null samples=' + samples.length);
   } else console.log('DRIFT_SKIP');
 

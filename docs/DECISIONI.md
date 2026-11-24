@@ -42,3 +42,7 @@ segnala i componenti come non provati a livello schermo.
 
 ## 2026-11-24 — R7 scomposizione rinviata di nuovo
 - Resta valida la decisione D3: i test di componente R2 coprono rendering e interazioni base, ma la scomposizione di file da 1900 righe richiede un giro dedicato con piu' tempo; qui si privilegiano le prove device e la consegna.
+
+## 2026-11-24 — R7 scomposizione eseguita (parziale)
+- Eseguita con i test R2 come rete: RegiaTecnicaCorsie 976->505 (RegiaCorsiaCard, RegiaNonAssegnati, RegiaSheetAtleta, regiaStampa, RegiaBadgeClasse); RegistroScreen 842->414 (registroSezioni); AtletiScreen 1398->424 (atletiModali, atletaDettaglioModal, atletaAssenzeSezione); PianoScreen 1933->1337 (pianoModali, pianoOverlayModals); CronometroVasca 1875->1075 (cronometroParts, CronometroLayout).
+- NON portati sotto 600: PianoScreen (1337, viste tab richiederebbero prop-drilling profondo), CronometroVasca (1075: ulteriori hook/effetti sono strettamente accoppiati a refs del timer live — estrazione valutata rischiosa per il cronometro), cronometroParts (619), atletaDettaglioModal (~500 ok). Motivo: regressioni comportamentali possibili senza prove device complete; la logica resta invariata (spostamenti puri, test verdi dopo ogni file).

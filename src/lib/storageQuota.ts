@@ -10,8 +10,19 @@
 /** Soglia di avviso all'utente (70% della quota). */
 export const SOGLIA_AVVISO = 0.7;
 
-/** Fallback se navigator.storage.estimate non è disponibile (misura .qa). */
-export const QUOTA_FALLBACK_BYTES = 5_000_000;
+/**
+ * Quota effective di localStorage.
+ * ATTENZIONE: `navigator.storage.estimate().quota` su WebView Android
+ * restituisce ~10 GiB (pool dell'intero origin: IndexedDB, Cache, ecc.) e NON
+ * e' la quota di localStorage, che e' ~5 MB (misurato su Pixel .qa con
+ * QuotaExceededError: fallimento a ~4,9-5,2 MB occupati).
+ * Quota reale misurata: vedi docs/qa/QUOTA-STORAGE.md.
+ */
+export const QUOTA_LOCALSTORAGE_BYTES = 5_000_000;
+
+export async function quotaStimata(): Promise<{ quota: number; stimata: boolean }> {
+  return { quota: QUOTA_LOCALSTORAGE_BYTES, stimata: false };
+}
 
 export interface QuotaInfo {
   /** Byte occupati dalle chiavi localStorage (UTF-8). */
@@ -40,17 +51,8 @@ export function misuraUtilizzoStorage(): number {
   }
 }
 
-/** Quota del origin via StorageManager.estimate(); fallback altrimenti. */
-export async function quotaStimata(): Promise<{ quota: number; stimata: boolean }> {
-  try {
-    const nav = navigator as Navigator & { storage?: { estimate?: () => Promise<{ quota?: number }> } };
-    const q = await nav.storage?.estimate?.();
-    if (q?.quota && q.quota > 0) return { quota: q.quota, stimata: true };
-  } catch {
-    /* noop */
-  }
-  return { quota: QUOTA_FALLBACK_BYTES, stimata: false };
-}
+/** @deprecated Usare QUOTA_LOCALSTORAGE_BYTES. Mantenuto per compat. test. */
+export const QUOTA_FALLBACK_BYTES = QUOTA_LOCALSTORAGE_BYTES;
 
 export async function infoQuota(): Promise<QuotaInfo> {
   const usato = misuraUtilizzoStorage();
