@@ -228,3 +228,74 @@ Dataset deterministico `scripts/qa/out/stress-100.json` (4,2 MB, seme fisso, `me
 - TalkBack fisico, audio, vibrazione: da fare a mano.
 - Test di componente a livello schermo (Oggi, Squadra, scheda atleta...): parziali — vedi `docs/qa/MATRICE-COLLAUDO.md`.
 - Scomposizione componenti >600 righe: rinviata (motivazione in `docs/DECISIONI.md`).
+
+---
+
+## Quarto giro — chiusura difetti del collaudo (2026-11-24)
+
+### R1 — Regia: area corsie vuota (FIX)
+Riprodotto su .qa con stress-100: le 6 corsie rendevano a 2px di altezza
+(.app-shell-fixed .app-fixed-scroll forzava padding-bottom=dock-h+1rem dentro
+il grid e schiacciava la sezione corsie). Fix in index.css/CronometroVasca:
+rimossa la regola padding forzato, `.regia-screen` con scroll di pagina,
+corsie `shrink-0`. Verificato via CDP: 48 chip su 6 corsie tutti raggiungibili
+(h>=40px), portrait+landscape, modifica+sola lettura. Test riusabile:
+`scripts/qa/device-regia-test.mjs`.
+
+### R2 — Matrice di collaudo a zero gap
++4 file di test componenti (schermate 21, piano 12, bordoVasca 8,
+serviziExtra 25) e helper `src/test/`. `npm run qa:matrice` fallisce se resta
+un elemento "non provato" senza motivo. Stato: 261 elementi, 0 gap.
+Suite: 502+ test verdi.
+
+### R3 — Prove dispositivo (.qa)
+- Cronometro live 48 atleti: VIA generale, catena auto corsia 1 (8/8 in ~35s),
+  tap->partenza, long-press->fermo, reset conferma/annulla: OK.
+- Tessere: 48 tile h=40px, fail=0 in portrait e landscape.
+- Marker "partenza recuperata" (↺) su autoLate: verificato in run precedente.
+- Rotazione/font 1.0-1.5/tema scuro/display piccolo: nessun overflowX su
+  Oggi/Squadra/Piano/Dati (viewport 274x487 -> 923x411). Screenshot in
+  docs/qa/pixel/.
+- Squadra 100 atleti: scroll ~7ms, ricerca ~28ms (<100ms), screenshot
+  `piano-100-atleti.jpg` (rinominato: era PianO).
+- Stampa piano/composizione corsie: click senza eccezioni (bridge Android).
+- Deriva timer e background 5min: in corso al momento della consegna
+  (metodologia corretta: attesa 2 frame rAF + wake-up/keyguard; i valori
+  negativi osservati in run precedenti erano rAF in throttling a schermo
+  spento/keyguard, non deriva del motore che e' Date.now-based).
+- Tastiera nei form: non verificata via CDP (l'IME non si apre con focus
+  programmatico) — da fare a mano.
+
+### R4 — Regolamenti e fonti (esito scritto)
+`docs/qa/VERIFICA-REGOLAMENTI.md`: 244/248 testi FINP fedeli alla fonte
+(4 scarti di encoding `D'`), ~10 capitoli NP non coperti nel JSON
+(1.23 parziale, 1.24, 1.25, 1.27, 1.30-1.35 — alcuni contenuti presenti con
+titoli diversi), WPS "non verificabile con le fonti presenti".
+gare-ammissibili WPS 10.4.1 verificato (test dominio). Record: 50/50
+campionati corrispondenti a finp-src/records.json. 25 query reali: top-3
+coperte da regolamentiRicerca.test.ts.
+
+### R5 — Archiviazione storage
+Quota reale misurata su .qa: QuotaExceededError a ~2,0-2,25MB di chiavi
+aggiuntive con 2,69MB gia' occupati -> quota effettiva localStorage
+~4,9-5,2MB (`navigator.storage.estimate()` restituisce 10GiB del pool
+origin: NON e' la quota LS — vedi docs/qa/QUOTA-STORAGE.md).
+Implementato: `src/lib/storageQuota.ts` (quota fissa 5MB, misura UTF-8),
+card "Spazio occupato" + avviso >70% in BackupModal, "Pulisci registro
+vecchio" (logSedute precedenti all'inizio stagione, doppia conferma +
+promemoria backup; i tempi non vengono mai toccati). Stima: con 2,69MB
+correnti si tocca il 70% (~3,5MB) in meno di una stagione di registro
+aggiuntiva.
+
+### R6 — Rifiniture UI
+- Badge "A-race": `.ds-chip` con `whitespace-nowrap` (anti-a-capo sul
+  trattino), nome gara su 2 righe con ellissi, data+belt `shrink-0`.
+- Cestino stagione: conferma con riepilogo (micro/gare/iscrizioni/chiusure)
+  + `salvaSnapshotDati()` automatico prima di `eliminaStagione`.
+
+### R7 — Scomposizione file
+RegiaTecnicaCorsie 976->505, RegistroScreen 842->414, AtletiScreen
+1398->424, PianoScreen 1933->1337, CronometroVasca 1875->1075.
+NON sotto 600: PianoScreen e CronometroVasca (motivo in DECISIONI.md:
+props-drilling profondo e hook strettamente accoppiati al timer live).
+Test verdi dopo ogni file; `qa:matrice` aggiornata.

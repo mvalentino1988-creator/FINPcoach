@@ -76,3 +76,13 @@ Lavoro di rifinitura in 10 blocchi: correttezza, sicurezza dei dati, accessibili
 - `any` ridotti e tipizzati; `import.meta.env` tipizzato; `console.log` di debug rimossi.
 - `noImplicitReturns` attivato; bug latente in `puntiTabellariService.calcolaPuntiGara` riparato (record `tm` invece di campo inesistente).
 - Test: da 101 a **300 test** su 26 file.
+
+## 0.2.0 — Quarto giro stress-test (2026-11-24)
+- Fix Regia: area corsie sempre visibile (padding forzato dock rimosso).
+- Copertura test componenti+dominio: matrice collaudo senza gap
+  (`npm run qa:matrice`).
+- Avviso quota storage >70% + pulizia registro vecchio guidata.
+- UI: badge A-race su una riga, cestino stagione con conferma+snapshot.
+- Scomposizione: Regia, Registro, Atleti, Piano, Cronometro in moduli.
+- Verifiche: regolamenti/fonti scritte (VERIFICA-REGOLAMENTI.md),
+  quota LocalStorage misurata (QUOTA-STORAGE.md).
