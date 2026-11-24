@@ -30,13 +30,20 @@ const MISURA_VISTA = `(() => {
   return { vw: innerWidth, vh: innerHeight, overflowX, pannelliPiccoli: pannelli, scrollW: de.scrollWidth, clientW: de.clientWidth };
 })()`;
 
-async function gotoTab(page, nome) {
-  await page.evaluate((n) => {
+async function gotoTab(page, nome, refresh) {
+  const click = async (pg) => pg.evaluate((n) => {
     const b = [...document.querySelectorAll('button,a,[role=button],[role=tab]')]
       .find(x => (x.textContent || '').trim().toLowerCase().startsWith(n.toLowerCase()) && x.offsetParent);
     if (b) b.click();
   }, nome);
+  try { await click(page); }
+  catch (e) {
+    if (!refresh) throw e;
+    page = await refresh();
+    await click(page);
+  }
   await sleep(1600);
+  return page;
 }
 
 async function main() {
@@ -69,15 +76,31 @@ async function main() {
     { nome: 'dark-landscape', font: '1.0', night: '3', rot: '0', urot: '1' },
   ];
 
+  const pickPage = async () => {
+    for (let i = 0; i < 20; i++) {
+      try {
+        const ps = await browser.pages();
+        for (const p of ps) {
+          try { if ((await p.evaluate(() => document.visibilityState)) === 'visible' && (await p.evaluate(() => document.readyState)) === 'complete') return p; } catch {}
+        }
+      } catch {}
+      await sleep(1000);
+    }
+    return page;
+  };
   for (const sc of scenari) {
     sh(['settings', 'put', 'system', 'font_scale', sc.font]);
     sh(['settings', 'put', 'secure', 'ui_night_mode', sc.night]);
     sh(['settings', 'put', 'system', 'accelerometer_rotation', sc.rot]);
     sh(['settings', 'put', 'system', 'user_rotation', sc.urot]);
-    await sleep(2200);
+    await sleep(3500);
+    page = await pickPage(); // il cambio font/rotazione puo' ricaricare la WebView
     for (const t of tabs) {
-      await gotoTab(page, t);
-      const m = await page.evaluate(MISURA_VISTA).catch(() => null);
+      page = await gotoTab(page, t, pickPage);
+      let m = await page.evaluate(MISURA_VISTA).catch(async () => {
+        page = await pickPage();
+        return page.evaluate(MISURA_VISTA).catch(() => null);
+      });
       console.log(`VISTA ${sc.nome}/${t}`, JSON.stringify(m));
       if (t === 'Squadra' || t === 'Piano') await shot(page, `${sc.nome}-${t.toLowerCase()}`);
     }
@@ -86,24 +109,31 @@ async function main() {
   // Display piccolo (schermo ridotto)
   sh(['wm', 'size', '720x1280']);
   await sleep(2200);
+  page = await pickPage();
   sh(['settings', 'put', 'system', 'font_scale', '1.3']);
-  await sleep(1500);
+  await sleep(2000);
+  page = await pickPage();
   for (const t of ['Oggi', 'Squadra', 'Piano']) {
-    await gotoTab(page, t);
-    const m = await page.evaluate(MISURA_VISTA).catch(() => null);
+    page = await gotoTab(page, t, pickPage);
+    let m = await page.evaluate(MISURA_VISTA).catch(async () => {
+        page = await pickPage();
+        return page.evaluate(MISURA_VISTA).catch(() => null);
+      });
     console.log(`VISTA piccolo/${t}`, JSON.stringify(m));
     if (t === 'Squadra') await shot(page, 'display-piccolo-squadra');
   }
   sh(['wm', 'size', 'reset']);
+  page = await pickPage();
   sh(['settings', 'put', 'system', 'font_scale', orig.font]);
   sh(['settings', 'put', 'secure', 'ui_night_mode', orig.night]);
   sh(['settings', 'put', 'system', 'user_rotation', orig.urot]);
   sh(['settings', 'put', 'system', 'accelerometer_rotation', orig.rot]);
-  await sleep(2000);
+  await sleep(2500);
+  page = await pickPage();
   console.log('SETTINGS_RESTORE', JSON.stringify(orig));
 
   // --- Tastiera in un form (ricerca Squadra) ---
-  await gotoTab(page, 'Squadra');
+  page = await gotoTab(page, 'Squadra', pickPage);
   const kb = await page.evaluate(async () => {
     const inp = [...document.querySelectorAll('input')].find(i => i.offsetParent && (i.placeholder || '').length > 2);
     if (!inp) return 'no-input';
@@ -146,7 +176,7 @@ async function main() {
   }));
   console.log('PRINT_ENV', JSON.stringify(printInfo));
   // Regia -> stampa composizione
-  await gotoTab(page, 'Vasca');
+  page = await gotoTab(page, 'Vasca', pickPage);
   await sleep(1200);
   const regia = await page.evaluate(() => {
     const b = [...document.querySelectorAll('button')].find(x => /Regia/i.test(x.textContent || ''));

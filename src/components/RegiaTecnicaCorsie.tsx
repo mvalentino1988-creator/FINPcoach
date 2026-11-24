@@ -3,21 +3,20 @@ import { useApp } from '../data/AppContext';
 import {
   ChevronDown,
   ChevronUp,
-  Lock,
-  LockOpen,
   Minus,
   Play,
   Plus,
   Printer,
-  Search,
   Sliders,
   Trash2,
-  UserCheck,
-  UserX,
   Waves,
 } from 'lucide-react';
 import { PageHeader } from './PageHeader';
 import { IndicatoreCodici } from './IndicatoreCodici';
+import { RegiaNonAssegnati } from './RegiaNonAssegnati';
+import { RegiaCorsiaCard } from './RegiaCorsiaCard';
+import { RegiaSheetAtleta } from './RegiaSheetAtleta';
+import { stampaRegiaCorsie } from './regiaStampa';
 import { FINPStorage } from '../data/storage';
 import { ParserScheda } from '../domain/parserScheda';
 import { formattaData, todayISO } from '../domain/dateUtils';
@@ -33,36 +32,17 @@ import {
   atletiNonAssegnati,
   conData,
   corsiaPerNumero,
-  impostaBloccoCorsia,
-  impostaIntervalloCorsia,
-  impostaRipartenzaAtleta,
-  impostaRipartenzaCorsia,
-  MAX_ATLETI_CORISIA,
   MAX_CORISIE,
   nuovaAssegnazione,
   NUMERO_CORISIE_DEFAULT,
   rimuoviDaCorsia,
-  ripartenzaEreditata,
-  scambiaConAdiacente,
-  secondi5,
   svuotaCorsie,
 } from '../domain/assegnazioneVasca';
-import { INTERVALLO_PRESETS } from '../domain/cronometroVasca';
 import { useSessioneVasca, sessioneBloccaRegia, vaiAVistaVasca } from '../lib/vascaSessione';
 
 const CODICI_VALIDI = new Set<CodiceAllenamentoKey>(['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'C3', 'D']);
 
-const LANE_ACCENTS = [
-  { bar: 'bg-primary', chip: 'bg-primary text-on-primary' },
-  { bar: 'bg-secondary', chip: 'bg-secondary text-on-secondary' },
-  { bar: 'bg-tertiary-container', chip: 'bg-tertiary-fixed text-on-tertiary-fixed' },
-  { bar: 'bg-primary-container', chip: 'bg-primary-container text-on-primary' },
-];
-
 const LONG_PRESS_MS = 500;
-
-const formattaSecondi = (s: number | null | undefined): string =>
-  s == null ? '—' : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
 export const RegiaTecnicaCorsie: React.FC = () => {
   const {
@@ -246,53 +226,14 @@ export const RegiaTecnicaCorsie: React.FC = () => {
 
   const stampa = () => {
     if (!corrente) return;
-    const righe = corrente.corsie.map(c => {
-      const nomi = c.atletiIds
-        .map(id => atletaPerId.get(id))
-        .filter((a): a is NonNullable<typeof a> => !!a)
-        .map((a, i) => `<tr><td class="num">${i + 1}</td><td>${a.cognome} ${a.nome}</td></tr>`)
-        .join('');
-      const rip = c.ripartenzaCorsia != null ? formattaSecondi(c.ripartenzaCorsia) : 'ereditata';
-      const int = c.intervalloPartenza != null ? `${c.intervalloPartenza} s` : '—';
-      return `<section class="corsia">
-        <h2>Corsia ${c.numero}${c.bloccata ? ' 🔒' : ''} — ${c.atletiIds.length} atleti · ripartenza ${rip} · intervallo ${int}</h2>
-        <table>${nomi || '<tr><td class="vuota">—</td></tr>'}</table>
-      </section>`;
-    }).join('');
-    const html = `<!doctype html><html lang="it"><head><meta charset="utf-8"><title>Regia Corsie — ${formattaData(oggi)}</title>
-<style>
-  body{font-family:system-ui,sans-serif;margin:24px;color:#1a1c1e}
-  h1{font-size:20px;margin:0 0 4px}
-  .meta{color:#5b5f66;font-size:12px;margin-bottom:16px}
-  .corsia{border:1px solid #d7dbe0;border-radius:8px;padding:10px 14px;margin-bottom:12px;page-break-inside:avoid}
-  .corsia h2{font-size:13px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.04em}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  td{padding:3px 6px;border-bottom:1px solid #eee}
-  td.num{width:28px;color:#8a8f98;font-weight:700;text-align:center}
-  td.vuota{color:#9aa0a8;font-style:italic}
-  @media print{body{margin:12mm}}
-</style></head><body>
-<h1>Regia Tecnica · Vasca ${vascaMetri} m</h1>
-<div class="meta">${formattaData(oggi)} · ${assegnati.size}/${presentiIds.length} atleti assegnati · ripartenza generale ${formattaSecondi(corrente.ripartenzaGenerale)}</div>
-${righe}
-</body></html>`;
-    // Su Android WebView non esiste window.print: usa la stampa nativa
-    // del documento generato. Sul web si mantiene window.open + print.
-    const bridge = window.AndroidBridge;
-    if (bridge && typeof bridge.printHtml === 'function') {
-      try {
-        bridge.printHtml(html);
-        return;
-      } catch {
-        // fallback al percorso web
-      }
-    }
-    const w = window.open('', '_blank', 'noopener');
-    if (!w) return;
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    w.print();
+    stampaRegiaCorsie({
+      corrente,
+      atletaPerId,
+      assegnatiCount: assegnati.size,
+      presentiCount: presentiIds.length,
+      vascaMetri,
+      oggi,
+    });
   };
 
   const ripristinaPrecedente = () => {
@@ -311,7 +252,7 @@ ${righe}
 
   if (!corrente) return null;
 
-  const tuttiAssegnatiVisibile = atletiNonAssegnati(corrente, atleti).length === 0 && !ricerca;
+
   const numeroCorsie = corrente.numeroCorsie;
   const sheetAtletaObj = sheetAtleta
     ? atletaPerId.get(sheetAtleta.id) ?? null
@@ -462,292 +403,41 @@ ${righe}
       </section>
 
       {/* Non assegnati */}
-      <section className={`shrink-0 rounded-xl bg-surface-container-low px-3 py-2 shadow-sm border border-outline-variant/30${tuttiAssegnatiVisibile ? ' regia-nonass-empty' : ''}`}>
-        <div className="flex items-center gap-2 pb-1.5">
-          <UserCheck size={15} className="text-primary shrink-0" />
-          <span className="font-label-caps text-[12px] uppercase text-on-surface-variant font-bold">
-            Non assegnati · {nonAssegnati.length}
-          </span>
-          {ricerca && (
-            <span className="ml-auto font-label-caps text-[12px] text-on-surface-variant">
-              {nonAssegnati.length} risultati
-            </span>
-          )}
-        </div>
-        {(() => {
-          const tuttiPresentiAssegnati = atletiNonAssegnati(corrente, atleti).length === 0;
-          if (tuttiPresentiAssegnati && !ricerca) {
-            return (
-              <div className="py-1.5 font-label-caps text-[12px] text-on-surface-variant">
-                Tutti assegnati
-              </div>
-            );
-          }
-          return (
-            <>
-              <div className="relative pb-1.5">
-                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant" />
-                <input
-                  type="search"
-                  value={ricerca}
-                  onChange={e => setRicerca(e.target.value)}
-                  placeholder="Cerca atleta…"
-                  className="w-full h-11 pl-8 pr-3 rounded-lg bg-surface-container-lowest border border-outline-variant/60 text-[13px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary/50"
-                />
-              </div>
-              <div className="flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto app-fixed-scroll">
-                {nonAssegnati.map(a => (
-                  <button
-                    key={a.id}
-                    type="button"
-                    disabled={bloccata}
-                    onClick={() => onTapAtleta(a.id)}
-                    onPointerDown={() => startLongPress(a.id, null)}
-                    onPointerUp={cancelLongPress}
-                    onPointerLeave={cancelLongPress}
-                    onPointerCancel={cancelLongPress}
-                    draggable={!bloccata}
-                    onDragStart={e => {
-                      e.dataTransfer.setData('application/x-finp-atleta', String(a.id));
-                      e.dataTransfer.effectAllowed = 'move';
-                    }}
-                    className={`flex items-center gap-1.5 min-h-[44px] px-2.5 py-1 rounded-xl border text-left transition active:scale-[0.98] ${
-                      selezionato === a.id
-                        ? 'border-primary bg-primary-fixed text-on-primary-fixed-variant ring-2 ring-primary/40'
-                        : 'border-outline-variant/60 bg-surface-container-lowest text-on-surface hover:border-primary/50'
-                    } disabled:opacity-60`}
-                  >
-                    <span className="font-body-bold text-[13px] whitespace-nowrap">{a.cognome}</span>
-                    <span className="flex items-center gap-0.5 shrink-0">
-                      <BadgeClasse tipo="S" n={a.classeS} />
-                      <BadgeClasse tipo="SB" n={a.classeSB} />
-                      <BadgeClasse tipo="SM" n={a.classeSM} />
-                    </span>
-                  </button>
-                ))}
-                {nonAssegnati.length === 0 && ricerca && (
-                  <span className="font-label-caps text-[12px] text-on-surface-variant py-2">Nessun risultato</span>
-                )}
-              </div>
-            </>
-          );
-        })()}
-
-        {/* Non presenti: collassato, si segna la presenza con un tocco */}
-        {nonPresenti.length > 0 && (
-          <div className="pt-1.5 border-t border-outline-variant/40">
-            <button
-              type="button"
-              onClick={() => setNonPresentiAperto(v => !v)}
-              className="w-full flex items-center justify-between gap-2 min-h-[36px]"
-              aria-expanded={nonPresentiAperto}
-            >
-              <span className="flex items-center gap-1.5 font-label-caps text-[12px] uppercase text-on-surface-variant font-bold">
-                <UserX size={13} /> Non presenti · {nonPresenti.length}
-              </span>
-              {nonPresentiAperto ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </button>
-            {nonPresentiAperto && (
-              <div className="flex flex-wrap gap-1.5 pb-1">
-                {nonPresenti.map(a => (
-                  <button
-                    key={a.id}
-                    type="button"
-                    disabled={bloccata}
-                    onClick={() => togglePresente(a.id)}
-                    className="flex items-center gap-1.5 min-h-[44px] px-2.5 py-1 rounded-xl border border-dashed border-outline-variant/70 bg-transparent text-on-surface-variant text-[12px] font-bold disabled:opacity-60"
-                    title="Segna presente"
-                  >
-                    <UserCheck size={13} className="text-primary" />
-                    {a.cognome}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </section>
+      <RegiaNonAssegnati
+        nonAssegnati={nonAssegnati}
+        ricerca={ricerca}
+        onRicerca={setRicerca}
+        bloccata={bloccata}
+        selezionato={selezionato}
+        onTapAtleta={onTapAtleta}
+        onLongPressStart={id => startLongPress(id, null)}
+        onLongPressEnd={cancelLongPress}
+        tuttiPresentiAssegnati={atletiNonAssegnati(corrente, atleti).length === 0}
+        nonPresenti={nonPresenti}
+        nonPresentiAperto={nonPresentiAperto}
+        onToggleNonPresenti={() => setNonPresentiAperto(v => !v)}
+        onTogglePresente={togglePresente}
+      />
 
       {/* Corsie */}
       <section className="shrink-0 rounded-xl bg-surface-container-lowest shadow-sm p-2.5 flex flex-col min-w-0">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 content-start gap-2.5 pr-0.5 pb-2">
-          {corrente.corsie.map(c => {
-            const accent = LANE_ACCENTS[(c.numero - 1) % LANE_ACCENTS.length];
-            const piena = c.atletiIds.length >= MAX_ATLETI_CORISIA;
-            const evidenziata = selezionato != null;
-            return (
-              <div
-                key={c.numero}
-                role="button"
-                tabIndex={0}
-                aria-label={`Corsia ${c.numero}, ${c.atletiIds.length} atleti`}
-                onClick={e => {
-                  // Clic su controlli interni (bottoni +/-/blocco) non seleziona la corsia.
-                  if ((e.target as HTMLElement).closest('button')) return;
-                  onTapCorsia(c.numero);
-                }}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onTapCorsia(c.numero);
-                  }
-                }}
-                onDragOver={e => { if (!bloccata) e.preventDefault(); }}
-                onDrop={e => onDropAtleta(e, c.numero)}
-                className={`rounded-xl bg-surface-container-low relative overflow-hidden flex flex-col min-w-0 border transition ${
-                  evidenziata && !bloccata ? 'border-primary/50' : 'border-transparent'
-                } ${c.bloccata ? 'opacity-90' : ''}`}
-              >
-                <div className={`absolute top-0 left-0 bottom-0 w-1 ${accent.bar}`} />
-                <div className="p-2 pl-3 flex flex-col gap-1.5 min-h-0">
-                  {/* Intestazione corsia */}
-                  <div className="flex items-center gap-1.5">
-                    <span className={`w-6 h-6 rounded-md ${accent.chip} text-[12px] font-bold flex items-center justify-center shrink-0`}>
-                      {c.numero}
-                    </span>
-                    <span className="font-label-caps text-[12px] text-on-surface-variant font-bold uppercase truncate">
-                      {c.atletiIds.length} atleti
-                    </span>
-                    <div className="ml-auto flex items-center gap-0.5">
-                      {/* Ripartenza corsia */}
-                      <button
-                        type="button"
-                        disabled={bloccata}
-                        onClick={() => update(a => impostaRipartenzaCorsia(a, c.numero, secondi5(Math.max(5, (c.ripartenzaCorsia ?? corrente.ripartenzaGenerale) - 5))))}
-                        className="w-11 h-11 rounded-md bg-surface-container text-on-surface text-[12px] font-bold disabled:opacity-40"
-                        aria-label="Diminuisci ripartenza corsia"
-                      >−</button>
-                      <span className="px-1 font-label-caps text-[12px] font-bold text-on-surface min-w-[2.2ch] text-center" title="Ripartenza corsia (multipli di 5 s)">
-                        {c.ripartenzaCorsia != null ? `${c.ripartenzaCorsia}s` : '—'}
-                      </span>
-                      <button
-                        type="button"
-                        disabled={bloccata}
-                        onClick={() => update(a => impostaRipartenzaCorsia(a, c.numero, secondi5(Math.min(600, (c.ripartenzaCorsia ?? corrente.ripartenzaGenerale) + 5))))}
-                        className="w-11 h-11 rounded-md bg-surface-container text-on-surface text-[12px] font-bold disabled:opacity-40"
-                        aria-label="Aumenta ripartenza corsia"
-                      >+</button>
-                      {c.ripartenzaCorsia != null && (
-                        <button
-                          type="button"
-                          disabled={bloccata}
-                          onClick={() => update(a => impostaRipartenzaCorsia(a, c.numero, null))}
-                          className="w-11 h-11 rounded-md text-on-surface-variant text-[12px] font-bold"
-                          aria-label="Ripartenza corsia ereditata"
-                          title="Torna alla ripartenza ereditata"
-                        >×</button>
-                      )}
-                      {/* Intervallo partenza automatica */}
-                      <button
-                        type="button"
-                        disabled={bloccata}
-                        onClick={() => {
-                          const opts: (number | null)[] = [null, ...INTERVALLO_PRESETS];
-                          const curIdx = opts.indexOf(c.intervalloPartenza ?? null);
-                          const next = opts[(curIdx + 1) % opts.length];
-                          update(a => impostaIntervalloCorsia(a, c.numero, next));
-                        }}
-                        className={`h-11 px-2 rounded-md font-label-caps text-[12px] font-bold uppercase ${
-                          c.intervalloPartenza != null ? 'bg-secondary-fixed text-on-secondary-fixed-variant' : 'bg-surface-container text-on-surface-variant'
-                        }`}
-                        title="Intervallo partenza automatica"
-                      >
-                        {c.intervalloPartenza != null ? `I${c.intervalloPartenza}` : 'I—'}
-                      </button>
-                      {/* Blocco corsia */}
-                      <button
-                        type="button"
-                        onClick={() => update(a => impostaBloccoCorsia(a, c.numero, !c.bloccata))}
-                        className={`w-11 h-11 rounded-md flex items-center justify-center ${
-                          c.bloccata ? 'bg-primary-fixed text-primary' : 'bg-surface-container text-on-surface-variant'
-                        }`}
-                        aria-label={c.bloccata ? `Sblocca corsia ${c.numero}` : `Blocca corsia ${c.numero}`}
-                        title={c.bloccata ? 'Corsia bloccata' : 'Blocca corsia'}
-                      >
-                        {c.bloccata ? <Lock size={12} /> : <LockOpen size={12} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Atleti in corsia */}
-                  {c.atletiIds.length === 0 ? (
-                    <div className="rounded-lg bg-surface-container/50 border border-dashed border-outline-variant/50 px-2 py-2 text-center font-label-caps text-[12px] text-on-surface-variant uppercase">
-                      {selezionato != null && !c.bloccata ? 'Tocca per assegnare' : 'Vuota'}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-1">
-                      {c.atletiIds.map((id, idx) => {
-                        const a = atletaPerId.get(id);
-                        if (!a) return null;
-                        const rip = c.bloccata ? null : ripartenzaEreditata(corrente, c.numero, id);
-                        const personale = corrente.ripartenzeAtleta[id];
-                        const mostraPersonale = personale != null && personale !== rip;
-                        return (
-                          <div
-                            key={id}
-                            role="button"
-                            tabIndex={0}
-                            aria-label={`${a.cognome} ${a.nome}, corsia ${c.numero}`}
-                            draggable={!bloccata && !c.bloccata}
-                            onDragStart={e => {
-                              e.dataTransfer.setData('application/x-finp-atleta', String(id));
-                              e.dataTransfer.effectAllowed = 'move';
-                            }}
-                            onClick={e => {
-                              e.stopPropagation();
-                              onTapAtleta(id);
-                            }}
-                            onKeyDown={e => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                onTapAtleta(id);
-                              }
-                            }}
-                            onPointerDown={() => startLongPress(id, c.numero)}
-                            onPointerUp={cancelLongPress}
-                            onPointerLeave={cancelLongPress}
-                            onPointerCancel={cancelLongPress}
-                            className={`flex items-center gap-1.5 px-1.5 py-1 min-h-[48px] rounded-lg bg-surface-container-lowest border min-w-0 cursor-pointer transition active:scale-[0.98] ${
-                              selezionato === id ? 'border-primary ring-2 ring-primary/30' : 'border-outline-variant/30'
-                            }`}
-                          >
-                            <span className="w-4 h-4 rounded bg-surface-container-high text-on-surface-variant text-[12px] font-bold flex items-center justify-center shrink-0">
-                              {idx + 1}
-                            </span>
-                            <span className="font-body-bold text-[12px] text-on-surface truncate min-w-0 flex-1">
-                              {a.cognome}
-                            </span>
-                            {mostraPersonale && (
-                              <span className="px-1 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-[12px] font-bold shrink-0" title="Ripartenza personale">
-                                {personale}s
-                              </span>
-                            )}
-                            {!c.bloccata && !bloccata && (
-                              <button
-                                type="button"
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  update(cur => rimuoviDaCorsia(cur, id));
-                                }}
-                                aria-label={`Rimuovi ${a.cognome} dalla corsia ${c.numero}`}
-                                className="w-11 h-11 -m-2 rounded text-on-surface-variant hover:text-error flex items-center justify-center shrink-0"
-                              >
-                                <Minus size={11} />
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  {piena && (
-                    <span className="font-label-caps text-[12px] text-warning font-bold uppercase">Corsia piena</span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          {corrente.corsie.map(c => (
+            <RegiaCorsiaCard
+              key={c.numero}
+              corsia={c}
+              corrente={corrente}
+              bloccata={bloccata}
+              selezionato={selezionato}
+              atletaPerId={atletaPerId}
+              update={update}
+              onTapCorsia={onTapCorsia}
+              onTapAtleta={onTapAtleta}
+              onLongPressStart={(id, cn) => startLongPress(id, cn)}
+              onLongPressEnd={cancelLongPress}
+              onDropAtleta={onDropAtleta}
+            />
+          ))}
         </div>
       </section>
 
@@ -798,179 +488,18 @@ ${righe}
 
       {/* Bottom sheet atleta */}
       {sheetAtletaObj && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40">
-          <button type="button" aria-label="Chiudi finestra" tabIndex={-1} onClick={() => setSheetAtleta(null)} className="absolute inset-0 cursor-default" />
-          <div className="relative w-full max-w-md rounded-t-3xl sm:rounded-3xl bg-surface p-5 shadow-xl max-h-[85vh] overflow-y-auto" role="dialog" aria-modal="true" aria-label="Dettaglio atleta">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <h3 className="font-headline-sm text-[18px] font-bold text-on-surface">
-                  {sheetAtletaObj.cognome} {sheetAtletaObj.nome}
-                </h3>
-                <p className="font-label-caps text-[12px] uppercase text-on-surface-variant">
-                  {sheetCorsia ? `Corsia ${sheetCorsia.numero} · ${sheetCorsia.atletiIds.indexOf(sheetAtletaObj.id) + 1}º di partenza` : 'Non assegnato'}
-                  {!presentiSet.has(sheetAtletaObj.id) ? ' · non presente' : ''}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSheetAtleta(null)}
-                aria-label="Chiudi"
-                className="w-11 h-11 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant"
-              >
-                <Minus size={16} className="rotate-45" />
-              </button>
-            </div>
-
-            {/* Sposta in corsia */}
-            <div className="mt-4">
-              <p className="font-label-caps text-[12px] uppercase text-on-surface-variant font-bold mb-1.5">Sposta in corsia</p>
-              <div className="grid grid-cols-4 gap-1.5">
-                {corrente.corsie.map(c => {
-                  const disabilitata = bloccata || c.bloccata || (!presentiSet.has(sheetAtletaObj.id))
-                    || (c.atletiIds.length >= MAX_ATLETI_CORISIA && !c.atletiIds.includes(sheetAtletaObj.id));
-                  const attiva = sheetCorsia?.numero === c.numero;
-                  return (
-                    <button
-                      key={c.numero}
-                      type="button"
-                      disabled={disabilitata}
-                      onClick={() => {
-                        if (!attiva) update(a => assegnaAtleta(a, sheetAtletaObj.id, c.numero));
-                        setSheetAtleta(null);
-                      }}
-                      className={`min-h-[44px] rounded-xl font-bold text-[13px] transition ${
-                        attiva
-                          ? 'bg-primary text-on-primary'
-                          : 'bg-surface-container text-on-surface hover:bg-surface-container-high disabled:opacity-40'
-                      }`}
-                    >
-                      {c.numero}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {sheetCorsia && !sheetCorsia.bloccata && (
-              <>
-                {/* Ordine di partenza */}
-                <div className="mt-4">
-                  <p className="font-label-caps text-[12px] uppercase text-on-surface-variant font-bold mb-1.5">Ordine di partenza</p>
-                  <div className="flex gap-1.5">
-                    <button
-                      type="button"
-                      disabled={bloccata}
-                      onClick={() => update(a => scambiaConAdiacente(a, sheetCorsia.numero, sheetAtletaObj.id, -1))}
-                      className="flex-1 min-h-[44px] rounded-xl bg-surface-container font-bold text-[13px] disabled:opacity-40"
-                    >
-                      ↑ Su
-                    </button>
-                    <button
-                      type="button"
-                      disabled={bloccata}
-                      onClick={() => update(a => scambiaConAdiacente(a, sheetCorsia.numero, sheetAtletaObj.id, 1))}
-                      className="flex-1 min-h-[44px] rounded-xl bg-surface-container font-bold text-[13px] disabled:opacity-40"
-                    >
-                      ↓ Giù
-                    </button>
-                  </div>
-                </div>
-
-                {/* Ripartenza personale */}
-                <div className="mt-4">
-                  <p className="font-label-caps text-[12px] uppercase text-on-surface-variant font-bold mb-1.5">
-                    Ripartenza personale {(() => {
-                      const ereditata = ripartenzaEreditata(corrente, sheetCorsia.numero, sheetAtletaObj.id);
-                      return <span className="normal-case font-normal">(ereditata {formattaSecondi(ereditata)})</span>;
-                    })()}
-                  </p>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      disabled={bloccata}
-                      onClick={() => {
-                        const cur = corrente.ripartenzeAtleta[sheetAtletaObj.id] ?? ripartenzaEreditata(corrente, sheetCorsia.numero, sheetAtletaObj.id);
-                        update(a => impostaRipartenzaAtleta(a, sheetAtletaObj.id, Math.max(5, cur - 5)));
-                      }}
-                      className="w-12 h-11 rounded-xl bg-surface-container font-bold text-[15px] disabled:opacity-40"
-                    >−5</button>
-                    <span className="flex-1 text-center font-headline-sm text-[16px] font-bold text-on-surface">
-                      {corrente.ripartenzeAtleta[sheetAtletaObj.id] != null
-                        ? `${corrente.ripartenzeAtleta[sheetAtletaObj.id]}s`
-                        : 'Ered.'}
-                    </span>
-                    <button
-                      type="button"
-                      disabled={bloccata}
-                      onClick={() => {
-                        const cur = corrente.ripartenzeAtleta[sheetAtletaObj.id] ?? ripartenzaEreditata(corrente, sheetCorsia.numero, sheetAtletaObj.id);
-                        update(a => impostaRipartenzaAtleta(a, sheetAtletaObj.id, cur + 5));
-                      }}
-                      className="w-12 h-11 rounded-xl bg-surface-container font-bold text-[15px] disabled:opacity-40"
-                    >+5</button>
-                    {corrente.ripartenzeAtleta[sheetAtletaObj.id] != null && (
-                      <button
-                        type="button"
-                        disabled={bloccata}
-                        onClick={() => update(a => impostaRipartenzaAtleta(a, sheetAtletaObj.id, null))}
-                        className="h-11 px-3 rounded-xl bg-surface-container text-on-surface-variant text-[12px] font-bold"
-                      >
-                        Reset
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Rimuovi */}
-                <div className="mt-4">
-                  <button
-                    type="button"
-                    disabled={bloccata}
-                    onClick={() => {
-                      update(a => rimuoviDaCorsia(a, sheetAtletaObj.id));
-                      setSheetAtleta(null);
-                    }}
-                    className="w-full min-h-[48px] rounded-xl bg-surface-container text-error font-bold text-[14px] flex items-center justify-center gap-2 disabled:opacity-40"
-                  >
-                    <Trash2 size={15} /> Rimuovi dalla corsia
-                  </button>
-                </div>
-              </>
-            )}
-
-            {/* Non presente: segna presente */}
-            {!presentiSet.has(sheetAtletaObj.id) && (
-              <div className="mt-4">
-                <button
-                  type="button"
-                  disabled={bloccata}
-                  onClick={() => {
-                    togglePresente(sheetAtletaObj.id);
-                    setSheetAtleta(null);
-                  }}
-                  className="w-full min-h-[48px] rounded-xl bg-primary-fixed text-on-primary-fixed-variant font-bold text-[14px] flex items-center justify-center gap-2"
-                >
-                  <UserCheck size={15} /> Segna come presente
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+        <RegiaSheetAtleta
+          atleta={sheetAtletaObj}
+          corsia={sheetCorsia ?? null}
+          corrente={corrente}
+          bloccata={bloccata}
+          presentiSet={presentiSet}
+          onClose={() => setSheetAtleta(null)}
+          update={update}
+          onTogglePresente={togglePresente}
+        />
       )}
     </div>
   );
 };
 
-const BadgeClasse: React.FC<{ tipo: 'S' | 'SB' | 'SM'; n: number | null | undefined }> = ({ tipo, n }) => {
-  if (n == null) return null;
-  const cls =
-    tipo === 'S' ? 'bg-primary-fixed text-on-primary-fixed-variant'
-    : tipo === 'SB' ? 'bg-secondary-fixed text-on-secondary-fixed-variant'
-    : 'bg-tertiary-fixed text-on-tertiary-fixed-variant';
-  return (
-    <span className={`px-1 rounded font-label-caps text-[12px] font-bold leading-[14px] ${cls}`}>
-      {tipo}
-      {n}
-    </span>
-  );
-};

@@ -47,23 +47,19 @@ const MISURA = `(() => {
   return { tiles: righe.length, altezze: [...altezze].sort((a, b) => a - b), fail, righe: righe.slice(0, 5) };
 })()`;
 
-// Per la deriva: in UNA evaluate restituisce clock dispositivo, timer visibili e sessione.
-const DRIFT_SAMPLE = `(() => {
-  const timers = [];
-  for (const t of document.querySelectorAll('div[role="button"]')) {
-    const r = t.getBoundingClientRect();
-    if (r.height < 10) continue;
-    const nameEl = [...t.querySelectorAll('span')].find(sp =>
-      sp.textContent && sp.textContent.trim().length > 2 && sp.children.length === 0 && !/^\\d/.test(sp.textContent.trim()));
-    if (!nameEl) continue;
-    const times = [...t.querySelectorAll('span')]
-      .map(sp => (sp.textContent || '').trim())
-      .filter(x => /^\\d{1,3}:\\d{2}[.,]\\d{2}$/.test(x));
-    if (times.length) timers.push({ nome: nameEl.textContent.trim(), t: times[times.length - 1] });
-  }
+// Per la deriva: orologio generale di sessione ("Tempo generale") + clock dispositivo.
+const DRIFT_SAMPLE = `(async () => {
+  // attendi 2 frame: il testo e' scritto dal tick rAF, senza frame sarebbe stale
+  await Promise.race([
+    new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))),
+    new Promise(r => setTimeout(r, 2000)),
+  ]);
+  const gen = document.querySelector('[aria-label="Tempo generale"]');
+  const txt = gen ? (gen.textContent || '').trim() : null;
   let s = null;
   try { s = JSON.parse(localStorage.getItem('finp_vasca_session_v1') || 'null'); } catch {}
-  return { dev: Date.now(), timers, s };
+  const vis = document.visibilityState;
+  return { dev: Date.now(), txt, t0: s ? s.t0 : null, stato: s ? s.stato : null, vis };
 })()`;
 
 const parseTimer = t => {
@@ -170,26 +166,19 @@ async function main() {
     for (let i = 0; i < 20; i++) {
       let snap = null;
       try { snap = await page.evaluate(DRIFT_SAMPLE); } catch (e) { console.log('sampleErr@' + i, String(e).slice(0, 60)); }
-      if (snap) {
-        const rep = {};
-        for (const l of snap.s?.lanes ?? []) for (const a of l.atleti) if (a.repStart != null) rep[a.cognome] = a.repStart;
-        const offs = [];
-        for (const tm of snap.timers) {
-          const rs = rep[tm.nome];
-          const disp = parseTimer(tm.t);
-          if (rs != null && disp != null) offs.push(disp - (snap.dev - rs));
-        }
-        if (offs.length) {
-          offs.sort((a, b) => a - b);
-          samples.push({ dev: snap.dev, med: offs[Math.floor(offs.length / 2)], n: offs.length });
-        } else console.log('noTimers@' + i);
-      }
+      if (snap && snap.t0 != null) {
+        const disp = parseTimer(snap.txt);
+        if (disp != null) {
+          // offset = tempo mostrato - (orologio dispositivo - t0 di sessione)
+          samples.push({ dev: snap.dev, off: disp - (snap.dev - snap.t0), vis: snap.vis });
+        } else console.log('noTimer@' + i + ' txt=' + snap.txt);
+      } else console.log('noSnap@' + i);
       await sleep(30000);
     }
     if (samples.length >= 2) {
-      const meds = samples.map(s => s.med);
-      const drift = Math.max(...meds) - Math.min(...meds);
-      console.log('RESULT driftMs=' + Math.round(drift) + ' samples=' + samples.length + ' nMed=' + samples[samples.length - 1].n);
+      const offs = samples.map(s => s.off);
+      const drift = Math.max(...offs) - Math.min(...offs);
+      console.log('RESULT driftMs=' + Math.round(drift) + ' samples=' + samples.length + ' offs=' + offs.map(o => Math.round(o)).join(',') + ' vis=' + [...new Set(samples.map(x => x.vis))].join('/'));
     } else console.log('RESULT driftMs=null samples=' + samples.length);
   } else console.log('DRIFT_SKIP');
 
