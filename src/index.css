@@ -547,11 +547,6 @@
     overflow-y: auto;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
-    scroll-padding-bottom: calc(var(--dock-h) + 1rem);
-  }
-
-  .app-shell-fixed .app-fixed-scroll {
-    padding-bottom: calc(var(--dock-h) + 1rem) !important;
   }
 
   /* Oggi resta senza scroll nei casi normali; solo su schermi molto bassi

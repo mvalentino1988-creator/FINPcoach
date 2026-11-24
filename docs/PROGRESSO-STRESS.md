@@ -42,3 +42,8 @@ Formato: `id | stato (da fare/in corso/fatto/bloccato) | hash commit | nota`
 | F1 | fatto | a7bc5e6 | REPORT/CHANGELOG/RILASCIO/README/DECISIONI |
 | F2 | fatto | a7bc5e6 | tsc/lint/test/build, git pulito |
 | F3 | da fare | — | rebase + push |
+
+## QUARTO GIRO — chiusura difetti collaudo
+| id | stato | commit | nota |
+|----|-------|--------|------|
+| R1 | in corso | — | Area corsie: riprodotto (corsie h=2px, scrollH 470, chip 8/lane invisibili). Causa: .app-shell-fixed .app-fixed-scroll forzava padding-bottom=dock-h+1rem (121px) dentro il grid + sezione corsie flessibile schiacciata a 20px. Fix: rimossa regola padding forzato, .regia-screen overflow-y-auto, corsie shrink-0 con scroll di pagina. Verificato su .qa: 6 corsie x 8 chip, tutti raggiungibili h=48px, portrait+landscape, modifica+sola lettura. Test scripts/qa/device-regia-test.mjs |

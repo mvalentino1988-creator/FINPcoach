@@ -319,7 +319,7 @@ ${righe}
   const sheetCorsia = sheetAtleta?.corsia != null ? corsiaPerNumero(corrente, sheetAtleta.corsia) : null;
 
   return (
-    <div className={`regia-screen flex flex-1 min-h-0 flex-col gap-2 overflow-hidden${bloccata ? ' regia-bloccata' : ''}`}>
+    <div className={`regia-screen flex flex-1 min-h-0 flex-col gap-2 overflow-y-auto overscroll-contain${bloccata ? ' regia-bloccata' : ''}`}>
       {/* Intestazione pagina */}
       <div className="regia-head shrink-0">
         <PageHeader
@@ -569,8 +569,8 @@ ${righe}
       </section>
 
       {/* Corsie */}
-      <section className="flex-1 min-h-0 rounded-xl bg-surface-container-lowest shadow-sm p-2.5 flex flex-col min-w-0">
-        <div className="app-fixed-scroll flex-1 min-h-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 content-start gap-2.5 pr-0.5 pb-2">
+      <section className="shrink-0 rounded-xl bg-surface-container-lowest shadow-sm p-2.5 flex flex-col min-w-0">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 content-start gap-2.5 pr-0.5 pb-2">
           {corrente.corsie.map(c => {
             const accent = LANE_ACCENTS[(c.numero - 1) % LANE_ACCENTS.length];
             const piena = c.atletiIds.length >= MAX_ATLETI_CORISIA;
