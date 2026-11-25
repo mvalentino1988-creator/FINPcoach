@@ -25,6 +25,9 @@ android {
         versionCode = 2
         versionName = "0.2.0"
 
+        // false in tutte le build; solo la buildType "qa" lo imposta a true.
+        buildConfigField("boolean", "IS_QA_BUILD", "false")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -44,6 +47,7 @@ android {
             applicationIdSuffix = ".qa"
             versionNameSuffix = "-qa"
             isDebuggable = true
+            buildConfigField("boolean", "IS_QA_BUILD", "true")
             // WebView.setWebContentsDebuggingEnabled e' attivo perche' isDebuggable.
             // Il nome "FINPcoach QA" arriva da app/src/qa/res/values/strings.xml.
         }
@@ -54,6 +58,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

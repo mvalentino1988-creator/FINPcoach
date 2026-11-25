@@ -66,15 +66,16 @@ export const RegiaCorsiaCard: React.FC<Props> = ({
     >
       <div className={`absolute top-0 left-0 bottom-0 w-1 ${accent.bar}`} />
       <div className="p-2 pl-3 flex flex-col gap-1.5 min-h-0">
-        {/* Intestazione corsia */}
-        <div className="flex items-center gap-1.5">
+        {/* Intestazione corsia: va a capo se i controlli non entrano
+            (schermi stretti/portrait). Target touch restano >= 44 px. */}
+        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
           <span className={`w-6 h-6 rounded-md ${accent.chip} text-[12px] font-bold flex items-center justify-center shrink-0`}>
             {c.numero}
           </span>
           <span className="font-label-caps text-[12px] text-on-surface-variant font-bold uppercase truncate">
             {c.atletiIds.length} atleti
           </span>
-          <div className="ml-auto flex items-center gap-0.5">
+          <div className="ml-auto flex items-center gap-0.5 flex-wrap justify-end">
             {/* Ripartenza corsia */}
             <button
               type="button"
@@ -181,7 +182,7 @@ export const RegiaCorsiaCard: React.FC<Props> = ({
                   <span className="w-4 h-4 rounded bg-surface-container-high text-on-surface-variant text-[12px] font-bold flex items-center justify-center shrink-0">
                     {idx + 1}
                   </span>
-                  <span className="font-body-bold text-[12px] text-on-surface truncate min-w-0 flex-1">
+                  <span className="font-body-bold text-[12px] text-on-surface line-clamp-2 leading-tight break-words min-w-0 flex-1" title={a.cognome}>
                     {a.cognome}
                   </span>
                   {mostraPersonale && (

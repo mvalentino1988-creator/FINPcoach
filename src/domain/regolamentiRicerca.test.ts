@@ -45,7 +45,8 @@ const QUERIES: { q: string; atteso: RegExp }[] = [
   { q: 'tappetino', atteso: /Backstroke|Swimming|Rules|metre/i },
   { q: 'segnalatore', atteso: /Officials|Offic|Rules/i },
   { q: 'giudice', atteso: /GIUDICE/i },
-  { q: 'tempo limite', atteso: /TEMPO LIMITE|LIMITE/i },
+  // NP.1.24 (QUINTO GIRO) parla di "tempo limite"/MQS: è un hit corretto in top-3.
+  { q: 'tempo limite', atteso: /TEMPO LIMITE|LIMITE|NP\.1\.24/i },
   { q: 'punteggio', atteso: /PUNTEGGIO|Punteggio|STAFFETTE|Nazionale/i },
   { q: 'tesseramento', atteso: /TESSERAMENTO|ETÀ|eta/i },
   { q: 'ostacolo', atteso: /Swimming|Protocol|metre|Rules/i },
@@ -77,6 +78,37 @@ describe('regolamenti.json — integrità strutturale', () => {
 
   it('le sezioni FINP non sono vuote e contano 248', () => {
     const finp = PAYLOAD.documenti.find((d: { id: string }) => d.id === 'finp-tecnico-2026');
-    expect(finp.sezioni.length).toBe(248);
+    expect(finp.sezioni.length).toBe(258);
   });
+});
+
+/**
+ * QUINTO GIRO 1.4 — le sezioni di capitolo aggiunte da
+ * scripts/integrazione-sezioni-regolamenti.mjs devono essere
+ * ritrovabili con query mirate.
+ */
+describe('regolamenti.json — capitoli aggiunti (QUINTO GIRO)', () => {
+  const CAPITOLI: { query: string; atteso: RegExp }[] = [
+    { query: 'codici eccezione partenza', atteso: /Partenza \(NP\.1\.5\.1\)|CODICI PER LE ECCEZIONI/i },
+    { query: 'ausilio partenza', atteso: /NP\.1\.5\.1|AUSILIO PER LA PARTENZA/i },
+    { query: 'tipologia gare world para swimming', atteso: /NP\.1\.24|SINGLE CLASS EVENT/i },
+    { query: 'single class event MQS', atteso: /SINGLE CLASS EVENT|MQS/i },
+    { query: 'tasse ammende', atteso: /NP\.1\.25|TASSE|AMMENDE/i },
+    { query: 'manifestazioni in vasca', atteso: /NP\.1\.27|MANIFESTAZIONI IN VASCA/i },
+    { query: 'campionato giovanile', atteso: /NP\.1\.30|GIOVANILE/i },
+    { query: 'campionati italiani assoluti invernali', atteso: /NP\.1\.31|INVERNALI/i },
+    { query: 'campionato italiano di societa coppa italia', atteso: /NP\.1\.32|COPPA ITALIA/i },
+    { query: 'campionati italiani assoluti estivi', atteso: /NP\.1\.33|ESTIVI/i },
+    { query: 'campionato italiano master', atteso: /NP\.1\.34|MASTER/i },
+    { query: 'campionati italiani assoluti vasca corta', atteso: /NP\.1\.35|VASCA CORTA/i },
+  ];
+
+  for (const { query, atteso } of CAPITOLI) {
+    it(`"${query}" trova la sezione attesa`, () => {
+      const risultati = RegolamentiService.cerca(query, 5);
+      expect(risultati.length).toBeGreaterThan(0);
+      const testi = risultati.map(r => `${r.sezione.titolo} ${r.sezione.testo}`).join(' || ');
+      expect(testi).toMatch(atteso);
+    });
+  }
 });

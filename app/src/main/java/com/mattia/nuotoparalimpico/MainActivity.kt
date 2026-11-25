@@ -417,6 +417,30 @@ class MainActivity : ComponentActivity() {
             super.onPageFinished(view, url)
             notePageHost(url)
             updateWebViewInsets()
+            if (BuildConfig.IS_QA_BUILD) injectQaBadge(view)
+        }
+
+        /**
+         * Build QA (.qa): badge fisso in alto "QA · dati simulati" per non
+         * confondere la build di collaudo con l'app reale. Solo DOM: non
+         * tocca i dati e non esiste nella build di produzione.
+         */
+        private fun injectQaBadge(view: WebView) {
+            view.evaluateJavascript(
+                """
+                (function(){
+                  try {
+                    if (document.getElementById('finp-qa-badge')) return;
+                    var d = document.createElement('div');
+                    d.id = 'finp-qa-badge';
+                    d.textContent = 'QA · dati simulati';
+                    d.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:2147483647;background:#DC2626;color:#fff;font:700 12px/1.5 sans-serif;padding:4px 14px;border-radius:0 0 10px 10px;pointer-events:none;letter-spacing:.05em;box-shadow:0 1px 4px rgba(0,0,0,.35);';
+                    (document.body || document.documentElement).appendChild(d);
+                  } catch (e) {}
+                })();
+                """.trimIndent(),
+                null
+            )
         }
 
         override fun shouldInterceptRequest(
