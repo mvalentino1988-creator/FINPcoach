@@ -30,6 +30,7 @@ import { AssegnazioneVasca, allineaConParametri, normalizzaAssegnazione } from '
 import { FINPStorage } from './storage';
 import { androidBridge, callNative } from '../lib/nativeBridge';
 import { FirebaseSync, SyncData } from './firebaseSync';
+import { ArchivioStagione, costruisciArchivioStagione, logNellaStagione } from '../domain/archivioStagione';
 
 interface AppContextType {
   atleti: Atleta[];
@@ -66,6 +67,13 @@ interface AppContextType {
   creaStagione: (nome: string, inizio: string, fine: string) => void;
   modificaDateStagione: (inizio: string, fine: string) => void;
   eliminaStagione: () => void;
+  /**
+   * Archivia la stagione corrente (QUINTO GIRO 3.3): restituisce
+   * l'archivio da scaricare e azzera i dati della stagione (piano, gare,
+   * iscrizioni, chiusure e log nel periodo). Atleti, tempi e log fuori
+   * periodo restano come storico. Null se non c'è stagione.
+   */
+  archiviaStagione: () => ArchivioStagione | null;
   aggiungiChiusura: (dal: string, al: string, motivo: string) => void;
   modificaChiusura: (c: Chiusura) => void;
   eliminaChiusura: (id: number) => void;
@@ -591,6 +599,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     FINPStorage.savePiano([], [], []);
   };
 
+  const archiviaStagione = (): ArchivioStagione | null => {
+    if (!stagione) return null;
+    const archivio = costruisciArchivioStagione({
+      stagione,
+      chiusure,
+      gare,
+      iscrizioniGare,
+      macrocicli: macro,
+      mesocicli: meso,
+      microcicli: micro,
+      log,
+    });
+
+    const s = stagione;
+    setStagione(null);
+    setChiusure([]);
+    setGare([]);
+    setIscrizioniGare([]);
+    setMacro([]);
+    setMeso([]);
+    setMicro([]);
+    // Il registro della stagione va nell'archivio: il log attivo perde solo
+    // le sedute nel periodo; le stagioni precedenti restano come storico.
+    setLog(prev => prev.filter(l => !logNellaStagione(l.data, s)));
+
+    FINPStorage.saveStagione(null);
+    FINPStorage.saveChiusure([]);
+    FINPStorage.saveGare([]);
+    FINPStorage.saveIscrizioniGare([]);
+    FINPStorage.savePiano([], [], []);
+    // Il log attivo è già persistito dall'effect su `log`.
+    return archivio;
+  };
+
   const aggiungiChiusura = (dal: string, al: string, motivo: string) => {
     if (!stagione) return;
     const nextId = chiusure.length > 0 ? Math.max(...chiusure.map(it => it.id)) + 1 : 1;
@@ -706,7 +748,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const salvaSeduta = (data: string, items: Omit<LogSeduta, 'id'>[]) => {
     // Delete existing logs for this date
     const filtered = log.filter(l => l.data !== data);
-    let nextId = filtered.length > 0 ? Math.max(...filtered.map(it => it.id)) + 1 : 1;
+    // reduce invece di Math.max(...spread): con >100k log lo spread
+    // supera il limite di argomenti della call stack.
+    let nextId = 1;
+    for (const it of filtered) if (it.id >= nextId) nextId = it.id + 1;
     const newItems = items.map(item => ({ ...item, id: nextId++ }));
     setLog([...newItems, ...filtered]);
   };
@@ -742,6 +787,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         creaStagione,
         modificaDateStagione,
         eliminaStagione,
+        archiviaStagione,
         aggiungiChiusura,
         modificaChiusura,
         eliminaChiusura,

@@ -22,9 +22,11 @@ import { NuovaStagioneForm, ModalModificaMicro, tipoMicroVisual } from './pianoM
 import { PianoEditEventModal, PianoParametriModal, EditEventModalState } from './pianoOverlayModals';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { salvaSnapshotDati } from '../data/snapshotAutomatico';
+import { logNellaStagione, scaricaArchivioStagione } from '../domain/archivioStagione';
 import {
   Activity,
   AlertCircle,
+  Archive,
   CalendarDays,
   Check,
   ChevronRight,
@@ -65,6 +67,9 @@ export const PianoScreen: React.FC = () => {
     creaStagione,
     modificaDateStagione,
     eliminaStagione,
+    archiviaStagione,
+    log,
+    tempi,
     modificaChiusura,
     modificaGara,
     salvaImpostazioni,
@@ -110,6 +115,13 @@ export const PianoScreen: React.FC = () => {
   const [modInizio, setModInizio] = useState('');
   const [modFine, setModFine] = useState('');
   const [modError, setModError] = useState<string | null>(null);
+
+  // Archivia stagione (QUINTO GIRO 3.3)
+  const [archiviaOpen, setArchiviaOpen] = useState(false);
+  const [archiviaConferma, setArchiviaConferma] = useState(false);
+  const [archiviaBusy, setArchiviaBusy] = useState(false);
+  const [archiviaErrore, setArchiviaErrore] = useState<string | null>(null);
+  const logInStagione = stagione ? log.filter(l => logNellaStagione(l.data, stagione)).length : 0;
 
   // Clickable Menu Navigation for Cycles
   const [selectedMacroId, setSelectedMacroId] = useState<number | null>(null);
@@ -221,6 +233,15 @@ export const PianoScreen: React.FC = () => {
             >
               <Edit2 size={15} />
               <span className="hidden sm:inline">Date</span>
+            </button>
+
+            <button
+              onClick={() => { setArchiviaConferma(false); setArchiviaErrore(null); setArchiviaOpen(true); }}
+              className="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-lg border border-primary/30 bg-primary-container px-3 text-xs font-headline-sm font-bold text-on-primary-container transition hover:brightness-95"
+              title="Esporta la stagione in un archivio e prepara la stagione successiva"
+            >
+              <Archive size={15} />
+              <span className="hidden sm:inline">Archivia</span>
             </button>
 
             <button
@@ -1332,6 +1353,103 @@ export const PianoScreen: React.FC = () => {
           atletiPresentiIds={atletiPresentiIds}
           onTogglePresente={toggleAtletaPresente}
         />
+      )}
+
+      {/* Modal Archivia Stagione */}
+      {archiviaOpen && stagione && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="flex max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-t-2xl border border-border-hairline bg-surface-container-lowest shadow-float sm:rounded-xl">
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-hairline bg-surface-container-low px-4 py-4 sm:px-5">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-container text-on-primary">
+                  <Archive size={19} />
+                </span>
+                <div className="min-w-0">
+                  <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">Archivia stagione</h3>
+                  <p className="truncate text-xs text-on-surface-variant">{stagione.nome}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setArchiviaOpen(false)}
+                aria-label="Chiudi archiviazione stagione"
+                className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-6 space-y-4 text-xs overflow-y-auto">
+              {archiviaErrore && (
+                <div className="flex items-start gap-2 rounded-xl border border-error/30 bg-error-container p-3 text-on-error-container">
+                  <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                  <span className="font-medium">{archiviaErrore}</span>
+                </div>
+              )}
+
+              <p className="text-xs leading-relaxed text-on-surface-variant">
+                Viene esportato un archivio compresso (.json.gz) con piano, gare, iscrizioni,
+                chiusure e registro delle sedute della stagione. Poi la stagione viene rimossa
+                per preparare la successiva.
+              </p>
+
+              <ul className="space-y-1.5 rounded-xl bg-surface-container-low p-3 text-on-surface">
+                <li className="flex justify-between gap-2"><span className="text-on-surface-variant">Periodo</span><span className="font-semibold">{formattaData(stagione.inizio)} – {formattaData(stagione.fine)}</span></li>
+                <li className="flex justify-between gap-2"><span className="text-on-surface-variant">Macrocicli / mesocicli / microcicli</span><span className="font-semibold">{macro.length} / {meso.length} / {micro.length}</span></li>
+                <li className="flex justify-between gap-2"><span className="text-on-surface-variant">Gare / iscrizioni / chiusure</span><span className="font-semibold">{gare.length} / {iscrizioniGare.length} / {chiusure.length}</span></li>
+                <li className="flex justify-between gap-2"><span className="text-on-surface-variant">Sedute nel registro</span><span className="font-semibold">{logInStagione}</span></li>
+                <li className="flex justify-between gap-2"><span className="text-on-surface-variant">Restano attivi</span><span className="font-semibold">{atleti.length} atleti · {tempi.length} tempi · log fuori periodo</span></li>
+              </ul>
+
+              {archiviaConferma && (
+                <div className="rounded-xl border border-error/30 bg-error-container p-3 text-on-error-container font-medium">
+                  Conferma definitiva: l'archivio sostituisce i dati della stagione nell'app.
+                  Prima di procedere viene creato uno snapshot di sicurezza.
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => { setArchiviaConferma(false); setArchiviaOpen(false); }}
+                  className="min-h-[44px] flex-1 rounded-xl border border-border-hairline bg-surface-container px-3 font-headline-sm text-xs font-bold text-on-surface transition hover:bg-surface-container-high"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="button"
+                  disabled={archiviaBusy}
+                  onClick={async () => {
+                    if (!archiviaConferma) {
+                      setArchiviaConferma(true);
+                      return;
+                    }
+                    setArchiviaBusy(true);
+                    setArchiviaErrore(null);
+                    try {
+                      salvaSnapshotDati();
+                      const archivio = archiviaStagione();
+                      if (archivio) await scaricaArchivioStagione(archivio);
+                      setArchiviaOpen(false);
+                      setArchiviaConferma(false);
+                    } catch (e) {
+                      setArchiviaErrore(`Esportazione non riuscita: ${e instanceof Error ? e.message : String(e)}`);
+                      setArchiviaConferma(false);
+                    } finally {
+                      setArchiviaBusy(false);
+                    }
+                  }}
+                  className="min-h-[44px] flex-1 rounded-xl bg-primary px-3 font-headline-sm text-xs font-bold text-on-primary transition hover:brightness-95 disabled:opacity-60"
+                >
+                  {archiviaBusy
+                    ? 'Esportazione…'
+                    : archiviaConferma
+                      ? 'Conferma ed esporta'
+                      : 'Esporta archivio'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

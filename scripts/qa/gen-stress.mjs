@@ -1,10 +1,15 @@
 #!/usr/bin/env node
 /**
- * Genera scripts/qa/out/stress-100.json (dataset di stress, NON committato)
- * e stress-100-cifrato.finpbackup + stress-100-manifest.json.
+ * Genera il dataset di stress (NON committato, in scripts/qa/out/).
  *
- * Uso: node scripts/qa/gen-stress.mjs [--seme N]
- * Deterministico: stesso seme => stress-100.json identico byte per byte.
+ * Uso: node scripts/qa/gen-stress.mjs [--seme N] [--atleti N] [--stagioni S] [--presenti P] [--out NOME]
+ *   --atleti N    numero di atleti            (default 100)
+ *   --stagioni S  stagioni (1 = solo attiva; >1 = storico con log+tempi)  (default 1)
+ *   --presenti P  presenti attesi nel giorno di prova                     (default 48)
+ *   --out NOME    prefisso file output (default stress-100 o stress-NxS)
+ *
+ * Deterministico: stessi parametri => JSON identico byte per byte.
+ * Output: <out>.json, <out>-manifest.json, <out>-cifrato.finpbackup.
  */
 import { build } from 'esbuild';
 import { writeFileSync, mkdirSync } from 'node:fs';
@@ -16,8 +21,21 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const outDir = join(root, 'scripts', 'qa', 'out');
 mkdirSync(outDir, { recursive: true });
 
-const semeArg = process.argv.indexOf('--seme');
-const seme = semeArg >= 0 ? parseInt(process.argv[semeArg + 1], 10) : undefined;
+function arg(nome, fallback) {
+  const i = process.argv.indexOf(nome);
+  return i >= 0 ? process.argv[i + 1] : fallback;
+}
+
+const semeArg = arg('--seme', null);
+const seme = semeArg != null ? parseInt(semeArg, 10) : undefined;
+const atleti = parseInt(arg('--atleti', '100'), 10);
+const stagioni = parseInt(arg('--stagioni', '1'), 10);
+const presenti = parseInt(arg('--presenti', '48'), 10);
+const outName = arg('--out', null);
+
+const tag = outName ?? ((atleti === 100 && stagioni === 1 && presenti === 48)
+  ? 'stress-100'
+  : `stress-${atleti}x${stagioni}${presenti !== 48 ? `-p${presenti}` : ''}`);
 
 // Bundle del core TS (importa src/domain + JSON) in un modulo ESM temporaneo.
 const bundlePath = join(outDir, '.gen-stress.bundle.mjs');
@@ -31,11 +49,11 @@ await build({
 });
 
 const { generaDatasetStress, SEME_DEFAULT } = await import(pathToFileURL(bundlePath).href);
-const { backup, manifest } = generaDatasetStress(seme ?? SEME_DEFAULT);
+const { backup, manifest } = generaDatasetStress(seme ?? SEME_DEFAULT, { atleti, stagioni, presenti });
 
 const json = JSON.stringify(backup, null, 2);
-writeFileSync(join(outDir, 'stress-100.json'), json, 'utf8');
-writeFileSync(join(outDir, 'stress-100-manifest.json'), JSON.stringify(manifest, null, 2), 'utf8');
+writeFileSync(join(outDir, `${tag}.json`), json, 'utf8');
+writeFileSync(join(outDir, `${tag}-manifest.json`), JSON.stringify(manifest, null, 2), 'utf8');
 
 // Backup cifrato (.finpbackup): AES-GCM-256 + PBKDF2-SHA256, come src/lib/backupCrypto.ts.
 const PASSWORD = 'qa-test-2026';
@@ -63,10 +81,10 @@ const cifrato = JSON.stringify({
   iv: b64(iv),
   data: b64(ct),
 });
-writeFileSync(join(outDir, 'stress-100-cifrato.finpbackup'), cifrato, 'utf8');
+writeFileSync(join(outDir, `${tag}-cifrato.finpbackup`), cifrato, 'utf8');
 
 const kb = (s) => (Buffer.byteLength(s, 'utf8') / 1024).toFixed(1);
-console.log(`stress-100.json: ${kb(json)} KiB`);
-console.log(`stress-100-cifrato.finpbackup: ${kb(cifrato)} KiB`);
+console.log(`${tag}.json: ${kb(json)} KiB`);
+console.log(`${tag}-cifrato.finpbackup: ${kb(cifrato)} KiB`);
 console.log(`manifest: ${JSON.stringify(manifest.conteggi)}`);
 console.log(`giorno prova: ${JSON.stringify(manifest.giornoProva)}`);

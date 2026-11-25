@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useApp } from '../data/AppContext';
-import { CodiceAllenamentoKey, LogSeduta } from '../types';
+import { Assenza, CodiceAllenamentoKey, LogSeduta } from '../types';
 import { formattaData, parseData, todayISO, yearsBetween } from '../domain/dateUtils';
 import { VolumeIndividuale } from '../domain/volumeIndividuale';
 import { isAssenteInData } from '../domain/assenze';
@@ -49,14 +49,37 @@ export const RegistroScreen: React.FC = () => {
   // Athletes attendance row state
   const [righe, setRighe] = useState<Record<number, { presente: boolean; metri: string; rpe: string }>>({});
 
+  // Indici una tantum: con 300 atleti e >100k log un find() per atleta
+  // nella costruzione delle righe diventerebbe O(N*M).
+  const logPerAtletaData = useMemo(() => {
+    const m = new Map<string, LogSeduta>();
+    for (const l of log) {
+      const k = `${l.atletaId}|${l.data}`;
+      if (!m.has(k)) m.set(k, l);
+    }
+    return m;
+  }, [log]);
+  const assenzePerAtleta = useMemo(() => {
+    const m = new Map<number, Assenza[]>();
+    for (const a of assenze) {
+      const lista = m.get(a.atletaId);
+      if (lista) lista.push(a);
+      else m.set(a.atletaId, [a]);
+    }
+    return m;
+  }, [assenze]);
+
   // Inizializza/aggiorna le righe quando i dati sottostanti cambiano
   // (pattern "adjust state during render": niente effect + setState).
   const costruisciRigheIniziali = (): Record<number, { presente: boolean; metri: string; rpe: string }> => {
     const initial: Record<number, { presente: boolean; metri: string; rpe: string }> = {};
     if (!dataParsed) return initial;
 
+    const settimana = micro.find(m => m.inizio <= dataParsed && m.fine >= dataParsed) ?? null;
+    const ASSENZE_VUOTE: Assenza[] = [];
+
     atleti.forEach(a => {
-      const esistente = log.find(l => l.atletaId === a.id && l.data === dataParsed);
+      const esistente = logPerAtletaData.get(`${a.id}|${dataParsed}`);
       if (esistente) {
         initial[a.id] = {
           presente: esistente.presente,
@@ -64,14 +87,13 @@ export const RegistroScreen: React.FC = () => {
           rpe: esistente.rpe?.toString() ?? ''
         };
       } else {
-        const assente = isAssenteInData(a.id, dataParsed, assenze, 'ALLENAMENTO');
-        const settimana = micro.find(m => m.inizio <= dataParsed && m.fine >= dataParsed);
+        const assente = isAssenteInData(a.id, dataParsed, assenzePerAtleta.get(a.id) ?? ASSENZE_VUOTE, 'ALLENAMENTO');
         const previsti = settimana && settimana.sedutePreviste > 0
           ? Math.round(
               VolumeIndividuale.settimana(
                 settimana,
                 a,
-                assenze.filter(ass => ass.atletaId === a.id)
+                assenzePerAtleta.get(a.id) ?? ASSENZE_VUOTE
               ).metri / settimana.sedutePreviste
             )
           : 1800;

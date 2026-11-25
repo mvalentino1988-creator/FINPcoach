@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useApp } from '../data/AppContext';
-import { Atleta } from '../types';
+import { Atleta, Tempo } from '../types';
 import { formattaData, todayISO, yearsBetween, isBefore } from '../domain/dateUtils';
 import { CalcoloRitmiRipartenze } from '../domain/calcoloRitmiRipartenze';
 import { formattaTempo } from '../domain/tempoUtils';
@@ -88,11 +88,33 @@ const AtletiScreenContent: React.FC = () => {
     }).length;
   };
 
+  // Indici una tantum (300+ atleti / decine di migliaia di tempi): niente
+  // filter dentro la mappa delle righe.
+  const tempiPerAtleta = useMemo(() => {
+    const map = new Map<number, Tempo[]>();
+    for (const t of tempi) {
+      const lista = map.get(t.atletaId);
+      if (lista) lista.push(t);
+      else map.set(t.atletaId, [t]);
+    }
+    return map;
+  }, [tempi]);
+  const TEMPI_VUOTI: Tempo[] = [];
+
+  const microCorrente = useMemo(
+    () => micro.find(m => !isBefore(oggi, m.inizio) && !isBefore(m.fine, oggi)) ?? null,
+    [micro, oggi]
+  );
+  const mesoCorrente = useMemo(
+    () => (microCorrente ? meso.find(me => me.id === microCorrente.mesocicloId) ?? null : null),
+    [meso, microCorrente]
+  );
+
   const classiValide = atleti.map(a => a.classeS).filter((s): s is number => s != null);
   const classiRange = classiValide.length > 0
     ? `S${Math.min(...classiValide)}–S${Math.max(...classiValide)}`
     : '—';
-  const atletiConTempi = atleti.filter(a => tempi.some(t => t.atletaId === a.id)).length;
+  const atletiConTempi = tempiPerAtleta.size;
 
   const FILTRI_CLASSI: { id: typeof categoriaFiltro; label: string }[] = [
     { id: 'ALL', label: 'TUTTI' },
@@ -261,16 +283,14 @@ const AtletiScreenContent: React.FC = () => {
       {/* Athletes roster — righe compatte: la squadra intera resta in vista senza scroll */}
       <div className="flex flex-col gap-1.5">
         {atletiFiltrati.map(a => {
-          const mieiTempi = tempi.filter(t => t.atletaId === a.id);
+          const mieiTempi = tempiPerAtleta.get(a.id) ?? TEMPI_VUOTI;
           const eta = a.dataNascita ? yearsBetween(a.dataNascita, oggi) : null;
 
-          const microCorrente = micro.find(m => !isBefore(oggi, m.inizio) && !isBefore(m.fine, oggi));
-          const mesoCorrente = microCorrente ? meso.find(me => me.id === microCorrente.mesocicloId) : null;
           const formCheck = CalcoloRitmiRipartenze.valutaNecessitaFormCheck(a, mieiTempi, mesoCorrente);
           const haTempi = mieiTempi.length > 0;
-          const migliorTempo = haTempi
-            ? formattaTempo([...mieiTempi].sort((x, y) => x.centesimi - y.centesimi)[0].centesimi)
-            : '—';
+          let migliorCent = Infinity;
+          for (const t of mieiTempi) if (t.centesimi < migliorCent) migliorCent = t.centesimi;
+          const migliorTempo = haTempi ? formattaTempo(migliorCent) : '—';
 
           return (
             <Card

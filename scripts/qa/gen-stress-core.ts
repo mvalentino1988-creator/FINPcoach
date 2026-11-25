@@ -38,6 +38,19 @@ export const SEME_DEFAULT = 20261119;
 export const OGGI_PROVA = '2026-11-19';
 export const NUMERO_PROVA_PRESENTI = 48;
 
+/** Opzioni del generatore (QUINTO GIRO 3.1). Tutte deterministiche. */
+export interface OpzioniStress {
+  /** Numero di atleti (default 100). */
+  atleti?: number;
+  /** Numero di stagioni: 1 = solo l'attiva; >1 aggiunge stagioni passate come storico. */
+  stagioni?: number;
+  /** Presenti attesi nel giorno di prova (default 48). */
+  presenti?: number;
+}
+
+/** Lunghezza in giorni di una stagione simulata (per lo storico). */
+const GIORNI_STAGIONE = 274;
+
 // ---------------------------------------------------------------- PRNG
 
 function mulberry32(seed: number): () => number {
@@ -138,9 +151,12 @@ export interface DatasetStress {
   manifest: Record<string, unknown>;
 }
 
-export function generaDatasetStress(seme: number = SEME_DEFAULT): DatasetStress {
+export function generaDatasetStress(seme: number = SEME_DEFAULT, opts: OpzioniStress = {}): DatasetStress {
   const rng = new Rng(seme);
   const incongruenze: Record<string, unknown>[] = [];
+  const N_ATLETI = Math.max(1, Math.floor(opts.atleti ?? 100));
+  const N_STAGIONI = Math.max(1, Math.floor(opts.stagioni ?? 1));
+  const N_PRESENTI = Math.max(1, Math.floor(opts.presenti ?? NUMERO_PROVA_PRESENTI));
 
   // ---------------- Stagione e calendario gare SIMULATO ----------------
   const stagione: Stagione & { meta?: { simulato: boolean } } = {
@@ -230,7 +246,7 @@ export function generaDatasetStress(seme: number = SEME_DEFAULT): DatasetStress 
   const ECCEZIONI = ['*', 'T', 'A', 'Y', 'E', '7', '9'];
 
   const atleti: Atleta[] = [];
-  for (let i = 1; i <= 100; i++) {
+  for (let i = 1; i <= N_ATLETI; i++) {
     const eta = rng.int(12, 65);
     const annoNascita = 2026 - eta;
     const mese = rng.int(1, 12);
@@ -276,8 +292,8 @@ export function generaDatasetStress(seme: number = SEME_DEFAULT): DatasetStress 
   ];
   const condizioni: CondizioneMedica[] = [];
   const atletiConCondizione = new Set<number>();
-  while (atletiConCondizione.size < 40) {
-    atletiConCondizione.add(rng.int(1, 100));
+  while (atletiConCondizione.size < Math.max(1, Math.round(N_ATLETI * 0.4))) {
+    atletiConCondizione.add(rng.int(1, N_ATLETI));
   }
   let condId = 1;
   for (const atletaId of [...atletiConCondizione].sort((a, b) => a - b)) {
@@ -289,13 +305,13 @@ export function generaDatasetStress(seme: number = SEME_DEFAULT): DatasetStress 
   const assenze: Assenza[] = [];
   let assenzaId = 1;
   const atletiConAssenze = new Set<number>();
-  while (atletiConAssenze.size < 60) {
-    atletiConAssenze.add(rng.int(1, 100));
+  while (atletiConAssenze.size < Math.max(1, Math.round(N_ATLETI * 0.6))) {
+    atletiConAssenze.add(rng.int(1, N_ATLETI));
   }
   // 20 atleti con assenza che copre il giorno di prova (2026-11-19).
   const atletiAssentiProva = new Set<number>();
-  while (atletiAssentiProva.size < 20) {
-    atletiAssentiProva.add(rng.int(1, 100));
+  while (atletiAssentiProva.size < Math.min(N_ATLETI - N_PRESENTI, Math.max(1, Math.round(N_ATLETI * 0.2)))) {
+    atletiAssentiProva.add(rng.int(1, N_ATLETI));
   }
 
   const garePerAssenza = gare.filter(g => g.dal >= stagione.inizio && g.al <= stagione.fine);
@@ -588,6 +604,82 @@ export function generaDatasetStress(seme: number = SEME_DEFAULT): DatasetStress 
     }
   }
 
+  // ---------------- Storico stagioni precedenti (QUINTO GIRO 3.1) ----------------
+  // Con `stagioni` > 1 le stagioni passate sono rappresentate come storico:
+  // log di seduta e tempi con date coerenti nelle stagioni precedenti,
+  // senza toccare il modello della stagione attiva (una sola stagione).
+  const N_LOG_PRECEDENTI = { n: 0 };
+  const N_TEMPI_PRECEDENTI = { n: 0 };
+  for (let s = 1; s < N_STAGIONI; s++) {
+    // Stagione s (1 = la più recente): fine = giorno prima dell'inizio della
+    // stagione successiva, inizio = fine - GIORNI_STAGIONE.
+    const fineS = addDays(stagione.inizio, -((s - 1) * GIORNI_STAGIONE + 1));
+    const inizioS = addDays(fineS, -(GIORNI_STAGIONE - 1));
+    const tS0 = Date.parse(inizioS + 'T00:00:00Z');
+    const tS1 = Date.parse(fineS + 'T00:00:00Z');
+
+    // Tempi della stagione passata (stessa calibrazione record, avanzamento
+    // temporale coerente dentro la stagione).
+    for (const atleta of atleti) {
+      const ammesse = gareAmmesse({ classeS: atleta.classeS, classeSB: atleta.classeSB, classeSM: atleta.classeSM });
+      if (ammesse.length === 0) continue;
+      const nTempi = rng.int(8, 20);
+      for (let i = 0; i < nTempi; i++) {
+        const g = rng.pick(ammesse);
+        const classe = classePerFamiglia(atleta, g.famiglia);
+        if (!classe) continue;
+        const vasca = rng.chance(0.8) ? 25 : 50;
+        const record = recordPer(classe, g, vasca);
+        if (record == null) continue;
+        const data = randomDateISO(rng, inizioS, fineS);
+        const r = rng.f();
+        const contesto: Tempo['contesto'] = r < 0.65 ? 'ALLENAMENTO' : r < 0.85 ? 'TEST' : 'GARA';
+        const progresso = (Date.parse(data + 'T00:00:00Z') - tS0) / Math.max(1, tS1 - tS0);
+        let fattore = 1.9 - (1.9 - 1.05) * progresso + (rng.f() - 0.5) * 0.06;
+        let centesimi = Math.round(record * fattore);
+        if (centesimi < record + 1) centesimi = record + 1;
+        tempi.push({
+          id: tempoId++,
+          atletaId: atleta.id,
+          data,
+          stile: g.stile,
+          distanzaMetri: g.distanza,
+          centesimi,
+          contesto,
+          vascaMetri: vasca,
+          note: contesto === 'GARA' ? 'SIM-Gara' : 'SIM-Stagione precedente',
+        });
+        N_TEMPI_PRECEDENTI.n++;
+      }
+    }
+
+    // Log di seduta della stagione passata: stessi giorni di allenamento,
+    // ~12% di assenze simulate (non correlate alle assenze della stagione
+    // attiva, che sono datate dopo).
+    const paramS = { vascaMetri: 25 as const, durataMin: 90 };
+    for (let t = tS0; t <= tS1; t += 86400000) {
+      const data = new Date(t).toISOString().slice(0, 10);
+      const dow = getDayOfWeek(data);
+      if (!giorniAllenamento.includes(dow)) continue;
+      for (const atleta of atleti) {
+        const presente = rng.f() >= 0.12;
+        const rpe = presente ? rng.int(4, 9) : undefined;
+        const metri = presente ? Math.round(paramS.durataMin * (20 + rng.f() * 12)) : 0;
+        logSedute.push({
+          id: logId++,
+          atletaId: atleta.id,
+          data,
+          presente,
+          durataMin: presente ? paramS.durataMin : 0,
+          metriEffettivi: metri,
+          ...(rpe != null ? { rpe } : {}),
+          note: presente ? 'SIM-Stagione precedente' : 'SIM-Assente',
+        });
+        N_LOG_PRECEDENTI.n++;
+      }
+    }
+  }
+
   // ---------------- Giorno di prova: esattamente 48 presenti ----------------
   const provaData = OGGI_PROVA;
   const provaDow = getDayOfWeek(provaData);
@@ -611,14 +703,14 @@ export function generaDatasetStress(seme: number = SEME_DEFAULT): DatasetStress 
     });
 
   const nonAssenti = atleti.filter(a => !assenteInProva(a.id)).map(a => a.id);
-  const presentiIds = nonAssenti.slice(0, NUMERO_PROVA_PRESENTI);
+  const presentiIds = nonAssenti.slice(0, N_PRESENTI);
   const manifestPresenti = {
     data: provaData,
     giornoSettimana: provaDow,
     presenti: presentiIds.length,
-    attesi: NUMERO_PROVA_PRESENTI,
+    attesi: N_PRESENTI,
     assentiPerAssenza: atleti.filter(a => assenteInProva(a.id)).length,
-    nonConvocati: 100 - presentiIds.length - atleti.filter(a => assenteInProva(a.id)).length,
+    nonConvocati: N_ATLETI - presentiIds.length - atleti.filter(a => assenteInProva(a.id)).length,
   };
 
   impostazioni.overrideSedute = {
@@ -646,11 +738,12 @@ export function generaDatasetStress(seme: number = SEME_DEFAULT): DatasetStress 
     customWorkouts: [],
     assegnazioneVasca: null,
     mode: 'live',
-    meta: { simulato: true, generatore: 'gen-stress.mjs', seme },
+    meta: { simulato: true, generatore: 'gen-stress.mjs', seme, atleti: N_ATLETI, stagioni: N_STAGIONI, presenti: N_PRESENTI },
   };
 
   const manifest = {
-    meta: { simulato: true, seme, generatoPer: 'collaudo stress 100 atleti' },
+    meta: { simulato: true, seme, generatoPer: `collaudo stress ${N_ATLETI} atleti x ${N_STAGIONI} stagioni` },
+    parametri: { atleti: N_ATLETI, stagioni: N_STAGIONI, presenti: N_PRESENTI },
     conteggi: {
       atleti: atleti.length,
       condizioni: condizioni.length,
@@ -662,6 +755,8 @@ export function generaDatasetStress(seme: number = SEME_DEFAULT): DatasetStress 
       macrocicli: macro.length,
       mesocicli: meso.length,
       microcicli: micro.length,
+      logSedutePrecedenti: N_LOG_PRECEDENTI.n,
+      tempiPrecedenti: N_TEMPI_PRECEDENTI.n,
     },
     giornoProva: manifestPresenti,
     incongruenzeVolute: incongruenze,
