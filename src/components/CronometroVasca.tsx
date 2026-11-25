@@ -31,6 +31,7 @@ import { setImmersive, releaseImmersive } from '../lib/immersive';
 import { beep, vibrate } from '../lib/beep';
 import { cloneSession, useVascaSession } from '../data/VascaSessionContext';
 import { leggiSessioneVasca, VASCA_SESSION_KEY } from '../lib/vascaSessione';
+import { kvDel } from '../data/kvStore';
 import { todayISO } from '../domain/dateUtils';
 import { presentiEffettiviInData } from '../domain/assenze';
 import { SheetHost, SummaryOverlay, SheetKind, TimerNodes } from './cronometroParts';
@@ -920,7 +921,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
                 type="button"
                 onClick={() => {
                   sessionStorage.setItem('finp_vasca_resume_asked', '1');
-                  try { localStorage.removeItem(VASCA_SESSION_KEY); } catch { /* noop */ }
+                  try { kvDel(VASCA_SESSION_KEY); } catch { /* noop */ }
                   const fresh = createSession();
                   sessionRef.current = fresh;
                   setSession(fresh);

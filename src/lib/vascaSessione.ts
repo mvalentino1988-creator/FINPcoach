@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { VascaSession, migrateSession } from '../domain/cronometroVasca';
+import { kvGet } from '../data/kvStore';
 
 export const VASCA_SESSION_KEY = 'finp_vasca_session_v1';
 export const VASCA_SESSION_EVENT = 'finp:vasca-session';
@@ -7,7 +8,7 @@ export const VASCA_VISTA_EVENT = 'finp:vasca-vista';
 
 export function leggiSessioneVasca(): VascaSession | null {
   try {
-    const raw = localStorage.getItem(VASCA_SESSION_KEY);
+    const raw = kvGet(VASCA_SESSION_KEY);
     if (!raw) return null;
     const s = JSON.parse(raw) as VascaSession;
     if (!s || !Array.isArray(s.lanes) || typeof s.stato !== 'string') return null;

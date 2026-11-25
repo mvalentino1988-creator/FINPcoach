@@ -3,6 +3,8 @@
  * Permette di salvare esercizi comuni come suggerimenti riutilizzabili
  */
 
+import { kvGet, kvSet } from '../data/kvStore';
+
 export interface EsercizioTemplate {
   id: string;
   nome: string;
@@ -35,7 +37,7 @@ export class GestioneTemplate {
 
   static caricaTemplate() {
     try {
-      const salvati = localStorage.getItem(STORAGE_KEY);
+      const salvati = kvGet(STORAGE_KEY);
       if (salvati) {
         this.template = JSON.parse(salvati);
       }
@@ -45,7 +47,7 @@ export class GestioneTemplate {
   }
 
   static salvaTemplate() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.template));
+    kvSet(STORAGE_KEY, JSON.stringify(this.template));
   }
 
   static getTemplate(): EsercizioTemplate[] {

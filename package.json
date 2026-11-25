@@ -41,6 +41,7 @@
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-unused-imports": "^4.4.1",
+    "fake-indexeddb": "^6.2.8",
     "jsdom": "^26.1.0",
     "puppeteer-core": "^25.18.1",
     "typescript-eslint": "^8.73.0",

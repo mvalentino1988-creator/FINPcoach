@@ -65,9 +65,17 @@ export interface SnapshotVoceCompressa {
 
 export type SnapshotEntry = SnapshotVoce | SnapshotVoceCompressa;
 
-function storage(): Storage | null {
+import { flushKvStore, kvDel, kvGet, kvSet } from './kvStore';
+
+/** Backend dei dati: cache/IndexedDB (kvStore) con fallback localStorage. */
+function storage(): { getItem(k: string): string | null; setItem(k: string, v: string): void; removeItem(k: string): void } | null {
   try {
-    return typeof localStorage === 'undefined' ? null : localStorage;
+    if (typeof localStorage === 'undefined') return null;
+    return {
+      getItem: (k: string) => kvGet(k),
+      setItem: (k: string, v: string) => kvSet(k, v),
+      removeItem: (k: string) => kvDel(k),
+    };
   } catch {
     return null;
   }
@@ -203,6 +211,7 @@ export function salvaSnapshotDati(): boolean {
 
   if (bytes <= SNAPSHOT_COMPRESS_MIN_BYTES) {
     // Dataset piccolo: scrittura sincrona inline (comportamento storico).
+    void flushKvStore();
     const voce: SnapshotVoce = { ts, voci };
     try {
       const lista = [...listaSnapshot(), voce].sort((a, b) => b.ts - a.ts).slice(0, SNAPSHOT_MAX);
@@ -214,6 +223,9 @@ export function salvaSnapshotDati(): boolean {
   }
 
   accodaScritturaSnapshot(async () => {
+    // Prima dello snapshot si garantisce che le scritture dati in coda
+    // siano già persistite su IndexedDB.
+    await flushKvStore();
     const jsonVoci = JSON.stringify(voci);
     const gz = await comprimi(jsonVoci);
     if (gz == null) {
@@ -281,5 +293,6 @@ export async function ripristinaSnapshot(ts?: number): Promise<boolean> {
       /* quota piena: il ripristino è best-effort */
     }
   }
+  await flushKvStore();
   return true;
 }

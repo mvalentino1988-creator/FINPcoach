@@ -1,4 +1,5 @@
 import calendarioData from '../data/calendario.json';
+import { kvGet, kvSet } from '../data/kvStore';
 
 /** Un evento del calendario gare FINP. */
 export interface EventoCalendario {
@@ -39,7 +40,7 @@ export interface EventoPersonalizzato extends EventoCalendario {
 
 function caricaPersonalizzati(): EventoPersonalizzato[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = kvGet(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
@@ -51,7 +52,7 @@ function caricaPersonalizzati(): EventoPersonalizzato[] {
 
 function salvaPersonalizzati(lista: EventoPersonalizzato[]): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
+    kvSet(STORAGE_KEY, JSON.stringify(lista));
   } catch {
     // quota/private mode: gli eventi restano solo in memoria per questa sessione
   }

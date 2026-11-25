@@ -1,5 +1,6 @@
 import { Stile } from '../types';
 import { AthleticPerformance, BiomechanicsEngine } from './biomechanicsEngine';
+import { kvGet, kvSet } from '../data/kvStore';
 
 export class ParaSwimmingViewModel {
   private static STORAGE_PERFORMANCES = 'finp_para_performances';
@@ -8,7 +9,7 @@ export class ParaSwimmingViewModel {
 
   static getPerformances(): AthleticPerformance[] {
     try {
-      const raw = localStorage.getItem(this.STORAGE_PERFORMANCES);
+      const raw = kvGet(this.STORAGE_PERFORMANCES);
       return raw ? JSON.parse(raw) : [];
     } catch {
       return [];
@@ -17,7 +18,7 @@ export class ParaSwimmingViewModel {
 
   static savePerformances(list: AthleticPerformance[]): void {
     try {
-      localStorage.setItem(this.STORAGE_PERFORMANCES, JSON.stringify(list));
+      kvSet(this.STORAGE_PERFORMANCES, JSON.stringify(list));
     } catch (e) {
       console.error('Save performance error:', e);
     }
@@ -54,12 +55,12 @@ export class ParaSwimmingViewModel {
 
   static checkAndFetchMonthlyData(): { refreshed: boolean; lastUpdateDate: string } {
     const ora = Date.now();
-    const lastCheckStr = localStorage.getItem(this.STORAGE_MONTHLY_TIMESTAMP);
+    const lastCheckStr = kvGet(this.STORAGE_MONTHLY_TIMESTAMP);
     const lastCheck = lastCheckStr ? parseInt(lastCheckStr, 10) : 0;
 
     let refreshed = false;
     if (ora - lastCheck > this.CHECK_INTERVAL_MS) {
-      localStorage.setItem(this.STORAGE_MONTHLY_TIMESTAMP, ora.toString());
+      kvSet(this.STORAGE_MONTHLY_TIMESTAMP, ora.toString());
       refreshed = true;
     }
 

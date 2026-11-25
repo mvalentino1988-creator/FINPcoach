@@ -7,6 +7,7 @@ import {
   athleteStatus,
   migrateSession,
 } from '../domain/cronometroVasca';
+import { kvGet, kvSet } from './kvStore';
 import { beep, vibrate } from '../lib/beep';
 
 const STORAGE_KEY = 'finp_vasca_session_v1';
@@ -15,7 +16,7 @@ const ENGINE_TICK_MS = 200;
 
 function loadSession(): VascaSession | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = kvGet(STORAGE_KEY);
     if (!raw) return null;
     const s = JSON.parse(raw) as VascaSession;
     if (!s || !Array.isArray(s.lanes) || typeof s.stato !== 'string') return null;
@@ -27,7 +28,7 @@ function loadSession(): VascaSession | null {
 
 function persistSession(s: VascaSession): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+    kvSet(STORAGE_KEY, JSON.stringify(s));
     window.dispatchEvent(new Event('finp:vasca-session'));
   } catch {
     /* quota o private mode */

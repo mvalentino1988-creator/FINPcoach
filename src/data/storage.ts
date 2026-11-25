@@ -19,6 +19,7 @@ import { Festivita } from '../domain/festivita';
 import { IA_CONFIG_DEFAULT, IAConfig } from '../domain/iaEsterna';
 import { BACKUP_VERSIONE, validaBackup } from './backupValidate';
 import { salvaSnapshotDati } from './snapshotAutomatico';
+import { flushKvStore, kvDel, kvGet, kvSet } from './kvStore';
 
 const MODE_KEY = 'finp_mode';
 
@@ -64,7 +65,7 @@ function notificaErroreSalvataggio(key: string, e: unknown): void {
 
 function load<T>(key: string, defaultValue: T): T {
   try {
-    const raw = localStorage.getItem(key);
+    const raw = kvGet(key);
     if (!raw) return defaultValue;
     return JSON.parse(raw);
   } catch {
@@ -74,7 +75,7 @@ function load<T>(key: string, defaultValue: T): T {
 
 function save<T>(key: string, value: T): void {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    kvSet(key, JSON.stringify(value));
     if (ultimoErroreSalvataggio) {
       // Una scrittura riuscita dopo un errore: l'avviso può essere chiuso.
       ultimoErroreSalvataggio = null;
@@ -93,7 +94,7 @@ function save<T>(key: string, value: T): void {
 
 export class FINPStorage {
   static getMode(): 'demo' | 'live' | null {
-    const m = localStorage.getItem(MODE_KEY);
+    const m = kvGet(MODE_KEY);
     if (m === 'live') return 'live';
     if (m !== 'demo') {
       // Se la chiave mode è assenza ma ci sono dati utente (import, vecchia
@@ -108,7 +109,7 @@ export class FINPStorage {
   }
 
   static setMode(mode: 'demo' | 'live') {
-    localStorage.setItem(MODE_KEY, mode);
+    kvSet(MODE_KEY, mode);
   }
 
   static isDemo(): boolean {
@@ -159,7 +160,7 @@ export class FINPStorage {
   private static haDatiUtente(): boolean {
     try {
       const nonVuoto = (key: string) => {
-        const raw = localStorage.getItem(key);
+        const raw = kvGet(key);
         if (raw == null) return false;
         const v = JSON.parse(raw);
         if (Array.isArray(v)) return v.length > 0;
@@ -171,7 +172,7 @@ export class FINPStorage {
         nonVuoto(STORAGE_KEYS.LOG_SEDUTE) ||
         nonVuoto(STORAGE_KEYS.GARE) ||
         nonVuoto(STORAGE_KEYS.CUSTOM_WORKOUTS) ||
-        localStorage.getItem(STORAGE_KEYS.STAGIONE) != null
+        kvGet(STORAGE_KEYS.STAGIONE) != null
       );
     } catch {
       return false;
@@ -190,7 +191,7 @@ export class FINPStorage {
     // Seme solo al primo avvio (chiave assente) o se il JSON e illeggibile.
     // Una rosa vuota o con un numero qualsiasi di atleti va preservata:
     // riseminare il demo qui cancellerebbe i dati importati/vuoti dell'utente.
-    const raw = localStorage.getItem(STORAGE_KEYS.ATLETI);
+    const raw = kvGet(STORAGE_KEYS.ATLETI);
     if (raw == null) {
       const seeded = this.createSeedAtleti();
       save(STORAGE_KEYS.ATLETI, seeded);
@@ -366,6 +367,7 @@ export class FINPStorage {
   }
 
   static exportBackup(): string {
+    void flushKvStore();
     // NOTA: iaConfig/apiKey NON è mai incluso nel backup (contiene segreti
     // locali). I backup cifrati usano lo stesso formato.
     const data = {
@@ -400,6 +402,7 @@ export class FINPStorage {
    * Ritorna { ok, errors, warnings }.
    */
   static importBackup(jsonString: string): { ok: boolean; errors: string[]; warnings: string[] } {
+    void flushKvStore();
     const risultato = validaBackup(jsonString);
     if (!risultato.ok || !risultato.data) {
       return { ok: false, errors: risultato.errors, warnings: risultato.warnings };
@@ -416,7 +419,7 @@ export class FINPStorage {
     ];
     const snapshot = new Map<string, string | null>();
     for (const k of chiavi) {
-      try { snapshot.set(k, localStorage.getItem(k)); } catch { snapshot.set(k, null); }
+      try { snapshot.set(k, kvGet(k)); } catch { snapshot.set(k, null); }
     }
 
     try {
@@ -427,8 +430,8 @@ export class FINPStorage {
       // Ripristino: nessun dato parziale deve restare.
       for (const [k, v] of snapshot) {
         try {
-          if (v == null) localStorage.removeItem(k);
-          else localStorage.setItem(k, v);
+          if (v == null) kvDel(k);
+          else kvSet(k, v);
         } catch { /* storage non disponibile */ }
       }
       return {
@@ -466,7 +469,7 @@ export class FINPStorage {
 
   static resetToDefault(): void {
     salvaSnapshotDati();
-    Object.values(STORAGE_KEYS).forEach(k => localStorage.removeItem(k));
+    Object.values(STORAGE_KEYS).forEach(k => kvDel(k));
     this.applyDemoSeed();
   }
 

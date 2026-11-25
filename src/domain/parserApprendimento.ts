@@ -13,6 +13,8 @@
  *   5. da quel momento la riga viene interpretata correttamente e in automatico
  */
 
+import { kvGet, kvSet } from '../data/kvStore';
+
 export type TipoRegola = 'NXM' | 'UNITA' | 'SOLO';
 
 export interface RegolaBase {
@@ -110,7 +112,7 @@ export class ParserApprendimento {
     if (this.caricato && !forza) return this.regole;
     this.caricato = true;
     try {
-      const salvate = localStorage.getItem(STORAGE_KEY);
+      const salvate = kvGet(STORAGE_KEY);
       if (salvate) {
         const grezze = JSON.parse(salvate);
         if (Array.isArray(grezze)) {
@@ -126,7 +128,7 @@ export class ParserApprendimento {
   static salvaRegole(): void {
     this.caricato = true;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.regole));
+      kvSet(STORAGE_KEY, JSON.stringify(this.regole));
     } catch {
       /* storage non disponibile: le regole restano solo in memoria */
     }
