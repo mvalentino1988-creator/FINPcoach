@@ -120,3 +120,53 @@ vanno mai in git). Per firmare un release:
   sopravvive a cambio tab, sfondo e riavvio.
 - `allowBackup=false`: i dati non escono dal dispositivo via backup Android;
   usare l'export JSON cifrato dell'app.
+
+---
+
+# QUINTO GIRO — architettura storage e collaudo .qa
+
+## Storage: da localStorage a IndexedDB
+- Tutti i dati applicativi vivono in IndexedDB (`finpcoach-kv`, object store
+  `kv`, chiave `k`): atleti, tempi, log, stagione, piano, gare, impostazioni
+  piano, snapshot automatici, sessione cronometro.
+- `src/data/kvStore.ts` mantiene un'<API> sincrona (`kvGet/kvSet/kvDel/kvKeys)
+  con cache in memoria: la UI non è cambiata. Avvio = idratazione IDB
+  (schermata "Caricamento…" in index.html); scritture = debounce ~200ms in
+  coda ordinata + flush su visibilitychange/pagehide/blur e prima di
+  export/import/snapshot.
+- In localStorage restano solo: `finp_theme_mode`, `finp_mode`,
+  `finp_onboarded`, `finp_idb_state` e il marcatore `__meta:migrazione`
+  (in IDB). `navigator.storage.persist()` richiesto all'avvio.
+- **Migrazione automatica** al primo avvio della nuova build: copia TUTTE
+  le chiavi LS -> IDB, verifica conteggio+checksum per chiave, scrive il
+  marcatore solo dopo verifica, conserva uno snapshot compresso
+  (`__snapshot_pre_migrazione`) in IDB, poi svuota le chiavi pesanti da LS.
+  Se fallisce o l'app viene chiusa a metà, LS resta autoritativa e la
+  migrazione riprova al prossimo avvio. Verificato su .qa: una sola
+  migrazione, stessi numeri, LS <200KB.
+- `navigator.storage.estimate()` alimenta la scheda "Spazio" in BackupModal.
+
+## Generatore stress (scripts/qa/gen-stress.mjs)
+- `--atleti N` (default 100), `--stagioni S` (default 1), `--presenti P`
+  (default 48), `--oggi AAAA-MM-GG` (giorno del "prova day" con i presenti
+  attesi; default fisso 2026-11-19 per retrocompatibilità), `--seme`, `--out`.
+- `--stagioni S>1`: le stagioni passate diventano storico (log di seduta e
+  tempi con date coerenti) senza cambiare il modello della stagione attiva.
+- Output in `scripts/qa/out/` (mai in git): `stress-100.json`,
+  `stress-300x3.json` (33,7MB) e varianti `-cifrato.finpbackup`
+  (password di prova solo in docs/qa/PROVA-UTENTE.md).
+
+## Build e prova .qa
+- Web+Android: `npm run build:android` (azzera VITE_FIREBASE_*, sincronia
+  asset in `app/src/main/assets/web`, nessuna "AIza" negli asset).
+- APK: `./gradlew :app:assembleQa :app:assembleDebug`.
+- Pacchetto .qa = `com.mattia.nuotoparalimpico.qa` ("FINPcoach QA",
+  badge rosso "QA · dati simulati"); pacchetto reale intoccabile.
+- Helper device in `scripts/qa/`: `lib.sh` (adb/cdp/shots), `cdp.mjs`,
+  `device-import-test.mjs` (import via CDP DataTransfer, conta IDB),
+  `device-budget.mjs` (budget resa), `device-inject-session.mjs` e
+  `device-frozen-test.mjs` (prove cronometro), `device-drift.mjs`
+  (deriva in-page), `settings.sh` (impostazioni di sistema reversibili).
+- Prova utente: `docs/qa/PROVA-UTENTE.md` (checklist 10 blocchi);
+  `/sdcard/Download` contiene `stress-100.json` e
+  `stress-100-cifrato.finpbackup` (password `qa-test-2026`).

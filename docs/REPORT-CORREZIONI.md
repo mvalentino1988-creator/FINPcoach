@@ -307,3 +307,63 @@ RegiaTecnicaCorsie 976->505, RegistroScreen 842->414, AtletiScreen
 NON sotto 600: PianoScreen e CronometroVasca (motivo in DECISIONI.md:
 props-drilling profondo e hook strettamente accoppiati al timer live).
 Test verdi dopo ogni file; `qa:matrice` aggiornata.
+
+---
+
+# QUINTO GIRO — "SCHEGGIA" (2026-11-25)
+
+## Esiti con numeri
+
+### 1. Difetti visibili
+- **Regia corsie**: intestazione con `flex-wrap`, controlli compatti
+  (target >=44px), cognome `line-clamp-2` — il problema di overflow del
+  quarto giro è risolto nel codice; verifica visiva DOM su .qa nei limiti.
+- **Badge QA**: `BuildConfig.IS_QA_BUILD` + iniezione DOM in MainActivity
+  ("QA · dati simulati", rosso, solo build .qa). Nome app "FINPcoach QA".
+- **Regolamenti**: +10 sezioni verbatim -> 258 sezioni totali
+  (NP.1.5.1, 1.24, 1.25, 1.27, 1.30-1.35). Test 41/41 verdi.
+
+### 2. Storage senza tetto 5MB
+- `kvStore.ts`: layer IndexedDB con cache in memoria, debounce 200ms,
+  flush su visibilitychange/pagehide/blur, `navigator.storage.persist()`.
+- Migrazione LS->IDB idempotente con verifica checksum e snapshot
+  compresso pre-cancellazione; interruzioni gestite (LS resta autoritativa).
+- **Device .qa**: migrazione eseguita una sola volta (marcatore ts
+  invariato al riavvio), dati invariati (100 atleti, 14.900 log,
+  4.883 tempi, 15 gare, 574 iscrizioni), localStorage <200KB.
+  Force-stop a metà importazione: ripresa senza perdita.
+- Pacchetto produzione: `install -r` + avvio senza errori ne' eccezioni.
+- `storageQuota.ts`: `navigator.storage.estimate()` reale.
+
+### 3. Scala futura
+- Generatore: `--atleti/--stagioni/--presenti/--oggi`; prodotto
+  `stress-300x3.json` (33,7MB, 300 atleti, 138.600 log, 21.748 tempi).
+- Ottimizzazioni: indici `Map` in AtletiScreen e RegistroScreen (niente
+  O(N*T) nel render), `nextId` via reduce in `salvaSeduta`.
+- **Budget misurati su Pixel (.qa, 300x3)**: Squadra 157ms (<400),
+  ricerca 19ms (<100), Registro 170ms (<600), import ~4s lato app
+  (<15s), PSS 348MB (<450MB).
+- **Archivia stagione**: nuova funzione — export .json.gz (piano, gare,
+  iscrizioni, chiusure, log del periodo), snapshot automatico, doppia
+  conferma; atleti/tempi/log fuori periodo restano.
+- Nessun limite artificiale trovato (MAX_* = vincoli fisici).
+
+### 4. Prove dispositivo
+- **Freeze 90s (CDP)**: 7 partenze automatiche marcate `autoLate` con
+  indicatore "↺ partenza recuperata"; ripetuto con app in background:
+  catena completata senza perdita di stato.
+- **Deriva 10min**: 119 campioni in-page, mediana -10,8ms; tutti i
+  campioni con pagina visibile entro ±20ms (obiettivo <100ms).
+  ~35s di pagina nascosta: il display si ferma (rAF) e recupera al
+  rientro senza deriva residua.
+- **Framestats**: 171k frame, janky 0,02%, p95 12ms.
+- **Fase 5**: .qa reimpostata con stress-100 fresco (prova-day = oggi,
+  48 presenti verificati in Regia), file in /sdcard/Download.
+
+## Cosa NON è stato provato
+- La build di produzione non è stata testata beyond avvio/assenza errori
+  (vincolo: dati utente intoccabili).
+- La variante "schermata bloccata" del freeze usa HOME+background reale;
+  il flag autoLate non è scattato perché la WebView ha continuato a
+  girare (comportamento corretto: nessuna ripartenza persa).
+- Import da file manager nativo non provato (import via CDP DataTransfer).

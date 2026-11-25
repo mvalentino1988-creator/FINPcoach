@@ -284,7 +284,7 @@ async function migraDaLocalStorage(): Promise<boolean> {
     await scriviTuttoInIdb(voci);
 
     // Verifica per ogni chiave: lettura di ritorno da IDB.
-    for (const { k, raw } of voci) {
+    for (const { k } of voci) {
       const v = verifiche.get(k)!;
       const riletto = await idbGet(k);
       if (riletto == null || !verificaOk(riletto, v)) {

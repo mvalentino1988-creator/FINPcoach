@@ -16,6 +16,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 if (!file || !process.argv[2]) { console.error('Uso: device-import-test.mjs <file> <password>'); process.exit(1); }
 
 async function main() {
+const t0 = Date.now();
+const ms = () => Date.now() - t0;
 const browser = await puppeteer.connect({ browserURL: CDP_URL, defaultViewport: null });
 const result = { step: 'init' };
 try {
@@ -64,6 +66,7 @@ try {
   if (immesso !== 'ok') throw new Error('Immissione file fallita: ' + immesso);
   await sleep(2500);
   result.step = 'file-scaricato';
+  result.msFile = ms();
 
   // Se cifrato -> modale password
   const haPw = await page.evaluate(() => document.querySelectorAll('input[type="password"]').length > 0);
@@ -83,6 +86,7 @@ try {
     result.decifraClick = ok;
     await sleep(2500);
     result.step = 'dopo-decifra';
+    result.msDecifra = ms();
     result.erroreDecifra = await page.evaluate(() => document.body.innerText.includes('Decifratura fallita') || document.body.innerText.includes('password'));
     // Se c'e ancora il modale password -> password sbagliata
     const ancoraPw = await page.evaluate(() => document.querySelectorAll('input[type="password"]').length > 0);
@@ -97,6 +101,7 @@ try {
   // Conferma importazione "Importa e sovrascrivi" se presente
   const conferma = await clickText('Importa e sovrascrivi');
   result.confermaImport = conferma;
+  result.msConferma = ms();
   await sleep(4000);
 
   // Errori di importazione? (la validazione avviene dopo la conferma)
@@ -109,13 +114,47 @@ try {
     return;
   }
 
-  // Attendi eventuale reload e leggi stato
-  for (let i = 0; i < 10; i++) {
-    const n = await page.evaluate(() => {
-      try { return JSON.parse(localStorage.getItem('finp_atleti') || '[]').length; } catch { return -1; }
-    }).catch(() => -1);
-    if (n >= 0) { result.atleti = n; break; }
+  // Attendi eventuale reload e leggi stato (QUINTO GIRO: i dati vivono in
+  // IndexedDB, non più in localStorage).
+  const leggiConteggi = () => page.evaluate(async () => {
+    try {
+      const db = await new Promise((res, rej) => {
+        const r = indexedDB.open('finpcoach-kv');
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      });
+      const tx = db.transaction('kv', 'readonly');
+      const get = (k) => new Promise(res => {
+        const r = tx.objectStore('kv').get(k);
+        r.onsuccess = () => res(r.result ? r.result.v : null);
+        r.onerror = () => res(null);
+      });
+      const cnt = async (k) => {
+        const v = await get(k);
+        if (v == null) return 0;
+        try { const j = JSON.parse(v); return Array.isArray(j) ? j.length : 0; } catch { return 0; }
+      };
+      const out = {
+        atleti: await cnt('finp_atleti'),
+        log: await cnt('finp_log_sedute'),
+        tempi: await cnt('finp_tempi'),
+      };
+      db.close();
+      return out;
+    } catch { return null; }
+  }).catch(() => null);
+
+  let conteggi = null;
+  for (let i = 0; i < 30; i++) {
+    conteggi = await leggiConteggi();
+    if (conteggi && conteggi.atleti > 0) break;
     await sleep(1000);
+  }
+  result.msDatiPronti = ms();
+  if (conteggi) {
+    result.atleti = conteggi.atleti;
+    result.log = conteggi.log;
+    result.tempi = conteggi.tempi;
   }
   result.testo = await page.evaluate(() => document.body.innerText.slice(0, 200)).catch(() => '');
   result.risultato = 'IMPORT_FATTO';

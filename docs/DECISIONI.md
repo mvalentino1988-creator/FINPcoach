@@ -46,3 +46,17 @@ segnala i componenti come non provati a livello schermo.
 ## 2026-11-24 — R7 scomposizione eseguita (parziale)
 - Eseguita con i test R2 come rete: RegiaTecnicaCorsie 976->505 (RegiaCorsiaCard, RegiaNonAssegnati, RegiaSheetAtleta, regiaStampa, RegiaBadgeClasse); RegistroScreen 842->414 (registroSezioni); AtletiScreen 1398->424 (atletiModali, atletaDettaglioModal, atletaAssenzeSezione); PianoScreen 1933->1337 (pianoModali, pianoOverlayModals); CronometroVasca 1875->1075 (cronometroParts, CronometroLayout).
 - NON portati sotto 600: PianoScreen (1337, viste tab richiederebbero prop-drilling profondo), CronometroVasca (1075: ulteriori hook/effetti sono strettamente accoppiati a refs del timer live — estrazione valutata rischiosa per il cronometro), cronometroParts (619), atletaDettaglioModal (~500 ok). Motivo: regressioni comportamentali possibili senza prove device complete; la logica resta invariata (spostamenti puri, test verdi dopo ogni file).
+
+## 2026-11-25 — QUINTO GIRO
+- Storage: IndexedDB dietro API sincrona (cache+debounce 200ms+flush)
+  invece di sola misura quota; LS tiene solo impostazioni piccole. Scelta
+  perché la quota WebView ~5MB era già al 52% con 100 atleti x 1 stagione.
+- "Archivia stagione" esporta JSON gzip (CompressionStream nativo, nessuna
+  dipendenza) e rimuove solo i dati della stagione; atleti/tempi/log fuori
+  periodo restano come storico (coerente col modello a una stagione).
+- Handle `window.__FINP_VASCA_SESSION__` esposto per i test device: la
+  scrittura sessione via IDB perdeva la corsa col debounce di persistenza.
+- Nessun limite artificiale rimosso: MAX_LANES/CORISIE/ATLETI_CORISIA e
+  SNAPSHOT_MAX=3 sono vincoli fisici/prodotti, non di scala.
+- Build Android sempre con `npm run build:android` (VITE_FIREBASE_* a zero):
+  `npm run build` lascia la chiave API negli asset.

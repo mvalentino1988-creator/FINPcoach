@@ -78,6 +78,12 @@ export const VascaSessionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const warnRef = useRef<Set<string>>(new Set());
   const lastSigRef = useRef('');
 
+  // Handle di collaudo (script QA su device): accesso in sola lettura/
+  // scrittura al riferimento di sessione, senza aggirare la persistenza.
+  useEffect(() => {
+    (window as unknown as { __FINP_VASCA_SESSION__?: typeof sessionRef }).__FINP_VASCA_SESSION__ = sessionRef;
+  }, []);
+
   const bump = useCallback(() => setVersion(v => v + 1), []);
 
   const persistNow = useCallback(() => {

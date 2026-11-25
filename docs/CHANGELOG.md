@@ -86,3 +86,14 @@ Lavoro di rifinitura in 10 blocchi: correttezza, sicurezza dei dati, accessibili
 - Scomposizione: Regia, Registro, Atleti, Piano, Cronometro in moduli.
 - Verifiche: regolamenti/fonti scritte (VERIFICA-REGOLAMENTI.md),
   quota LocalStorage misurata (QUOTA-STORAGE.md).
+
+## 0.2.1 — Quinto giro "Scheggia" (2026-11-25)
+- Storage migrato a IndexedDB (niente più tetto 5MB), migrazione automatica
+  e sicura da localStorage con verifica checksum.
+- Nuova funzione "Archivia stagione" (export .json.gz + snapshot + doppia
+  conferma).
+- Fix UI Regia (wrap corsie, cognomi lunghi), badge "QA · dati simulati"
+  nella build .qa, +10 capitoli regolamento FINP 2026 (258 sezioni).
+- Generatore stress esteso a N atleti x N stagioni (stress-300x3.json).
+- Prestazioni: indici per atleta in Squadra/Registro; budget verificati
+  su Pixel con 300 atleti x 3 stagioni.

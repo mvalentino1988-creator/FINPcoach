@@ -46,6 +46,8 @@ export interface OpzioniStress {
   stagioni?: number;
   /** Presenti attesi nel giorno di prova (default 48). */
   presenti?: number;
+  /** Data del giorno di prova (default OGGI_PROVA = 2026-11-19). */
+  oggiProva?: string;
 }
 
 /** Lunghezza in giorni di una stagione simulata (per lo storico). */
@@ -681,7 +683,7 @@ export function generaDatasetStress(seme: number = SEME_DEFAULT, opts: OpzioniSt
   }
 
   // ---------------- Giorno di prova: esattamente 48 presenti ----------------
-  const provaData = OGGI_PROVA;
+  const provaData = opts.oggiProva ?? OGGI_PROVA;
   const provaDow = getDayOfWeek(provaData);
   // Garantisce che il giorno di prova sia un giorno di allenamento.
   if (!impostazioni.giorni!.includes(provaDow)) {

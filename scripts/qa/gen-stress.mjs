@@ -31,6 +31,7 @@ const seme = semeArg != null ? parseInt(semeArg, 10) : undefined;
 const atleti = parseInt(arg('--atleti', '100'), 10);
 const stagioni = parseInt(arg('--stagioni', '1'), 10);
 const presenti = parseInt(arg('--presenti', '48'), 10);
+const oggiProva = arg('--oggi', null);
 const outName = arg('--out', null);
 
 const tag = outName ?? ((atleti === 100 && stagioni === 1 && presenti === 48)
@@ -49,7 +50,7 @@ await build({
 });
 
 const { generaDatasetStress, SEME_DEFAULT } = await import(pathToFileURL(bundlePath).href);
-const { backup, manifest } = generaDatasetStress(seme ?? SEME_DEFAULT, { atleti, stagioni, presenti });
+const { backup, manifest } = generaDatasetStress(seme ?? SEME_DEFAULT, { atleti, stagioni, presenti, ...(oggiProva ? { oggiProva } : {}) });
 
 const json = JSON.stringify(backup, null, 2);
 writeFileSync(join(outDir, `${tag}.json`), json, 'utf8');

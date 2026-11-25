@@ -13,7 +13,6 @@ import {
   kvSet,
   kvDel,
   kvPronto,
-  kvCacheKeys,
   isLocalStorageKey,
   checksumStringa,
   conteggioElementi,

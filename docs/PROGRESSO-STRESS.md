@@ -53,3 +53,20 @@ Formato: `id | stato (da fare/in corso/fatto/bloccato) | hash commit | nota`
 | R5 | fatto | 18e2dff | quota reale .qa ~2,36MB (misura QUOTA-STORAGE.md); storageQuota.ts + card Spazio in BackupModal, avviso >70%, pulizia log vecchi con doppia conferma+backup |
 | R6 | fatto | 3d8b6ae+18e2dff | badge A-race: whitespace-nowrap su .ds-chip (anti-a-capo su trattino), nome gara 2 righe, data+belt shrink-0; cestino stagione: conferma con riepilogo (micro/gare/iscrizioni/chiusure) + salvaSnapshotDati() prima di eliminaStagione |
 | R7 | fatto | 1fa17e9,515c774,e2091c1,2741542,aeb6652,96f0174 | Scomposizione: Regia 976->505, Registro 842->414, Atleti 1398->424, Piano 1933->1337, Cronometro 1875->1075 (parziale, vedi DECISIONI) |
+
+## QUINTO GIRO — "SCHEGGIA"
+| passo | stato | nota |
+|-------|-------|------|
+| 1.1-1.2 Regia wrap+cognomi | fatto | header flex-wrap, controlli >=44px, cognome line-clamp-2; chip nonAssegnati già ok |
+| 1.3 Badge QA | fatto | BuildConfig.IS_QA_BUILD + badge DOM rosso "QA · dati simulati" in MainActivity |
+| 1.4 Capitoli regolamento | fatto | +10 sezioni verbatim -> 258; test aggiornati 41/41 |
+| 2.1-2.4 Storage IDB | fatto | kvStore.ts, migrazione LS->IDB con checksum+snapshot, storageQuota via estimate(), 13 test |
+| 2.5-2.6 Device storage | fatto | .qa: migrazione una tantum (ts invariato al riavvio), 100/14900/4883/15/574 invariati, LS<200KB; force-stop OK; prod install -r OK |
+| 3.1 Generatore | fatto | --atleti/--stagioni/--presenti; stress-300x3.json 33,7MB generato |
+| 3.2 Budget | fatto | device: Squadra 157ms, ricerca 19ms, Registro 170ms, import ~4s, PSS 348MB — tutti nei limiti |
+| 3.3 Archivia stagione | fatto | archivio .json.gz + doppia conferma + snapshot; test dominio |
+| 3.4 Limiti | fatto | nessun limite artificiale trovato |
+| 4.1 Freeze 90s | fatto | CDP frozen: 7 autoLate e marker ↺; background: catena completata senza perdita |
+| 4.2 Deriva | in corso | misura in-page 10min |
+| 4.3 300x3 device | fatto | import ~4s, tour squadre/regia/cronometro OK |
+| 5.1-5.3 Pixel | in corso | PROVA-UTENTE.md scritto; pm clear+import+Download pendenti |

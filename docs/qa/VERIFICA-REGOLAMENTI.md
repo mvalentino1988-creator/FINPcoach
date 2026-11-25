@@ -78,3 +78,26 @@ Verifica in `src/domain/gareAmmissibiliVerifica.test.ts` (verde):
 - WPS: non verificabile con le fonti locali (dichiarato).
 - Gare ammissibili: verificato contro 10.4.1, test verdi.
 - Record: campione 50/50 OK.
+
+---
+
+# Aggiornamento — QUINTO GIRO (2026-11-25)
+
+I gap di capitoli segnalati al quarto giro sono stati chiusi: `regolamenti.json`
+passa da 248 a **258 sezioni** (+10, inserite verbatim da
+`finp-src/regolamento-tecnico-nuoto-2026.txt` via
+`scripts/integrazione-sezioni-regolamenti.mjs`, idempotente):
+
+- `NP.1.5.1` Partenza — codici eccezione
+- `NP.1.24` Tipologia di gare WPS (il gap più rilevante: MQS, single class
+  event, ranking tabellare)
+- `NP.1.25` Tasse e ammende
+- `NP.1.27` Manifestazioni in vasca
+- `NP.1.30`–`NP.1.35` Campionati (giovanile, invernali, estivi, master,
+  vasca corta)
+
+Test di ricerca aggiornati in `src/domain/regolamentiRicerca.test.ts`
+(conteggio 258; la query "tempo limite" ora include legittimamente NP.1.24
+dato che parla di MQS). Restano noti: sezione "Introduzione" con etichetta
+imperfetta (artefatto parser, invariata) e documenti WPS non verificabili
+con le fonti locali.

@@ -1,5 +1,5 @@
 # Matrice di collaudo — FINPcoach
-Generata da `scripts/qa/inventory.mjs` il 2026-11-24.
+Generata da `scripts/qa/inventory.mjs` il 2026-11-25.
 
 | Elemento | Tipo | Stato | Test |
 |---|---|---|---|
@@ -67,6 +67,8 @@ Generata da `scripts/qa/inventory.mjs` il 2026-11-24.
 | TestCalibrazioneModal | componente | verde | src/components/piano.test.tsx |
 | ui.test | componente (interno) | verde | src\components\ui.test.tsx |
 | WelcomeScreen | componente | verde | src/components/schermate.test.tsx |
+| archivioStagione::costruisciArchivioStagione | dominio | verde | src\domain\archivioStagione.test.ts |
+| archivioStagione::logNellaStagione | dominio | verde | src\domain\archivioStagione.test.ts |
 | assegnazioneVasca::NUMERO_CORISIE_DEFAULT | dominio | verde | src\domain\assegnazioneVasca.test.ts |
 | assegnazioneVasca::RIPARTENZA_GENERALE_DEFAULT | dominio | verde | src\domain\assegnazioneVasca.test.ts |
 | assegnazioneVasca::MAX_CORISIE | dominio | verde | src\domain\assegnazioneVasca.test.ts |
@@ -260,6 +262,7 @@ Generata da `scripts/qa/inventory.mjs` il 2026-11-24.
 | backupValidate | dati/storage | verde | src\data\backupValidate.test.ts |
 | firebaseConfig | dati/storage | non provato | — — motivo: modulo di configurazione Firebase: verificato indirettamente dai test di storage/firebaseSync; nessuna logica da testare |
 | firebaseSync | dati/storage | verde | src\data\firebaseSync.test.ts |
+| kvStore | dati/storage | verde | src\data\kvStore.test.ts |
 | migrations | dati/storage | verde | src\data\migrations.test.ts |
 | snapshotAutomatico | dati/storage | verde | src\data\snapshotAutomatico.test.ts |
 | staticData | dati/storage | non provato | — — motivo: wrapper di dati statici JSON: coperto dai test di dominio che leggono il dataset |
