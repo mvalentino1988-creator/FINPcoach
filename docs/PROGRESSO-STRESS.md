@@ -82,3 +82,9 @@ Formato: `id | stato (da fare/in corso/fatto/bloccato) | hash commit | nota`
 | FASE 5 vasca/regia | fatto | t+100 | controlli 44->48px, chip stati da STATO_VASCA condiviso |
 | FASE 6 verifica | fatto | t+105 | 15 screenshot dopo/*, audit DOM pulito |
 | FASE 7 consegna | in corso | t+110 | build ok, .qa+prod installate, restore impostazioni |
+| FASE 0 audit geometrico | fatto | residuo 110min | layout-audit.mjs: 10 sch x 4 combo, AUDIT-PRIMA/DOPO |
+| FASE A fotocamera/insets | fatto | residuo 95min | cutout SHORT_EDGES + unione insets + __finpInsets + safe-area CSS; overlay emulator non supportati dal device (documentato) |
+| FASE B difetti visivi | fatto | residuo 75min | card collassata, navbar, header squadra, gare, cronometro pronta; bloccanti=0 |
+| FASE C pulsanti | parziale | residuo 60min | C.1 inventario 337 + C.5 TODO ok + C.6 qa:pulsanti; C.2/C.3 tagliati |
+| FASE D extra | saltata | - | oltre budget |
+| FASE E consegna | fatto | residuo 20min | test verdi (1 flaky sotto carico, verde isolato), lint 8 warning preesistenti, tsc ok, .qa+prod installate, telefono ripristinato |
