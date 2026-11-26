@@ -75,3 +75,10 @@ Formato: `id | stato (da fare/in corso/fatto/bloccato) | hash commit | nota`
 | fase | stato | t+min | nota |
 |------|-------|-------|------|
 | FASE 0 base | fatto | t+20 | .qa allineata a HEAD, stress-100 attivo, demo SystemUI, 9 screenshot prima/*, DIFETTI.md; screenshot con dati personali rimosso (23c3970) |
+| FASE 1 fondazioni | fatto | t+60 | token label>=12px, semantica.ts unico, PageHeader status, ds-btn focus, acwr/zone a tema |
+| FASE 2 oggi+squadra | fatto | t+70 | Oggi: chip semantici, Attenzioni, Volume sett.; Squadra: nome 2 righe, presenza+ACWR, modo compatto |
+| FASE 3 piano | fatto | t+90 | TimelineStagione + GraficoVolumeSettimane, menu Altro per Elimina/Archivia |
+| FASE 4 scheda atleta | parziale | t+95 | già bottom sheet con tab; refactor tab non fatto (tempo) |
+| FASE 5 vasca/regia | fatto | t+100 | controlli 44->48px, chip stati da STATO_VASCA condiviso |
+| FASE 6 verifica | fatto | t+105 | 15 screenshot dopo/*, audit DOM pulito |
+| FASE 7 consegna | in corso | t+110 | build ok, .qa+prod installate, restore impostazioni |

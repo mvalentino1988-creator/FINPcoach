@@ -889,8 +889,8 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
             <h3 className="font-headline-sm text-base font-bold mb-2">Azzera sessione?</h3>
             <p className="text-sm text-on-surface-variant mb-4">Tutti i tempi e le ripetizioni verranno cancellati. La composizione di corsie e atleti resta.</p>
             <div className="flex gap-2">
-              <button type="button" onClick={() => setConfirmReset(false)} className="flex-1 h-11 rounded-xl bg-surface-container font-bold">Annulla</button>
-              <button type="button" onClick={handleReset} className="flex-1 h-11 rounded-xl bg-error text-on-error font-bold">Azzera</button>
+              <button type="button" onClick={() => setConfirmReset(false)} className="flex-1 h-12 rounded-xl bg-surface-container font-bold">Annulla</button>
+              <button type="button" onClick={handleReset} className="flex-1 h-12 rounded-xl bg-error text-on-error font-bold">Azzera</button>
             </div>
           </div>
         </div>
@@ -913,7 +913,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
                   setSession(cloneSession(s));
                   bump();
                 }}
-                className="flex-1 h-11 rounded-xl bg-primary text-on-primary font-bold"
+                className="flex-1 h-12 rounded-xl bg-primary text-on-primary font-bold"
               >
                 Riprendi
               </button>
@@ -928,7 +928,7 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
                   setResumeAsk(false);
                   bump();
                 }}
-                className="flex-1 h-11 rounded-xl bg-surface-container font-bold"
+                className="flex-1 h-12 rounded-xl bg-surface-container font-bold"
               >
                 Nuova
               </button>
@@ -947,10 +947,10 @@ export const CronometroVasca: React.FC<{ attivo?: boolean }> = ({ attivo = true 
               Alcuni atleti hanno una ripartenza personale. Mantenerle (predefinito) o sovrascriverle con il nuovo valore?
             </p>
             <div className="flex gap-2">
-              <button type="button" onClick={() => resolveOverride('keep')} className="flex-1 h-11 rounded-xl bg-primary text-on-primary font-bold">
+              <button type="button" onClick={() => resolveOverride('keep')} className="flex-1 h-12 rounded-xl bg-primary text-on-primary font-bold">
                 Mantieni
               </button>
-              <button type="button" onClick={() => resolveOverride('overwrite')} className="flex-1 h-11 rounded-xl bg-surface-container font-bold">
+              <button type="button" onClick={() => resolveOverride('overwrite')} className="flex-1 h-12 rounded-xl bg-surface-container font-bold">
                 Sovrascrivi
               </button>
             </div>

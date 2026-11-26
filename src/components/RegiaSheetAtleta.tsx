@@ -45,7 +45,7 @@ export const RegiaSheetAtleta: React.FC<Props> = ({
           type="button"
           onClick={onClose}
           aria-label="Chiudi"
-          className="w-11 h-11 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant"
+          className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant"
         >
           <Minus size={16} className="rotate-45" />
         </button>
@@ -68,7 +68,7 @@ export const RegiaSheetAtleta: React.FC<Props> = ({
                   if (!attiva) update(a => assegnaAtleta(a, atleta.id, c.numero));
                   onClose();
                 }}
-                className={`min-h-[44px] rounded-xl font-bold text-[13px] transition ${
+                className={`min-h-[48px] rounded-xl font-bold text-[13px] transition ${
                   attiva
                     ? 'bg-primary text-on-primary'
                     : 'bg-surface-container text-on-surface hover:bg-surface-container-high disabled:opacity-40'
@@ -91,7 +91,7 @@ export const RegiaSheetAtleta: React.FC<Props> = ({
                 type="button"
                 disabled={bloccata}
                 onClick={() => update(a => scambiaConAdiacente(a, corsia.numero, atleta.id, -1))}
-                className="flex-1 min-h-[44px] rounded-xl bg-surface-container font-bold text-[13px] disabled:opacity-40"
+                className="flex-1 min-h-[48px] rounded-xl bg-surface-container font-bold text-[13px] disabled:opacity-40"
               >
                 ↑ Su
               </button>
@@ -99,7 +99,7 @@ export const RegiaSheetAtleta: React.FC<Props> = ({
                 type="button"
                 disabled={bloccata}
                 onClick={() => update(a => scambiaConAdiacente(a, corsia.numero, atleta.id, 1))}
-                className="flex-1 min-h-[44px] rounded-xl bg-surface-container font-bold text-[13px] disabled:opacity-40"
+                className="flex-1 min-h-[48px] rounded-xl bg-surface-container font-bold text-[13px] disabled:opacity-40"
               >
                 ↓ Giù
               </button>
@@ -122,7 +122,7 @@ export const RegiaSheetAtleta: React.FC<Props> = ({
                   const cur = corrente.ripartenzeAtleta[atleta.id] ?? ripartenzaEreditata(corrente, corsia.numero, atleta.id);
                   update(a => impostaRipartenzaAtleta(a, atleta.id, Math.max(5, cur - 5)));
                 }}
-                className="w-12 h-11 rounded-xl bg-surface-container font-bold text-[15px] disabled:opacity-40"
+                className="w-12 h-12 rounded-xl bg-surface-container font-bold text-[15px] disabled:opacity-40"
               >−5</button>
               <span className="flex-1 text-center font-headline-sm text-[16px] font-bold text-on-surface">
                 {corrente.ripartenzeAtleta[atleta.id] != null
@@ -136,14 +136,14 @@ export const RegiaSheetAtleta: React.FC<Props> = ({
                   const cur = corrente.ripartenzeAtleta[atleta.id] ?? ripartenzaEreditata(corrente, corsia.numero, atleta.id);
                   update(a => impostaRipartenzaAtleta(a, atleta.id, cur + 5));
                 }}
-                className="w-12 h-11 rounded-xl bg-surface-container font-bold text-[15px] disabled:opacity-40"
+                className="w-12 h-12 rounded-xl bg-surface-container font-bold text-[15px] disabled:opacity-40"
               >+5</button>
               {corrente.ripartenzeAtleta[atleta.id] != null && (
                 <button
                   type="button"
                   disabled={bloccata}
                   onClick={() => update(a => impostaRipartenzaAtleta(a, atleta.id, null))}
-                  className="h-11 px-3 rounded-xl bg-surface-container text-on-surface-variant text-[12px] font-bold"
+                  className="h-12 px-3 rounded-xl bg-surface-container text-on-surface-variant text-[12px] font-bold"
                 >
                   Reset
                 </button>

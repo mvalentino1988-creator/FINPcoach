@@ -128,7 +128,7 @@ export const AthleteCard: React.FC<AthleteCardProps> = ({
         e.stopPropagation();
         onToggleStop();
       }}
-      className={`absolute right-0 w-11 h-11 flex items-center justify-center z-10 ${compact ? 'top-1/2 -translate-y-1/2' : 'bottom-0'}`}
+      className={`absolute right-0 w-12 h-12 flex items-center justify-center z-10 ${compact ? 'top-1/2 -translate-y-1/2' : 'bottom-0'}`}
     >
       <span className="w-6 h-6 rounded-md bg-surface-container-highest/90 text-on-surface-variant flex items-center justify-center text-[12px] font-black border border-outline-variant/50">
         ■
@@ -300,9 +300,9 @@ const Stepper: React.FC<{
   format?: (v: number) => string;
 }> = ({ value, onChange, min = 0, max = 600, step = 5, format = v => `${v}s` }) => (
   <div className="flex items-center gap-1">
-    <button type="button" onClick={() => onChange(Math.max(min, value - step))} className="w-11 h-11 rounded-lg bg-surface-container font-black text-lg active:scale-95">−</button>
+    <button type="button" onClick={() => onChange(Math.max(min, value - step))} className="w-12 h-12 rounded-lg bg-surface-container font-black text-lg active:scale-95">−</button>
     <span className="w-16 text-center font-stat-timer text-sm font-bold tabular-nums">{format(value)}</span>
-    <button type="button" onClick={() => onChange(Math.min(max, value + step))} className="w-11 h-11 rounded-lg bg-surface-container font-black text-lg active:scale-95">+</button>
+    <button type="button" onClick={() => onChange(Math.min(max, value + step))} className="w-12 h-12 rounded-lg bg-surface-container font-black text-lg active:scale-95">+</button>
   </div>
 );
 
@@ -314,7 +314,7 @@ const PresetRow: React.FC<{ values: readonly number[]; current: number | null; o
       <button
         type="button"
         onClick={() => onPick(null)}
-        className={`h-11 px-2.5 rounded-lg text-[12px] font-bold ${current == null ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface'}`}
+        className={`h-12 px-2.5 rounded-lg text-[12px] font-bold ${current == null ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface'}`}
       >
         Auto
       </button>
@@ -324,7 +324,7 @@ const PresetRow: React.FC<{ values: readonly number[]; current: number | null; o
         key={v}
         type="button"
         onClick={() => onPick(v)}
-        className={`h-11 px-2.5 rounded-lg text-[12px] font-bold tabular-nums ${current === v ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface'}`}
+        className={`h-12 px-2.5 rounded-lg text-[12px] font-bold tabular-nums ${current === v ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface'}`}
       >
         {formatRipartenza(v)}
       </button>
@@ -361,7 +361,7 @@ export const SheetHost: React.FC<SheetHostProps> = (props) => {
 const SheetHeader: React.FC<{ title: string; onClose: () => void }> = ({ title, onClose }) => (
   <div className="flex items-center justify-between mb-3">
     <h3 className="font-headline-sm text-base font-bold text-on-surface">{title}</h3>
-    <button type="button" onClick={onClose} aria-label="Chiudi" className="w-11 h-11 rounded-full flex items-center justify-center hover:bg-surface-container">
+    <button type="button" onClick={onClose} aria-label="Chiudi" className="w-12 h-12 rounded-full flex items-center justify-center hover:bg-surface-container">
       <X size={18} />
     </button>
   </div>
@@ -378,7 +378,7 @@ const PickerSheet: React.FC<SheetHostProps & { lane: VascaLane }> = ({ lane, atl
         value={pickerQuery}
         onChange={e => setPickerQuery(e.target.value)}
         placeholder="Cerca cognome…"
-        className="w-full h-11 px-3 rounded-xl bg-surface-container border border-outline-variant/60 text-sm mb-2"
+        className="w-full h-12 px-3 rounded-xl bg-surface-container border border-outline-variant/60 text-sm mb-2"
       />
       <div className="flex flex-col gap-1">
         {list.length === 0 && <p className="text-sm text-on-surface-variant py-4 text-center">Nessun atleta disponibile</p>}
@@ -433,7 +433,7 @@ const LaneSheet: React.FC<SheetHostProps & { lane: VascaLane }> = ({
       <button
         type="button"
         onClick={() => onRemoveLane(lane)}
-        className="mt-4 w-full h-11 rounded-xl bg-error-container text-on-error-container font-bold text-sm flex items-center justify-center gap-2"
+        className="mt-4 w-full h-12 rounded-xl bg-error-container text-on-error-container font-bold text-sm flex items-center justify-center gap-2"
       >
         <Trash2 size={15} /> Rimuovi corsia
       </button>
@@ -493,7 +493,7 @@ const AthleteSheet: React.FC<SheetHostProps & { laneNumero: number; athlete: Vas
         <button
           type="button"
           onClick={() => onSetAthleteRip(laneNumero, athlete.id, null)}
-          className="mt-2 h-11 px-3 rounded-lg bg-surface-container text-on-surface text-xs font-bold"
+          className="mt-2 h-12 px-3 rounded-lg bg-surface-container text-on-surface text-xs font-bold"
         >
           Ripristina ereditata ({formatRipartenza(inherited)})
         </button>
@@ -501,31 +501,31 @@ const AthleteSheet: React.FC<SheetHostProps & { laneNumero: number; athlete: Vas
 
       <p className="text-[12px] font-bold uppercase tracking-wide text-on-surface-variant mb-1 mt-4">Lap target (auto-stop)</p>
       <div className="flex items-center gap-2">
-        <button type="button" onClick={() => onSetTargetLaps(laneNumero, athlete.id, athlete.targetLaps == null ? 1 : Math.max(1, athlete.targetLaps - 1))} className="w-11 h-11 rounded-lg bg-surface-container font-black">−</button>
+        <button type="button" onClick={() => onSetTargetLaps(laneNumero, athlete.id, athlete.targetLaps == null ? 1 : Math.max(1, athlete.targetLaps - 1))} className="w-12 h-12 rounded-lg bg-surface-container font-black">−</button>
         <span className="w-14 text-center font-stat-timer text-sm font-bold">{athlete.targetLaps ?? '—'}</span>
-        <button type="button" onClick={() => onSetTargetLaps(laneNumero, athlete.id, (athlete.targetLaps ?? 0) + 1)} className="w-11 h-11 rounded-lg bg-surface-container font-black">+</button>
+        <button type="button" onClick={() => onSetTargetLaps(laneNumero, athlete.id, (athlete.targetLaps ?? 0) + 1)} className="w-12 h-12 rounded-lg bg-surface-container font-black">+</button>
         {athlete.targetLaps != null && (
-          <button type="button" onClick={() => onSetTargetLaps(laneNumero, athlete.id, null)} className="h-11 px-3 rounded-lg bg-surface-container text-on-surface text-xs font-bold">Auto</button>
+          <button type="button" onClick={() => onSetTargetLaps(laneNumero, athlete.id, null)} className="h-12 px-3 rounded-lg bg-surface-container text-on-surface text-xs font-bold">Auto</button>
         )}
       </div>
 
       <p className="text-[12px] font-bold uppercase tracking-wide text-on-surface-variant mb-1 mt-4">Correggi ultimo lap</p>
       <div className="flex flex-wrap gap-1.5">
-        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, -5000)} className="h-11 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">−5s</button>
-        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, -1000)} className="h-11 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">−1s</button>
-        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, 1000)} className="h-11 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">+1s</button>
-        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, 5000)} className="h-11 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">+5s</button>
-        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, Number.MIN_SAFE_INTEGER)} className="h-11 px-3 rounded-lg bg-error-container text-on-error-container text-xs font-bold disabled:opacity-40">Elimina</button>
+        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, -5000)} className="h-12 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">−5s</button>
+        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, -1000)} className="h-12 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">−1s</button>
+        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, 1000)} className="h-12 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">+1s</button>
+        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, 5000)} className="h-12 px-3 rounded-lg bg-surface-container text-xs font-bold disabled:opacity-40">+5s</button>
+        <button type="button" disabled={athlete.laps.length === 0} onClick={() => onCorrectLap(laneNumero, athlete.id, Number.MIN_SAFE_INTEGER)} className="h-12 px-3 rounded-lg bg-error-container text-on-error-container text-xs font-bold disabled:opacity-40">Elimina</button>
       </div>
 
       <div className="flex gap-2 mt-4">
         {!isPronta && (
-          <button type="button" onClick={() => onToggleFermo(laneNumero, athlete.id)} className="flex-1 h-11 rounded-xl bg-surface-container-high font-bold text-sm">
+          <button type="button" onClick={() => onToggleFermo(laneNumero, athlete.id)} className="flex-1 h-12 rounded-xl bg-surface-container-high font-bold text-sm">
             {athlete.fermo ? 'Riprendi' : 'Stop individuale'}
           </button>
         )}
         {isPronta && (
-          <button type="button" onClick={() => onRemoveAthlete(laneNumero, athlete.id)} className="flex-1 h-11 rounded-xl bg-error-container text-on-error-container font-bold text-sm flex items-center justify-center gap-1">
+          <button type="button" onClick={() => onRemoveAthlete(laneNumero, athlete.id)} className="flex-1 h-12 rounded-xl bg-error-container text-on-error-container font-bold text-sm flex items-center justify-center gap-1">
             <Trash2 size={14} /> Rimuovi
           </button>
         )}
@@ -560,7 +560,7 @@ export const SummaryOverlay: React.FC<{
             <h3 className="font-headline-sm text-lg font-bold">Riepilogo sessione</h3>
             <p className="text-xs text-on-surface-variant">{conTempi.length} atleti con tempi · vasca {vascaMetri}m</p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Chiudi" className="w-11 h-11 rounded-full flex items-center justify-center hover:bg-surface-container">
+          <button type="button" onClick={onClose} aria-label="Chiudi" className="w-12 h-12 rounded-full flex items-center justify-center hover:bg-surface-container">
             <X size={18} />
           </button>
         </div>

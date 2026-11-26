@@ -81,7 +81,7 @@ export const RegiaCorsiaCard: React.FC<Props> = ({
               type="button"
               disabled={bloccata}
               onClick={() => update(a => impostaRipartenzaCorsia(a, c.numero, secondi5(Math.max(5, (c.ripartenzaCorsia ?? corrente.ripartenzaGenerale) - 5))))}
-              className="w-11 h-11 rounded-md bg-surface-container text-on-surface text-[12px] font-bold disabled:opacity-40"
+              className="w-12 h-12 rounded-md bg-surface-container text-on-surface text-[12px] font-bold disabled:opacity-40"
               aria-label="Diminuisci ripartenza corsia"
             >−</button>
             <span className="px-1 font-label-caps text-[12px] font-bold text-on-surface min-w-[2.2ch] text-center" title="Ripartenza corsia (multipli di 5 s)">
@@ -91,7 +91,7 @@ export const RegiaCorsiaCard: React.FC<Props> = ({
               type="button"
               disabled={bloccata}
               onClick={() => update(a => impostaRipartenzaCorsia(a, c.numero, secondi5(Math.min(600, (c.ripartenzaCorsia ?? corrente.ripartenzaGenerale) + 5))))}
-              className="w-11 h-11 rounded-md bg-surface-container text-on-surface text-[12px] font-bold disabled:opacity-40"
+              className="w-12 h-12 rounded-md bg-surface-container text-on-surface text-[12px] font-bold disabled:opacity-40"
               aria-label="Aumenta ripartenza corsia"
             >+</button>
             {c.ripartenzaCorsia != null && (
@@ -99,7 +99,7 @@ export const RegiaCorsiaCard: React.FC<Props> = ({
                 type="button"
                 disabled={bloccata}
                 onClick={() => update(a => impostaRipartenzaCorsia(a, c.numero, null))}
-                className="w-11 h-11 rounded-md text-on-surface-variant text-[12px] font-bold"
+                className="w-12 h-12 rounded-md text-on-surface-variant text-[12px] font-bold"
                 aria-label="Ripartenza corsia ereditata"
                 title="Torna alla ripartenza ereditata"
               >×</button>
@@ -114,7 +114,7 @@ export const RegiaCorsiaCard: React.FC<Props> = ({
                 const next = opts[(curIdx + 1) % opts.length];
                 update(a => impostaIntervalloCorsia(a, c.numero, next));
               }}
-              className={`h-11 px-2 rounded-md font-label-caps text-[12px] font-bold uppercase ${
+              className={`h-12 px-2 rounded-md font-label-caps text-[12px] font-bold uppercase ${
                 c.intervalloPartenza != null ? 'bg-secondary-fixed text-on-secondary-fixed-variant' : 'bg-surface-container text-on-surface-variant'
               }`}
               title="Intervallo partenza automatica"
@@ -125,7 +125,7 @@ export const RegiaCorsiaCard: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => update(a => impostaBloccoCorsia(a, c.numero, !c.bloccata))}
-              className={`w-11 h-11 rounded-md flex items-center justify-center ${
+              className={`w-12 h-12 rounded-md flex items-center justify-center ${
                 c.bloccata ? 'bg-primary-fixed text-primary' : 'bg-surface-container text-on-surface-variant'
               }`}
               aria-label={c.bloccata ? `Sblocca corsia ${c.numero}` : `Blocca corsia ${c.numero}`}
@@ -198,7 +198,7 @@ export const RegiaCorsiaCard: React.FC<Props> = ({
                         update(cur => rimuoviDaCorsia(cur, id));
                       }}
                       aria-label={`Rimuovi ${a.cognome} dalla corsia ${c.numero}`}
-                      className="w-11 h-11 -m-2 rounded text-on-surface-variant hover:text-error flex items-center justify-center shrink-0"
+                      className="w-12 h-12 -m-2 rounded text-on-surface-variant hover:text-error flex items-center justify-center shrink-0"
                     >
                       <Minus size={11} />
                     </button>

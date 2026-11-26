@@ -92,7 +92,7 @@ export const CronometroLayout: React.FC<Props> = ({
       <button
         type="button"
         onClick={onOpenRipGlobal}
-        className="h-11 px-2.5 rounded-xl bg-surface-container border border-outline-variant/60 text-xs font-bold text-primary flex items-center gap-1 whitespace-nowrap active:scale-95 transition"
+        className="h-12 px-2.5 rounded-xl bg-surface-container border border-outline-variant/60 text-xs font-bold text-primary flex items-center gap-1 whitespace-nowrap active:scale-95 transition"
         aria-label="Ripartenza generale"
       >
         <Timer size={14} />
@@ -109,7 +109,7 @@ export const CronometroLayout: React.FC<Props> = ({
           onClick={onReloadSync}
           aria-label="Ricarica composizione dalla Regia"
           title="Ricarica composizione dalla Regia"
-          className="h-11 w-11 rounded-xl bg-surface-container-high text-on-surface-variant flex items-center justify-center active:scale-95 transition"
+          className="h-12 w-12 rounded-xl bg-surface-container-high text-on-surface-variant flex items-center justify-center active:scale-95 transition"
         >
           <RefreshCw size={16} />
         </button>
@@ -120,7 +120,7 @@ export const CronometroLayout: React.FC<Props> = ({
         type="button"
         onClick={onFine}
         disabled={inPronta}
-        className="h-11 px-2.5 rounded-xl bg-surface-container-high text-on-surface text-[12px] font-bold uppercase tracking-wide flex items-center gap-1 active:scale-95 transition disabled:opacity-45 whitespace-nowrap"
+        className="h-12 px-2.5 rounded-xl bg-surface-container-high text-on-surface text-[12px] font-bold uppercase tracking-wide flex items-center gap-1 active:scale-95 transition disabled:opacity-45 whitespace-nowrap"
       >
         <Flag size={14} /> Fine
       </button>
@@ -129,7 +129,7 @@ export const CronometroLayout: React.FC<Props> = ({
         type="button"
         onClick={onRequestReset}
         aria-label="Azzera sessione"
-        className="h-11 w-11 rounded-xl bg-error-container/70 hover:bg-error-container text-on-error-container flex items-center justify-center active:scale-95 transition"
+        className="h-12 w-12 rounded-xl bg-error-container/70 hover:bg-error-container text-on-error-container flex items-center justify-center active:scale-95 transition"
       >
         <RotateCcw size={17} />
       </button>
@@ -160,7 +160,7 @@ export const CronometroLayout: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => onOpenLaneSheet(lane)}
-              className="shrink-0 min-h-[30px] px-2 flex items-center justify-between gap-1 bg-surface-container-high/70 text-on-surface active:scale-[0.99] transition"
+              className="shrink-0 min-h-[48px] px-2 flex items-center justify-between gap-1 bg-surface-container-high/70 text-on-surface active:scale-[0.99] transition"
               aria-label={`Corsia ${lane.numero}`}
             >
               <span className="font-label-caps text-label-caps font-bold uppercase tracking-wider truncate">
@@ -217,7 +217,7 @@ export const CronometroLayout: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={() => onOpenPicker(lane)}
-                className="shrink-0 h-11 mx-1 mb-1 rounded-lg bg-surface-container text-on-surface text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-1 active:scale-[0.98] transition"
+                className="shrink-0 h-12 mx-1 mb-1 rounded-lg bg-surface-container text-on-surface text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-1 active:scale-[0.98] transition"
               >
                 <Plus size={12} /> Atleta
               </button>

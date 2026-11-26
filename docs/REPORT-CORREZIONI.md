@@ -367,3 +367,11 @@ Test verdi dopo ogni file; `qa:matrice` aggiornata.
   il flag autoLate non è scattato perché la WebView ha continuato a
   girare (comportamento corretto: nessuna ripartenza persa).
 - Import da file manager nativo non provato (import via CDP DataTransfer).
+
+## Giro grafico 2026-11-26
+
+- Solo livello di presentazione toccato: componenti, classi Tailwind, token CSS. Nessuna modifica a dominio, storage, calcoli o modello dati; nessuna dipendenza nuova.
+- File chiave: `src/lib/semantica.ts` (nuovo), `src/components/TimelineStagione.tsx` (nuovo), `PageHeader.tsx`, `OggiScreen.tsx`, `AtletiScreen.tsx`, `PianoScreen.tsx`, `cronometroParts.tsx`, `CronometroLayout.tsx`, `Regia*.tsx`, `index.css`, `tailwind.config.js`.
+- Tagliato per tempo: FASE 4 (refactor scheda atleta in bottom sheet full-height con set di tab dedicato); FASE 2.5 raggruppamento squadre; FASE 3.4 calendario mensile.
+- Non provato: contrasto misurato formalmente, ispezione visiva diretta degli screenshot (limite ambiente), screenshot landscape.
+- Prova device: .qa reinstallata e avviata senza eccezioni in logcat; app di produzione `install -r` + avvio soltanto.

@@ -284,7 +284,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
             <button
               type="button"
               onClick={stampa}
-              className="flex items-center gap-1.5 px-3.5 min-h-[44px] rounded-lg bg-primary-container text-on-primary font-headline-sm text-[13px] font-bold shadow-sm active:scale-[0.98] transition-transform shrink-0"
+              className="flex items-center gap-1.5 px-3.5 min-h-[48px] rounded-lg bg-primary-container text-on-primary font-headline-sm text-[13px] font-bold shadow-sm active:scale-[0.98] transition-transform shrink-0"
             >
               <Printer size={15} />
               <span>Stampa</span>
@@ -302,7 +302,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
           <button
             type="button"
             onClick={() => vaiAVistaVasca('cronometro')}
-            className="flex items-center gap-1 px-3 min-h-[44px] rounded-lg bg-primary text-on-primary text-[12px] font-bold shrink-0"
+            className="flex items-center gap-1 px-3 min-h-[48px] rounded-lg bg-primary text-on-primary text-[12px] font-bold shrink-0"
           >
             <Play size={14} /> Cronometro
           </button>
@@ -319,14 +319,14 @@ export const RegiaTecnicaCorsie: React.FC = () => {
             <button
               type="button"
               onClick={ripristinaPrecedente}
-              className="px-3 min-h-[44px] rounded-lg bg-primary text-on-primary text-[12px] font-bold"
+              className="px-3 min-h-[48px] rounded-lg bg-primary text-on-primary text-[12px] font-bold"
             >
               Usa
             </button>
             <button
               type="button"
               onClick={() => setPrecedente(null)}
-              className="px-3 min-h-[44px] rounded-lg bg-surface-container text-on-surface-variant text-[12px] font-bold"
+              className="px-3 min-h-[48px] rounded-lg bg-surface-container text-on-surface-variant text-[12px] font-bold"
             >
               No
             </button>
@@ -343,7 +343,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
             disabled={bloccata || numeroCorsie <= 1}
             onClick={() => cambiaNumeroCorsie(-1)}
             aria-label="Riduci corsie"
-            className="w-11 h-11 rounded-md flex items-center justify-center text-on-surface disabled:opacity-40"
+            className="w-12 h-12 rounded-md flex items-center justify-center text-on-surface disabled:opacity-40"
           >
             <Minus size={15} />
           </button>
@@ -355,7 +355,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
             disabled={bloccata || numeroCorsie >= MAX_CORISIE}
             onClick={() => cambiaNumeroCorsie(1)}
             aria-label="Aumenta corsie"
-            className="w-11 h-11 rounded-md flex items-center justify-center text-on-surface disabled:opacity-40"
+            className="w-12 h-12 rounded-md flex items-center justify-center text-on-surface disabled:opacity-40"
           >
             <Plus size={15} />
           </button>
@@ -366,7 +366,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
           type="button"
           disabled={bloccata}
           onClick={() => update(a => applicaSuggerimento(a, atleti, tempi))}
-          className="flex items-center gap-1 px-3 min-h-[44px] rounded-lg bg-primary-fixed text-on-primary-fixed-variant text-[12px] font-bold disabled:opacity-50"
+          className="flex items-center gap-1 px-3 min-h-[48px] rounded-lg bg-primary-fixed text-on-primary-fixed-variant text-[12px] font-bold disabled:opacity-50"
         >
           <Sliders size={14} /> Suggerisci
         </button>
@@ -374,7 +374,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
           type="button"
           disabled={bloccata}
           onClick={() => setConfermaSvuota(true)}
-          className="flex items-center gap-1 px-3 min-h-[44px] rounded-lg bg-surface-container text-on-surface-variant text-[12px] font-bold disabled:opacity-50"
+          className="flex items-center gap-1 px-3 min-h-[48px] rounded-lg bg-surface-container text-on-surface-variant text-[12px] font-bold disabled:opacity-50"
         >
           <Trash2 size={14} /> Svuota
         </button>
@@ -385,7 +385,7 @@ export const RegiaTecnicaCorsie: React.FC = () => {
         <button
           type="button"
           onClick={() => setIntensitaAperta(v => !v)}
-          className="w-full flex items-center justify-between gap-2 min-h-[44px]"
+          className="w-full flex items-center justify-between gap-2 min-h-[48px]"
           aria-expanded={intensitaAperta}
         >
           <span className="flex items-center gap-1.5 min-w-0">

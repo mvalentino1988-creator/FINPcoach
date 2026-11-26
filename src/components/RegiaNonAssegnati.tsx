@@ -54,7 +54,7 @@ export const RegiaNonAssegnati: React.FC<Props> = ({
               value={ricerca}
               onChange={e => onRicerca(e.target.value)}
               placeholder="Cerca atleta…"
-              className="w-full h-11 pl-8 pr-3 rounded-lg bg-surface-container-lowest border border-outline-variant/60 text-[13px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary/50"
+              className="w-full h-12 pl-8 pr-3 rounded-lg bg-surface-container-lowest border border-outline-variant/60 text-[13px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary/50"
             />
           </div>
           <div className="flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto app-fixed-scroll">
@@ -73,7 +73,7 @@ export const RegiaNonAssegnati: React.FC<Props> = ({
                   e.dataTransfer.setData('application/x-finp-atleta', String(a.id));
                   e.dataTransfer.effectAllowed = 'move';
                 }}
-                className={`flex items-center gap-1.5 min-h-[44px] px-2.5 py-1 rounded-xl border text-left transition active:scale-[0.98] ${
+                className={`flex items-center gap-1.5 min-h-[48px] px-2.5 py-1 rounded-xl border text-left transition active:scale-[0.98] ${
                   selezionato === a.id
                     ? 'border-primary bg-primary-fixed text-on-primary-fixed-variant ring-2 ring-primary/40'
                     : 'border-outline-variant/60 bg-surface-container-lowest text-on-surface hover:border-primary/50'
@@ -117,7 +117,7 @@ export const RegiaNonAssegnati: React.FC<Props> = ({
                 type="button"
                 disabled={bloccata}
                 onClick={() => onTogglePresente(a.id)}
-                className="flex items-center gap-1.5 min-h-[44px] px-2.5 py-1 rounded-xl border border-dashed border-outline-variant/70 bg-transparent text-on-surface-variant text-[12px] font-bold disabled:opacity-60"
+                className="flex items-center gap-1.5 min-h-[48px] px-2.5 py-1 rounded-xl border border-dashed border-outline-variant/70 bg-transparent text-on-surface-variant text-[12px] font-bold disabled:opacity-60"
                 title="Segna presente"
               >
                 <UserCheck size={13} className="text-primary" />

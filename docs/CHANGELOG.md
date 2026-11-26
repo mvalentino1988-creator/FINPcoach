@@ -97,3 +97,13 @@ Lavoro di rifinitura in 10 blocchi: correttezza, sicurezza dei dati, accessibili
 - Generatore stress esteso a N atleti x N stagioni (stress-300x3.json).
 - Prestazioni: indici per atleta in Squadra/Registro; budget verificati
   su Pixel con 300 atleti x 3 stagioni.
+
+## 0.2.4 — Giro grafico "4 ore" (2026-11-26)
+
+- **Fondamenta**: scala tipografica unificata (label-sm/label-caps portati a 12px, nessun testo <12px), mappa semantica unica `src/lib/semantica.ts` (microcicli, fasi, stati vasca, classi S/SB/SM, ACWR), `PageHeader` con riga dedicata ai chip di stato, focus visibile sui `ds-btn-*`, colori semantici/ACWR ora a tema (varianti chiare in dark).
+- **Oggi**: chip microciclo con colore semantico + fase, metrica "Volume sett." (era "Carico sett." ambiguo), sezione "Attenzioni" comprimibile ordinata per urgenza (medico > gara oggi > gara vicina > chiusura), CTA "Vai in vasca".
+- **Squadra**: cognome+nome su due righe senza ellissi, badge classe + stato, icona presenza/assenza di oggi e pallino ACWR per atleta, toggle "Compatta/Estesa" persistito in localStorage, filtri con sfumatura sul bordo.
+- **Piano**: `TimelineStagione` (macro/meso/micro come barre colorate, gare come marker, linea "oggi", tap riusa i selettori esistenti) + `GraficoVolumeSettimane` (barre con soglie +10%/+20% come PianoValidator); "Elimina/Archivia stagione" spostati nel menu "Altro" con conferma esplicita.
+- **Vasca/Regia**: controlli touch portati a 48px, stati delle tessere da `STATO_VASCA` condiviso.
+- **Verifiche**: audit DOM/CDP su .qa senza testi <12px, target <44px, ellissi o overflow; screenshot prima/dopo in `docs/qa/grafica/`.
+- **Non fatto (tempo)**: FASE 4 scheda atleta come bottom sheet full-height con tab specifici (la scheda esistente è già un modal bottom-sheet con tab).
