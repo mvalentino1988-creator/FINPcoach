@@ -1,0 +1,503 @@
+# AUDIT GEOMETRICO — 2026-11-26T11:21:28.109Z
+
+Difetti totali: 475 — bloccanti: 0
+
+## Conteggi per schermata/tipo
+
+- dati|fuori-schermo: 1
+- dati|sovrapposizione: 3
+- dati|target-piccolo: 2
+- fonti|contrasto: 1
+- fonti|ellissi: 4
+- fonti|sovrapposizione: 6
+- fonti|target-piccolo: 4
+- oggi|contrasto: 5
+- oggi|ellissi: 4
+- oggi|sovrapposizione: 4
+- piano-programmazione|contrasto: 63
+- piano-programmazione|sovrapposizione: 29
+- piano-programmazione|target-piccolo: 3
+- regia|sovrapposizione: 32
+- regia|target-piccolo: 7
+- squadra|contrasto: 300
+- squadra|sovrapposizione: 5
+- vasca-cronometro|fuori-schermo: 1
+- vasca-cronometro|sovrapposizione: 1
+
+## Dettaglio difetti
+
+- [oggi/dark-1.0-port] **ellissi** span — "Seduta di allenamento" sw=186 cw=184
+- [oggi/dark-1.0-port] **contrasto** span — ratio=3.54 "Nessun backup esport" fs=13
+- [oggi/dark-1.0-port] **contrasto** span — ratio=2.99 "Esporta →" fs=13
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **ellissi** span — "Macrociclo 2 · 90 min" sw=177 cw=150
+- [oggi/dark-1.0-port] **ellissi** span — "Volume sett." sw=107 cw=78
+- [oggi/dark-1.0-port] **contrasto** div — ratio=4.11 "B1" fs=16
+- [oggi/dark-1.0-port] **ellissi** span — "Innalzamento della soglia anae" sw=422 cw=141
+- [oggi/dark-1.0-port] **contrasto** h3 — ratio=1.10 "Note Tecniche Bordo " fs=14
+- [oggi/dark-1.0-port] **sovrapposizione** span — "25m LIVE" x "QA · dati simul" 49%
+- [oggi/dark-1.0-port] **sovrapposizione** button — "" x "Codici Metaboli" 43%
+- [oggi/dark-1.0-port] **sovrapposizione** button — "" x "Codici Metaboli" 47%
+- [oggi/dark-1.0-port] **sovrapposizione** button — "" x "80% sett." 97%
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB2" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM2" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM2" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB2" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB8" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM8" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB2" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM2" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S2" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB8" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB2" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB8" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM8" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB8" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB2" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S2" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB2" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S2" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S2" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB2" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM2" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S8" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S7" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB8" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM8" fs=12
+- [squadra/dark-1.0-port] **sovrapposizione** span — "25m LIVE" x "QA · dati simul" 49%
+- [squadra/dark-1.0-port] **sovrapposizione** button — "" x "" 79%
+- [squadra/dark-1.0-port] **sovrapposizione** button — "" x "" 83%
+- [squadra/dark-1.0-port] **sovrapposizione** button — "" x "" 83%
+- [squadra/dark-1.0-port] **sovrapposizione** button — "" x "" 79%
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Vasca 25m" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "oggi" fs=12
+- [piano-programmazione/dark-1.0-port] **contrasto** button — ratio=1.00 "Macrociclo 1" fs=12
+- [piano-programmazione/dark-1.0-port] **contrasto** button — ratio=1.00 "Macrociclo 2" fs=12
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "30 sett." fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Recupero post-gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Recupero post-gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [piano-programmazione/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [piano-programmazione/dark-1.0-port] **target-piccolo** button — w=41 h=44 ""
+- [piano-programmazione/dark-1.0-port] **target-piccolo** button — w=39 h=44 ""
+- [piano-programmazione/dark-1.0-port] **target-piccolo** button — w=39 h=44 ""
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "" 62%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "" 60%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "" 49%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "" 25%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "" 36%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "" 36%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "" 36%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "" 36%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "" 36%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "" 36%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "" 36%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "23/11/2026 – 29" 74%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "30/11/2026 – 06" 100%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "" 22%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "" 22%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "18/01/2027 – 24" 100%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "Sett. 10" 69%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "" 22%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "Sett. 11" 69%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "01/02/2027 – 07" 100%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "Sett. 12" 69%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "" 22%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "Sett. 13" 69%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "15/02/2027 – 21" 100%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "Sett. 14" 69%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "" 22%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "Sett. 15" 69%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "01/03/2027 – 07" 100%
+- [piano-programmazione/dark-1.0-port] **sovrapposizione** button — "" x "Sett. 16" 69%
+- [dati/dark-1.0-port] **target-piccolo** button — w=177 h=40 "25m"
+- [dati/dark-1.0-port] **target-piccolo** button — w=177 h=40 "50m"
+- [dati/dark-1.0-port] **sovrapposizione** span — "25m LIVE" x "QA · dati simul" 49%
+- [dati/dark-1.0-port] **sovrapposizione** button — "" x "Durata target (" 22%
+- [dati/dark-1.0-port] **sovrapposizione** button — "" x "Durata target (" 22%
+- [dati/dark-1.0-port] **fuori-schermo** div — l=342 r=438 vw=411
+- [fonti/dark-1.0-port] **ellissi** p — "FINP - Federazione Italiana Nu" sw=504 cw=371
+- [fonti/dark-1.0-port] **contrasto** span — ratio=1.00 "S1 · 50 Stile Libero" fs=13
+- [fonti/dark-1.0-port] **ellissi** span — "MAMISTVALOV ITZHAK" sw=124 cw=110
+- [fonti/dark-1.0-port] **ellissi** span — "BETTELLA FRANCESCO" sw=126 cw=102
+- [fonti/dark-1.0-port] **ellissi** span — "MAMISTVALOV ITZHAK" sw=124 cw=110
+- [fonti/dark-1.0-port] **target-piccolo** button — w=40 h=48 "Verifica aggiornamenti"
+- [fonti/dark-1.0-port] **target-piccolo** button — w=32 h=48 "F"
+- [fonti/dark-1.0-port] **target-piccolo** button — w=36 h=48 "M"
+- [fonti/dark-1.0-port] **target-piccolo** a — w=318 h=34 "https://www.finp.it/recor"
+- [fonti/dark-1.0-port] **sovrapposizione** span — "25m LIVE" x "QA · dati simul" 49%
+- [fonti/dark-1.0-port] **sovrapposizione** button — "" x "01:03.80" 65%
+- [fonti/dark-1.0-port] **sovrapposizione** button — "" x "01:03.80" 28%
+- [fonti/dark-1.0-port] **sovrapposizione** button — "" x "REC. ASSOLUTO" 22%
+- [fonti/dark-1.0-port] **sovrapposizione** button — "" x "01:03.80" 65%
+- [fonti/dark-1.0-port] **sovrapposizione** button — "Regolamento WPS" x "" 100%
+- [vasca-cronometro/dark-1.0-port] **sovrapposizione** span — "25m LIVE" x "QA · dati simul" 49%
+- [vasca-cronometro/dark-1.0-port] **fuori-schermo** button — l=373 r=421 vw=411
+- [regia/dark-1.0-port] **target-piccolo** button — w=362 h=36 ""
+- [regia/dark-1.0-port] **target-piccolo** button — w=30 h=48 "I—"
+- [regia/dark-1.0-port] **target-piccolo** button — w=30 h=48 "I—"
+- [regia/dark-1.0-port] **target-piccolo** button — w=30 h=48 "I—"
+- [regia/dark-1.0-port] **target-piccolo** button — w=30 h=48 "I—"
+- [regia/dark-1.0-port] **target-piccolo** button — w=30 h=48 "I—"
+- [regia/dark-1.0-port] **target-piccolo** button — w=30 h=48 "I—"
+- [regia/dark-1.0-port] **sovrapposizione** span — "25m LIVE" x "QA · dati simul" 49%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "" 70%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "" 84%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "" 98%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "" 83%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "" 61%
+- [regia/dark-1.0-port] **sovrapposizione** span — "SIM-Bianchi" x "" 82%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "" 40%
+- [regia/dark-1.0-port] **sovrapposizione** span — "SIM-Bianchi" x "" 28%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "" 88%
+- [regia/dark-1.0-port] **sovrapposizione** span — "SIM-Bianchi2" x "" 100%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "" 81%
+- [regia/dark-1.0-port] **sovrapposizione** span — "SIM-Bianchi2" x "" 100%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "" 93%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "" 86%
+- [regia/dark-1.0-port] **sovrapposizione** span — "SIM-Casazza" x "" 100%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "" 82%
+- [regia/dark-1.0-port] **sovrapposizione** span — "SIM-Casazza" x "" 100%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "" 81%
+- [regia/dark-1.0-port] **sovrapposizione** span — "SIM-Casazza" x "" 100%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "" 38%
+- [regia/dark-1.0-port] **sovrapposizione** span — "SIM-Casazza" x "" 30%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "" 91%
+- [regia/dark-1.0-port] **sovrapposizione** span — "SIM-DaVinci" x "" 100%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "" 85%
+- [regia/dark-1.0-port] **sovrapposizione** span — "SIM-DaVinci" x "" 100%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "" 90%
+- [regia/dark-1.0-port] **sovrapposizione** span — "SIM-DaVinci" x "" 100%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "Vai al cronomet" 55%
+- [regia/dark-1.0-port] **sovrapposizione** span — "SIM-DaVinci" x "Vai al cronomet" 66%
+- [regia/dark-1.0-port] **sovrapposizione** button — "" x "Vai al cronomet" 41%
+- [regia/dark-1.0-port] **sovrapposizione** span — "SIM-DegliEs" x "Vai al cronomet" 22%

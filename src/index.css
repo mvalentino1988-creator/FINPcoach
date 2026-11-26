@@ -33,7 +33,14 @@
     color-scheme: light;
     --app-vh: 100dvh;
     --safe-top: 0px;
+    --safe-right: 0px;
     --safe-bottom: 8px;
+    --safe-left: 0px;
+    /* Ritagli reali del display-cutout (px CSS), impostati dal bridge nativo. */
+    --cutout-top: 0px;
+    --cutout-right: 0px;
+    --cutout-bottom: 0px;
+    --cutout-left: 0px;
     --header-h: 60px;
     --dock-h: 64px;
     --gutter: clamp(0.875rem, 0.6rem + 1vw, 1.5rem);
@@ -466,6 +473,9 @@
 @layer components {
   .app-shell {
     @apply min-h-[100dvh] flex flex-col bg-surface text-on-surface;
+    /* Ritaglio/barre laterali (es. landscape con fotocamera sul lato). */
+    padding-left: max(env(safe-area-inset-left, 0px), var(--safe-left));
+    padding-right: max(env(safe-area-inset-right, 0px), var(--safe-right));
   }
 
   @media (min-width: 1024px) {
@@ -552,8 +562,20 @@
     max-width: 1600px;
   }
 
-  .pb-safe { padding-bottom: var(--safe-bottom); }
-  .pt-safe { padding-top: var(--safe-top); }
+  /* Safe-area: max(env viewport-fit, variabili native --safe-*). Su desktop entrambi 0. */
+  .pt-safe { padding-top: max(env(safe-area-inset-top, 0px), var(--safe-top)); }
+  .pr-safe { padding-right: max(env(safe-area-inset-right, 0px), var(--safe-right)); }
+  .pb-safe { padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-bottom)); }
+  .pl-safe { padding-left: max(env(safe-area-inset-left, 0px), var(--safe-left)); }
+  .px-safe { padding-left: max(env(safe-area-inset-left, 0px), var(--safe-left)); padding-right: max(env(safe-area-inset-right, 0px), var(--safe-right)); }
+  .py-safe { padding-top: max(env(safe-area-inset-top, 0px), var(--safe-top)); padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-bottom)); }
+  /* Margine superiore per contenuto che sta sotto una barra in overlay. */
+  .mt-safe { margin-top: max(env(safe-area-inset-top, 0px), var(--safe-top)); }
+  .mb-safe { margin-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-bottom)); }
+  .ml-safe { margin-left: max(env(safe-area-inset-left, 0px), var(--safe-left)); }
+  .mr-safe { margin-right: max(env(safe-area-inset-right, 0px), var(--safe-right)); }
+  /* Altezza minima che tiene conto delle barre (per aree a tutta larghezza). */
+  .min-h-safe { min-height: max(100dvh, calc(100dvh + var(--safe-top) + var(--safe-bottom))); }
 
   .app-fixed-scroll {
     min-height: 0;
@@ -2583,18 +2605,19 @@
 @layer components {
   .ds-nav-item {
     display: flex;
+    flex: 1 1 0%;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-width: 68px;
     height: 56px;
-    padding: 0 0.625rem;
+    padding: 0 0.375rem;
     border-radius: 1rem;
     color: var(--color-on-surface-variant);
     font-family: 'Space Grotesk', system-ui, sans-serif;
     font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.02em;
     line-height: 16px;
     text-transform: uppercase;
     transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 120ms ease;
@@ -2729,4 +2752,28 @@ body.vasca-live .orient-notice {
     padding-top: 0.25rem;
     padding-bottom: 0.25rem;
   }
+}
+
+/* ============================================================================
+   SAFE-AREA — overlay fissi (modali/bottom sheet) non ereditano i padding di
+   .app-shell: applicano direttamente i safe-area della viewport.
+   Regole non stratificate: hanno precedenza sulle utility di default.
+   ============================================================================ */
+.fixed.inset-0.items-end > * {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-bottom, 0px));
+}
+.fixed.inset-0.items-center > * {
+  padding-left: max(env(safe-area-inset-left, 0px), var(--safe-left, 0px));
+  padding-right: max(env(safe-area-inset-right, 0px), var(--safe-right, 0px));
+}
+/* Banner/pannelli fissi in alto (es. avviso salvataggio, badge QA). */
+.fixed.top-0:not(.app-shell *):not([class*="items-end"]) {
+  padding-top: max(env(safe-area-inset-top, 0px), var(--safe-top, 0px));
+}
+
+/* In colonne flex scorrevoli, gli item con overflow:hidden hanno min-height 0
+   e collassano invece di lasciare scorrere il contenitore. */
+.oggi-screen > *,
+.app-fixed-scroll > * {
+  flex-shrink: 0;
 }

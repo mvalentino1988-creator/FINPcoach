@@ -1,0 +1,654 @@
+# AUDIT GEOMETRICO — 2026-11-26T10:35:56.017Z
+
+Difetti totali: 8799 — bloccanti: 73
+
+## Conteggi per schermata/tipo
+
+- altro|contrasto: 253
+- altro|ellissi: 20
+- altro|sovrapposizione: 61
+- altro|target-piccolo: 38
+- altro|testo-spezzato: 1216
+- dati|ellissi: 1
+- dati|fuori-schermo: 4
+- dati|sovrapposizione: 15
+- dati|target-piccolo: 8
+- dati|testo-spezzato: 8
+- fonti|contrasto: 4
+- fonti|ellissi: 14
+- fonti|sovrapposizione: 16
+- fonti|target-piccolo: 17
+- fonti|testo-spezzato: 43
+- oggi|card-collassata: 2
+- oggi|contrasto: 76
+- oggi|ellissi: 18
+- oggi|sovrapposizione: 46
+- oggi|target-piccolo: 4
+- oggi|testo-spezzato: 335
+- piano-parametri|contrasto: 81
+- piano-parametri|ellissi: 235
+- piano-parametri|sovrapposizione: 437
+- piano-parametri|target-piccolo: 126
+- piano-parametri|testo-spezzato: 418
+- piano-programmazione|contrasto: 253
+- piano-programmazione|ellissi: 20
+- piano-programmazione|sovrapposizione: 61
+- piano-programmazione|target-piccolo: 38
+- piano-programmazione|testo-spezzato: 1216
+- regia|ellissi: 3
+- regia|sovrapposizione: 165
+- regia|target-piccolo: 28
+- regia|testo-spezzato: 264
+- scheda-atleta|contrasto: 818
+- scheda-atleta|ellissi: 4
+- scheda-atleta|testo-spezzato: 778
+- squadra|contrasto: 818
+- squadra|ellissi: 4
+- squadra|testo-spezzato: 778
+- vasca-cronometro|ellissi: 3
+- vasca-cronometro|sovrapposizione: 4
+- vasca-cronometro|target-piccolo: 12
+- vasca-cronometro|testo-spezzato: 36
+
+## Dettaglio difetti
+
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=62 fs=13 "25m LIVE"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=59 fs=12 "Squadra"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Vasca 25m" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=13 "15/10/2026"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=50 fs=12 "A-race"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=96 fs=18 "Iscritti (28)"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=87 fs=18 "SIM-Meeting Invernal"
+- [oggi/dark-1.0-port] **ellissi** span — "SIM-Meeting Invernale Nord 2" sw=87 cw=87
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=50 fs=12 "A-race"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=97 fs=18 "Iscritti (34)"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=94 fs=18 "SIM-Coppa Primaveril"
+- [oggi/dark-1.0-port] **ellissi** span — "SIM-Coppa Primaverile 3" sw=94 cw=94
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=50 fs=12 "A-race"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=96 fs=18 "Iscritti (28)"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=96 fs=18 "Iscritti (33)"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=96 fs=18 "Iscritti (23)"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=96 fs=18 "Iscritti (33)"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=97 fs=18 "Iscritti (34)"
+- [oggi/dark-1.0-port] **ellissi** span — "SIM-Coppa delle Classifiche 8" sw=138 cw=138
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=96 fs=18 "Iscritti (35)"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=96 fs=18 "Iscritti (33)"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=97 fs=18 "Iscritti (30)"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=97 fs=18 "Iscritti (30)"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=97 fs=18 "Iscritti (30)"
+- [oggi/dark-1.0-port] **ellissi** span — "SIM-Meeting Nazionale Under 13" sw=140 cw=140
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=96 fs=18 "Iscritti (32)"
+- [oggi/dark-1.0-port] **ellissi** span — "SIM-Campionato SIM 2027 14" sw=138 cw=138
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=97 fs=18 "Iscritti (34)"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=93 fs=18 "Iscritti (31)"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "oggi" fs=12
+- [oggi/dark-1.0-port] **contrasto** button — ratio=1.00 "Macrociclo 1" fs=12
+- [oggi/dark-1.0-port] **contrasto** button — ratio=1.00 "Macrociclo 2" fs=12
+- [oggi/dark-1.0-port] **contrasto** span — ratio=3.19 "+11%" fs=12
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=64 fs=13 "Carico"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=73 fs=13 "Scarico"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=63 fs=14 "Pre-gara"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=55 fs=13 "1 sett."
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=57 fs=13 "2 sett."
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=66 fs=13 "30 sett."
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "30 sett." fs=13
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Recupero post-gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "10.000m"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=58 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=58 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=66 fs=13 "Scarico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "10.000m"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=58 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=74 fs=18 "10.500m"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=58 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=66 fs=13 "Scarico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "10.000m"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=58 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=74 fs=18 "10.500m"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=58 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=66 fs=13 "Scarico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "10.000m"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=58 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=74 fs=18 "10.500m"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=58 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=66 fs=13 "Scarico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "10.000m"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=58 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=74 fs=18 "10.500m"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=58 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=66 fs=13 "Scarico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "10.000m"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=58 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Recupero post-gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=63 fs=13 "Sett. 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=13 "16/11/2026"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=13 "18/11/2026"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=13 "20/11/2026"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=77 fs=13 "22/11/2026"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=68 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=65 fs=13 "Sett. 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=114 fs=32 "10.000"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=77 fs=13 "23/11/2026"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=77 fs=13 "25/11/2026"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=76 fs=13 "27/11/2026"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=77 fs=13 "29/11/2026"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=65 fs=13 "Sett. 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=13 "30/11/2026"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=68 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=66 fs=13 "Sett. 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "3 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=13 "10/12/2026"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=77 fs=13 "13/12/2026"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=76 fs=13 "Scarico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=65 fs=13 "Sett. 5"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=13 "14/12/2026"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=77 fs=13 "16/12/2026"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=77 fs=13 "18/12/2026"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=65 fs=13 "Sett. 6"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=46 fs=13 "2 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=77 fs=13 "21/12/2026"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=65 fs=13 "Sett. 7"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=55 fs=13 "Volume"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "0 slot"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=65 fs=13 "Sett. 8"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=77 fs=13 "10/01/2027"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=68 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=65 fs=13 "Sett. 9"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=114 fs=32 "10.000"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=13 "11/01/2027"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=77 fs=13 "13/01/2027"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=77 fs=13 "15/01/2027"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=76 fs=13 "17/01/2027"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=72 fs=13 "Sett. 10"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=77 fs=13 "18/01/2027"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=68 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=70 fs=13 "Sett. 11"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=113 fs=32 "10.500"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=13 "27/01/2027"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=77 fs=13 "31/01/2027"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=72 fs=13 "Sett. 12"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=76 fs=13 "Scarico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=72 fs=13 "Sett. 13"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=72 fs=13 "Sett. 14"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=68 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=72 fs=13 "Sett. 15"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=114 fs=32 "10.000"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=68 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=72 fs=13 "Sett. 16"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=113 fs=32 "10.500"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=71 fs=13 "Sett. 17"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=76 fs=13 "Scarico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=72 fs=13 "Sett. 18"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=68 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=72 fs=13 "Sett. 19"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=114 fs=32 "10.000"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=74 fs=13 "Sett. 20"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "3 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=72 fs=13 "Sett. 21"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=46 fs=13 "2 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=77 fs=13 "11/04/2027"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=68 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=74 fs=13 "Sett. 22"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=113 fs=32 "10.500"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=74 fs=13 "Sett. 23"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=76 fs=13 "Scarico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=74 fs=13 "Sett. 24"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "3 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=74 fs=13 "Sett. 25"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=68 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=74 fs=13 "Sett. 26"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=114 fs=32 "10.000"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=68 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=73 fs=13 "Sett. 27"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=113 fs=32 "10.500"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=76 fs=13 "Scarico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Scarico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=74 fs=13 "Sett. 28"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Gara" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=74 fs=13 "Sett. 29"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=68 fs=13 "Carico"
+- [oggi/dark-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=74 fs=13 "Sett. 30"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=114 fs=32 "10.000"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=52 fs=13 "Sedute"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=47 fs=13 "4 slot"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=75 fs=18 "Seduta 1"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 2"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=78 fs=18 "Seduta 3"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=77 fs=13 "11/06/2027"
+- [oggi/dark-1.0-port] **testo-spezzato** span — w=79 fs=18 "Seduta 4"
+- [oggi/dark-1.0-port] **target-piccolo** button — w=41 h=44 ""
+- [oggi/dark-1.0-port] **target-piccolo** button — w=39 h=44 ""
+- [oggi/dark-1.0-port] **target-piccolo** button — w=39 h=44 ""
+- [oggi/dark-1.0-port] **sovrapposizione** button — "" x "" 71%
+- [oggi/dark-1.0-port] **sovrapposizione** button — "" x "" 82%
+- [oggi/dark-1.0-port] **sovrapposizione** button — "" x "" 82%
+- [oggi/dark-1.0-port] **sovrapposizione** button — "" x "" 71%
+- [oggi/dark-1.0-port] **sovrapposizione** button — "" x "" 36%
+- [oggi/dark-1.0-port] **sovrapposizione** button — "" x "" 36%
+- [oggi/dark-1.0-port] **sovrapposizione** button — "" x "" 36%
+- [oggi/dark-1.0-port] **sovrapposizione** button — "" x "" 36%
+- [oggi/dark-1.0-port] **sovrapposizione** button — "" x "" 36%
+- [oggi/dark-1.0-port] **sovrapposizione** button — "" x "" 36%
+- [oggi/dark-1.0-port] **sovrapposizione** button — "" x "" 36%
+- [oggi/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "23/11/2026 – 29" 74%
+- [oggi/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "30/11/2026 – 06" 100%
+- [oggi/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "" 22%
+- [oggi/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "" 22%
+- [oggi/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "18/01/2027 – 24" 100%
+- [oggi/dark-1.0-port] **sovrapposizione** button — "" x "Sett. 10" 69%
+- [oggi/dark-1.0-port] **sovrapposizione** span — "Seduta 4" x "" 22%
+- [oggi/dark-1.0-port] **sovrapposizione** button — "" x "Sett. 11" 69%
+- [oggi/chiaro-1.0-port] **card-collassata** section.relative — h=28 scrollH=334 clientH=28
+- [oggi/chiaro-1.0-port] **testo-spezzato** span — w=62 fs=13 "25m LIVE"
+- [oggi/chiaro-1.0-port] **testo-spezzato** span — w=59 fs=12 "Squadra"
+- [oggi/chiaro-1.0-port] **ellissi** span — "Seduta di allenamento" sw=186 cw=184
+- [oggi/chiaro-1.0-port] **testo-spezzato** span — w=80 fs=16 "Sync FINP"
+- [oggi/chiaro-1.0-port] **contrasto** span — ratio=3.54 "Nessun backup esport" fs=13
+- [oggi/chiaro-1.0-port] **testo-spezzato** span — w=65 fs=13 "Esporta →"
+- [oggi/chiaro-1.0-port] **contrasto** span — ratio=2.99 "Esporta →" fs=13
+- [oggi/chiaro-1.0-port] **testo-spezzato** span — w=66 fs=13 "Carico"
+- [oggi/chiaro-1.0-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/chiaro-1.0-port] **ellissi** span — "Macrociclo 2 · 90 min" sw=177 cw=150
+- [oggi/chiaro-1.0-port] **testo-spezzato** span — w=62 fs=16 "Volume"
+- [oggi/chiaro-1.0-port] **testo-spezzato** span — w=78 fs=16 "Volume sett."
+- [oggi/chiaro-1.0-port] **ellissi** span — "Volume sett." sw=107 cw=78
+- [oggi/chiaro-1.0-port] **testo-spezzato** span — w=76 fs=16 "Presenze"
+- [oggi/chiaro-1.0-port] **testo-spezzato** span — w=84 fs=16 "80% sett."
+- [oggi/chiaro-1.0-port] **contrasto** div — ratio=4.11 "B1" fs=16
+- [oggi/chiaro-1.0-port] **ellissi** span — "Innalzamento della soglia anae" sw=422 cw=141
+- [oggi/chiaro-1.0-port] **contrasto** h3 — ratio=1.10 "Note Tecniche Bordo " fs=14
+- [oggi/chiaro-1.0-port] **testo-spezzato** span — w=64 fs=13 "Squadra"
+- [oggi/chiaro-1.0-port] **sovrapposizione** button — "" x "SIM-DellaPorta " 29%
+- [oggi/chiaro-1.0-port] **sovrapposizione** button — "" x "SIM-DellaPorta " 29%
+- [oggi/chiaro-1.0-port] **sovrapposizione** button — "" x "SIM-DellaPorta " 21%
+- [oggi/chiaro-1.0-port] **sovrapposizione** span — "Preparazione ge" x "" 100%
+- [oggi/chiaro-1.0-port] **sovrapposizione** span — "Macrociclo 2 · " x "" 59%
+- [oggi/chiaro-1.0-port] **sovrapposizione** h2 — "Allenamento Odi" x "SIM-SanGiovanni" 85%
+- [oggi/chiaro-1.0-port] **sovrapposizione** span — "Volume sett." x "SIM-DiSanLorenz" 100%
+- [oggi/chiaro-1.0-port] **sovrapposizione** span — "Presenze" x "SIM-DiSanLorenz" 100%
+- [oggi/chiaro-1.0-port] **sovrapposizione** button — "" x "Codici Metaboli" 94%
+- [oggi/chiaro-1.0-port] **sovrapposizione** span — "Vai in vasca" x "Codici Metaboli" 25%
+- [oggi/chiaro-1.0-port] **sovrapposizione** button — "" x "Soglia anaerobi" 100%
+- [oggi/chiaro-1.0-port] **sovrapposizione** span — "Adatta Carichi" x "Soglia anaerobi" 75%
+- [oggi/dark-1.3-port] **card-collassata** section.relative — h=35 scrollH=398 clientH=35
+- [oggi/dark-1.3-port] **ellissi** span — "Oggi" sw=40 cw=7
+- [oggi/dark-1.3-port] **testo-spezzato** span — w=62 fs=13 "25m LIVE"
+- [oggi/dark-1.3-port] **testo-spezzato** span — w=59 fs=12 "Squadra"
+- [oggi/dark-1.3-port] **ellissi** span — "Seduta di allenamento" sw=186 cw=135
+- [oggi/dark-1.3-port] **testo-spezzato** span — w=99 fs=20 "Sync FINP"
+- [oggi/dark-1.3-port] **contrasto** span — ratio=1.28 "Nessun backup esport" fs=13
+- [oggi/dark-1.3-port] **testo-spezzato** span — w=65 fs=13 "Esporta →"
+- [oggi/dark-1.3-port] **contrasto** span — ratio=1.03 "Esporta →" fs=13
+- [oggi/dark-1.3-port] **testo-spezzato** span — w=72 fs=13 "Carico"
+- [oggi/dark-1.3-port] **contrasto** span — ratio=1.00 "Carico" fs=13
+- [oggi/dark-1.3-port] **ellissi** span — "Macrociclo 2 · 90 min" sw=221 cw=157
+- [oggi/dark-1.3-port] **testo-spezzato** span — w=66 fs=20 "Volume"
+- [oggi/dark-1.3-port] **ellissi** span — "Volume" sw=78 cw=66
+- [oggi/dark-1.3-port] **testo-spezzato** span — w=66 fs=20 "Volume sett."
+- [oggi/dark-1.3-port] **ellissi** span — "Volume sett." sw=134 cw=66
+- [oggi/dark-1.3-port] **testo-spezzato** span — w=66 fs=20 "Presenze"
+- [oggi/dark-1.3-port] **ellissi** span — "Presenze" sw=95 cw=66
+- [oggi/dark-1.3-port] **testo-spezzato** span — w=105 fs=20 "80% sett."
+- [oggi/dark-1.3-port] **ellissi** span — "Soglia anaerobica" sw=172 cw=124
+- [oggi/dark-1.3-port] **ellissi** span — "Innalzamento della soglia anae" sw=422 cw=124
+- [oggi/dark-1.3-port] **testo-spezzato** span — w=64 fs=13 "Squadra"
+- [oggi/dark-1.3-port] **sovrapposizione** button — "" x "SIM-Condizione " 32%
+- [oggi/dark-1.3-port] **sovrapposizione** button — "" x "SIM-Condizione " 32%
+- [oggi/dark-1.3-port] **sovrapposizione** span — "Preparazione ge" x "" 100%
+- [oggi/dark-1.3-port] **sovrapposizione** span — "Macrociclo 2 · " x "" 40%
+- [oggi/dark-1.3-port] **sovrapposizione** h2 — "Allenamento Odi" x "SIM-SanGiovanni" 80%
+- [oggi/dark-1.3-port] **sovrapposizione** span — "Volume sett." x "SIM-DiSanLorenz" 85%
+- [oggi/dark-1.3-port] **sovrapposizione** span — "Presenze" x "SIM-DiSanLorenz" 85%
+- [oggi/dark-1.3-port] **sovrapposizione** button — "" x "Codici Metaboli" 94%
+- [oggi/dark-1.3-port] **sovrapposizione** span — "Vai in vasca" x "Codici Metaboli" 71%
+- [oggi/dark-1.3-port] **sovrapposizione** button — "" x "Soglia anaerobi" 100%
+- [oggi/dark-1.3-port] **sovrapposizione** span — "Adatta Carichi" x "Soglia anaerobi" 71%
+- [oggi/dark-1.0-land] **testo-spezzato** span — w=57 fs=12 "25m LIVE"
+- [oggi/dark-1.0-land] **testo-spezzato** span — w=59 fs=12 "Squadra"
+- [oggi/dark-1.0-land] **testo-spezzato** span — w=80 fs=16 "Sync FINP"
+- [oggi/dark-1.0-land] **contrasto** span — ratio=1.28 "Nessun backup esport" fs=12
+- [oggi/dark-1.0-land] **testo-spezzato** span — w=60 fs=12 "Esporta →"
+- [oggi/dark-1.0-land] **contrasto** span — ratio=1.03 "Esporta →" fs=12
+- [oggi/dark-1.0-land] **testo-spezzato** span — w=63 fs=12 "Carico"
+- [oggi/dark-1.0-land] **contrasto** span — ratio=1.00 "Carico" fs=12
+- [oggi/dark-1.0-land] **testo-spezzato** span — w=62 fs=16 "Volume"
+- [oggi/dark-1.0-land] **testo-spezzato** span — w=76 fs=16 "Presenze"
+- [oggi/dark-1.0-land] **testo-spezzato** span — w=84 fs=16 "80% sett."
+- [oggi/dark-1.0-land] **contrasto** div — ratio=3.41 "B1" fs=16
+- [oggi/dark-1.0-land] **ellissi** span — "Innalzamento della soglia anae" sw=422 cw=389
+- [oggi/dark-1.0-land] **testo-spezzato** span — w=59 fs=12 "Squadra"
+- [oggi/dark-1.0-land] **target-piccolo** button — w=879 h=38 ""
+- [oggi/dark-1.0-land] **sovrapposizione** button — "" x "Allenamento Odi" 40%
+- [oggi/dark-1.0-land] **sovrapposizione** button — "" x "Allenamento Odi" 40%
+- [oggi/dark-1.0-land] **sovrapposizione** button — "" x "Allenamento Odi" 40%
+- [oggi/dark-1.0-land] **sovrapposizione** button — "" x "Allenamento Odi" 40%
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=57 fs=18 "Squadra"
+- [squadra/dark-1.0-port] **ellissi** span — "Squadra" sw=72 cw=57
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=62 fs=13 "25m LIVE"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=59 fs=12 "Squadra"
+- [squadra/dark-1.0-port] **testo-spezzato** h2 — w=30 fs=18 "Squadra"
+- [squadra/dark-1.0-port] **testo-spezzato** p — w=30 fs=13 "100 atleti · World P"
+- [squadra/dark-1.0-port] **testo-spezzato** p — righe=10 w=30 "100 atleti · World P"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=37 fs=13 "Attivi"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=103 fs=32 "S1–S14"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM12" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "Idoneo"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "ACWR ok"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM12" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "Idoneo"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM9" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "Idoneo"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "ACWR ok"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB6" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM5" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "Idoneo"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM3" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "Idoneo"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "ACWR ok"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM5" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "Idoneo"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM13" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "Idoneo"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "ACWR ok"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=55 fs=15 "1:15.86"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM11" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "ACWR ok"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB12" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM13" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "Idoneo"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "ACWR ok"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM9" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "Idoneo"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "ACWR ok"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM12" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "Idoneo"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM5" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "Idoneo"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "ACWR ok"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S14" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB13" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM14" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "Idoneo"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=55 fs=15 "1:22.96"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S4" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB5" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM5" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB2" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM2" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "Idoneo"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "ACWR ok"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=55 fs=15 "1:39.54"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB9" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM10" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "ACWR ok"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S10" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB11" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM11" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "Idoneo"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "ACWR ok"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB1" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM2" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "Idoneo"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "ACWR ok"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=55 fs=15 "2:06.63"
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "S3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SB3" fs=12
+- [squadra/dark-1.0-port] **contrasto** span — ratio=1.00 "SM4" fs=12
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "Idoneo"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=52 fs=12 "ACWR ok"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=47 fs=12 "Miglior"
+- [squadra/dark-1.0-port] **testo-spezzato** span — w=55 fs=15 "1:09.06"

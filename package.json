@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "lint": "eslint src",
     "build:android": "node scripts/build-android.mjs",
-    "qa:matrice": "node scripts/qa/inventory.mjs"
+    "qa:matrice": "node scripts/qa/inventory.mjs",
+    "qa:pulsanti": "node scripts/qa/check-pulsanti.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",

@@ -107,7 +107,7 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
         }
       >
         <item.Icon size={mobile ? 22 : 18} className="shrink-0" />
-        <span className={mobile ? '' : 'truncate flex-1'}>{item.label}</span>
+        <span className={mobile ? 'whitespace-nowrap' : 'truncate flex-1'}>{item.label}</span>
         {!mobile && (
           <span className={`text-xs font-semibold tabular-nums shrink-0 ${active ? 'text-primary' : 'text-on-surface-variant'}`}>
             {ORDINE.indexOf(key) + 1}
@@ -173,11 +173,12 @@ export const Navbar: React.FC<Props> = ({ currentTab, onTabChange, layout }) => 
           onClick={() => vai('oggi')}
           className="flex items-center gap-1.5 min-w-0 min-h-[48px] rounded-xl px-1 -ml-1 hover:bg-surface-container-low transition-colors"
         >
-          <span className="font-headline-sm text-headline-sm font-bold tracking-tight text-primary shrink-0">
+          {/* Su mobile stretti il marchio lascia posto al contesto: titolo sempre intero. */}
+          <span className="hidden min-[420px]:inline font-headline-sm text-headline-sm font-bold tracking-tight text-primary shrink-0">
             FINP<span className="text-on-surface font-normal">coach</span>
           </span>
-          <span className="text-outline-variant text-xs shrink-0">·</span>
-          <span className="font-headline-sm text-headline-sm font-semibold text-on-surface truncate">
+          <span className="hidden min-[420px]:inline text-outline-variant text-xs shrink-0">·</span>
+          <span className="font-headline-sm text-headline-sm font-semibold text-on-surface min-w-0">
             {CONTESTO[currentTab]}
           </span>
         </button>

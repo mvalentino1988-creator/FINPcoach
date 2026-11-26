@@ -65,3 +65,7 @@ segnala i componenti come non provati a livello schermo.
 - Screenshot "PRIMA" scattati sulla build .qa installata (allineata a HEAD, asset del 25/11): nessuna rebuild per non perdere la baseline.
 - Modello non vede le immagini: i difetti in DIFETTI.md derivano da ispezione DOM/CDP e lettura codice, non da verifica visiva diretta.
 - Le immagini esistenti in docs/qa/pixel/ non sono ispezionabili a vista: rimossa solo quella segnalata; per quelle restanti attivata modalità demo (notifiche nascoste) nei nuovi screenshot.
+- [finale A.5] Overlay cutout emulator (`cmd overlay ...cutout.emulation.*`) non producono variazioni di insets su Pixel 10 / Android 17: verificato con i 5 overlay, __finpInsets identici al ritaglio reale. Test cutout eseguito con rotazione reale (laterale in landscape). Documentato in RILASCIO.md.
+- [finale C] FASE C ridotta per tempo: completati C.1 (inventario statico 337 pulsanti -> PULSANTI.md), C.5 (TODO TempiRipartenze non presente: verificato, riga 236 è solo testo UI), C.6 (qa:pulsanti). C.2 test RTL e C.3 click-through completo NON eseguiti: documentato in REPORT-CORREZIONI.md.
+- [finale B.6] Euristica audit "testo-spezzato" corretta (un carattere per 3*font-size + altezza multilinea) dopo falsi positivi su "Squadra" (parola singola larga quanto serve).
+- [finale A.3] Safe-area applicati via .app-shell (laterali), PageHeader pt-safe, overlay fissi (bottom sheet items-end / centered items-center), Toast, banner errore salvataggio, badge QA sotto il ritaglio.

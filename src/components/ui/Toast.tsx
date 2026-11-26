@@ -68,7 +68,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const content = (
     <div
-      className="fixed inset-x-4 bottom-4 z-[60] flex flex-col gap-2 pointer-events-none sm:inset-x-auto sm:right-4 sm:bottom-4 sm:w-96"
+      className="fixed inset-x-4 z-[60] flex flex-col gap-2 pointer-events-none sm:inset-x-auto sm:right-4 sm:w-96"
+      style={{ bottom: 'max(1rem, calc(max(env(safe-area-inset-bottom, 0px), var(--safe-bottom, 0px)) + 0.5rem))' }}
       aria-live="polite"
       aria-atomic="false"
     >

@@ -202,28 +202,28 @@ const AtletiScreenContent: React.FC = () => {
 
       {/* Team Metrics Micro-Card + Stat Tiles (Stitch: gestione_atleti) */}
       <section className="shrink-0 bg-surface-container-lowest rounded-xl p-3 shadow-sm">
+        {/* Riga 1: titolo intero + azione */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-primary-fixed flex items-center justify-center text-on-primary-fixed shrink-0">
               <Users size={18} />
             </div>
-            <div className="min-w-0">
-              <h2 className="font-headline-sm text-headline-sm text-on-surface leading-tight">Squadra</h2>
-              <p className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">
-                {atleti.length} {atleti.length === 1 ? 'atleta' : 'atleti'} · World Para Swimming
-              </p>
-            </div>
+            <h2 className="font-headline-sm text-headline-sm text-on-surface leading-tight whitespace-nowrap">Squadra</h2>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-caps text-label-caps font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
-              ROSA ATTIVA
-            </span>
-            <Button onClick={() => setNuovoOpen(true)} icon={<UserPlus size={16} />} className="shrink-0">
-              <span className="hidden xs:inline">Nuovo Atleta</span>
-              <span className="xs:hidden">Nuovo</span>
-            </Button>
-          </div>
+          <Button onClick={() => setNuovoOpen(true)} icon={<UserPlus size={16} />} className="shrink-0">
+            <span className="hidden xs:inline">Nuovo Atleta</span>
+            <span className="xs:hidden">Nuovo</span>
+          </Button>
+        </div>
+        {/* Riga 2: sottotitolo + stato */}
+        <div className="flex items-center justify-between gap-2 mt-1.5 min-w-0">
+          <p className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider min-w-0">
+            {atleti.length} {atleti.length === 1 ? 'atleta' : 'atleti'} · World Para Swimming
+          </p>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-caps text-label-caps font-bold shrink-0 whitespace-nowrap">
+            <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
+            ROSA ATTIVA
+          </span>
         </div>
 
         {/* Top Stats Bar: Squad Summary */}

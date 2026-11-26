@@ -141,6 +141,7 @@ export const AppContent: React.FC = () => {
         <div
           role="alert"
           className="fixed top-0 inset-x-0 z-[80] flex items-center gap-2 px-4 py-2 bg-error-container text-on-error-container text-xs font-semibold"
+          style={{ paddingTop: 'max(0.5rem, calc(max(env(safe-area-inset-top, 0px), var(--safe-top, 0px)) + 0.25rem))' }}
         >
           <span className="flex-1">{saveError} — i dati potrebbero non essere salvati. Verifica lo spazio disponibile.</span>
           <button

@@ -12,7 +12,7 @@ export interface PageHeaderProps {
 
 export const PageHeader: React.FC<PageHeaderProps> = ({ label, title, meta, icon, right, status }) => {
   return (
-    <section className="relative overflow-hidden rounded-xl bg-surface-container-lowest border border-outline-variant px-space-md py-space-sm sm:px-space-lg sm:py-space-md shadow-card flex flex-col gap-space-xs max-[639px]:px-space-md">
+    <section className="relative overflow-hidden rounded-xl bg-surface-container-lowest border border-outline-variant px-space-md pt-safe pb-space-sm sm:px-space-lg sm:pb-space-md shadow-card flex flex-col gap-space-xs max-[639px]:px-space-md">
       {/* Subtle decorative blob */}
       <div className="absolute -right-10 -bottom-10 w-24 h-24 rounded-full bg-primary/10 pointer-events-none" />
       <div className="relative z-10 flex items-center justify-between gap-space-sm sm:gap-space-lg">
@@ -27,7 +27,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ label, title, meta, icon
               {label}
             </span>
           </div>
-          <h1 className="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-snug font-bold whitespace-normal break-words">
+          <h1 className="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-snug font-bold whitespace-normal">
             {title}
           </h1>
           {meta && typeof meta === 'string' ? (

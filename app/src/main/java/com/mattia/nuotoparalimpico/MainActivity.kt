@@ -38,6 +38,11 @@ class MainActivity : ComponentActivity() {
     private var uploadMessage: ValueCallback<Array<Uri>>? = null
     private var currentTopInset = 0
     private var currentBottomInset = 0
+    private var currentLeftInset = 0
+    private var currentRightInset = 0
+    private var lastInsetsJson: String? = null
+    private var cutoutInsetsPx = intArrayOf(0, 0, 0, 0)
+    private var cutoutRectsPx: List<IntArray> = emptyList()
 
     // Host della pagina corrente, aggiornato SOLO sul thread UI dai callback
     // di WebViewClient. I metodi @JavascriptInterface girano sul thread
@@ -70,6 +75,14 @@ class MainActivity : ComponentActivity() {
         WebView.setWebContentsDebuggingEnabled(
             (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
         )
+
+        // Consenti disegnare sotto il ritaglio (notch/punch-hole) su API 28+:
+        // la pagina riceve i rettangoli del ritaglio e applica i propri margini.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            @Suppress("DEPRECATION")
+            window.attributes.layoutInDisplayCutoutMode =
+                android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             @Suppress("DEPRECATION")
@@ -122,10 +135,21 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Passa i margini di sistema alla web app come variabili CSS
+        // Passa i margini di sistema + ritaglio alla web app come variabili CSS.
+        // L'insets listener scatta a ogni cambio (rotazione, immersive, tastiera).
         ViewCompat.setOnApplyWindowInsetsListener(webView) { _, windowInsets ->
-            currentTopInset = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top
-            currentBottomInset = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            val sys = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val cut = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            // Safe = unione di barre di sistema e ritaglio (mai coperti).
+            currentTopInset = maxOf(sys.top, cut.top)
+            currentBottomInset = maxOf(sys.bottom, cut.bottom)
+            currentLeftInset = maxOf(sys.left, cut.left)
+            currentRightInset = maxOf(sys.right, cut.right)
+            // Ritengo anche gli inset "puri" del ritaglio per i bordi laterali.
+            cutoutInsetsPx = intArrayOf(cut.left, cut.top, cut.right, cut.bottom)
+            cutoutRectsPx = windowInsets.displayCutout?.boundingRects?.map {
+                intArrayOf(it.left, it.top, it.right, it.bottom)
+            } ?: emptyList()
             updateWebViewInsets()
             windowInsets
         }
@@ -185,12 +209,36 @@ class MainActivity : ComponentActivity() {
 
     private fun updateWebViewInsets() {
         val density = resources.displayMetrics.density
-        val topDp = if (density > 0f) currentTopInset / density else currentTopInset.toFloat()
-        val bottomDp = if (density > 0f) currentBottomInset / density else currentBottomInset.toFloat()
+        fun css(px: Int): String {
+            val v = if (density > 0f) px / density else px.toFloat()
+            return "${"%.2f".format(java.util.Locale.US, v)}px"
+        }
+        val top = css(currentTopInset)
+        val bottom = css(currentBottomInset)
+        val left = css(currentLeftInset)
+        val right = css(currentRightInset)
+        val cutL = css(cutoutInsetsPx[0]); val cutT = css(cutoutInsetsPx[1])
+        val cutR = css(cutoutInsetsPx[2]); val cutB = css(cutoutInsetsPx[3])
+        val rotation = resources.configuration.orientation
+        val rects = cutoutRectsPx.joinToString(",") { r ->
+            "{\"l\":${"%.2f".format(java.util.Locale.US, r[0] / density)},\"t\":${"%.2f".format(java.util.Locale.US, r[1] / density)},\"r\":${"%.2f".format(java.util.Locale.US, r[2] / density)},\"b\":${"%.2f".format(java.util.Locale.US, r[3] / density)}}"
+        }
+        val state = """{"safe":{"top":${top.dropLast(2)},"bottom":${bottom.dropLast(2)},"left":${left.dropLast(2)},"right":${right.dropLast(2)}},"cutouts":[$rects],"rotation":$rotation}"""
+        if (state == lastInsetsJson) return
+        lastInsetsJson = state
         val script = """
             (function() {
-              document.documentElement.style.setProperty('--safe-top', '${topDp}px');
-              document.documentElement.style.setProperty('--safe-bottom', '${bottomDp}px');
+              var st = document.documentElement.style;
+              st.setProperty('--safe-top', '$top');
+              st.setProperty('--safe-right', '$right');
+              st.setProperty('--safe-bottom', '$bottom');
+              st.setProperty('--safe-left', '$left');
+              st.setProperty('--cutout-top', '$cutT');
+              st.setProperty('--cutout-right', '$cutR');
+              st.setProperty('--cutout-bottom', '$cutB');
+              st.setProperty('--cutout-left', '$cutL');
+              window.__finpInsets = $state;
+              window.dispatchEvent(new CustomEvent('finp-insets'));
             })();
         """
         webView.evaluateJavascript(script, null)
@@ -390,6 +438,7 @@ class MainActivity : ComponentActivity() {
         super.onConfigurationChanged(newConfig)
         val isDark = (newConfig.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         applySystemBarsAppearance(dark = isDark)
+        updateWebViewInsets()
         webView.evaluateJavascript("window.dispatchEvent(new CustomEvent('android-system-theme-changed', {detail: {isDark: $isDark}}));", null)
     }
 
@@ -406,6 +455,9 @@ class MainActivity : ComponentActivity() {
         override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
             super.onPageStarted(view, url, favicon)
             notePageHost(url)
+            // La pagina e' nuova: forza il reintegro delle variabili CSS
+            // (l'ultimo stato e' stato iniettato nel documento precedente).
+            lastInsetsJson = null
         }
 
         override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
@@ -434,7 +486,7 @@ class MainActivity : ComponentActivity() {
                     var d = document.createElement('div');
                     d.id = 'finp-qa-badge';
                     d.textContent = 'QA · dati simulati';
-                    d.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:2147483647;background:#DC2626;color:#fff;font:700 12px/1.5 sans-serif;padding:4px 14px;border-radius:0 0 10px 10px;pointer-events:none;letter-spacing:.05em;box-shadow:0 1px 4px rgba(0,0,0,.35);';
+                    d.style.cssText = 'position:fixed;top:max(6px, calc(var(--safe-top, 0px) + 2px));left:50%;transform:translateX(-50%);z-index:2147483647;background:#DC2626;color:#fff;font:700 12px/1.5 sans-serif;padding:4px 14px;border-radius:0 0 10px 10px;pointer-events:none;letter-spacing:.05em;box-shadow:0 1px 4px rgba(0,0,0,.35);';
                     (document.body || document.documentElement).appendChild(d);
                   } catch (e) {}
                 })();

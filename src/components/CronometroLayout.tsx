@@ -92,7 +92,7 @@ export const CronometroLayout: React.FC<Props> = ({
       <button
         type="button"
         onClick={onOpenRipGlobal}
-        className="h-12 px-2.5 rounded-xl bg-surface-container border border-outline-variant/60 text-xs font-bold text-primary flex items-center gap-1 whitespace-nowrap active:scale-95 transition"
+        className="shrink-0 h-12 px-2.5 rounded-xl bg-surface-container border border-outline-variant/60 text-xs font-bold text-primary flex items-center gap-1 whitespace-nowrap active:scale-95 transition"
         aria-label="Ripartenza generale"
       >
         <Timer size={14} />
@@ -109,7 +109,7 @@ export const CronometroLayout: React.FC<Props> = ({
           onClick={onReloadSync}
           aria-label="Ricarica composizione dalla Regia"
           title="Ricarica composizione dalla Regia"
-          className="h-12 w-12 rounded-xl bg-surface-container-high text-on-surface-variant flex items-center justify-center active:scale-95 transition"
+          className="shrink-0 h-12 w-12 rounded-xl bg-surface-container-high text-on-surface-variant flex items-center justify-center active:scale-95 transition"
         >
           <RefreshCw size={16} />
         </button>
@@ -120,7 +120,7 @@ export const CronometroLayout: React.FC<Props> = ({
         type="button"
         onClick={onFine}
         disabled={inPronta}
-        className="h-12 px-2.5 rounded-xl bg-surface-container-high text-on-surface text-[12px] font-bold uppercase tracking-wide flex items-center gap-1 active:scale-95 transition disabled:opacity-45 whitespace-nowrap"
+        className="shrink-0 h-12 px-2.5 rounded-xl bg-surface-container-high text-on-surface text-[12px] font-bold uppercase tracking-wide flex items-center gap-1 active:scale-95 transition disabled:opacity-60 whitespace-nowrap"
       >
         <Flag size={14} /> Fine
       </button>
@@ -129,7 +129,7 @@ export const CronometroLayout: React.FC<Props> = ({
         type="button"
         onClick={onRequestReset}
         aria-label="Azzera sessione"
-        className="h-12 w-12 rounded-xl bg-error-container/70 hover:bg-error-container text-on-error-container flex items-center justify-center active:scale-95 transition"
+        className="shrink-0 h-12 w-12 rounded-xl bg-error-container/70 hover:bg-error-container text-on-error-container flex items-center justify-center active:scale-95 transition"
       >
         <RotateCcw size={17} />
       </button>
@@ -147,7 +147,34 @@ export const CronometroLayout: React.FC<Props> = ({
       className="flex-1 min-h-0 grid gap-1.5 px-0.5"
       style={gridStyle}
     >
-      {lanesVisibili.map(lane => {
+      {inPronta && lanesVisibili.every(l => l.atleti.length === 0) && (
+        <div className="col-span-full row-span-full min-h-0 flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-outline-variant/70 bg-surface-container-low/50 p-4 text-center">
+          <Timer size={28} className="text-on-surface-variant" />
+          <div className="max-w-[260px]">
+            <p className="font-headline-sm text-headline-sm font-bold text-on-surface">Nessun atleta in vasca</p>
+            <p className="mt-1 text-[12px] text-on-surface-variant leading-snug">
+              Se hai già impostato le corsie nella Regia, carica la composizione da lì. Altrimenti aggiungi gli atleti alle singole corsie.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={onReloadSync}
+              className="h-12 px-4 rounded-xl bg-primary text-on-primary font-headline-sm text-label-lg font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-sm"
+            >
+              <RefreshCw size={17} /> Carica dalla Regia
+            </button>
+            <button
+              type="button"
+              onClick={() => onOpenPicker(lanesVisibili[0])}
+              className="h-12 px-4 rounded-xl bg-surface-container-high text-on-surface font-headline-sm text-label-lg font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition"
+            >
+              <Plus size={16} /> Aggiungi atleta
+            </button>
+          </div>
+        </div>
+      )}
+      {!(inPronta && lanesVisibili.every(l => l.atleti.length === 0)) && lanesVisibili.map(lane => {
         const tileH = laneCellH(lane);
         const tileW = laneCellW();
         const compact = tileH < 68;
@@ -226,7 +253,7 @@ export const CronometroLayout: React.FC<Props> = ({
         );
       })}
 
-      {inPronta && s.lanes.length < MAX_LANES && (
+      {inPronta && s.lanes.length < MAX_LANES && !(inPronta && lanesVisibili.every(l => l.atleti.length === 0)) && (
         <button
           type="button"
           onClick={addLane}
@@ -274,7 +301,7 @@ export const CronometroLayout: React.FC<Props> = ({
           type="button"
           onClick={onVia}
           disabled={s.lanes.every(l => l.atleti.length === 0)}
-          className="flex-1 min-h-[52px] rounded-xl bg-primary text-on-primary font-headline-sm text-base font-bold flex items-center justify-center gap-2 active:scale-[0.97] transition shadow-sm disabled:opacity-45 whitespace-nowrap"
+          className="flex-1 min-h-[52px] rounded-xl bg-primary text-on-primary font-headline-sm text-base font-bold flex items-center justify-center gap-2 active:scale-[0.97] transition shadow-sm disabled:opacity-60 whitespace-nowrap"
         >
           <Play size={20} /> {s.t0 != null ? 'RIPRENDI SESSIONE' : 'VIA GENERALE'}
         </button>
@@ -289,7 +316,7 @@ export const CronometroLayout: React.FC<Props> = ({
           undoPulse > 0
             ? 'bg-primary-container text-on-primary border-primary-container animate-pulse'
             : 'bg-surface-container-high text-on-surface border-outline-variant/60'
-        } disabled:opacity-40`}
+        } disabled:opacity-60`}
       >
         <Undo2 size={18} />
         <span>Annulla</span>

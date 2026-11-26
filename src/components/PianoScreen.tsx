@@ -747,38 +747,6 @@ export const PianoScreen: React.FC = () => {
       </section>
       )}
 
-      {/* Gare della stagione e iscrizioni */}
-      {stagione && gare.length > 0 && (
-        <section className="overflow-hidden rounded-xl border border-border-hairline bg-surface-container-lowest shadow-card">
-          <div className="flex items-center gap-3 border-b border-border-hairline bg-surface-container-low px-4 py-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-tertiary-fixed text-on-tertiary-fixed">
-              <Flag size={17} />
-            </span>
-            <div>
-              <h2 className="font-headline-sm text-headline-sm font-bold text-on-surface">Gare e iscrizioni</h2>
-              <p className="text-xs text-on-surface-variant">Iscrizioni per gara con eventi ammissibili (programma WPS) e avvisi su assenze.</p>
-            </div>
-          </div>
-          <div className="space-y-2 p-4">
-            {[...gare]
-              .sort((a, b) => a.dal.localeCompare(b.dal))
-              .map(g => (
-                <div key={g.id} className="space-y-1">
-                  <div className="flex items-center gap-2 px-1">
-                    <Flag size={13} className={`shrink-0 ${g.prioritaria ? 'text-tertiary' : 'text-on-surface-variant'}`} />
-                    <span className="min-w-0 font-headline-sm text-headline-sm font-bold text-on-surface" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{g.nome}</span>
-                    <span className="shrink-0 whitespace-nowrap font-label-caps text-label-caps uppercase text-on-surface-variant">
-                      {formattaData(g.dal)}{g.dal !== g.al ? ` – ${formattaData(g.al)}` : ''}
-                    </span>
-                    {g.prioritaria && <Badge variant="coral" size="sm" className="shrink-0">A-race</Badge>}
-                  </div>
-                  <IscrittiGaraPanel gara={g} />
-                </div>
-              ))}
-          </div>
-        </section>
-      )}
-
       {vistaPiano === 'programmazione' && (
       <section className="overflow-hidden rounded-xl border border-border-hairline bg-surface-container-lowest shadow-card">
         <div className="flex flex-col gap-3 border-b border-border-hairline bg-surface-container-low px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
@@ -1377,6 +1345,38 @@ export const PianoScreen: React.FC = () => {
         )}
       </div>
       </section>
+      )}
+
+      {/* Gare della stagione e iscrizioni — sotto la timeline e il volume */}
+      {stagione && gare.length > 0 && (
+        <section className="overflow-hidden rounded-xl border border-border-hairline bg-surface-container-lowest shadow-card">
+          <div className="flex items-center gap-3 border-b border-border-hairline bg-surface-container-low px-4 py-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-tertiary-fixed text-on-tertiary-fixed">
+              <Flag size={17} />
+            </span>
+            <div>
+              <h2 className="font-headline-sm text-headline-sm font-bold text-on-surface">Gare e iscrizioni</h2>
+              <p className="text-xs text-on-surface-variant">Iscrizioni per gara con eventi ammissibili (programma WPS) e avvisi su assenze.</p>
+            </div>
+          </div>
+          <div className="space-y-2 p-4">
+            {[...gare]
+              .sort((a, b) => a.dal.localeCompare(b.dal))
+              .map(g => (
+                <div key={g.id} className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-1">
+                    <Flag size={13} className={`shrink-0 ${g.prioritaria ? 'text-tertiary' : 'text-on-surface-variant'}`} />
+                    <span className="min-w-0 flex-1 basis-40 font-headline-sm text-headline-sm font-bold text-on-surface" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{g.nome}</span>
+                    <span className="shrink-0 whitespace-nowrap font-label-caps text-label-caps uppercase text-on-surface-variant">
+                      {formattaData(g.dal)}{g.dal !== g.al ? ` – ${formattaData(g.al)}` : ''}
+                    </span>
+                    {g.prioritaria && <Badge variant="coral" size="sm" className="shrink-0">A-race</Badge>}
+                  </div>
+                  <IscrittiGaraPanel gara={g} />
+                </div>
+              ))}
+          </div>
+        </section>
       )}
 
       {/* Edit Microcycle Modal */}

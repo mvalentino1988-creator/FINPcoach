@@ -170,3 +170,28 @@ vanno mai in git). Per firmare un release:
 - Prova utente: `docs/qa/PROVA-UTENTE.md` (checklist 10 blocchi);
   `/sdcard/Download` contiene `stress-100.json` e
   `stress-100-cifrato.finpbackup` (password `qa-test-2026`).
+
+## Safe-area, ritaglio e diagnostica (giro finale 2026-11-26)
+
+- `MainActivity` usa `layoutInDisplayCutoutMode = SHORT_EDGES` (API 28+) e
+  calcola gli insets come unione di `systemBars()` e `displayCutout()`.
+  Inietta nel DOM: `--safe-top/right/bottom/left` e `--cutout-*` (px CSS),
+  `window.__finpInsets = {safe, cutouts[], rotation}` e l'evento
+  `finp-insets` (ripetuto a ogni cambio: rotazione, immersive, tastiera,
+  reload pagina). In landscape il ritaglio laterale diventa `--safe-left/right`.
+- Web: classi `.pt-safe .pr-safe .pb-safe .pl-safe .px-safe .py-safe .mt-safe
+  .mb-safe .ml-safe .mr-safe` = `max(env(safe-area-inset-*), var(--safe-*))`.
+  Applicate a: `.app-shell` (laterali), `PageHeader`, overlay fissi
+  (bottom sheet `items-end`, modali `items-center`), Toast, banner errore,
+  badge QA (sotto il ritaglio). Dove il ritaglio è assente niente spazio extra.
+- Test ritaglio: `adb shell cmd overlay list | grep cutout` per gli overlay
+  emulator. NOTA: su Pixel 10 / Android 17 gli overlay
+  `com.android.internal.display.cutout.emulation.*` non modificano i
+  boundingRects (verificato 26/11) — usare la rotazione reale per il caso
+  laterale. `window.__finpInsets` in console CDP per ispezionare.
+- Audit geometrico: `node scripts/qa/layout-audit.mjs` (CDP su .qa) —
+  card collassate, testo spezzato, ellissi, sovrapposizioni, fuori schermo,
+  target/testo piccoli, contrasto WCAG, sotto-ritaglio. Report in
+  `docs/qa/grafica/AUDIT*.md`; esce 1 se restano difetti bloccanti.
+- Inventario pulsanti: `node scripts/qa/inventory-buttons.mjs` →
+  `docs/qa/PULSANTI.md`; verifica `npm run qa:pulsanti`.
