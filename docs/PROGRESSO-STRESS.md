@@ -70,3 +70,8 @@ Formato: `id | stato (da fare/in corso/fatto/bloccato) | hash commit | nota`
 | 4.2 Deriva | in corso | misura in-page 10min |
 | 4.3 300x3 device | fatto | import ~4s, tour squadre/regia/cronometro OK |
 | 5.1-5.3 Pixel | in corso | PROVA-UTENTE.md scritto; pm clear+import+Download pendenti |
+
+## GIRO GRAFICO — "4 ORE"
+| fase | stato | t+min | nota |
+|------|-------|-------|------|
+| FASE 0 base | fatto | t+20 | .qa allineata a HEAD, stress-100 attivo, demo SystemUI, 9 screenshot prima/*, DIFETTI.md; screenshot con dati personali rimosso (23c3970) |

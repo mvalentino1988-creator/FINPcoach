@@ -60,3 +60,8 @@ segnala i componenti come non provati a livello schermo.
   SNAPSHOT_MAX=3 sono vincoli fisici/prodotti, non di scala.
 - Build Android sempre con `npm run build:android` (VITE_FIREBASE_* a zero):
   `npm run build` lascia la chiave API negli asset.
+
+## 2026-11-26 — Giro grafico
+- Screenshot "PRIMA" scattati sulla build .qa installata (allineata a HEAD, asset del 25/11): nessuna rebuild per non perdere la baseline.
+- Modello non vede le immagini: i difetti in DIFETTI.md derivano da ispezione DOM/CDP e lettura codice, non da verifica visiva diretta.
+- Le immagini esistenti in docs/qa/pixel/ non sono ispezionabili a vista: rimossa solo quella segnalata; per quelle restanti attivata modalità demo (notifiche nascoste) nei nuovi screenshot.
