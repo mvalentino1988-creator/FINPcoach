@@ -107,3 +107,14 @@ Lavoro di rifinitura in 10 blocchi: correttezza, sicurezza dei dati, accessibili
 - **Vasca/Regia**: controlli touch portati a 48px, stati delle tessere da `STATO_VASCA` condiviso.
 - **Verifiche**: audit DOM/CDP su .qa senza testi <12px, target <44px, ellissi o overflow; screenshot prima/dopo in `docs/qa/grafica/`.
 - **Non fatto (tempo)**: FASE 4 scheda atleta come bottom sheet full-height con tab specifici (la scheda esistente è già un modal bottom-sheet con tab).
+
+## 0.2.5 — Giro finale: fotocamera, difetti visivi, audit (2026-11-26)
+
+- **Insets nativi completi**: `MainActivity` usa `LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES` (API 28+) e unisce `systemBars()` + `displayCutout()`; inietta `--safe-*`, `--cutout-*`, `window.__finpInsets` e l'evento `finp-insets` a ogni cambio (rotazione, immersive, tastiera, reload). Badge QA spostato sotto il ritaglio.
+- **Safe-area web**: classi `.p*-safe`/`.m*-safe` = `max(env(safe-area-inset-*), var(--safe-*))` applicate a shell (laterali), PageHeader, overlay fissi (bottom sheet, modali), Toast, banner errore.
+- **Fix visivi**: card "Seduta di oggi" non collassa più (flex-shrink in colonne scrollabili con overflow:hidden); header Squadra su tre righe (titolo intero, sottotitolo, chip+azione); titoli senza `break-words`/`truncate`; Gare e iscrizioni sotto timeline+volume nel Piano; nomi gara su due righe con badge a capo; stato "pronta" del cronometro con azione "Carica dalla Regia" al posto di sei "Aggiungi atleta"; controlli top-bar `shrink-0`.
+- **Navbar**: etichette dock `whitespace-nowrap` e item `flex:1` (96px) — "Squadra" non si spezza più; contesto header senza truncate e marchio nascosto sotto 420px.
+- **Audit geometrico**: `scripts/qa/layout-audit.mjs` (CDP) misura 8 classi di difetti su 10 schermate × 4 combinazioni tema/font/orientamento; report in `docs/qa/grafica/AUDIT-*.md` — bloccanti: 0 dopo i fix.
+- **Inventario pulsanti**: `scripts/qa/inventory-buttons.mjs` → `docs/qa/PULSANTI.md` (337 occorrenze); `npm run qa:pulsanti` fallisce se un pulsante non è inventariato o senza esito.
+- **Test**: `timelineStagione.test.tsx` (5 test) per TimelineStagione/GraficoVolumeSettimane.
+- **Non fatto / non provato**: test RTL e click-through completo dei pulsanti (C.2/C.3), overlay cutout emulator non supportati dal dispositivo (verificato, documentato in RILASCIO.md), FASE D extra, contrasto WCAG misurato formalmente (l'audit segnala artefatti del parser su badge con colori CSS var).

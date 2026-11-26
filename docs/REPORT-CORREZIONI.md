@@ -375,3 +375,10 @@ Test verdi dopo ogni file; `qa:matrice` aggiornata.
 - Tagliato per tempo: FASE 4 (refactor scheda atleta in bottom sheet full-height con set di tab dedicato); FASE 2.5 raggruppamento squadre; FASE 3.4 calendario mensile.
 - Non provato: contrasto misurato formalmente, ispezione visiva diretta degli screenshot (limite ambiente), screenshot landscape.
 - Prova device: .qa reinstallata e avviata senza eccezioni in logcat; app di produzione `install -r` + avvio soltanto.
+
+## Giro finale 2026-11-26
+
+- Solo presentazione e supporto nativo insets/diagnostica: MainActivity.kt (cutout mode + union insets + injection CSS/JS), index.css (safe-area, flex-shrink fix), componenti (Navbar, PageHeader, OggiScreen via CSS, AtletiScreen, PianoScreen, BordoVascaScreen, CronometroLayout, Toast, App).
+- FASE A: completata tranne test esaustivo overlay (dispositivo non supporta l'emulazione cutout — verificato e documentato); FASE B: B.1-B.5 corretti, audit bloccanti=0; FASE C: solo C.1/C.5/C.6 (inventario + qa:pulsanti + TODO verificato); C.2/C.3 tagliati per tempo; FASE D saltata.
+- Prova device: .qa reinstallata, __finpInsets verificato in portrait e landscape (rotazione reale), audit CDP su 7 schermate; app di produzione install -r + avvio senza FATAL; impostazioni telefono ripristinate.
+- Non provato: click-through pulsanti, contrasto formale, screenshot visivi (audit solo geometrico), overlay cutout multipli, FASE D.

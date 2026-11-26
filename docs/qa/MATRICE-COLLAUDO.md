@@ -1,5 +1,5 @@
 # Matrice di collaudo — FINPcoach
-Generata da `scripts/qa/inventory.mjs` il 2026-11-25.
+Generata da `scripts/qa/inventory.mjs` il 2026-11-26.
 
 | Elemento | Tipo | Stato | Test |
 |---|---|---|---|
@@ -65,6 +65,9 @@ Generata da `scripts/qa/inventory.mjs` il 2026-11-25.
 | Sezione | componente | verde | src/components/schermate.test.tsx |
 | TempiRipartenzeScreen | componente | verde | src/components/schermate.test.tsx |
 | TestCalibrazioneModal | componente | verde | src/components/piano.test.tsx |
+| timelineStagione.test | componente (interno) | verde | src\components\timelineStagione.test.tsx |
+| TimelineStagione | componente | verde | src\components\timelineStagione.test.tsx |
+| GraficoVolumeSettimane | componente | verde | src\components\timelineStagione.test.tsx |
 | ui.test | componente (interno) | verde | src\components\ui.test.tsx |
 | WelcomeScreen | componente | verde | src/components/schermate.test.tsx |
 | archivioStagione::costruisciArchivioStagione | dominio | verde | src\domain\archivioStagione.test.ts |
