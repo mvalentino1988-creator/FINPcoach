@@ -2,53 +2,16 @@ import React, { useState } from 'react';
 import { Microciclo, TipoMicrociclo, TIPO_MICROCICLO_LABEL } from '../types';
 import { formattaData, parseData, formatDataInput } from '../domain/dateUtils';
 import { CalendarDays, Lock, Sparkles, Unlock, X } from 'lucide-react';
+import { microSemantica } from '../lib/semantica';
 
 export const tipoMicroVisual = (tipo: TipoMicrociclo) => {
-  switch (tipo) {
-    case 'ADATTAMENTO':
-      return {
-        bar: 'bg-accent-gold',
-        chip: 'bg-warning-container text-on-warning-container border-warning/40',
-        accent: 'text-accent-gold',
-        dot: 'bg-accent-gold'
-      };
-    case 'CARICO':
-      return {
-        bar: 'bg-primary',
-        chip: 'bg-primary-fixed text-on-primary-fixed border-primary-fixed-dim',
-        accent: 'text-primary',
-        dot: 'bg-primary'
-      };
-    case 'SCARICO':
-      return {
-        bar: 'bg-secondary',
-        chip: 'bg-secondary-fixed text-on-secondary-fixed border-secondary-fixed-dim',
-        accent: 'text-secondary',
-        dot: 'bg-secondary-fixed-dim'
-      };
-    case 'RECUPERO':
-      return {
-        bar: 'bg-success',
-        chip: 'bg-success-container text-on-success-container border-success/40',
-        accent: 'text-success',
-        dot: 'bg-success'
-      };
-    case 'GARA':
-      return {
-        bar: 'bg-tertiary',
-        chip: 'bg-tertiary-fixed text-on-tertiary-fixed border-tertiary-fixed-dim',
-        accent: 'text-tertiary',
-        dot: 'bg-tertiary-fixed-dim'
-      };
-    case 'PAUSA':
-    default:
-      return {
-        bar: 'bg-outline',
-        chip: 'bg-surface-container-highest text-on-surface-variant border-outline-variant',
-        accent: 'text-on-surface-variant',
-        dot: 'bg-outline'
-      };
-  }
+  const m = microSemantica(tipo);
+  return {
+    bar: m.solid,
+    chip: `${m.chip} border`,
+    accent: m.text,
+    dot: m.solid,
+  };
 };
 
 export interface NuovaStagioneFormProps {

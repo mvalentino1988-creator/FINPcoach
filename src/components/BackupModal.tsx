@@ -522,10 +522,10 @@ const BackupModalContent: React.FC<Props> = ({ onClose }) => {
                     <Trash2 size={15} className="text-error shrink-0" />
                     <div className="min-w-0">
                       <div className="font-bold text-on-surface text-xs">Pulisci registro vecchio</div>
-                      <div className="text-[11px] text-on-surface-variant">Elimina i log sedute anteriori alla stagione corrente (dopo conferma + promemoria backup)</div>
+                      <div className="text-[12px] text-on-surface-variant">Elimina i log sedute anteriori alla stagione corrente (dopo conferma + promemoria backup)</div>
                     </div>
                   </div>
-                  <span className="text-[11px] font-bold text-on-surface-variant shrink-0">{puliziaEsito ?? 'Azioni'}</span>
+                  <span className="text-[12px] font-bold text-on-surface-variant shrink-0">{puliziaEsito ?? 'Azioni'}</span>
                 </button>
               </div>
             )}

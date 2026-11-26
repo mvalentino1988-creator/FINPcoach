@@ -19,6 +19,7 @@ import { Badge, Select } from './ui';
 import { normalizzaDurata } from '../domain/parametriSeduta';
 import { IscrittiGaraPanel } from './IscrittiGaraPanel';
 import { NuovaStagioneForm, ModalModificaMicro, tipoMicroVisual } from './pianoModali';
+import { TimelineStagione, GraficoVolumeSettimane } from './TimelineStagione';
 import { PianoEditEventModal, PianoParametriModal, EditEventModalState } from './pianoOverlayModals';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { salvaSnapshotDati } from '../data/snapshotAutomatico';
@@ -45,7 +46,8 @@ import {
   Users,
   Waves,
   X,
-  MapPin
+  MapPin,
+  MoreHorizontal
 } from 'lucide-react';
 
 
@@ -126,6 +128,7 @@ export const PianoScreen: React.FC = () => {
   // Clickable Menu Navigation for Cycles
   const [selectedMacroId, setSelectedMacroId] = useState<number | null>(null);
   const [selectedMesoId, setSelectedMesoId] = useState<number | null>(null);
+  const [menuAltroOpen, setMenuAltroOpen] = useState(false);
   const [microFocusId, setMicroFocusId] = useState<number | null>(null);
   const [espandiTutti, setEspandiTutti] = useState(false);
 
@@ -203,9 +206,11 @@ export const PianoScreen: React.FC = () => {
         meta={
           <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-on-surface-variant">
             <span>{stagione?.inizio ? formattaData(stagione.inizio) : ''} – {stagione?.fine ? formattaData(stagione.fine) : ''}</span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-secondary-container/60 px-2 py-0.5 font-label-caps text-label-caps uppercase text-on-secondary-container">
-              <Waves size={12} /> Vasca {stagione?.vascaMetri ?? 25}m
-            </span>
+          </span>
+        }
+        status={
+          <span className="ds-chip ds-chip-secondary">
+            <Waves size={13} /> Vasca {stagione?.vascaMetri ?? 25}m
           </span>
         }
         right={
@@ -235,33 +240,61 @@ export const PianoScreen: React.FC = () => {
               <span className="hidden sm:inline">Date</span>
             </button>
 
-            <button
-              onClick={() => { setArchiviaConferma(false); setArchiviaErrore(null); setArchiviaOpen(true); }}
-              className="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-lg border border-primary/30 bg-primary-container px-3 text-xs font-headline-sm font-bold text-on-primary-container transition hover:brightness-95"
-              title="Esporta la stagione in un archivio e prepara la stagione successiva"
-            >
-              <Archive size={15} />
-              <span className="hidden sm:inline">Archivia</span>
-            </button>
-
-            <button
-              onClick={() => {
-                const parti = [
-                  `stagione "${stagione?.nome ?? ''}" (${formattaData(stagione?.inizio ?? '')} – ${formattaData(stagione?.fine ?? '')})`,
-                  `${micro.length} microcicli`, `${macro.length} macrocicli`, `${meso.length} mesocicli`,
-                  `${gare.length} gare`, `${iscrizioniGare.length} iscrizioni`, `${chiusure.length} chiusure`,
-                ];
-                if (window.confirm(`Eliminare la stagione? Verranno eliminati: ${parti.join(', ')}.\n\nGli atleti e i tempi restano salvati. Prima della cancellazione viene creato uno snapshot di sicurezza (max 3, in Dati > Snapshot).`)) {
-                  salvaSnapshotDati();
-                  eliminaStagione();
-                }
-              }}
-              className="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-lg border border-error/25 bg-error-container px-3 text-xs font-headline-sm font-bold text-on-error-container transition hover:brightness-95"
-              title="Elimina stagione"
-            >
-              <Trash2 size={15} />
-              <span className="hidden sm:inline">Elimina</span>
-            </button>
+            {/* Menu "Altro": azioni distruttive/raro uso fuori dal'intestazione */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setMenuAltroOpen(v => !v)}
+                aria-expanded={menuAltroOpen}
+                aria-haspopup="menu"
+                className="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-headline-sm font-bold text-on-surface-variant transition hover:bg-surface-container-low hover:text-on-surface"
+                title="Altre azioni"
+              >
+                <MoreHorizontal size={15} />
+                <span className="hidden sm:inline">Altro</span>
+              </button>
+              {menuAltroOpen && (
+                <>
+                  <button
+                    type="button"
+                    aria-label="Chiudi menu"
+                    className="fixed inset-0 z-10 cursor-default"
+                    onClick={() => setMenuAltroOpen(false)}
+                  />
+                  <div role="menu" className="absolute right-0 top-full z-20 mt-1 w-56 rounded-xl border border-outline-variant bg-surface-container-lowest shadow-pop p-1.5">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => { setMenuAltroOpen(false); setArchiviaConferma(false); setArchiviaErrore(null); setArchiviaOpen(true); }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-headline-sm font-bold text-on-surface hover:bg-surface-container-low"
+                    >
+                      <Archive size={15} className="text-primary" />
+                      Archivia stagione
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setMenuAltroOpen(false);
+                        const parti = [
+                          `stagione "${stagione?.nome ?? ''}" (${formattaData(stagione?.inizio ?? '')} – ${formattaData(stagione?.fine ?? '')})`,
+                          `${micro.length} microcicli`, `${macro.length} macrocicli`, `${meso.length} mesocicli`,
+                          `${gare.length} gare`, `${iscrizioniGare.length} iscrizioni`, `${chiusure.length} chiusure`,
+                        ];
+                        if (window.confirm(`Eliminare la stagione? Verranno eliminati: ${parti.join(', ')}.\n\nGli atleti e i tempi restano salvati. Prima della cancellazione viene creato uno snapshot di sicurezza (max 3, in Dati > Snapshot).`)) {
+                          salvaSnapshotDati();
+                          eliminaStagione();
+                        }
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-headline-sm font-bold text-error hover:bg-error-container/40"
+                    >
+                      <Trash2 size={15} />
+                      Elimina stagione…
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         }
       />
@@ -789,6 +822,37 @@ export const PianoScreen: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {stagione && (
+          <div className="mx-4 mt-4 space-y-3 sm:mx-5">
+            <TimelineStagione
+              stagione={stagione}
+              macro={macro}
+              meso={meso}
+              micro={micro}
+              gare={gare}
+              oggi={oggi}
+              onSelezionaMacro={id => {
+                setSelectedMacroId(id);
+                const firstMeso = meso.find(me => me.macrocicloId === id);
+                if (firstMeso) setSelectedMesoId(firstMeso.id);
+              }}
+              onSelezionaMeso={id => {
+                const me = meso.find(x => x.id === id);
+                if (me) setSelectedMacroId(me.macrocicloId);
+                setSelectedMesoId(id);
+              }}
+              onSelezionaMicro={mi => {
+                const me = meso.find(x => x.id === mi.mesocicloId);
+                if (me) {
+                  setSelectedMacroId(me.macrocicloId);
+                  setSelectedMesoId(me.id);
+                }
+              }}
+            />
+            <GraficoVolumeSettimane micro={micro} />
+          </div>
+        )}
 
         <div className="space-y-5 p-4 sm:p-5">
 

@@ -120,7 +120,7 @@ export const PianoAtletaPanel: React.FC<Props> = ({ atleta }) => {
                   <td className="px-2 py-1.5">
                     {r.tipoLabel}
                     {r.tapering && <span className="ds-chip-blue ml-1">tapering</span>}
-                    {r.note && <span className="block text-on-surface-variant text-[11px]">{r.note}</span>}
+                    {r.note && <span className="block text-on-surface-variant text-[12px]">{r.note}</span>}
                   </td>
                   <td className="px-2 py-1.5 text-right tabular-nums font-bold">
                     {Math.round(r.volumeMetri).toLocaleString('it-IT')}

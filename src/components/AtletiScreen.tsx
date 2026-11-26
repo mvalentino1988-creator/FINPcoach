@@ -11,13 +11,19 @@ import {
   BadgeCheck,
   Check,
   ChevronRight,
+  CircleCheck,
+  CircleX,
   RefreshCw,
+  Rows3,
   Search,
   UserPlus,
   Users
 } from 'lucide-react';
 import { ModalAtleta } from './atletiModali';
 import { ModalDettaglioAtleta } from './atletaDettaglioModal';
+import { Riepilogo } from '../domain/riepilogo';
+import { CalcoloScienzaNuoto } from '../domain/calcoloCSS';
+import { acwrSemantica } from '../lib/semantica';
 
 const AtletiScreenContent: React.FC = () => {
   const {
@@ -48,6 +54,17 @@ const AtletiScreenContent: React.FC = () => {
   const [selezionatoId, setSelezionatoId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState<'ALL' | 'S1-S6' | 'S7-S10' | 'S11-S13' | 'S14'>('ALL');
+  // Preferenza UI di sola presentazione: modalita' compatta della lista.
+  const [compatto, setCompatto] = useState(() => {
+    try { return localStorage.getItem('finp_squadra_compact') === '1'; } catch { return false; }
+  });
+  const toggleCompatto = () => {
+    setCompatto(v => {
+      const next = !v;
+      try { localStorage.setItem('finp_squadra_compact', next ? '1' : '0'); } catch { /* noop */ }
+      return next;
+    });
+  };
 
   const oggi = todayISO();
   const atletaSel = atleti.find(a => a.id === selezionatoId);
@@ -116,6 +133,28 @@ const AtletiScreenContent: React.FC = () => {
     : '—';
   const atletiConTempi = tempiPerAtleta.size;
 
+  // Presenza registrata oggi (una riga di log per atleta/giorno).
+  const presenzaOggi = useMemo(() => {
+    const map = new Map<number, boolean>();
+    for (const l of log) if (l.data === oggi) map.set(l.atletaId, l.presente);
+    return map;
+  }, [log, oggi]);
+
+  // ACWR per atleta: calcolato una tantum sugli ultimi carichi (max 5 settimane).
+  const acwrPerAtleta = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const a of atleti) {
+      const settimane = Riepilogo.perAtleta(a, log, micro, assenze, 5);
+      if (settimane.length === 0) continue;
+      const r = CalcoloScienzaNuoto.calcolaACWR(
+        settimane[0].caricoSrpe,
+        settimane.slice(1).map(s => s.caricoSrpe)
+      );
+      map.set(a.id, r.livelloRischio);
+    }
+    return map;
+  }, [atleti, log, micro, assenze]);
+
   const FILTRI_CLASSI: { id: typeof categoriaFiltro; label: string }[] = [
     { id: 'ALL', label: 'TUTTI' },
     { id: 'S1-S6', label: 'S1–S6' },
@@ -169,9 +208,9 @@ const AtletiScreenContent: React.FC = () => {
               <Users size={18} />
             </div>
             <div className="min-w-0">
-              <h2 className="font-headline-sm text-headline-sm text-on-surface leading-tight truncate">Squadra Agonistica FINP</h2>
-              <p className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider truncate">
-                {atleti.length} {atleti.length === 1 ? 'atleta registrato' : 'atleti registrati'} · World Para Swimming
+              <h2 className="font-headline-sm text-headline-sm text-on-surface leading-tight">Squadra</h2>
+              <p className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">
+                {atleti.length} {atleti.length === 1 ? 'atleta' : 'atleti'} · World Para Swimming
               </p>
             </div>
           </div>
@@ -191,20 +230,20 @@ const AtletiScreenContent: React.FC = () => {
         <div className="grid grid-cols-3 gap-2 mt-2.5">
           <div className="bg-surface-container-low rounded-xl p-2.5 flex flex-col justify-between shadow-sm">
             <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Atleti FINP</span>
-            <div className="flex items-baseline gap-1 mt-1">
+            <div className="flex items-baseline gap-1 mt-1 whitespace-nowrap">
               <span className="font-headline-lg text-headline-lg text-primary leading-none">{atleti.length}</span>
               <span className="font-label-caps text-label-caps text-secondary">Attivi</span>
             </div>
           </div>
           <div className="bg-surface-container-low rounded-xl p-2.5 flex flex-col justify-between shadow-sm">
             <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Classi WPS</span>
-            <div className="flex items-baseline gap-1 mt-1">
+            <div className="flex items-baseline gap-1 mt-1 whitespace-nowrap">
               <span className="font-headline-lg text-headline-lg text-on-surface leading-none">{classiRange}</span>
             </div>
           </div>
           <div className="bg-surface-container-low rounded-xl p-2.5 flex flex-col justify-between shadow-sm">
             <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Con Tempi</span>
-            <div className="flex items-baseline gap-1 mt-1">
+            <div className="flex items-baseline gap-1 mt-1 whitespace-nowrap">
               <span className="font-headline-lg text-headline-lg text-secondary leading-none">{atletiConTempi}</span>
               <span className="font-label-caps text-label-caps text-on-surface-variant">/ {atleti.length}</span>
             </div>
@@ -224,8 +263,26 @@ const AtletiScreenContent: React.FC = () => {
             aria-label="Cerca atleta"
           />
 
+          {/* Toggle vista compatta — preferenza UI persistita in localStorage */}
+          <div className="flex items-center justify-end">
+            <button
+              type="button"
+              onClick={toggleCompatto}
+              aria-pressed={compatto}
+              className={`inline-flex items-center gap-1.5 min-h-[44px] px-3 rounded-full font-label-caps text-label-caps font-bold transition-colors ${
+                compatto
+                  ? 'bg-primary text-on-primary'
+                  : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
+              }`}
+            >
+              <Rows3 size={14} />
+              {compatto ? 'Compatta' : 'Estesa'}
+            </button>
+          </div>
+
           {/* Functional Class Horizontal Filter Pill Carousel */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none' }}>
+          <div className="ds-hscroll relative -mx-0.5 px-0.5" style={{ maskImage: 'linear-gradient(to right, black 88%, transparent)' }}>
+            <div className="flex items-center gap-1.5 w-max pb-0.5">
             {FILTRI_CLASSI.map(f => {
               const attivo = categoriaFiltro === f.id;
               return (
@@ -243,6 +300,7 @@ const AtletiScreenContent: React.FC = () => {
                 </button>
               );
             })}
+            </div>
           </div>
         </div>
       )}
@@ -292,6 +350,45 @@ const AtletiScreenContent: React.FC = () => {
           for (const t of mieiTempi) if (t.centesimi < migliorCent) migliorCent = t.centesimi;
           const migliorTempo = haTempi ? formattaTempo(migliorCent) : '—';
 
+          const presenza = presenzaOggi.get(a.id);
+          const acwr = acwrPerAtleta.get(a.id);
+          const acwrInfo = acwr ? acwrSemantica(acwr) : null;
+
+          if (compatto) {
+            return (
+              <Card
+                key={a.id}
+                onClick={() => setSelezionatoId(a.id)}
+                padding="sm"
+                className="flex items-center gap-2.5 !p-2"
+              >
+                <div className="w-8 h-8 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center font-headline-sm text-[12px] font-bold shrink-0">
+                  {a.nome?.[0] || 'A'}{a.cognome?.[0] || 'T'}
+                </div>
+                <div className="min-w-0 flex-1 flex items-center gap-1.5">
+                  <span className="font-headline-sm text-sm font-bold text-on-surface truncate" title={`${a.cognome} ${a.nome}`}>
+                    {a.cognome}
+                  </span>
+                  {classiBadges(a).slice(0, 2).map(b => (
+                    <Badge key={b.label} variant={b.variant} size="sm">{b.label}</Badge>
+                  ))}
+                  {presenza != null && (
+                    presenza
+                      ? <CircleCheck size={15} className="text-success shrink-0" aria-label="Presente oggi" />
+                      : <CircleX size={15} className="text-on-surface-variant shrink-0" aria-label="Assente oggi" />
+                  )}
+                  {acwrInfo && (
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${acwrInfo.dot}`} title={acwrInfo.label} aria-label={acwrInfo.label} />
+                  )}
+                </div>
+                <span className={`font-headline-sm text-sm font-bold tabular-nums shrink-0 ${haTempi ? 'text-primary' : 'text-on-surface-variant'}`}>
+                  {migliorTempo}
+                </span>
+                <ChevronRight size={16} className="text-on-surface-variant shrink-0" />
+              </Card>
+            );
+          }
+
           return (
             <Card
               key={a.id}
@@ -316,15 +413,15 @@ const AtletiScreenContent: React.FC = () => {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <h3 className="font-headline-sm text-[15px] text-on-surface font-bold truncate">
+                <div className="flex items-start gap-1.5">
+                  <h3 className="font-headline-sm text-[15px] text-on-surface font-bold break-words min-w-0">
                     {a.cognome} {a.nome}
                   </h3>
                   {a.stato === 'UFFICIALE' && (
-                    <BadgeCheck size={14} className="text-primary shrink-0" />
+                    <BadgeCheck size={14} className="text-primary shrink-0 mt-0.5" />
                   )}
                 </div>
-                <p className="font-label-caps text-[12px] text-on-surface-variant mt-0.5 truncate">
+                <p className="font-label-caps text-[12px] text-on-surface-variant mt-0.5">
                   {eta != null ? `${eta} anni · ` : ''}{a.stato === 'UFFICIALE' ? 'Squadra Nazionale' : 'In attesa di revisione'}
                 </p>
                 <div className="flex flex-wrap items-center gap-1 mt-1.5">
@@ -332,8 +429,19 @@ const AtletiScreenContent: React.FC = () => {
                     <Badge key={b.label} variant={b.variant} size="sm">{b.label}</Badge>
                   ))}
                   <Badge variant={a.stato === 'UFFICIALE' ? 'green' : 'neutral'} size="sm">
-                    {a.stato === 'UFFICIALE' ? 'Idoneo' : 'Review'}
+                    {a.stato === 'UFFICIALE' ? 'Idoneo' : 'In revisione'}
                   </Badge>
+                  {presenza != null && (
+                    presenza
+                      ? <CircleCheck size={15} className="text-success shrink-0" aria-label="Presente oggi" />
+                      : <CircleX size={15} className="text-on-surface-variant shrink-0" aria-label="Assente oggi" />
+                  )}
+                  {acwrInfo && (
+                    <span className="inline-flex items-center gap-1">
+                      <span className={`w-2 h-2 rounded-full ${acwrInfo.dot}`} aria-hidden />
+                      <span className="font-label-caps text-[12px] text-on-surface-variant uppercase">{acwrInfo.label}</span>
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">

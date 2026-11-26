@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AthleteStatus,
   VascaAthlete,
   VascaLane,
   VascaSession,
@@ -12,6 +11,7 @@ import {
   buildSummary,
 } from '../domain/cronometroVasca';
 import { Copy, Plus, Save, Trash2, X } from 'lucide-react';
+import { STATO_VASCA } from '../lib/semantica';
 
 const LONG_PRESS_MS = 450;
 
@@ -28,13 +28,7 @@ export interface TimerNodes {
   sub?: HTMLElement | null;
 }
 
-const STATUS_META: Record<AthleteStatus, { label: string; symbol: string; cls: string; bar: string }> = {
-  in_attesa:     { label: 'Attesa',     symbol: '○', cls: 'text-on-surface-variant',        bar: 'bg-outline-variant' },
-  in_nuoto:      { label: 'In nuoto',   symbol: '●', cls: 'text-secondary',                 bar: 'bg-secondary' },
-  in_ripartenza: { label: 'Recupero',   symbol: '◔', cls: 'text-primary',                   bar: 'bg-primary' },
-  in_ritardo:    { label: 'In ritardo', symbol: '▲', cls: 'text-warning',                   bar: 'bg-warning' },
-  fermo:         { label: 'Fermo',      symbol: '■', cls: 'text-on-surface-variant',        bar: 'bg-outline' },
-};
+const STATUS_META = STATO_VASCA;
 
 // ---------------------------------------------------------------------------
 // Tessera atleta
@@ -173,13 +167,13 @@ export const AthleteCard: React.FC<AthleteCardProps> = ({
             {a.cognome}
           </span>
           {canStop && !a.fermo && (
-            <span aria-hidden className="shrink-0 text-[10px] leading-none text-on-surface-variant/50 mt-0.5">■</span>
+            <span aria-hidden className="shrink-0 text-[12px] leading-none text-on-surface-variant/50 mt-0.5">■</span>
           )}
         </div>
         <div className="flex items-center gap-1 min-w-0">
           <span aria-hidden className={`text-[12px] leading-none shrink-0 ${meta.cls}`}>{meta.symbol}</span>
           {a.autoLate && (
-            <span className="text-warning text-[10px] leading-none shrink-0" title="Partenza automatica recuperata dopo sospensione" aria-label="partenza recuperata">↺</span>
+            <span className="text-warning text-[12px] leading-none shrink-0" title="Partenza automatica recuperata dopo sospensione" aria-label="partenza recuperata">↺</span>
           )}
           <span ref={registerNode(a.id, 'time')} className="font-stat-timer text-on-surface-variant tabular-nums leading-none" style={{ fontSize: 12 }}>
             —
@@ -199,7 +193,7 @@ export const AthleteCard: React.FC<AthleteCardProps> = ({
         <span className="flex items-center gap-1 min-w-0">
           <span aria-hidden className={`text-[12px] leading-none shrink-0 ${meta.cls}`}>{meta.symbol}</span>
           {a.autoLate && (
-            <span className="text-warning text-[10px] leading-none shrink-0" title="Partenza automatica recuperata dopo sospensione" aria-label="partenza recuperata">↺</span>
+            <span className="text-warning text-[12px] leading-none shrink-0" title="Partenza automatica recuperata dopo sospensione" aria-label="partenza recuperata">↺</span>
           )}
           <span className="font-semibold text-on-surface truncate" style={{ fontSize: 12 }}>
             {a.cognome}

@@ -3,9 +3,10 @@ import { useApp } from '../data/AppContext';
 import {
   CodiceAllenamentoKey,
   DAY_OF_WEEK_FULL_NAMES,
+  FASE_MESOCICLO_LABEL,
   ParametriSeduta,
-  TIPO_MICROCICLO_LABEL,
 } from '../types';
+import { microSemantica } from '../lib/semantica';
 import {
   formattaData,
   getDayOfWeek,
@@ -29,11 +30,14 @@ import {
   AlertTriangle,
   ArrowUpRight,
   Calendar,
+  ChevronDown,
   ClipboardList,
+  Flag,
   Gauge,
   RefreshCw,
   SlidersHorizontal,
   Sparkles,
+  Stethoscope,
   Timer,
   Trophy,
   Users,
@@ -257,7 +261,9 @@ const OggiContent: React.FC = () => {
   };
 
   const statusLabel = chiusuraOggi ? 'Impianto Chiuso' : garaOggi ? 'Gara Ufficiale' : isGiornoAllenamento ? 'Allenamento Odierno' : 'Giorno di Riposo';
-  const microLabel = microCorrente ? TIPO_MICROCICLO_LABEL[microCorrente.tipo] : 'Programmato';
+  const microInfo = microSemantica(microCorrente?.tipo);
+  const faseLabel = mesoCorrente ? FASE_MESOCICLO_LABEL[mesoCorrente.fase] : null;
+  const [attenzioniOpen, setAttenzioniOpen] = useState(true);
 
   // Promemoria backup: i dati sono solo locali (allowBackup=false), quindi
   // disinstallare l'app li cancella. Avviso se mai esportato o oltre la soglia.
@@ -280,6 +286,44 @@ const OggiContent: React.FC = () => {
       }),
     [condizioni, atleti]
   );
+
+  // Attenzioni ordinate per urgenza: medico > gara oggi > gara vicina > chiusura.
+  const attenzioni = useMemo(() => {
+    const lista: { id: string; priorita: number; icon: React.ReactNode; testo: string }[] = [];
+    for (const n of noteTecniche) {
+      lista.push({
+        id: `med-${n.id}`,
+        priorita: 0,
+        icon: <Stethoscope size={15} className="text-error shrink-0 mt-0.5" />,
+        testo: `${n.atleta.cognome} ${n.atleta.nome}: ${n.descrizione}`,
+      });
+    }
+    if (garaOggi) {
+      lista.push({
+        id: 'gara-oggi',
+        priorita: 1,
+        icon: <Flag size={15} className="text-tertiary shrink-0 mt-0.5" />,
+        testo: `Gara oggi: ${garaOggi.nome}${garaOggi.luogo ? ` · ${garaOggi.luogo}` : ''}`,
+      });
+    }
+    if (prossimaGara && !garaOggi && prossimaGara.diffDays <= 14) {
+      lista.push({
+        id: 'gara-vicina',
+        priorita: 2,
+        icon: <Flag size={15} className="text-tertiary shrink-0 mt-0.5" />,
+        testo: `Prossima gara tra ${prossimaGara.diffDays} gg: ${prossimaGara.nome}`,
+      });
+    }
+    if (chiusuraOggi) {
+      lista.push({
+        id: 'chiusura',
+        priorita: 3,
+        icon: <AlertTriangle size={15} className="text-warning shrink-0 mt-0.5" />,
+        testo: `Impianto chiuso oggi: ${chiusuraOggi.motivo ?? 'chiusura programmata'}`,
+      });
+    }
+    return lista.sort((a, b) => a.priorita - b.priorita);
+  }, [noteTecniche, garaOggi, prossimaGara, chiusuraOggi]);
 
   return (
     <div className="oggi-screen flex flex-col h-full min-h-0 gap-space-md overflow-y-auto px-0.5 pt-1 text-on-surface">
@@ -329,9 +373,14 @@ const OggiContent: React.FC = () => {
         <div className="absolute -left-10 -bottom-10 w-36 h-36 rounded-full bg-tertiary/10 blur-2xl pointer-events-none" />
 
         <div className="relative flex items-center justify-between gap-space-xs mb-space-xs">
-          <span className="px-2.5 py-1 rounded bg-secondary-container text-on-secondary-container font-label-caps uppercase tracking-wider">
-            {microLabel}
-          </span>
+          <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+            <span className={`ds-chip ${microInfo.chip}`}>
+              {microInfo.label}
+            </span>
+            {faseLabel && (
+              <span className="ds-chip ds-chip-neutral">{faseLabel}</span>
+            )}
+          </div>
           <span className="text-on-surface-variant font-label-caps uppercase truncate">
             {macroCorrente?.nome ?? 'Piano annuale'} · {parametriSeduta.durataMin} min
           </span>
@@ -354,7 +403,7 @@ const OggiContent: React.FC = () => {
           <div className="bg-surface-container-low rounded-lg p-2.5 flex flex-col justify-between min-w-0">
             <div className="flex items-center gap-1 text-on-surface-variant font-label-caps uppercase">
               <Timer size={14} className="text-secondary shrink-0" />
-              <span className="truncate">Carico sett.</span>
+              <span className="truncate">Volume sett.</span>
             </div>
             <div className="mt-1 font-headline-sm text-secondary font-bold truncate">
               {formattaMetri(volumeSvoltoSettimana)}<span className="text-on-surface-variant text-[12px] font-normal ml-0.5">m</span>
@@ -377,7 +426,7 @@ const OggiContent: React.FC = () => {
           className="relative w-full h-14 mt-space-sm rounded-xl bg-primary-container text-on-primary-container font-label-lg text-label-lg font-bold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform"
         >
           <Timer size={22} />
-          <span>Copia sul Cronometro Vasca</span>
+          <span>Vai in vasca</span>
         </button>
 
         <div className="relative grid grid-cols-2 gap-space-xs mt-space-xs">
@@ -399,6 +448,34 @@ const OggiContent: React.FC = () => {
           </button>
         </div>
       </section>
+
+      {/* Attenzioni del giorno, ordinate per urgenza */}
+      {attenzioni.length > 0 && (
+        <section className="ds-card p-space-sm">
+          <button
+            type="button"
+            onClick={() => setAttenzioniOpen(v => !v)}
+            aria-expanded={attenzioniOpen}
+            className="w-full flex items-center justify-between gap-2 text-left min-h-[44px]"
+          >
+            <span className="flex items-center gap-2 font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant">
+              <AlertTriangle size={15} className="text-warning" />
+              Attenzioni · {attenzioni.length}
+            </span>
+            <ChevronDown size={16} className={`text-on-surface-variant transition-transform ${attenzioniOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {attenzioniOpen && (
+            <ul className="flex flex-col gap-1.5 pt-1">
+              {attenzioni.map(a => (
+                <li key={a.id} className="flex items-start gap-2 text-body-sm text-on-surface">
+                  {a.icon}
+                  <span className="min-w-0">{a.testo}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       {/* Codici metabolici FINP */}
       <section className="flex flex-col gap-1.5">
@@ -468,7 +545,7 @@ const OggiContent: React.FC = () => {
         >
           <Gauge size={20} className="text-secondary mb-1" />
           <span className="font-headline-sm text-headline-sm">{formattaMetri(volumeSvoltoSettimana)}</span>
-          <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Carico Sett.</span>
+          <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Volume Sett.</span>
         </button>
 
         <button
@@ -513,7 +590,7 @@ const OggiContent: React.FC = () => {
           <button type="button" aria-label="Chiudi finestra" tabIndex={-1} onClick={() => setActivePopup(null)} className="absolute inset-0 cursor-default" />
           <div className="relative bg-surface-container-lowest rounded-2xl p-5 max-w-md w-full shadow-float border border-outline-variant space-y-4 text-on-surface animate-slide-up" role="dialog" aria-modal="true" aria-label="Dettaglio carico settimanale">
             <div className="flex items-center justify-between">
-              <h3 className="font-headline text-base font-bold">Dettaglio Carico Settimanale</h3>
+              <h3 className="font-headline text-base font-bold">Dettaglio Volume Settimanale</h3>
               <button type="button" onClick={() => setActivePopup(null)} className="w-11 h-11 rounded-full flex items-center justify-center hover:bg-surface-container">
                 <X size={18} />
               </button>
@@ -553,8 +630,8 @@ const OggiContent: React.FC = () => {
                 <p className="font-body-base text-on-surface-variant">Nessuna gara futura in programma.</p>
               )}
             </div>
-            <button type="button" onClick={() => { setActivePopup(null); vai('altro', 'fonti'); }} className="ds-btn-primary w-full py-3 rounded-xl justify-center">
-              Consulta Calendario Gare
+            <button type="button" onClick={() => { setActivePopup(null); vai('altro', 'piano'); }} className="ds-btn-primary w-full py-3 rounded-xl justify-center">
+              Vedi gare in Piano
             </button>
           </div>
         </div>

@@ -70,19 +70,19 @@ export default {
         'border-hairline':           'rgb(var(--color-border-hairline-rgb, 226 231 255) / <alpha-value>)',
 
         /* Semantic */
-        success:                     'var(--color-success)',
+        success:                     'rgb(var(--color-success-rgb) / <alpha-value>)',
         'on-success':                'var(--color-on-success)',
         'success-container':         'var(--color-success-container)',
         'on-success-container':      'var(--color-on-success-container)',
-        warning:                     'var(--color-warning)',
+        warning:                     'rgb(var(--color-warning-rgb) / <alpha-value>)',
         'on-warning':                'var(--color-on-warning)',
         'warning-container':         'var(--color-warning-container)',
         'on-warning-container':      'var(--color-on-warning-container)',
-        error:                       'var(--color-error)',
+        error:                       'rgb(var(--color-error-rgb) / <alpha-value>)',
         'on-error':                  'var(--color-on-error)',
         'error-container':           'var(--color-error-container)',
         'on-error-container':        'var(--color-on-error-container)',
-        info:                        'var(--color-info)',
+        info:                        'rgb(var(--color-info-rgb) / <alpha-value>)',
 
         /* Zone colors (swim training zones) */
         'zone-a1':                   'var(--color-zone-a1)',
@@ -96,9 +96,9 @@ export default {
         'zone-tec':                  'var(--color-zone-tec)',
 
         /* ACWR livelli semantici */
-        'acwr-ok':                   '#059669',
-        'acwr-attenzione':           '#d97706',
-        'acwr-critico':              '#dc2626',
+        'acwr-ok':                   'rgb(var(--color-acwr-ok-rgb) / <alpha-value>)',
+        'acwr-attenzione':           'rgb(var(--color-acwr-attenzione-rgb) / <alpha-value>)',
+        'acwr-critico':              'rgb(var(--color-acwr-critico-rgb) / <alpha-value>)',
 
         /* Outline */
         outline:                     'rgb(var(--color-outline-rgb, 148 163 184) / <alpha-value>)',
@@ -186,8 +186,8 @@ export default {
         'telemetry-sm': ['12px', { lineHeight: '16px', letterSpacing: '0.04em', fontWeight: '500' }],
         'label-lg':    ['14px', { lineHeight: '20px', letterSpacing: '0.04em', fontWeight: '600' }],
         'label-md':    ['12px', { lineHeight: '16px', letterSpacing: '0.05em', fontWeight: '600' }],
-        'label-sm':    ['10px', { lineHeight: '14px', letterSpacing: '0.08em', fontWeight: '700' }],
-        'label-caps':  ['11px', { lineHeight: '14px', fontWeight: '700', letterSpacing: '0.08em' }],
+        'label-sm':    ['12px', { lineHeight: '16px', letterSpacing: '0.06em', fontWeight: '600' }],
+        'label-caps':  ['12px', { lineHeight: '16px', fontWeight: '700', letterSpacing: '0.06em' }],
         'display-lg-mobile': ['28px', { lineHeight: '32px', letterSpacing: '-0.03em', fontWeight: '700' }],
         'stat-timer':  ['44px', { lineHeight: '48px', letterSpacing: '-0.04em', fontWeight: '700' }],
         'stat-timer-mobile': ['32px', { lineHeight: '36px', letterSpacing: '-0.03em', fontWeight: '700' }],

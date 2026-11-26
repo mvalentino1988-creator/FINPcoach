@@ -268,6 +268,18 @@ export const RegiaTecnicaCorsie: React.FC = () => {
           title={`Regia Tecnica · Vasca ${vascaMetri} m`}
           icon={<Sliders size={13} />}
           meta={`${formattaData(oggi)} · ${assegnati.size}/${presentiIds.length} assegnati`}
+          status={
+            <>
+              <span className="ds-chip ds-chip-neutral">
+                {assegnati.size}/{presentiIds.length} assegnati
+              </span>
+              {bloccata && (
+                <span className="ds-chip" style={{ backgroundColor: 'color-mix(in srgb, var(--color-status-live) 12%, transparent)', color: 'var(--color-status-live)', border: '1px solid color-mix(in srgb, var(--color-status-live) 30%, transparent)' }}>
+                  LIVE
+                </span>
+              )}
+            </>
+          }
           right={
             <button
               type="button"
