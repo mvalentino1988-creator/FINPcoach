@@ -44,3 +44,4 @@ qa-*.json
 *.tar
 !docs/qa/pixel/*.jpg
 
+docs/qa/grafica/START.txt
